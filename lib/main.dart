@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'package:crowleys_cloud/file_browser.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'thumbnail_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThumbnailService.instance.init();
   runApp(const CrowleysCloudApp());
 }
 
@@ -46,14 +50,47 @@ class _MainScreenState extends State<MainScreen> {
   bool _isGridView = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<FileBrowserState> _fileBrowserKey = GlobalKey<FileBrowserState>();
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounceTimer;
 
   FileCategory? _selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {});        // ← это заставит кнопку появляться/исчезать сразу
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(() {
+      setState(() {});
+    });
+    _searchController.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (_fileBrowserKey.currentState != null) {
+        _fileBrowserKey.currentState!.setSearchQuery(query);
+      } else {
+        // Если мы на главном экране категорий, можно просто обновить UI
+        setState(() {});
+      }
+    });
+  }
 
   void _onCategorySelected(FileCategory category) async {
     if (_selectedTabIndex != 0) return;
 
     final permissionGranted = await _requestPermission(category);
     if (permissionGranted) {
+      _searchController.clear();
       setState(() {
         _selectedCategory = category;
       });
@@ -61,9 +98,13 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _handleBack() {
-    if (_fileBrowserKey.currentState?.canNavigateBack() ?? false) {
-      _fileBrowserKey.currentState?.navigateBack();
+    final fileBrowserState = _fileBrowserKey.currentState;
+    if (fileBrowserState != null && fileBrowserState.isSelectionMode) {
+      fileBrowserState.clearSelection();
+    } else if (fileBrowserState?.canNavigateBack() ?? false) {
+      fileBrowserState?.navigateBack();
     } else {
+      _searchController.clear();
       setState(() {
         _selectedCategory = null;
       });
@@ -105,14 +146,16 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return PopScope(
         canPop: _selectedCategory == null,
-        onPopInvoked: (didPop) {
+        onPopInvokedWithResult: (didPop, result) {
           if (didPop) return;
           _handleBack();
         },
-        child: Scaffold(
-        key: _scaffoldKey,
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF333333),
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            key: _scaffoldKey,
+            appBar: AppBar(
+              backgroundColor: const Color(0xFF333333),
           surfaceTintColor: const Color(0xFF333333),
           elevation: 0,
           leading: _selectedCategory != null
@@ -136,16 +179,30 @@ class _MainScreenState extends State<MainScreen> {
               children: [
                 const Icon(Icons.search, color: Colors.white54),
                 const SizedBox(width: 8),
-                const Expanded(
+
+                Expanded(
                   child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
                     decoration: InputDecoration(
                       hintText: 'Search...',
                       hintStyle: TextStyle(color: Colors.white54),
                       border: InputBorder.none,
                     ),
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
+
+                // Кнопка очистки
+                if (_searchController.text.isNotEmpty)
+                  //const Icon(Icons.close, color: Colors.white38, size: 20),
+                  GestureDetector(
+                    onTap: () {
+                      _searchController.clear();
+                      _onSearchChanged('');
+                    },
+                    child: const Icon(Icons.close, color: Colors.white54, size: 20),
+                  ),
               ],
             ),
           ),
@@ -172,6 +229,7 @@ class _MainScreenState extends State<MainScreen> {
         drawer: _buildDrawer(),
         bottomNavigationBar: _buildBottomNavigationBar(),
       ),
+    ),
     );
   }
 
@@ -188,7 +246,8 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildCategoryView() {
-    final List<FileCategory> categories = const [
+    final query = _searchController.text.toLowerCase();
+    final List<FileCategory> allCategories = const [
       FileCategory('All files', Icons.folder),
       FileCategory('Photos', Icons.photo),
       FileCategory('Videos', Icons.videocam),
@@ -196,6 +255,8 @@ class _MainScreenState extends State<MainScreen> {
       FileCategory('Documents', Icons.description),
       FileCategory('Other', Icons.insert_drive_file),
     ];
+
+    final categories = allCategories.where((c) => c.name.toLowerCase().contains(query)).toList();
 
     if (_isGridView) {
       return GridView.count(
@@ -303,11 +364,12 @@ class _MainScreenState extends State<MainScreen> {
         onTap: () => setState(() {
           _selectedTabIndex = index;
           _selectedCategory = null;
+          _searchController.clear();
         }),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           color: isActive
-              ? const Color(0xFFfa5252).withOpacity(0.1)
+              ? const Color(0xFFfa5252).withValues(alpha: 0.1)
               : Colors.transparent,
           child: Column(
             mainAxisSize: MainAxisSize.min,
