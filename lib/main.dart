@@ -1,7 +1,17 @@
 import 'dart:async';
+
+import 'package:crowleys_cloud/active_server_manager.dart';
+import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/file_browser.dart';
+import 'package:crowleys_cloud/file_browser_controller.dart';
+import 'package:crowleys_cloud/secret_store.dart';
+import 'package:crowleys_cloud/server_setup_screen.dart';
+import 'package:crowleys_cloud/server_store.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 import 'thumbnail_service.dart';
 
 void main() async {
@@ -19,23 +29,17 @@ class CrowleysCloudApp extends StatelessWidget {
       title: 'Crowley\'s Cloud',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF222222),
-        primaryColor: const Color(0xFFfa5252),
+        scaffoldBackgroundColor: appBackground,
+        primaryColor: appAccent,
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFfa5252),
-          secondary: Color(0xFFfa5252),
-          surface: Color(0xFF333333),
+          primary: appAccent,
+          secondary: appAccent,
+          surface: appSurface,
         ),
       ),
       home: const MainScreen(),
     );
   }
-}
-
-class FileCategory {
-  final String name;
-  final IconData icon;
-  const FileCategory(this.name, this.icon);
 }
 
 class MainScreen extends StatefulWidget {
@@ -46,67 +50,227 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  static const _allCategories = <FileCategory>[
+    FileCategory('All files', Icons.folder),
+    FileCategory('Photos', Icons.photo),
+    FileCategory('Videos', Icons.videocam),
+    FileCategory('Audio', Icons.audiotrack),
+    FileCategory('Documents', Icons.description),
+    FileCategory('Other', Icons.insert_drive_file),
+  ];
+
   int _selectedTabIndex = 0;
   bool _isGridView = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GlobalKey<FileBrowserState> _fileBrowserKey = GlobalKey<FileBrowserState>();
   final TextEditingController _searchController = TextEditingController();
-  Timer? _debounceTimer;
+  late final VoidCallback _searchTextListener;
+  late final ActiveServerManager _serverManager;
 
   FileCategory? _selectedCategory;
+  FileBrowserController? _currentController;
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
-      setState(() {});        // ← это заставит кнопку появляться/исчезать сразу
-    });
+    _serverManager = ActiveServerManager(
+      store: ServerStore(),
+      authService: AuthService(
+        secretStore: FlutterSecureSecretStore(
+          storage: const FlutterSecureStorage(),
+        ),
+      ),
+    );
+    _searchTextListener = () => setState(() {});
+    _searchController.addListener(_searchTextListener);
+    unawaited(_initializeServers());
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(() {
-      setState(() {});
-    });
+    _searchController.removeListener(_searchTextListener);
     _searchController.dispose();
-    _debounceTimer?.cancel();
+    _currentController?.disposeController();
+    _currentController?.dispose();
+    _serverManager.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged(String query) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (_fileBrowserKey.currentState != null) {
-        _fileBrowserKey.currentState!.setSearchQuery(query);
-      } else {
-        // Если мы на главном экране категорий, можно просто обновить UI
-        setState(() {});
-      }
-    });
+  Future<void> _initializeServers() async {
+    await _serverManager.initialize();
+    if (!mounted) return;
+    setState(() {});
   }
 
-  void _onCategorySelected(FileCategory category) async {
+  Future<void> _openAddServerFlow() async {
+    final setupResult = await Navigator.of(context).push<ServerSetupResult>(
+      MaterialPageRoute(builder: (_) => const ServerSetupScreen()),
+    );
+    if (setupResult == null) return;
+
+    try {
+      await _serverManager.authService.authenticate(
+        serverId: setupResult.profile.id,
+        baseUrl: setupResult.profile.baseUrl,
+        username: setupResult.username,
+        password: setupResult.password,
+        mode: setupResult.authMode,
+      );
+      await _serverManager.addServer(setupResult.profile);
+      await _serverManager.markAuthed(setupResult.profile.id);
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Authentication failed: ${e.message}')),
+      );
+      return;
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Authentication failed. Please try again.')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _switchServer(String serverId) async {
+    await _serverManager.switchActive(serverId);
+    _searchController.clear();
+    _currentController?.disposeController();
+    _currentController?.dispose();
+    _currentController = null;
+    _selectedCategory = null;
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _authenticateActiveServer() async {
+    final active = _serverManager.activeServer;
+    if (active == null) return;
+
+    final usernameController = TextEditingController();
+    final passwordController = TextEditingController();
+    var mode = AuthMode.register;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AlertDialog(
+              title: Text('Authenticate ${active.displayName}'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SegmentedButton<AuthMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: AuthMode.register,
+                        label: Text('Register'),
+                      ),
+                      ButtonSegment(
+                        value: AuthMode.login,
+                        label: Text('Login'),
+                      ),
+                    ],
+                    selected: {mode},
+                    onSelectionChanged: (selection) {
+                      setLocalState(() {
+                        mode = selection.first;
+                      });
+                    },
+                  ),
+                  TextField(
+                    controller: usernameController,
+                    decoration: const InputDecoration(labelText: 'Username'),
+                  ),
+                  TextField(
+                    controller: passwordController,
+                    decoration: const InputDecoration(labelText: 'Password'),
+                    obscureText: true,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Authenticate'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+    final username = usernameController.text.trim();
+    final password = passwordController.text;
+    if (username.isEmpty || password.isEmpty) return;
+
+    try {
+      await _serverManager.authService.authenticate(
+        serverId: active.id,
+        baseUrl: active.baseUrl,
+        username: username,
+        password: password,
+        mode: mode,
+      );
+      await _serverManager.markAuthed(active.id);
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Authentication failed: ${e.message}')),
+      );
+      return;
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Authentication failed. Please try again.')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _onSearchChanged(String query) {
+    _currentController?.setSearchQueryDebounced(query);
+  }
+
+  Future<void> _onCategorySelected(FileCategory category) async {
     if (_selectedTabIndex != 0) return;
 
     final permissionGranted = await _requestPermission(category);
     if (permissionGranted) {
       _searchController.clear();
+      _currentController?.disposeController();
+      _currentController?.dispose();
+      final controller = FileBrowserController(category: category);
       setState(() {
         _selectedCategory = category;
+        _currentController = controller;
       });
     }
   }
 
-  void _handleBack() {
-    final fileBrowserState = _fileBrowserKey.currentState;
-    if (fileBrowserState != null && fileBrowserState.isSelectionMode) {
-      fileBrowserState.clearSelection();
-    } else if (fileBrowserState?.canNavigateBack() ?? false) {
-      fileBrowserState?.navigateBack();
+  Future<void> _handleBack() async {
+    if (_currentController != null && _currentController!.isSelectionMode) {
+      _currentController!.clearSelection();
+    } else if (_currentController?.canNavigateBack ?? false) {
+      await _currentController!.navigateBack();
     } else {
       _searchController.clear();
+      _currentController?.disposeController();
+      _currentController?.dispose();
       setState(() {
         _selectedCategory = null;
+        _currentController = null;
       });
     }
   }
@@ -144,249 +308,249 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-        canPop: _selectedCategory == null,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          _handleBack();
-        },
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Scaffold(
-            key: _scaffoldKey,
-            appBar: AppBar(
-              backgroundColor: const Color(0xFF333333),
-          surfaceTintColor: const Color(0xFF333333),
-          elevation: 0,
-          leading: _selectedCategory != null
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: _handleBack,
-                )
-              : IconButton(
-                  iconSize: 28,
-                  icon: const Icon(Icons.menu, color: Colors.white),
-                  onPressed: () => _scaffoldKey.currentState!.openDrawer(),
-                ),
-          title: Container(
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF222222),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
+    if (!_serverManager.isReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_serverManager.requiresSetup) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Crowley\'s Cloud setup'),
+          backgroundColor: appSurface,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.search, color: Colors.white54),
-                const SizedBox(width: 8),
-
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: _onSearchChanged,
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      hintStyle: TextStyle(color: Colors.white54),
-                      border: InputBorder.none,
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
+                const Text(
+                  'No servers configured yet.',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
-
-                // Кнопка очистки
-                if (_searchController.text.isNotEmpty)
-                  //const Icon(Icons.close, color: Colors.white38, size: 20),
-                  GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      _onSearchChanged('');
-                    },
-                    child: const Icon(Icons.close, color: Colors.white54, size: 20),
-                  ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Add your first server to continue.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: _openAddServerFlow,
+                  child: const Text('Add server'),
+                ),
               ],
             ),
           ),
-          actions: [
-            IconButton(
-              icon: Icon(
-                _isGridView ? Icons.grid_view : Icons.list,
-                color: const Color(0xFFfa5252),
-              ),
-              onPressed: () {
-                setState(() {
-                  _isGridView = !_isGridView;
-                });
-              },
-            ),
-            IconButton(
-              iconSize: 28,
-              icon: const Icon(Icons.account_circle, color: Colors.white),
-              onPressed: () {},
-            ),
-          ],
         ),
-        body: _buildBody(),
-        drawer: _buildDrawer(),
-        bottomNavigationBar: _buildBottomNavigationBar(),
-      ),
-    ),
-    );
-  }
-
-  Widget _buildBody() {
-    if (_selectedCategory == null) {
-      return _buildCategoryView();
-    } else {
-      return FileBrowser(
-        key: _fileBrowserKey,
-        category: _selectedCategory!,
-        isGridView: _isGridView,
       );
     }
-  }
 
-  Widget _buildCategoryView() {
-    final query = _searchController.text.toLowerCase();
-    final List<FileCategory> allCategories = const [
-      FileCategory('All files', Icons.folder),
-      FileCategory('Photos', Icons.photo),
-      FileCategory('Videos', Icons.videocam),
-      FileCategory('Audio', Icons.audiotrack),
-      FileCategory('Documents', Icons.description),
-      FileCategory('Other', Icons.insert_drive_file),
-    ];
-
-    final categories = allCategories.where((c) => c.name.toLowerCase().contains(query)).toList();
-
-    if (_isGridView) {
-      return GridView.count(
-        padding: const EdgeInsets.all(16),
-        crossAxisCount: 2,
-        childAspectRatio: 1.2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        children: categories.map((c) => _buildCategoryItem(c)).toList(),
-      );
-    } else {
-      return ListView(
-        padding: const EdgeInsets.all(16),
-        children: categories.map((c) => _buildCategoryListItem(c)).toList(),
-      );
-    }
-  }
-
-  Widget _buildCategoryItem(FileCategory category) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF333333),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => _onCategorySelected(category),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(category.icon, color: const Color(0xFFfa5252), size: 42),
-            const SizedBox(height: 8),
-            Text(category.name, style: const TextStyle(color: Colors.white70)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryListItem(FileCategory category) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: ListTile(
-        leading: Icon(category.icon, color: const Color(0xFFfa5252)),
-        title: Text(category.name, style: const TextStyle(color: Colors.white70)),
-        tileColor: const Color(0xFF333333),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        onTap: () => _onCategorySelected(category),
-      ),
-    );
-  }
-
-  Drawer _buildDrawer() {
-    return Drawer(
-      backgroundColor: const Color(0xFF333333),
-      child: Column(
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: Color(0xFFfa5252)),
-            child: const Align(
-              alignment: Alignment.bottomLeft,
-              child: Text(
-                'Crowley\'s Cloud',
-                style: TextStyle(fontSize: 20, color: Colors.white),
-              ),
-            ),
+    if (_serverManager.requiresAuth) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Authenticate: ${_serverManager.activeServer!.displayName}',
           ),
-          _buildDrawerItem(Icons.access_time, 'Recent'),
-          _buildDrawerItem(Icons.group, 'Shared with you'),
-          _buildDrawerItem(Icons.upload_file, 'Shared by you'),
-          _buildDrawerItem(Icons.delete, 'Trash'),
-          const Spacer(),
-          _buildDrawerItem(Icons.settings, 'Settings'),
-        ],
-      ),
-    );
-  }
+          backgroundColor: appSurface,
+        ),
+        body: Center(
+          child: FilledButton(
+            onPressed: _authenticateActiveServer,
+            child: const Text('Authenticate server'),
+          ),
+        ),
+      );
+    }
 
-  Widget _buildDrawerItem(IconData icon, String title) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      onTap: () {},
-      tileColor: Colors.transparent,
-    );
-  }
-
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      color: const Color(0xFF333333),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildBottomTab(0, Icons.folder, 'Local'),
-          _buildBottomTab(1, Icons.cloud, 'Cloud'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomTab(int index, IconData icon, String label) {
-    final isActive = _selectedTabIndex == index;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() {
-          _selectedTabIndex = index;
-          _selectedCategory = null;
-          _searchController.clear();
-        }),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          color: isActive
-              ? const Color(0xFFfa5252).withValues(alpha: 0.1)
-              : Colors.transparent,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: isActive ? const Color(0xFFfa5252) : Colors.white70),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isActive ? const Color(0xFFfa5252) : Colors.white70,
-                  fontSize: 12,
-                ),
+    return PopScope(
+      canPop: _selectedCategory == null,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _handleBack();
+      },
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Scaffold(
+          key: _scaffoldKey,
+          appBar: AppBar(
+            backgroundColor: appSurface,
+            surfaceTintColor: appSurface,
+            elevation: 0,
+            leading: _selectedCategory != null
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: _handleBack,
+                  )
+                : IconButton(
+                    iconSize: 28,
+                    icon: const Icon(Icons.menu, color: Colors.white),
+                    onPressed: () => _scaffoldKey.currentState!.openDrawer(),
+                  ),
+            title: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: appBackground,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, color: Colors.white54),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: _onSearchChanged,
+                      decoration: const InputDecoration(
+                        hintText: 'Search...',
+                        hintStyle: TextStyle(color: Colors.white54),
+                        border: InputBorder.none,
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  if (_searchController.text.isNotEmpty)
+                    GestureDetector(
+                      onTap: () {
+                        _searchController.clear();
+                        _onSearchChanged('');
+                      },
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white54,
+                        size: 20,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+                onPressed: () => setState(() => _isGridView = !_isGridView),
               ),
             ],
           ),
+          drawer: Drawer(
+            backgroundColor: appSurface,
+            child: SafeArea(
+              child: ListView(
+                children: [
+                  ListTile(
+                    title: Text(
+                      'Crowley\'s Cloud',
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    subtitle: Text(
+                      'Active: ${_serverManager.activeServer?.displayName ?? '-'}',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                  const Divider(color: Colors.white24),
+                  ..._serverManager.servers.map(
+                    (server) => ListTile(
+                      leading: const Icon(Icons.dns, color: Colors.white70),
+                      title: Text(
+                        server.displayName,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        server.baseUrl,
+                        style: const TextStyle(color: Colors.white54),
+                      ),
+                      selected: _serverManager.activeServer?.id == server.id,
+                      onTap: () async {
+                        await _switchServer(server.id);
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                      },
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.white70),
+                        onPressed: () async {
+                          await _serverManager.removeServer(server.id);
+                          if (!context.mounted) return;
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.add, color: Colors.white70),
+                    title: const Text(
+                      'Add server',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await _openAddServerFlow();
+                    },
+                  ),
+                  const Divider(color: Colors.white24),
+                  ListTile(
+                    leading: const Icon(Icons.folder, color: Colors.white70),
+                    title: const Text(
+                      'Files',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    selected: _selectedTabIndex == 0,
+                    onTap: () {
+                      setState(() {
+                        _selectedTabIndex = 0;
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          body: _selectedCategory == null
+              ? _buildCategoryGrid()
+              : FileBrowser(
+                  category: _selectedCategory!,
+                  isGridView: _isGridView,
+                  controller: _currentController,
+                ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCategoryGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _allCategories.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1,
+      ),
+      itemBuilder: (context, index) {
+        final category = _allCategories[index];
+        return InkWell(
+          onTap: () => _onCategorySelected(category),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: appSurface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(category.icon, color: Colors.white70, size: 40),
+                const SizedBox(height: 12),
+                Text(
+                  category.name,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

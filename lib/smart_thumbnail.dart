@@ -1,11 +1,9 @@
 import 'dart:typed_data';
+import 'package:crowleys_cloud/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'file_item.dart';
 import 'thumbnail_service.dart';
 import 'package:photo_manager/photo_manager.dart';
-
-// ── Типы файлов → иконка + цвет ─────────────────────────────────
-const _kAccent = Color(0xFFfa5252);
 
 class _FileType {
   final IconData icon;
@@ -15,15 +13,19 @@ class _FileType {
 
 _FileType _fileTypeOf(String ext) {
   return switch (ext) {
-    'pdf'                                         => _FileType(Icons.picture_as_pdf,      _kAccent),
-    'doc' || 'docx'                               => _FileType(Icons.description,          _kAccent),
-    'xls' || 'xlsx'                               => _FileType(Icons.table_chart,          _kAccent),
-    'ppt' || 'pptx'                               => _FileType(Icons.slideshow,            _kAccent),
-    'zip' || 'rar' || '7z' || 'tar'               => _FileType(Icons.folder_zip,           _kAccent),
-    'apk'                                         => _FileType(Icons.android,              _kAccent),
-    'mp3' || 'flac' || 'aac' || 'wav' || 'm4a'   => _FileType(Icons.audio_file,           _kAccent),
-    'txt' || 'md'                                 => _FileType(Icons.text_snippet,         _kAccent),
-    _                                             => _FileType(Icons.insert_drive_file,    _kAccent),
+    'pdf' => _FileType(Icons.picture_as_pdf, appAccent),
+    'doc' || 'docx' => _FileType(Icons.description, appAccent),
+    'xls' || 'xlsx' => _FileType(Icons.table_chart, appAccent),
+    'ppt' || 'pptx' => _FileType(Icons.slideshow, appAccent),
+    'zip' || 'rar' || '7z' || 'tar' => _FileType(Icons.folder_zip, appAccent),
+    'apk' => _FileType(Icons.android, appAccent),
+    'mp3' ||
+    'flac' ||
+    'aac' ||
+    'wav' ||
+    'm4a' => _FileType(Icons.audio_file, appAccent),
+    'txt' || 'md' => _FileType(Icons.text_snippet, appAccent),
+    _ => _FileType(Icons.insert_drive_file, appAccent),
   };
 }
 
@@ -33,34 +35,22 @@ class SmartThumbnail extends StatelessWidget {
   final FileItem item;
   final bool isList;
 
-  const SmartThumbnail({
-    super.key,
-    required this.item,
-    this.isList = false,
-  });
-
-  static const _imageExts = {
-    '.jpg', '.jpeg', '.png', '.webp',
-    '.gif', '.bmp', '.heic', '.heif', '.avif',
-  };
-  static const _videoExts = {
-    '.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv',
-  };
+  const SmartThumbnail({super.key, required this.item, this.isList = false});
 
   @override
   Widget build(BuildContext context) {
     final size = isList ? 50.0 : 120.0;
-    final dpr  = MediaQuery.devicePixelRatioOf(context);
+    final dpr = MediaQuery.devicePixelRatioOf(context);
 
     // Папка
     if (item.isDirectory) {
-      return Icon(Icons.folder, color: _kAccent, size: size);
+      return Icon(Icons.folder, color: appAccent, size: size);
     }
 
     // AssetEntity (Photos / Videos / Audio) — всегда медиа, грузим напрямую
     if (item.isAsset) {
       if (item.asset!.type == AssetType.audio) {
-        return Icon(Icons.audio_file, color: _kAccent, size: size);
+        return Icon(Icons.audio_file, color: appAccent, size: size);
       }
       return _AssetThumbnail(
         key: ValueKey(item.pathSync),
@@ -74,8 +64,9 @@ class SmartThumbnail extends StatelessWidget {
     final ext = item.type; // уже lowercase с точкой, напр. ".jpg"
     final lower = item.pathSync.toLowerCase();
 
-    final isMedia = _imageExts.any(lower.endsWith) ||
-        _videoExts.any(lower.endsWith);
+    final isMedia =
+        photoExtensions.any(lower.endsWith) ||
+        videoExtensions.any(lower.endsWith);
 
     if (isMedia) {
       return _FsThumbnail(
@@ -126,10 +117,8 @@ class _AssetThumbnailState extends State<_AssetThumbnail> {
   }
 
   @override
-  Widget build(BuildContext context) => _ThumbnailFuture(
-    future: _future,
-    size: widget.size,
-  );
+  Widget build(BuildContext context) =>
+      _ThumbnailFuture(future: _future, size: widget.size);
 }
 
 // ── Миниатюра для File на диске (через ThumbnailService) ─────────
@@ -157,17 +146,12 @@ class _FsThumbnailState extends State<_FsThumbnail> {
   void initState() {
     super.initState();
     final px = (widget.size * widget.dpr).toInt();
-    _future = ThumbnailService.instance.getFsThumbnail(
-      widget.item,
-      size: px,
-    );
+    _future = ThumbnailService.instance.getFsThumbnail(widget.item, size: px);
   }
 
   @override
-  Widget build(BuildContext context) => _ThumbnailFuture(
-    future: _future,
-    size: widget.size,
-  );
+  Widget build(BuildContext context) =>
+      _ThumbnailFuture(future: _future, size: widget.size);
 }
 
 // ── Общий FutureBuilder для обоих типов ──────────────────────────
@@ -234,7 +218,9 @@ class _Placeholder extends StatelessWidget {
         color: Colors.grey[850],
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Center(child: Icon(icon, color: color, size: size / 2.5)),
+      child: Center(
+        child: Icon(icon, color: color, size: size / 2.5),
+      ),
     );
   }
 }
