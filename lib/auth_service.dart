@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:http/http.dart' as http;
@@ -42,10 +44,10 @@ class HttpAuthGateway implements AuthGateway {
     required String username,
     required String password,
   }) {
-    return _postAuth(
-      _endpoint(baseUrl, '/api/login'),
-      {'username': username, 'password': password},
-    );
+    return _postAuth(_endpoint(baseUrl, '/api/login'), {
+      'username': username,
+      'password': password,
+    });
   }
 
   @override
@@ -54,10 +56,10 @@ class HttpAuthGateway implements AuthGateway {
     required String username,
     required String password,
   }) {
-    return _postAuth(
-      _endpoint(baseUrl, '/api/register'),
-      {'username': username, 'password': password},
-    );
+    return _postAuth(_endpoint(baseUrl, '/api/register'), {
+      'username': username,
+      'password': password,
+    });
   }
 
   @override
@@ -65,10 +67,9 @@ class HttpAuthGateway implements AuthGateway {
     required String baseUrl,
     required String refreshToken,
   }) {
-    return _postAuth(
-      _endpoint(baseUrl, '/api/refresh'),
-      {'refresh_token': refreshToken},
-    );
+    return _postAuth(_endpoint(baseUrl, '/api/refresh'), {
+      'refresh_token': refreshToken,
+    });
   }
 
   Future<AuthResult> _postAuth(Uri uri, Map<String, Object?> payload) async {
@@ -128,12 +129,32 @@ class AuthException implements Exception {
   String toString() => 'AuthException($message)';
 }
 
+enum SessionCheckStatus {
+  authorized,
+  noSession,
+  unauthorized,
+  unreachable,
+  serverError,
+}
+
+class SessionCheckResult {
+  const SessionCheckResult(this.status, {this.message});
+
+  final SessionCheckStatus status;
+  final String? message;
+}
+
 class AuthService {
-  AuthService({required this.secretStore, AuthGateway? gateway})
-    : gateway = gateway ?? HttpAuthGateway();
+  AuthService({
+    required this.secretStore,
+    AuthGateway? gateway,
+    http.Client? client,
+  }) : gateway = gateway ?? HttpAuthGateway(),
+       _client = client ?? http.Client();
 
   final SecretStore secretStore;
   final AuthGateway gateway;
+  final http.Client _client;
 
   Future<void> authenticate({
     required String serverId,
@@ -170,6 +191,55 @@ class AuthService {
     return secretStore.readToken(serverId);
   }
 
+  Future<SessionCheckResult> checkSession({
+    required String serverId,
+    required String baseUrl,
+  }) async {
+    final token = await readAccessToken(serverId);
+    if (token == null || token.isEmpty) {
+      return const SessionCheckResult(SessionCheckStatus.noSession);
+    }
+
+    final uri = _endpoint(baseUrl, '/api/dir').replace(
+      queryParameters: {'scope': 'private', 'path': ''},
+    );
+    try {
+      final response = await _client
+          .get(uri, headers: {'authorization': 'Bearer $token'})
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return const SessionCheckResult(SessionCheckStatus.authorized);
+      }
+      if (response.statusCode == 401) {
+        return const SessionCheckResult(SessionCheckStatus.unauthorized);
+      }
+      return SessionCheckResult(
+        SessionCheckStatus.serverError,
+        message: 'Server responded with HTTP ${response.statusCode}.',
+      );
+    } on SocketException {
+      return const SessionCheckResult(
+        SessionCheckStatus.unreachable,
+        message: 'Server is unreachable.',
+      );
+    } on http.ClientException {
+      return const SessionCheckResult(
+        SessionCheckStatus.unreachable,
+        message: 'Unable to reach the server.',
+      );
+    } on TimeoutException {
+      return const SessionCheckResult(
+        SessionCheckStatus.unreachable,
+        message: 'Connection timed out.',
+      );
+    } catch (_) {
+      return const SessionCheckResult(
+        SessionCheckStatus.unreachable,
+        message: 'Connection check failed.',
+      );
+    }
+  }
+
   Future<void> refreshSession({
     required String serverId,
     required String baseUrl,
@@ -192,5 +262,17 @@ class AuthService {
 
   Future<void> logout(String serverId) {
     return secretStore.clearToken(serverId);
+  }
+
+  Uri _endpoint(String baseUrl, String path) {
+    final raw = baseUrl.trim();
+    final withScheme = raw.contains('://') ? raw : 'http://$raw';
+    final base = Uri.parse(withScheme);
+    final basePath = base.path.isEmpty
+        ? '/'
+        : (base.path.endsWith('/') ? base.path : '${base.path}/');
+    final normalizedBase = base.replace(path: basePath);
+    final relativePath = path.startsWith('/') ? path.substring(1) : path;
+    return normalizedBase.resolve(relativePath);
   }
 }

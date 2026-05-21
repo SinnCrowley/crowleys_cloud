@@ -9,11 +9,13 @@ import 'package:share_plus/share_plus.dart';
 class ImageViewer extends StatefulWidget {
   final List<FileItem> imageItems;
   final int initialIndex;
+  final Future<void> Function(FileItem item)? onUploadItem;
 
   const ImageViewer({
     super.key,
     required this.imageItems,
     required this.initialIndex,
+    this.onUploadItem,
   });
 
   @override
@@ -148,6 +150,12 @@ class _ImageViewerState extends State<ImageViewer>
     }
   }
 
+  Future<void> _uploadCurrentFile() async {
+    final callback = widget.onUploadItem;
+    if (callback == null) return;
+    await callback(widget.imageItems[_currentIndex]);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -261,7 +269,7 @@ class _ImageViewerState extends State<ImageViewer>
                       _ActionButton(
                         icon: Icons.upload,
                         label: 'Upload',
-                        onPressed: () {},
+                        onPressed: _uploadCurrentFile,
                       ),
                       _ActionButton(
                         icon: Icons.delete,

@@ -12,12 +12,14 @@ class FileBrowser extends StatefulWidget {
   final FileCategory category;
   final bool isGridView;
   final FileBrowserController? controller;
+  final Future<void> Function(List<FileItem> items)? onUploadItems;
 
   const FileBrowser({
     super.key,
     required this.category,
     required this.isGridView,
     this.controller,
+    this.onUploadItems,
   });
 
   @override
@@ -70,6 +72,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
           builder: (context) => ImageViewer(
             imageItems: imageItems,
             initialIndex: initialIndex >= 0 ? initialIndex : 0,
+            onUploadItem: (uploadItem) => _uploadItems([uploadItem]),
           ),
         ),
       );
@@ -119,6 +122,12 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     }
   }
 
+  Future<void> _uploadItems(List<FileItem> items) async {
+    final callback = widget.onUploadItems;
+    if (callback == null) return;
+    await callback(items);
+  }
+
   void _showContextMenu(BuildContext context, FileItem item) {
     showModalBottomSheet(
       context: context,
@@ -128,7 +137,10 @@ class _FileBrowserScreenState extends State<FileBrowser> {
           ListTile(
             leading: const Icon(Icons.upload, color: Colors.white70),
             title: const Text('Upload', style: TextStyle(color: Colors.white)),
-            onTap: () => Navigator.pop(context),
+            onTap: () async {
+              Navigator.pop(context);
+              await _uploadItems([item]);
+            },
           ),
           ListTile(
             leading: const Icon(Icons.delete, color: Colors.white70),
@@ -176,6 +188,8 @@ class _FileBrowserScreenState extends State<FileBrowser> {
             ),
             if (_controller.isSelectionMode)
               _SelectionActionBar(
+                onUpload: () =>
+                    _uploadItems(_controller.selectedFiles.toList()),
                 onDelete: _deleteSelectedFiles,
                 onShare: _controller.shareSelectedFiles,
               ),
@@ -478,10 +492,15 @@ class _ListItem extends StatelessWidget {
 }
 
 class _SelectionActionBar extends StatelessWidget {
+  final Future<void> Function() onUpload;
   final Future<void> Function() onDelete;
   final Future<void> Function() onShare;
 
-  const _SelectionActionBar({required this.onDelete, required this.onShare});
+  const _SelectionActionBar({
+    required this.onUpload,
+    required this.onDelete,
+    required this.onShare,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -501,7 +520,7 @@ class _SelectionActionBar extends StatelessWidget {
                   'Upload',
                   style: TextStyle(color: Colors.white),
                 ),
-                onPressed: () {},
+                onPressed: onUpload,
               ),
             ),
             Expanded(

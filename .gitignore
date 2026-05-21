@@ -51,3 +51,5 @@ AGENTS.md
 /server/*.md
 /server/data/
 /server/build/
+/server/storage/
+/server/uploads/

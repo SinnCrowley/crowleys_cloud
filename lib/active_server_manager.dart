@@ -14,6 +14,7 @@ class ActiveServerManager extends ChangeNotifier {
   bool isReady = false;
   bool requiresSetup = true;
   bool requiresAuth = false;
+  String? connectionErrorMessage;
 
   Future<void> initialize() async {
     final snapshot = await store.load();
@@ -29,7 +30,7 @@ class ActiveServerManager extends ChangeNotifier {
 
     requiresSetup = false;
     activeServer = _pickActive(servers, snapshot.activeServerId);
-    requiresAuth = !(await authService.hasSession(activeServer!.id));
+    await _refreshAuthAndConnectionState(activeServer!);
     isReady = true;
     notifyListeners();
   }
@@ -39,6 +40,7 @@ class ActiveServerManager extends ChangeNotifier {
     activeServer = profile;
     requiresSetup = false;
     requiresAuth = false;
+    connectionErrorMessage = null;
     await _persist();
     notifyListeners();
   }
@@ -51,7 +53,7 @@ class ActiveServerManager extends ChangeNotifier {
     servers = servers
         .map((s) => s.id == next.id ? activeServer! : s)
         .toList(growable: false);
-    requiresAuth = !(await authService.hasSession(next.id));
+    await _refreshAuthAndConnectionState(activeServer!);
     await _persist();
     notifyListeners();
   }
@@ -71,7 +73,7 @@ class ActiveServerManager extends ChangeNotifier {
 
     if (activeServer?.id == serverId) {
       activeServer = _pickMostRecent(servers);
-      requiresAuth = !(await authService.hasSession(activeServer!.id));
+      await _refreshAuthAndConnectionState(activeServer!);
     }
     await _persist();
     notifyListeners();
@@ -79,8 +81,35 @@ class ActiveServerManager extends ChangeNotifier {
 
   Future<void> markAuthed(String serverId) async {
     if (activeServer?.id == serverId) {
-      requiresAuth = false;
+      await _refreshAuthAndConnectionState(activeServer!);
       notifyListeners();
+    }
+  }
+
+  Future<void> _refreshAuthAndConnectionState(ServerProfile profile) async {
+    connectionErrorMessage = null;
+    final hasSession = await authService.hasSession(profile.id);
+    requiresAuth = !hasSession;
+    if (!hasSession) return;
+
+    final check = await authService.checkSession(
+      serverId: profile.id,
+      baseUrl: profile.baseUrl,
+    );
+    switch (check.status) {
+      case SessionCheckStatus.authorized:
+        requiresAuth = false;
+        break;
+      case SessionCheckStatus.noSession:
+      case SessionCheckStatus.unauthorized:
+        requiresAuth = true;
+        break;
+      case SessionCheckStatus.unreachable:
+      case SessionCheckStatus.serverError:
+        requiresAuth = false;
+        connectionErrorMessage =
+            check.message ?? 'Unable to connect to the active server.';
+        break;
     }
   }
 

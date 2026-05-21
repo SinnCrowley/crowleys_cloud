@@ -1,0 +1,15 @@
+{
+  "host": "0.0.0.0",
+  "port": 8080,
+  "storage_root": "./storage",
+  "jwt_secret": "change-this-secret",
+  "upload_limit_bytes": 10737418240,
+  "rate_limit_per_minute": 10,
+  "access_token_ttl_seconds": 86400,
+  "refresh_token_ttl_seconds": 7776000,
+  "log_dir": "./logs",
+  "log_level": "INFO",
+  "access_log_enabled": true,
+  "video_thumbs_enabled": true,
+  "ffmpeg_binary": "ffmpeg"
+}

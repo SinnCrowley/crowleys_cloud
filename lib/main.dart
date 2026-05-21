@@ -1,15 +1,21 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/file_browser.dart';
 import 'package:crowleys_cloud/file_browser_controller.dart';
+import 'package:crowleys_cloud/file_item.dart';
+import 'package:crowleys_cloud/server_browser_controller.dart';
+import 'package:crowleys_cloud/server_file_browser.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_setup_screen.dart';
 import 'package:crowleys_cloud/server_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 
 import 'thumbnail_service.dart';
@@ -59,15 +65,17 @@ class _MainScreenState extends State<MainScreen> {
     FileCategory('Other', Icons.insert_drive_file),
   ];
 
-  int _selectedTabIndex = 0;
+  int _selectedModeIndex = 0;
   bool _isGridView = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
   late final VoidCallback _searchTextListener;
   late final ActiveServerManager _serverManager;
 
-  FileCategory? _selectedCategory;
-  FileBrowserController? _currentController;
+  FileCategory? _selectedLocalCategory;
+  FileCategory? _selectedServerCategory;
+  FileBrowserController? _localController;
+  ServerBrowserController? _serverController;
 
   @override
   void initState() {
@@ -89,8 +97,10 @@ class _MainScreenState extends State<MainScreen> {
   void dispose() {
     _searchController.removeListener(_searchTextListener);
     _searchController.dispose();
-    _currentController?.disposeController();
-    _currentController?.dispose();
+    _localController?.disposeController();
+    _localController?.dispose();
+    _serverController?.disposeController();
+    _serverController?.dispose();
     _serverManager.dispose();
     super.dispose();
   }
@@ -99,6 +109,10 @@ class _MainScreenState extends State<MainScreen> {
     await _serverManager.initialize();
     if (!mounted) return;
     setState(() {});
+  }
+
+  Future<void> _retryStartupValidation() async {
+    await _initializeServers();
   }
 
   Future<void> _openAddServerFlow() async {
@@ -126,7 +140,9 @@ class _MainScreenState extends State<MainScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Authentication failed. Please try again.')),
+        const SnackBar(
+          content: Text('Authentication failed. Please try again.'),
+        ),
       );
       return;
     }
@@ -137,10 +153,14 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _switchServer(String serverId) async {
     await _serverManager.switchActive(serverId);
     _searchController.clear();
-    _currentController?.disposeController();
-    _currentController?.dispose();
-    _currentController = null;
-    _selectedCategory = null;
+    _localController?.disposeController();
+    _localController?.dispose();
+    _localController = null;
+    _selectedLocalCategory = null;
+    _selectedServerCategory = null;
+    _serverController?.disposeController();
+    _serverController?.dispose();
+    _serverController = null;
     if (!mounted) return;
     setState(() {});
   }
@@ -231,7 +251,9 @@ class _MainScreenState extends State<MainScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Authentication failed. Please try again.')),
+        const SnackBar(
+          content: Text('Authentication failed. Please try again.'),
+        ),
       );
       return;
     }
@@ -240,39 +262,152 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onSearchChanged(String query) {
-    _currentController?.setSearchQueryDebounced(query);
+    if (_selectedModeIndex == 0) {
+      _localController?.setSearchQueryDebounced(query);
+    } else {
+      _serverController?.setSearchQueryDebounced(query);
+    }
   }
 
-  Future<void> _onCategorySelected(FileCategory category) async {
-    if (_selectedTabIndex != 0) return;
-
+  Future<void> _onLocalCategorySelected(FileCategory category) async {
     final permissionGranted = await _requestPermission(category);
     if (permissionGranted) {
       _searchController.clear();
-      _currentController?.disposeController();
-      _currentController?.dispose();
+      _localController?.disposeController();
+      _localController?.dispose();
       final controller = FileBrowserController(category: category);
       setState(() {
-        _selectedCategory = category;
-        _currentController = controller;
+        _selectedLocalCategory = category;
+        _localController = controller;
       });
     }
   }
 
   Future<void> _handleBack() async {
-    if (_currentController != null && _currentController!.isSelectionMode) {
-      _currentController!.clearSelection();
-    } else if (_currentController?.canNavigateBack ?? false) {
-      await _currentController!.navigateBack();
-    } else {
-      _searchController.clear();
-      _currentController?.disposeController();
-      _currentController?.dispose();
+    if (_selectedModeIndex == 0) {
+      if (_localController != null && _localController!.isSelectionMode) {
+        _localController!.clearSelection();
+      } else if (_localController?.canNavigateBack ?? false) {
+        await _localController!.navigateBack();
+      } else {
+        _searchController.clear();
+        _localController?.disposeController();
+        _localController?.dispose();
+        setState(() {
+          _selectedLocalCategory = null;
+          _localController = null;
+        });
+      }
+      return;
+    }
+    if (_serverController?.canNavigateBack ?? false) {
+      await _serverController!.navigateBack();
+    } else if (_selectedServerCategory != null) {
       setState(() {
-        _selectedCategory = null;
-        _currentController = null;
+        _selectedServerCategory = null;
       });
     }
+  }
+
+  Future<void> _uploadLocalItems(List<FileItem> items) async {
+    final activeServer = _serverManager.activeServer;
+    if (activeServer == null) return;
+    var token = await _serverManager.authService.readAccessToken(
+      activeServer.id,
+    );
+    if (token == null || token.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No server session token. Re-authenticate server.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    final base = activeServer.baseUrl.contains('://')
+        ? activeServer.baseUrl
+        : 'http://${activeServer.baseUrl}';
+    final uploaded = <String>[];
+    final failed = <String>[];
+    final failDetails = <String>[];
+    final client = http.Client();
+    try {
+      for (final item in items) {
+        if (item.isDirectory) {
+          failed.add(item.name);
+          failDetails.add('${item.name}: directories are not uploadable');
+          continue;
+        }
+        final localPath = await item.path;
+        if (localPath.isEmpty) {
+          failed.add(item.name);
+          failDetails.add('${item.name}: local path is empty');
+          continue;
+        }
+        final file = File(localPath);
+        if (!await file.exists()) {
+          failed.add(item.name);
+          failDetails.add('${item.name}: local file not found');
+          continue;
+        }
+        final uri = Uri.parse(base)
+            .resolve('/api/files')
+            .replace(
+              queryParameters: {
+                'scope': 'private',
+                'path': p.basename(localPath),
+              },
+            );
+        var response = await client.post(
+          uri,
+          headers: {
+            'authorization': 'Bearer $token',
+            'content-type': 'application/octet-stream',
+          },
+          body: await file.readAsBytes(),
+        );
+        if (response.statusCode == 401) {
+          try {
+            await _serverManager.authService.refreshSession(
+              serverId: activeServer.id,
+              baseUrl: activeServer.baseUrl,
+            );
+            token = await _serverManager.authService.readAccessToken(
+              activeServer.id,
+            );
+          } catch (_) {}
+          if (token != null && token.isNotEmpty) {
+            response = await client.post(
+              uri,
+              headers: {
+                'authorization': 'Bearer $token',
+                'content-type': 'application/octet-stream',
+              },
+              body: await file.readAsBytes(),
+            );
+          }
+        }
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          uploaded.add(item.name);
+        } else {
+          failed.add(item.name);
+          final body = response.body.trim();
+          failDetails.add(
+            '${item.name}: HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
+          );
+        }
+      }
+    } finally {
+      client.close();
+    }
+    if (!mounted) return;
+    final msg =
+        'Uploaded ${uploaded.length} item(s)'
+        '${failed.isNotEmpty ? ', failed ${failed.length}' : ''}.'
+        '${failDetails.isNotEmpty ? '\n${failDetails.first}' : ''}';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   Future<bool> _requestPermission(FileCategory category) async {
@@ -304,6 +439,21 @@ class _MainScreenState extends State<MainScreen> {
       }
     }
     return status.isGranted;
+  }
+
+  void _ensureServerController() {
+    final active = _serverManager.activeServer;
+    if (active == null) return;
+    if (_serverController != null && _serverController!.serverId == active.id) {
+      return;
+    }
+    _serverController?.disposeController();
+    _serverController?.dispose();
+    _serverController = ServerBrowserController(
+      profile: active,
+      serverId: active.id,
+      authService: _serverManager.authService,
+    );
   }
 
   @override
@@ -362,8 +512,62 @@ class _MainScreenState extends State<MainScreen> {
       );
     }
 
+    if (_serverManager.connectionErrorMessage != null) {
+      final active = _serverManager.activeServer;
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Server connection failed'),
+          backgroundColor: appSurface,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  active == null
+                      ? 'Unable to connect to the active server.'
+                      : 'Unable to connect to ${active.displayName}.',
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _serverManager.connectionErrorMessage!,
+                  style: const TextStyle(color: Colors.white70),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _retryStartupValidation,
+                    child: const Text('Retry'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: _openAddServerFlow,
+                    child: const Text('Add server'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    _ensureServerController();
+
     return PopScope(
-      canPop: _selectedCategory == null,
+      canPop: _selectedModeIndex == 1
+          ? !(_serverController?.canNavigateBack ?? false) &&
+                _selectedServerCategory == null
+          : _selectedLocalCategory == null,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         await _handleBack();
@@ -377,7 +581,11 @@ class _MainScreenState extends State<MainScreen> {
             backgroundColor: appSurface,
             surfaceTintColor: appSurface,
             elevation: 0,
-            leading: _selectedCategory != null
+            leading:
+                (_selectedModeIndex == 0 && _selectedLocalCategory != null) ||
+                    (_selectedModeIndex == 1 &&
+                        ((_serverController?.canNavigateBack ?? false) ||
+                            _selectedServerCategory != null))
                 ? IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: _handleBack,
@@ -490,14 +698,30 @@ class _MainScreenState extends State<MainScreen> {
                   ListTile(
                     leading: const Icon(Icons.folder, color: Colors.white70),
                     title: const Text(
-                      'Files',
+                      'Local',
                       style: TextStyle(color: Colors.white),
                     ),
-                    selected: _selectedTabIndex == 0,
+                    selected: _selectedModeIndex == 0,
                     onTap: () {
                       setState(() {
-                        _selectedTabIndex = 0;
+                        _selectedModeIndex = 0;
                       });
+                      _searchController.clear();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.cloud, color: Colors.white70),
+                    title: const Text(
+                      'Server',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    selected: _selectedModeIndex == 1,
+                    onTap: () {
+                      setState(() {
+                        _selectedModeIndex = 1;
+                      });
+                      _searchController.clear();
                       Navigator.pop(context);
                     },
                   ),
@@ -505,19 +729,46 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
           ),
-          body: _selectedCategory == null
-              ? _buildCategoryGrid()
-              : FileBrowser(
-                  category: _selectedCategory!,
-                  isGridView: _isGridView,
-                  controller: _currentController,
-                ),
+          body: _selectedModeIndex == 0
+              ? (_selectedLocalCategory == null
+                    ? _buildLocalCategoryGrid()
+                    : FileBrowser(
+                        category: _selectedLocalCategory!,
+                        isGridView: _isGridView,
+                        controller: _localController,
+                        onUploadItems: _uploadLocalItems,
+                      ))
+              : _buildServerModeBody(),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _selectedModeIndex,
+            onTap: (value) {
+              setState(() {
+                _selectedModeIndex = value;
+              });
+              _searchController.clear();
+            },
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Local'),
+              BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Server'),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCategoryGrid() {
+  Widget _buildServerModeBody() {
+    if (_serverController == null) return const SizedBox.shrink();
+    if (_selectedServerCategory == null) {
+      return _buildServerCategoryGrid();
+    }
+    return ServerFileBrowser(
+      controller: _serverController!,
+      isGridView: _isGridView,
+    );
+  }
+
+  Widget _buildServerCategoryGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _allCategories.length,
@@ -530,7 +781,58 @@ class _MainScreenState extends State<MainScreen> {
       itemBuilder: (context, index) {
         final category = _allCategories[index];
         return InkWell(
-          onTap: () => _onCategorySelected(category),
+          onTap: () {
+            final type = switch (category.name) {
+              'Photos' => 'photo',
+              'Videos' => 'video',
+              'Audio' => 'audio',
+              'Documents' => 'document',
+              'Other' => 'other',
+              _ => 'all',
+            };
+            _searchController.clear();
+            _serverController?.setCategory(type);
+            setState(() {
+              _selectedServerCategory = category;
+            });
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: appSurface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(category.icon, color: Colors.white70, size: 40),
+                const SizedBox(height: 12),
+                Text(
+                  category.name,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLocalCategoryGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _allCategories.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1,
+      ),
+      itemBuilder: (context, index) {
+        final category = _allCategories[index];
+        return InkWell(
+          onTap: () => _onLocalCategorySelected(category),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             decoration: BoxDecoration(
