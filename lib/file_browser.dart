@@ -126,6 +126,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     final callback = widget.onUploadItems;
     if (callback == null) return;
     await callback(items);
+    _controller.clearSelection();
   }
 
   void _showContextMenu(BuildContext context, FileItem item) {

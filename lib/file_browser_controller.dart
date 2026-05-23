@@ -462,6 +462,8 @@ class FileBrowserController extends ChangeNotifier {
     if (filesToShare.isNotEmpty) {
       await SharePlus.instance.share(ShareParams(files: filesToShare));
     }
+    selectedFiles.clear();
+    notifyListeners();
   }
 
   Future<void> deleteSelectedFiles() async {

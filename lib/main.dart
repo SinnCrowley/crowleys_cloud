@@ -269,10 +269,26 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  Future<void> _resetSearchFilterForCurrentMode() async {
+    if (_selectedModeIndex == 0) {
+      await _localController?.setSearchQuery('');
+    } else {
+      _serverController?.setSearchQueryDebounced(
+        '',
+        delay: Duration.zero,
+      );
+    }
+  }
+
+  Future<void> _clearSearchAndResetFilterForCurrentMode() async {
+    _searchController.clear();
+    await _resetSearchFilterForCurrentMode();
+  }
+
   Future<void> _onLocalCategorySelected(FileCategory category) async {
     final permissionGranted = await _requestPermission(category);
     if (permissionGranted) {
-      _searchController.clear();
+      await _clearSearchAndResetFilterForCurrentMode();
       _localController?.disposeController();
       _localController?.dispose();
       final controller = FileBrowserController(category: category);
@@ -288,9 +304,10 @@ class _MainScreenState extends State<MainScreen> {
       if (_localController != null && _localController!.isSelectionMode) {
         _localController!.clearSelection();
       } else if (_localController?.canNavigateBack ?? false) {
+        await _clearSearchAndResetFilterForCurrentMode();
         await _localController!.navigateBack();
       } else {
-        _searchController.clear();
+        await _clearSearchAndResetFilterForCurrentMode();
         _localController?.disposeController();
         _localController?.dispose();
         setState(() {
@@ -301,8 +318,10 @@ class _MainScreenState extends State<MainScreen> {
       return;
     }
     if (_serverController?.canNavigateBack ?? false) {
+      await _clearSearchAndResetFilterForCurrentMode();
       await _serverController!.navigateBack();
     } else if (_selectedServerCategory != null) {
+      await _clearSearchAndResetFilterForCurrentMode();
       setState(() {
         _selectedServerCategory = null;
       });
@@ -620,9 +639,9 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   if (_searchController.text.isNotEmpty)
                     GestureDetector(
-                      onTap: () {
+                      onTap: () async {
                         _searchController.clear();
-                        _onSearchChanged('');
+                        await _resetSearchFilterForCurrentMode();
                       },
                       child: const Icon(
                         Icons.close,
@@ -706,7 +725,7 @@ class _MainScreenState extends State<MainScreen> {
                       setState(() {
                         _selectedModeIndex = 0;
                       });
-                      _searchController.clear();
+                      unawaited(_clearSearchAndResetFilterForCurrentMode());
                       Navigator.pop(context);
                     },
                   ),
@@ -721,7 +740,7 @@ class _MainScreenState extends State<MainScreen> {
                       setState(() {
                         _selectedModeIndex = 1;
                       });
-                      _searchController.clear();
+                      unawaited(_clearSearchAndResetFilterForCurrentMode());
                       Navigator.pop(context);
                     },
                   ),
@@ -741,11 +760,11 @@ class _MainScreenState extends State<MainScreen> {
               : _buildServerModeBody(),
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: _selectedModeIndex,
-            onTap: (value) {
+            onTap: (value) async {
               setState(() {
                 _selectedModeIndex = value;
               });
-              _searchController.clear();
+              await _clearSearchAndResetFilterForCurrentMode();
             },
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Local'),
@@ -781,7 +800,7 @@ class _MainScreenState extends State<MainScreen> {
       itemBuilder: (context, index) {
         final category = _allCategories[index];
         return InkWell(
-          onTap: () {
+          onTap: () async {
             final type = switch (category.name) {
               'Photos' => 'photo',
               'Videos' => 'video',
@@ -791,6 +810,10 @@ class _MainScreenState extends State<MainScreen> {
               _ => 'all',
             };
             _searchController.clear();
+            _serverController?.setSearchQueryDebounced(
+              '',
+              delay: Duration.zero,
+            );
             _serverController?.setCategory(type);
             setState(() {
               _selectedServerCategory = category;
