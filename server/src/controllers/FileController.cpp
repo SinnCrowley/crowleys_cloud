@@ -325,10 +325,6 @@ void FileController::rebuildIndex(const drogon::HttpRequestPtr &req,
     callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
     return;
   }
-  if (role != "owner") {
-    callback(jsonError(drogon::k403Forbidden, "Only owner can rebuild index"));
-    return;
-  }
 
   const auto scopeRaw = req->getParameter("scope");
   const auto scope = services::parseScope(scopeRaw.empty() ? "private" : scopeRaw);

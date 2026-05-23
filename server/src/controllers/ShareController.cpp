@@ -83,7 +83,7 @@ void ShareController::publicDownload(const drogon::HttpRequestPtr &,
       return;
     }
 
-    const auto path = server::ctx().fileService->resolvePath(share->ownerUserId, "owner", *scope, share->relPath, false);
+    const auto path = server::ctx().fileService->resolvePath(share->ownerUserId, "user", *scope, share->relPath, false);
     if (!std::filesystem::exists(path) || std::filesystem::is_directory(path)) {
       callback(jsonError(drogon::k404NotFound, "Shared file not found"));
       return;

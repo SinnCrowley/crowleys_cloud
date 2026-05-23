@@ -32,19 +32,13 @@ bool UserService::verifyPassword(const std::string &password, const std::string 
 std::optional<UserRecord> UserService::registerUser(const std::string &username,
                                                     const std::string &password,
                                                     std::string &error) {
-  sqlite3_stmt *countStmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "SELECT COUNT(*) FROM users", -1, &countStmt, nullptr);
-  sqlite3_step(countStmt);
-  const auto userCount = sqlite3_column_int64(countStmt, 0);
-  sqlite3_finalize(countStmt);
-
   sqlite3_stmt *stmt = nullptr;
   const char *sql = "INSERT INTO users(username, password_hash, role, created_at) VALUES(?, ?, ?, ?)";
   sqlite3_prepare_v2(db_.raw(), sql, -1, &stmt, nullptr);
   sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
   const auto hash = passwordHash(password);
   sqlite3_bind_text(stmt, 2, hash.c_str(), -1, SQLITE_TRANSIENT);
-  const auto role = userCount == 0 ? "owner" : "user";
+  const auto role = "user";
   sqlite3_bind_text(stmt, 3, role, -1, SQLITE_TRANSIENT);
   sqlite3_bind_int64(stmt, 4, nowSeconds());
 

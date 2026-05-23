@@ -25,11 +25,9 @@ std::filesystem::path FileService::resolvePath(std::int64_t userId,
                                                StorageScope scope,
                                                const std::string &rawPath,
                                                bool writeIntent) const {
+  (void)role;
+  (void)writeIntent;
   auto root = scope == StorageScope::Private ? rootForUser(userId) : sharedRoot();
-
-  if (scope == StorageScope::Shared && writeIntent && role != "owner") {
-    throw std::runtime_error("Only owner can modify shared storage");
-  }
 
   fs::create_directories(root);
 
