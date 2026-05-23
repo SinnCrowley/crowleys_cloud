@@ -87,6 +87,45 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     _showOperationMessage();
   }
 
+  Future<void> _shareSelectedInServer() async {
+    await controller.shareSelectedInServer();
+    _showOperationMessage();
+  }
+
+  Future<void> _showShareOptions() async {
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: appSurface,
+      builder: (_) => Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.link, color: Colors.white70),
+            title: const Text(
+              'Share via link',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () async {
+              Navigator.pop(context);
+              await _shareSelectedFiles();
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.folder_shared, color: Colors.white70),
+            title: const Text(
+              'Share in server',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () async {
+              Navigator.pop(context);
+              await _shareSelectedInServer();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showOperationMessage() {
     final msg = controller.operationMessage;
     if (msg == null || msg.isEmpty || !mounted) return;
@@ -122,11 +161,26 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
           ),
           ListTile(
             leading: const Icon(Icons.share, color: Colors.white70),
-            title: const Text('Share', style: TextStyle(color: Colors.white)),
+            title: const Text(
+              'Share via link',
+              style: TextStyle(color: Colors.white),
+            ),
             onTap: () async {
               Navigator.pop(context);
               controller.toggleSelection(item);
               await _shareSelectedFiles();
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.folder_shared, color: Colors.white70),
+            title: const Text(
+              'Share in server',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () async {
+              Navigator.pop(context);
+              controller.toggleSelection(item);
+              await _shareSelectedInServer();
             },
           ),
         ],
@@ -211,7 +265,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
               _SelectionActionBar(
                 onDownload: _downloadSelectedFiles,
                 onDelete: _deleteSelectedFiles,
-                onShare: _shareSelectedFiles,
+                onShare: _showShareOptions,
               ),
           ],
         );

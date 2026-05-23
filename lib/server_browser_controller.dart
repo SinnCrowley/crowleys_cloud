@@ -297,6 +297,37 @@ class ServerBrowserController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> shareSelectedInServer() async {
+    operationMessage = null;
+    if (selectedFiles.isEmpty) return;
+    if (scope == 'shared') {
+      operationMessage = 'Already in shared scope.';
+      notifyListeners();
+      return;
+    }
+
+    var shared = 0;
+    var failed = 0;
+    for (final item in selectedFiles.toList()) {
+      final ok = await _copyItemToShared(
+        item: item,
+        sourceScope: scope,
+        targetPath: item.path,
+      );
+      if (ok) {
+        shared++;
+      } else {
+        failed++;
+      }
+    }
+
+    operationMessage = failed == 0
+        ? 'Shared $shared item(s) in server.'
+        : 'Shared $shared item(s), failed $failed.';
+    selectedFiles.clear();
+    notifyListeners();
+  }
+
   Future<Uint8List?> loadThumbnailWithRetry(
     ServerFileItem item, {
     int size = 256,
@@ -353,6 +384,25 @@ class ServerBrowserController extends ChangeNotifier {
     final uri = _apiUri(
       '/dir',
     ).replace(queryParameters: {'scope': scope, 'path': relativePath});
+    final response = await _authorizedGet(uri);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return const [];
+    }
+    final payload = jsonDecode(response.body) as Map<String, Object?>;
+    final entries = (payload['entries'] as List?) ?? const [];
+    return entries
+        .whereType<Map>()
+        .map((e) => ServerFileItem.fromJson(Map<String, Object?>.from(e)))
+        .toList();
+  }
+
+  Future<List<ServerFileItem>> _listDirAtScope(
+    String relativePath,
+    String requestedScope,
+  ) async {
+    final uri = _apiUri(
+      '/dir',
+    ).replace(queryParameters: {'scope': requestedScope, 'path': relativePath});
     final response = await _authorizedGet(uri);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return const [];
@@ -425,6 +475,44 @@ class ServerBrowserController extends ChangeNotifier {
     } catch (_) {
       return false;
     }
+  }
+
+  Future<bool> _copyItemToShared({
+    required ServerFileItem item,
+    required String sourceScope,
+    required String targetPath,
+  }) async {
+    if (item.isDir) {
+      final children = await _listDirAtScope(item.path, sourceScope);
+      var allOk = true;
+      for (final child in children) {
+        final childTargetPath = p.join(targetPath, p.basename(child.path));
+        final ok = await _copyItemToShared(
+          item: child,
+          sourceScope: sourceScope,
+          targetPath: childTargetPath,
+        );
+        allOk = allOk && ok;
+      }
+      return allOk;
+    }
+
+    final downloadUri = _apiUri(
+      '/files',
+    ).replace(queryParameters: {'scope': sourceScope, 'path': item.path});
+    final downloadResponse = await _authorizedGet(downloadUri);
+    if (downloadResponse.statusCode < 200 || downloadResponse.statusCode >= 300) {
+      return false;
+    }
+
+    final uploadUri = _apiUri(
+      '/files',
+    ).replace(queryParameters: {'scope': 'shared', 'path': targetPath});
+    final uploadResponse = await _authorizedPostBytes(
+      uploadUri,
+      downloadResponse.bodyBytes,
+    );
+    return uploadResponse.statusCode >= 200 && uploadResponse.statusCode < 300;
   }
 
   Uri _publicShareUri(String rawUrl) {
@@ -525,6 +613,38 @@ class ServerBrowserController extends ChangeNotifier {
           'content-type': 'application/json',
         },
         body: jsonEncode(payload),
+      );
+    } catch (_) {}
+    return response;
+  }
+
+  Future<http.Response> _authorizedPostBytes(Uri uri, List<int> body) async {
+    var token = await authService.readAccessToken(serverId);
+    if (token == null || token.isEmpty) return http.Response('', 401);
+    var response = await _client.post(
+      uri,
+      headers: {
+        'authorization': 'Bearer $token',
+        'content-type': 'application/octet-stream',
+      },
+      body: body,
+    );
+    if (response.statusCode != 401) return response;
+
+    try {
+      await authService.refreshSession(
+        serverId: serverId,
+        baseUrl: profile.baseUrl,
+      );
+      token = await authService.readAccessToken(serverId);
+      if (token == null || token.isEmpty) return response;
+      response = await _client.post(
+        uri,
+        headers: {
+          'authorization': 'Bearer $token',
+          'content-type': 'application/octet-stream',
+        },
+        body: body,
       );
     } catch (_) {}
     return response;
