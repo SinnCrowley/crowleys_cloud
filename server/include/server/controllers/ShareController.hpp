@@ -8,7 +8,7 @@ class ShareController : public drogon::HttpController<ShareController> {
  public:
   METHOD_LIST_BEGIN
   ADD_METHOD_TO(ShareController::createShare, "/api/share", drogon::Post, "server::middleware::JwtMiddleware");
-  METHOD_ADD(ShareController::publicDownload, "/s/{1}", drogon::Get);
+  ADD_METHOD_TO(ShareController::publicDownload, "/s/{1}", drogon::Get);
   METHOD_LIST_END
 
   void createShare(const drogon::HttpRequestPtr &req,

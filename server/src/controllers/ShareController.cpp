@@ -5,6 +5,7 @@
 #include <chrono>
 #include <filesystem>
 #include <sstream>
+#include <trantor/utils/Logger.h>
 
 namespace server::controllers {
 namespace {
@@ -86,14 +87,16 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
       expiresAt = nowSeconds() + (*json)["expires_in_seconds"].asInt64();
     }
 
-    const auto token = server::ctx().shareService->createShare(userId, scopeRaw, (*json)["path"].asString(), expiresAt);
+    const auto normalizedScope = *scope == services::StorageScope::Private ? "private" : "shared";
+    const auto token = server::ctx().shareService->createShare(
+        userId, normalizedScope, (*json)["path"].asString(), expiresAt);
 
     Json::Value body;
     body["token"] = token;
     body["url"] = "/s/" + token;
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    callback(jsonError(drogon::k500InternalServerError, e.what()));
   }
 }
 
@@ -102,6 +105,7 @@ void ShareController::publicDownload(const drogon::HttpRequestPtr &req,
                                      const std::string &token) {
   auto share = server::ctx().shareService->resolveShare(token);
   if (!share.has_value()) {
+    LOG_WARN << "share_public_download token_not_found_or_expired token=" << token;
     callback(jsonError(drogon::k404NotFound, "Invalid or expired share token"));
     return;
   }
@@ -109,6 +113,14 @@ void ShareController::publicDownload(const drogon::HttpRequestPtr &req,
   try {
     const auto scope = services::parseScope(share->scope);
     if (!scope.has_value()) {
+      std::ostringstream hex;
+      hex << std::hex;
+      for (unsigned char c : share->scope) {
+        hex << static_cast<int>(c) << ' ';
+      }
+      LOG_WARN << "share_public_download invalid_scope token=" << token
+               << " raw_scope=" << share->scope
+               << " raw_scope_hex=" << hex.str();
       callback(jsonError(drogon::k400BadRequest, "Invalid share scope"));
       return;
     }
@@ -116,6 +128,11 @@ void ShareController::publicDownload(const drogon::HttpRequestPtr &req,
     const auto root = server::ctx().fileService->resolvePath(
         share->ownerUserId, "user", *scope, share->relPath, false);
     if (!std::filesystem::exists(root)) {
+      LOG_WARN << "share_public_download missing_root token=" << token
+               << " owner_user_id=" << share->ownerUserId
+               << " scope=" << share->scope
+               << " rel_path=" << share->relPath
+               << " resolved_root=" << root.string();
       callback(jsonError(drogon::k404NotFound, "Shared resource not found"));
       return;
     }
@@ -137,6 +154,8 @@ void ShareController::publicDownload(const drogon::HttpRequestPtr &req,
       return;
     }
     if (!std::filesystem::exists(target)) {
+      LOG_WARN << "share_public_download missing_target token=" << token
+               << " target=" << target.string();
       callback(jsonError(drogon::k404NotFound, "Path not found"));
       return;
     }
@@ -191,6 +210,7 @@ void ShareController::publicDownload(const drogon::HttpRequestPtr &req,
     resp->setBody(html.str());
     callback(resp);
   } catch (const std::exception &e) {
+    LOG_WARN << "share_public_download exception token=" << token << " error=" << e.what();
     callback(jsonError(drogon::k400BadRequest, e.what()));
   }
 }

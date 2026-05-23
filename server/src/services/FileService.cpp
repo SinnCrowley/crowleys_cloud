@@ -100,8 +100,28 @@ std::string FileService::mimeTypeFor(const std::filesystem::path &path) const {
 }
 
 std::optional<StorageScope> parseScope(const std::string &value) {
-  if (value == "private") return StorageScope::Private;
-  if (value == "shared") return StorageScope::Shared;
+  auto normalized = value;
+  normalized.erase(normalized.begin(), std::find_if(normalized.begin(), normalized.end(), [](unsigned char c) {
+    return !std::isspace(c);
+  }));
+  normalized.erase(std::find_if(normalized.rbegin(), normalized.rend(), [](unsigned char c) {
+    return !std::isspace(c);
+  }).base(), normalized.end());
+  std::transform(normalized.begin(), normalized.end(), normalized.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+
+  // Legacy compatibility: ignore separators/punctuation around scope text.
+  std::string alphaOnly;
+  alphaOnly.reserve(normalized.size());
+  for (unsigned char c : normalized) {
+    if (std::isalpha(c)) alphaOnly.push_back(static_cast<char>(c));
+  }
+
+  if (normalized == "private") return StorageScope::Private;
+  if (normalized == "shared") return StorageScope::Shared;
+  if (alphaOnly == "private") return StorageScope::Private;
+  if (alphaOnly == "shared") return StorageScope::Shared;
   return std::nullopt;
 }
 

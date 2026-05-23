@@ -42,6 +42,7 @@ class ServerBrowserController extends ChangeNotifier {
   bool sortAscending = true;
   bool isLoading = false;
   String? error;
+  String? operationMessage;
 
   Timer? _searchDebounce;
   int _opId = 0;
@@ -153,12 +154,7 @@ class ServerBrowserController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await authService.readAccessToken(serverId);
-      if (token == null || token.isEmpty) {
-        throw Exception('No access token for server session');
-      }
-
-      final uri = _baseUri('/api/dir').replace(
+      final uri = _apiUri('/dir').replace(
         queryParameters: {
           'scope': scope,
           'path': currentPath,
@@ -168,10 +164,7 @@ class ServerBrowserController extends ChangeNotifier {
           'order': sortAscending ? 'asc' : 'desc',
         },
       );
-      final response = await _client.get(
-        uri,
-        headers: {'authorization': 'Bearer $token'},
-      );
+      final response = await _authorizedGet(uri);
       if (opId != _opId) return;
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception('Server error ${response.statusCode}');
@@ -198,16 +191,10 @@ class ServerBrowserController extends ChangeNotifier {
   }
 
   Future<File?> downloadTempForEdit(ServerFileItem item) async {
-    final token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return null;
-
-    final uri = _baseUri(
-      '/api/files',
+    final uri = _apiUri(
+      '/files',
     ).replace(queryParameters: {'scope': scope, 'path': item.path});
-    final response = await _client.get(
-      uri,
-      headers: {'authorization': 'Bearer $token'},
-    );
+    final response = await _authorizedGet(uri);
     if (response.statusCode < 200 || response.statusCode >= 300) return null;
 
     final tempDir = await getTemporaryDirectory();
@@ -223,73 +210,88 @@ class ServerBrowserController extends ChangeNotifier {
       if (parsed.hasScheme) return parsed;
       return _baseUri(raw);
     }
-    return _baseUri('/api/thumb').replace(
+    return _apiUri('/thumb').replace(
       queryParameters: {'path': item.path, 's': '$size', 'scope': scope},
     );
   }
 
   Uri streamUri(ServerFileItem item) {
-    return _baseUri(
-      '/api/files',
+    return _apiUri(
+      '/files',
     ).replace(queryParameters: {'scope': scope, 'path': item.path});
   }
 
   Future<void> downloadSelectedFiles() async {
+    operationMessage = null;
     final downloadRoot = await _downloadRoot();
+    var downloaded = 0;
+    final failed = <String>[];
     for (final item in selectedFiles.toList()) {
-      await _downloadItemRecursive(item, downloadRoot);
+      final ok = await _downloadItemRecursive(item, downloadRoot);
+      if (ok) {
+        downloaded++;
+      } else {
+        failed.add(item.name);
+      }
     }
+    operationMessage = failed.isEmpty
+        ? 'Downloaded $downloaded item(s) to ${downloadRoot.path}'
+        : 'Downloaded $downloaded item(s), failed ${failed.length}: ${failed.first}';
     selectedFiles.clear();
     notifyListeners();
   }
 
   Future<void> deleteSelectedFiles() async {
-    final token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return;
+    operationMessage = null;
+    var deleted = 0;
+    var failed = 0;
     for (final item in selectedFiles.toList()) {
-      final uri = _baseUri(
-        '/api/files',
+      final uri = _apiUri(
+        '/files',
       ).replace(queryParameters: {'scope': scope, 'path': item.path});
       try {
-        final response = await _client.delete(
-          uri,
-          headers: {'authorization': 'Bearer $token'},
-        );
+        final response = await _authorizedDelete(uri);
         if (response.statusCode >= 200 && response.statusCode < 300) {
           files.remove(item);
+          deleted++;
+        } else {
+          failed++;
         }
-      } catch (_) {}
+      } catch (_) {
+        failed++;
+      }
     }
+    operationMessage = failed == 0
+        ? 'Deleted $deleted item(s).'
+        : 'Deleted $deleted item(s), failed $failed.';
     selectedFiles.clear();
     notifyListeners();
   }
 
   Future<void> shareSelectedFiles() async {
-    final token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return;
+    operationMessage = null;
     final sharedLinks = <String>[];
     for (final item in selectedFiles.toList()) {
-      final uri = _baseUri('/api/share');
+      final uri = _apiUri('/share');
       try {
-        final response = await _client.post(
-          uri,
-          headers: {
-            'authorization': 'Bearer $token',
-            'content-type': 'application/json',
-          },
-          body: jsonEncode({'scope': scope, 'path': item.path}),
-        );
+        final response = await _authorizedPostJson(uri, {
+          'scope': scope,
+          'path': item.path,
+        });
         if (response.statusCode >= 200 && response.statusCode < 300) {
           final payload = jsonDecode(response.body) as Map<String, Object?>;
           final rawUrl = (payload['url'] as String?) ?? '';
           if (rawUrl.isNotEmpty) {
-            sharedLinks.add(_baseUri(rawUrl).toString());
+            sharedLinks.add(_publicShareUri(rawUrl).toString());
           }
         }
       } catch (_) {}
     }
     if (sharedLinks.isNotEmpty) {
       await SharePlus.instance.share(ShareParams(text: sharedLinks.join('\n')));
+      operationMessage = 'Created ${sharedLinks.length} share link(s).';
+    } else {
+      operationMessage = 'Failed to create share link(s).';
     }
     selectedFiles.clear();
     notifyListeners();
@@ -299,8 +301,6 @@ class ServerBrowserController extends ChangeNotifier {
     ServerFileItem item, {
     int size = 256,
   }) async {
-    final token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return null;
     final uri = resolveThumbnailUrl(item, size: size);
     const delays = [
       Duration(milliseconds: 500),
@@ -308,10 +308,7 @@ class ServerBrowserController extends ChangeNotifier {
       Duration(seconds: 2),
     ];
     for (var i = 0; i <= delays.length; i++) {
-      final response = await _client.get(
-        uri,
-        headers: {'authorization': 'Bearer $token'},
-      );
+      final response = await _authorizedGet(uri);
       if (response.statusCode == 200) return response.bodyBytes;
       if (response.statusCode != 202 || i == delays.length) break;
       await Future<void>.delayed(delays[i]);
@@ -331,16 +328,32 @@ class ServerBrowserController extends ChangeNotifier {
     return normalizedBase.resolve(relativePath);
   }
 
+  Uri _apiUri(String endpointPath) {
+    final raw = profile.baseUrl.trim();
+    final withScheme = raw.contains('://') ? raw : 'http://$raw';
+    final base = Uri.parse(withScheme);
+
+    var basePath = base.path;
+    if (basePath.isEmpty) basePath = '/';
+    if (basePath.endsWith('/')) {
+      basePath = basePath.substring(0, basePath.length - 1);
+    }
+
+    final endpoint = endpointPath.startsWith('/')
+        ? endpointPath
+        : '/$endpointPath';
+    final hasApiSuffix = basePath == '/api' || basePath.endsWith('/api');
+    final apiPath = hasApiSuffix
+        ? '$basePath$endpoint'
+        : '$basePath/api$endpoint';
+    return base.replace(path: apiPath, query: null, fragment: null);
+  }
+
   Future<List<ServerFileItem>> _listDirAt(String relativePath) async {
-    final token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return const [];
-    final uri = _baseUri(
-      '/api/dir',
+    final uri = _apiUri(
+      '/dir',
     ).replace(queryParameters: {'scope': scope, 'path': relativePath});
-    final response = await _client.get(
-      uri,
-      headers: {'authorization': 'Bearer $token'},
-    );
+    final response = await _authorizedGet(uri);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return const [];
     }
@@ -353,51 +366,168 @@ class ServerBrowserController extends ChangeNotifier {
   }
 
   Future<Directory> _downloadRoot() async {
-    final docs = await getApplicationDocumentsDirectory();
-    final safeServerName = profile.displayName.replaceAll(
-      RegExp(r'[^a-zA-Z0-9._-]'),
-      '_',
-    );
+    final external = await getExternalStorageDirectory();
+    Directory baseDir;
+    if (external != null) {
+      final parts = p.split(external.path);
+      final androidIndex = parts.indexOf('Android');
+      if (androidIndex > 0) {
+        baseDir = Directory(p.joinAll(parts.take(androidIndex)));
+      } else {
+        baseDir = external;
+      }
+    } else {
+      baseDir = await getApplicationDocumentsDirectory();
+    }
     final dir = Directory(
-      p.join(docs.path, 'CrowleysCloud', 'Downloads', safeServerName),
+      p.join(baseDir.path, 'CrowleysCloud'),
     );
     await dir.create(recursive: true);
     return dir;
   }
 
-  Future<void> _downloadItemRecursive(
+  Future<bool> _downloadItemRecursive(
     ServerFileItem item,
     Directory root,
   ) async {
     if (!item.isDir) {
-      await _downloadSingleFile(item, p.join(root.path, item.path));
-      return;
+      return _downloadSingleFile(item, p.join(root.path, item.path));
     }
     final folderTarget = Directory(p.join(root.path, item.path));
-    await folderTarget.create(recursive: true);
+    try {
+      await folderTarget.create(recursive: true);
+    } catch (_) {
+      return false;
+    }
+    var allOk = true;
     final children = await _listDirAt(item.path);
     for (final child in children) {
-      await _downloadItemRecursive(child, root);
+      final ok = await _downloadItemRecursive(child, root);
+      allOk = allOk && ok;
     }
+    return allOk;
   }
 
-  Future<void> _downloadSingleFile(
+  Future<bool> _downloadSingleFile(
     ServerFileItem item,
     String targetPath,
   ) async {
-    final token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return;
-    final uri = _baseUri(
-      '/api/files',
+    final uri = _apiUri(
+      '/files',
     ).replace(queryParameters: {'scope': scope, 'path': item.path});
-    final response = await _client.get(
+    final response = await _authorizedGet(uri);
+    if (response.statusCode < 200 || response.statusCode >= 300) return false;
+    final file = File(targetPath);
+    try {
+      await file.parent.create(recursive: true);
+      await file.writeAsBytes(response.bodyBytes, flush: true);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Uri _publicShareUri(String rawUrl) {
+    final trimmed = rawUrl.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return Uri.parse(trimmed);
+    }
+    if (trimmed.startsWith('/')) {
+      final raw = profile.baseUrl.trim();
+      final withScheme = raw.contains('://') ? raw : 'http://$raw';
+      final base = Uri.parse(withScheme);
+      var prefix = base.path;
+      if (prefix.isEmpty) prefix = '/';
+      if (prefix.endsWith('/')) {
+        prefix = prefix.substring(0, prefix.length - 1);
+      }
+      final publicPath = prefix == '/' ? trimmed : '$prefix$trimmed';
+      return base.replace(path: publicPath, query: null, fragment: null);
+    }
+    return _baseUri(trimmed);
+  }
+
+  Future<http.Response> _authorizedGet(Uri uri) async {
+    var token = await authService.readAccessToken(serverId);
+    if (token == null || token.isEmpty) return http.Response('', 401);
+    var response = await _client.get(
       uri,
       headers: {'authorization': 'Bearer $token'},
     );
-    if (response.statusCode < 200 || response.statusCode >= 300) return;
-    final file = File(targetPath);
-    await file.parent.create(recursive: true);
-    await file.writeAsBytes(response.bodyBytes, flush: true);
+    if (response.statusCode != 401) return response;
+
+    try {
+      await authService.refreshSession(
+        serverId: serverId,
+        baseUrl: profile.baseUrl,
+      );
+      token = await authService.readAccessToken(serverId);
+      if (token == null || token.isEmpty) return response;
+      response = await _client.get(
+        uri,
+        headers: {'authorization': 'Bearer $token'},
+      );
+    } catch (_) {}
+    return response;
+  }
+
+  Future<http.Response> _authorizedDelete(Uri uri) async {
+    var token = await authService.readAccessToken(serverId);
+    if (token == null || token.isEmpty) return http.Response('', 401);
+    var response = await _client.delete(
+      uri,
+      headers: {'authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 401) return response;
+
+    try {
+      await authService.refreshSession(
+        serverId: serverId,
+        baseUrl: profile.baseUrl,
+      );
+      token = await authService.readAccessToken(serverId);
+      if (token == null || token.isEmpty) return response;
+      response = await _client.delete(
+        uri,
+        headers: {'authorization': 'Bearer $token'},
+      );
+    } catch (_) {}
+    return response;
+  }
+
+  Future<http.Response> _authorizedPostJson(
+    Uri uri,
+    Map<String, Object?> payload,
+  ) async {
+    var token = await authService.readAccessToken(serverId);
+    if (token == null || token.isEmpty) return http.Response('', 401);
+    var response = await _client.post(
+      uri,
+      headers: {
+        'authorization': 'Bearer $token',
+        'content-type': 'application/json',
+      },
+      body: jsonEncode(payload),
+    );
+    if (response.statusCode != 401) return response;
+
+    try {
+      await authService.refreshSession(
+        serverId: serverId,
+        baseUrl: profile.baseUrl,
+      );
+      token = await authService.readAccessToken(serverId);
+      if (token == null || token.isEmpty) return response;
+      response = await _client.post(
+        uri,
+        headers: {
+          'authorization': 'Bearer $token',
+          'content-type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      );
+    } catch (_) {}
+    return response;
   }
 }
 

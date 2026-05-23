@@ -73,15 +73,24 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     );
     if (confirmed == true) {
       await controller.deleteSelectedFiles();
+      _showOperationMessage();
     }
   }
 
   Future<void> _downloadSelectedFiles() async {
     await controller.downloadSelectedFiles();
+    _showOperationMessage();
   }
 
   Future<void> _shareSelectedFiles() async {
     await controller.shareSelectedFiles();
+    _showOperationMessage();
+  }
+
+  void _showOperationMessage() {
+    final msg = controller.operationMessage;
+    if (msg == null || msg.isEmpty || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   void _showContextMenu(BuildContext context, ServerFileItem item) {
