@@ -64,6 +64,15 @@ class _MainScreenState extends State<MainScreen> {
     FileCategory('Documents', Icons.description),
     FileCategory('Other', Icons.insert_drive_file),
   ];
+  static const _serverCategories = <FileCategory>[
+    FileCategory('All files', Icons.folder),
+    FileCategory('Photos', Icons.photo),
+    FileCategory('Videos', Icons.videocam),
+    FileCategory('Audio', Icons.audiotrack),
+    FileCategory('Documents', Icons.description),
+    FileCategory('Other', Icons.insert_drive_file),
+    FileCategory('Shared', Icons.folder_shared),
+  ];
 
   int _selectedModeIndex = 0;
   bool _isGridView = true;
@@ -787,7 +796,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildServerCategoryGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: _allCategories.length,
+      itemCount: _serverCategories.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 16,
@@ -795,9 +804,10 @@ class _MainScreenState extends State<MainScreen> {
         childAspectRatio: 1,
       ),
       itemBuilder: (context, index) {
-        final category = _allCategories[index];
+        final category = _serverCategories[index];
         return InkWell(
           onTap: () async {
+            final isShared = category.name == 'Shared';
             final type = switch (category.name) {
               'Photos' => 'photo',
               'Videos' => 'video',
@@ -811,6 +821,7 @@ class _MainScreenState extends State<MainScreen> {
               '',
               delay: Duration.zero,
             );
+            await _serverController?.setScope(isShared ? 'shared' : 'private');
             _serverController?.setCategory(type);
             setState(() {
               _selectedServerCategory = category;

@@ -42,7 +42,38 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
   }
 
   Future<void> _deleteSelectedFiles() async {
-    await controller.deleteSelectedFiles();
+    final selectedCount = controller.selectedFiles.length;
+    if (selectedCount == 0) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF333333),
+        title: const Text(
+          'Delete Files?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Are you sure you want to delete $selectedCount selected items? This action cannot be undone.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await controller.deleteSelectedFiles();
+    }
   }
 
   Future<void> _downloadSelectedFiles() async {
@@ -431,20 +462,10 @@ class _ServerHeaderControls extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+      padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'private', label: Text('Private')),
-              ButtonSegment(value: 'shared', label: Text('Shared')),
-            ],
-            selected: {controller.scope},
-            onSelectionChanged: (selection) {
-              unawaited(controller.setScope(selection.first));
-            },
-          ),
-          const Spacer(),
           Container(
             height: 40,
             padding: const EdgeInsets.symmetric(horizontal: 12),
