@@ -273,10 +273,7 @@ class _MainScreenState extends State<MainScreen> {
     if (_selectedModeIndex == 0) {
       await _localController?.setSearchQuery('');
     } else {
-      _serverController?.setSearchQueryDebounced(
-        '',
-        delay: Duration.zero,
-      );
+      _serverController?.setSearchQueryDebounced('', delay: Duration.zero);
     }
   }
 

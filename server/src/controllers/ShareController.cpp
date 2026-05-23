@@ -3,6 +3,8 @@
 #include "server/AppContext.hpp"
 
 #include <chrono>
+#include <filesystem>
+#include <sstream>
 
 namespace server::controllers {
 namespace {
@@ -18,6 +20,34 @@ std::int64_t nowSeconds() {
   return std::chrono::duration_cast<std::chrono::seconds>(
              std::chrono::system_clock::now().time_since_epoch())
       .count();
+}
+
+std::string htmlEscape(const std::string &value) {
+  std::string out;
+  out.reserve(value.size());
+  for (const auto ch : value) {
+    switch (ch) {
+      case '&':
+        out += "&amp;";
+        break;
+      case '<':
+        out += "&lt;";
+        break;
+      case '>':
+        out += "&gt;";
+        break;
+      case '"':
+        out += "&quot;";
+        break;
+      case '\'':
+        out += "&#39;";
+        break;
+      default:
+        out.push_back(ch);
+        break;
+    }
+  }
+  return out;
 }
 }  // namespace
 
@@ -46,8 +76,8 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
 
   try {
     const auto resolved = server::ctx().fileService->resolvePath(userId, role, *scope, (*json)["path"].asString(), false);
-    if (!std::filesystem::exists(resolved) || std::filesystem::is_directory(resolved)) {
-      callback(jsonError(drogon::k404NotFound, "Only existing files can be shared"));
+    if (!std::filesystem::exists(resolved)) {
+      callback(jsonError(drogon::k404NotFound, "Only existing files or folders can be shared"));
       return;
     }
 
@@ -67,7 +97,7 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
   }
 }
 
-void ShareController::publicDownload(const drogon::HttpRequestPtr &,
+void ShareController::publicDownload(const drogon::HttpRequestPtr &req,
                                      std::function<void(const drogon::HttpResponsePtr &)> &&callback,
                                      const std::string &token) {
   auto share = server::ctx().shareService->resolveShare(token);
@@ -83,13 +113,83 @@ void ShareController::publicDownload(const drogon::HttpRequestPtr &,
       return;
     }
 
-    const auto path = server::ctx().fileService->resolvePath(share->ownerUserId, "user", *scope, share->relPath, false);
-    if (!std::filesystem::exists(path) || std::filesystem::is_directory(path)) {
-      callback(jsonError(drogon::k404NotFound, "Shared file not found"));
+    const auto root = server::ctx().fileService->resolvePath(
+        share->ownerUserId, "user", *scope, share->relPath, false);
+    if (!std::filesystem::exists(root)) {
+      callback(jsonError(drogon::k404NotFound, "Shared resource not found"));
       return;
     }
 
-    callback(drogon::HttpResponse::newFileResponse(path.string()));
+    if (!std::filesystem::is_directory(root)) {
+      callback(drogon::HttpResponse::newFileResponse(root.string()));
+      return;
+    }
+
+    const auto relRaw = req->getParameter("p");
+    const auto relPath = std::filesystem::path(relRaw).lexically_normal().relative_path();
+    const auto target = std::filesystem::weakly_canonical(root / relPath);
+    const auto normalizedRoot = std::filesystem::weakly_canonical(root);
+    const auto targetString = target.generic_string();
+    const auto rootString = normalizedRoot.generic_string();
+    if (targetString.size() < rootString.size() ||
+        targetString.compare(0, rootString.size(), rootString) != 0) {
+      callback(jsonError(drogon::k400BadRequest, "Invalid path"));
+      return;
+    }
+    if (!std::filesystem::exists(target)) {
+      callback(jsonError(drogon::k404NotFound, "Path not found"));
+      return;
+    }
+
+    const auto downloadMode = req->getParameter("download") == "1";
+    if (downloadMode) {
+      if (std::filesystem::is_directory(target)) {
+        callback(jsonError(drogon::k400BadRequest, "Directory cannot be downloaded directly"));
+        return;
+      }
+      callback(drogon::HttpResponse::newFileResponse(target.string()));
+      return;
+    }
+
+    if (!std::filesystem::is_directory(target)) {
+      callback(drogon::HttpResponse::newFileResponse(target.string()));
+      return;
+    }
+
+    const auto currentRel = std::filesystem::relative(target, normalizedRoot).generic_string();
+    std::ostringstream html;
+    html << "<!doctype html><html><head><meta charset=\"utf-8\"><title>Shared Folder</title></head><body>";
+    html << "<h2>Shared Folder</h2>";
+    html << "<p>Path: /" << htmlEscape(currentRel) << "</p>";
+
+    if (!currentRel.empty()) {
+      const auto parentRel =
+          std::filesystem::path(currentRel).parent_path().generic_string();
+      html << "<p><a href=\"/s/" << token << "?p=" << drogon::utils::urlEncode(parentRel)
+           << "\">.. (parent)</a></p>";
+    }
+    html << "<ul>";
+    for (const auto &entry : std::filesystem::directory_iterator(target)) {
+      const auto name = entry.path().filename().string();
+      const auto entryRel = std::filesystem::relative(entry.path(), normalizedRoot).generic_string();
+      if (entry.is_directory()) {
+        html << "<li>[DIR] <a href=\"/s/" << token << "?p="
+             << drogon::utils::urlEncode(entryRel) << "\">"
+             << htmlEscape(name) << "</a></li>";
+      } else {
+        html << "<li>[FILE] " << htmlEscape(name) << " - "
+             << "<a href=\"/s/" << token << "?download=1&p="
+             << drogon::utils::urlEncode(entryRel)
+             << "\">download</a></li>";
+      }
+    }
+    html << "</ul></body></html>";
+
+    auto resp = drogon::HttpResponse::newHttpResponse();
+    resp->setStatusCode(drogon::k200OK);
+    resp->setContentTypeCode(drogon::CT_TEXT_HTML);
+    resp->setBody(html.str());
+    callback(resp);
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));
   }

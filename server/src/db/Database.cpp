@@ -1,5 +1,7 @@
 #include "server/db/Database.hpp"
 
+#include <sqlite3.h>
+
 #include <stdexcept>
 
 namespace server::db {
@@ -75,6 +77,7 @@ void Database::migrate() {
       thumbnail_path TEXT NOT NULL DEFAULT '',
       thumbnail_updated_at INTEGER,
       is_deleted INTEGER NOT NULL DEFAULT 0,
+      uploader_user_id INTEGER NOT NULL DEFAULT 0,
       UNIQUE(owner_user_id, scope, rel_path)
     );
 
@@ -85,6 +88,21 @@ void Database::migrate() {
     CREATE INDEX IF NOT EXISTS idx_file_index_name
       ON file_index(owner_user_id, scope, name, is_deleted);
   )");
+
+  sqlite3_stmt *stmt = nullptr;
+  sqlite3_prepare_v2(db_, "PRAGMA table_info(file_index)", -1, &stmt, nullptr);
+  bool hasUploaderColumn = false;
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+    const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+    if (nameRaw != nullptr && std::string(nameRaw) == "uploader_user_id") {
+      hasUploaderColumn = true;
+      break;
+    }
+  }
+  sqlite3_finalize(stmt);
+  if (!hasUploaderColumn) {
+    exec("ALTER TABLE file_index ADD COLUMN uploader_user_id INTEGER NOT NULL DEFAULT 0;");
+  }
 }
 
 }  // namespace server::db

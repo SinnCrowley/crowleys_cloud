@@ -91,7 +91,9 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
         if (entry.isDir) continue;
         const auto fullRelPath = relPrefix.empty() ? entry.path : (relPrefix + "/" + entry.path);
         const auto absolutePath = fullPath / entry.path;
-        server::ctx().fileIndexService->upsertFile(ownerUserId, *scope, fullRelPath, absolutePath);
+        const auto uploaderUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+        server::ctx().fileIndexService->upsertFile(
+            ownerUserId, *scope, fullRelPath, absolutePath, uploaderUserId);
       }
       entries = server::ctx().fileIndexService->listDirectory({
           .ownerUserId = ownerUserId,
@@ -265,7 +267,9 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
                              .relative_path()
                              .generic_string();
     const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-    server::ctx().fileIndexService->upsertFile(ownerUserId, *scope, relPath, target);
+    const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+    server::ctx().fileIndexService->upsertFile(
+        ownerUserId, *scope, relPath, target, uploaderUserId);
 
     Json::Value body;
     body["ok"] = true;
@@ -302,6 +306,12 @@ void FileController::deleteFile(const drogon::HttpRequestPtr &req,
                              .relative_path()
                              .generic_string();
     const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+    if (*scope == services::StorageScope::Shared &&
+        !server::ctx().fileIndexService->canDeletePath(
+            ownerUserId, *scope, relPath, userId, isDirectory)) {
+      callback(jsonError(drogon::k403Forbidden, "Only uploader can delete shared files"));
+      return;
+    }
     std::filesystem::remove_all(target);
     if (isDirectory) {
       server::ctx().fileIndexService->markDeletedPrefix(ownerUserId, *scope, relPath);

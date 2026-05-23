@@ -45,6 +45,7 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
                                   StorageScope scope,
                                   const std::string &relPath,
                                   const std::filesystem::path &absolutePath,
+                                  std::int64_t uploaderUserId,
                                   const std::string &thumbnailPath) {
   const auto normalizedRel = normalizeRelPath(relPath);
   if (normalizedRel.empty()) return;
@@ -62,12 +63,12 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
   sqlite3_stmt *stmt = nullptr;
   const char *sql =
       "INSERT INTO file_index(owner_user_id, scope, rel_path, parent_path, name, type, mime_type, size_bytes, "
-      "modified_at, uploaded_at, thumbnail_path, thumbnail_updated_at, is_deleted) "
-      "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0) "
+      "modified_at, uploaded_at, thumbnail_path, thumbnail_updated_at, is_deleted, uploader_user_id) "
+      "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?) "
       "ON CONFLICT(owner_user_id, scope, rel_path) DO UPDATE SET "
       "parent_path=excluded.parent_path, name=excluded.name, type=excluded.type, mime_type=excluded.mime_type, "
       "size_bytes=excluded.size_bytes, modified_at=excluded.modified_at, thumbnail_path=excluded.thumbnail_path, "
-      "thumbnail_updated_at=excluded.thumbnail_updated_at, is_deleted=0";
+      "thumbnail_updated_at=excluded.thumbnail_updated_at, is_deleted=0, uploader_user_id=excluded.uploader_user_id";
 
   sqlite3_prepare_v2(db_.raw(), sql, -1, &stmt, nullptr);
   sqlite3_bind_int64(stmt, 1, ownerUserId);
@@ -87,6 +88,7 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
   } else {
     sqlite3_bind_int64(stmt, 12, now);
   }
+  sqlite3_bind_int64(stmt, 13, uploaderUserId);
 
   if (sqlite3_step(stmt) != SQLITE_DONE) {
     const auto *err = sqlite3_errmsg(db_.raw());
@@ -262,6 +264,45 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
   return entries;
 }
 
+bool FileIndexService::canDeletePath(std::int64_t ownerUserId,
+                                     StorageScope scope,
+                                     const std::string &relPath,
+                                     std::int64_t requesterUserId,
+                                     bool isDirectory) const {
+  const auto normalizedRel = normalizeRelPath(relPath);
+  if (normalizedRel.empty()) return false;
+  const auto scopeRaw = scopeToString(scope);
+  const auto pattern = normalizedRel + "/%";
+
+  sqlite3_stmt *stmt = nullptr;
+  const char *sql = isDirectory
+      ? "SELECT uploader_user_id FROM file_index "
+        "WHERE owner_user_id = ? AND scope = ? AND is_deleted = 0 "
+        "AND (rel_path = ? OR rel_path LIKE ?)"
+      : "SELECT uploader_user_id FROM file_index "
+        "WHERE owner_user_id = ? AND scope = ? AND is_deleted = 0 AND rel_path = ?";
+  sqlite3_prepare_v2(db_.raw(), sql, -1, &stmt, nullptr);
+  sqlite3_bind_int64(stmt, 1, ownerUserId);
+  sqlite3_bind_text(stmt, 2, scopeRaw.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 3, normalizedRel.c_str(), -1, SQLITE_TRANSIENT);
+  if (isDirectory) {
+    sqlite3_bind_text(stmt, 4, pattern.c_str(), -1, SQLITE_TRANSIENT);
+  }
+
+  bool hasRows = false;
+  bool allowed = true;
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+    hasRows = true;
+    const auto uploaderUserId = sqlite3_column_int64(stmt, 0);
+    if (uploaderUserId != requesterUserId) {
+      allowed = false;
+      break;
+    }
+  }
+  sqlite3_finalize(stmt);
+  return hasRows && allowed;
+}
+
 std::int64_t FileIndexService::rebuildIndex(std::int64_t ownerUserId,
                                             StorageScope scope,
                                             const std::filesystem::path &rootPath) {
@@ -286,7 +327,7 @@ std::int64_t FileIndexService::rebuildIndex(std::int64_t ownerUserId,
       for (const auto &entry : std::filesystem::recursive_directory_iterator(rootPath)) {
         if (!entry.is_regular_file()) continue;
         const auto rel = std::filesystem::relative(entry.path(), rootPath).generic_string();
-        upsertFile(ownerUserId, scope, rel, entry.path());
+        upsertFile(ownerUserId, scope, rel, entry.path(), ownerUserId);
         count++;
       }
     }

@@ -7,7 +7,9 @@ import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum ServerSortBy { name, date, size, type }
@@ -31,7 +33,9 @@ class ServerBrowserController extends ChangeNotifier {
   final http.Client _client;
 
   final List<ServerFileItem> files = [];
+  final Set<ServerFileItem> selectedFiles = {};
   final List<String> pathStack = [''];
+  String scope = 'private';
   String selectedType = 'all';
   String searchQuery = '';
   ServerSortBy sortBy = ServerSortBy.name;
@@ -44,6 +48,7 @@ class ServerBrowserController extends ChangeNotifier {
 
   String get currentPath => pathStack.last;
   bool get canNavigateBack => pathStack.length > 1;
+  bool get isSelectionMode => selectedFiles.isNotEmpty;
 
   Future<void> initialize() async {
     await _loadSortPreferences();
@@ -57,6 +62,16 @@ class ServerBrowserController extends ChangeNotifier {
   void setCategory(String type) {
     selectedType = type;
     unawaited(reload());
+  }
+
+  Future<void> setScope(String value) async {
+    if (value != 'private' && value != 'shared') return;
+    scope = value;
+    pathStack
+      ..clear()
+      ..add('');
+    selectedFiles.clear();
+    await reload();
   }
 
   Future<void> updateSortBy(ServerSortBy value) async {
@@ -98,13 +113,36 @@ class ServerBrowserController extends ChangeNotifier {
   Future<void> navigateInto(ServerFileItem dir) async {
     if (!dir.isDir) return;
     pathStack.add(dir.path);
+    selectedFiles.clear();
     await reload();
   }
 
   Future<void> navigateBack() async {
     if (!canNavigateBack) return;
     pathStack.removeLast();
+    selectedFiles.clear();
     await reload();
+  }
+
+  void toggleSelection(ServerFileItem item) {
+    if (selectedFiles.contains(item)) {
+      selectedFiles.remove(item);
+    } else {
+      selectedFiles.add(item);
+    }
+    notifyListeners();
+  }
+
+  void selectAll() {
+    selectedFiles
+      ..clear()
+      ..addAll(files);
+    notifyListeners();
+  }
+
+  void clearSelection() {
+    selectedFiles.clear();
+    notifyListeners();
   }
 
   Future<void> reload() async {
@@ -122,7 +160,7 @@ class ServerBrowserController extends ChangeNotifier {
 
       final uri = _baseUri('/api/dir').replace(
         queryParameters: {
-          'scope': 'private',
+          'scope': scope,
           'path': currentPath,
           if (searchQuery.isNotEmpty) 'q': searchQuery,
           if (selectedType != 'all') 'type': selectedType,
@@ -165,7 +203,7 @@ class ServerBrowserController extends ChangeNotifier {
 
     final uri = _baseUri(
       '/api/files',
-    ).replace(queryParameters: {'scope': 'private', 'path': item.path});
+    ).replace(queryParameters: {'scope': scope, 'path': item.path});
     final response = await _client.get(
       uri,
       headers: {'authorization': 'Bearer $token'},
@@ -186,14 +224,75 @@ class ServerBrowserController extends ChangeNotifier {
       return _baseUri(raw);
     }
     return _baseUri('/api/thumb').replace(
-      queryParameters: {'path': item.path, 's': '$size', 'scope': 'private'},
+      queryParameters: {'path': item.path, 's': '$size', 'scope': scope},
     );
   }
 
   Uri streamUri(ServerFileItem item) {
     return _baseUri(
       '/api/files',
-    ).replace(queryParameters: {'scope': 'private', 'path': item.path});
+    ).replace(queryParameters: {'scope': scope, 'path': item.path});
+  }
+
+  Future<void> downloadSelectedFiles() async {
+    final downloadRoot = await _downloadRoot();
+    for (final item in selectedFiles.toList()) {
+      await _downloadItemRecursive(item, downloadRoot);
+    }
+    selectedFiles.clear();
+    notifyListeners();
+  }
+
+  Future<void> deleteSelectedFiles() async {
+    final token = await authService.readAccessToken(serverId);
+    if (token == null || token.isEmpty) return;
+    for (final item in selectedFiles.toList()) {
+      final uri = _baseUri(
+        '/api/files',
+      ).replace(queryParameters: {'scope': scope, 'path': item.path});
+      try {
+        final response = await _client.delete(
+          uri,
+          headers: {'authorization': 'Bearer $token'},
+        );
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          files.remove(item);
+        }
+      } catch (_) {}
+    }
+    selectedFiles.clear();
+    notifyListeners();
+  }
+
+  Future<void> shareSelectedFiles() async {
+    final token = await authService.readAccessToken(serverId);
+    if (token == null || token.isEmpty) return;
+    final sharedLinks = <String>[];
+    for (final item in selectedFiles.toList()) {
+      final uri = _baseUri('/api/share');
+      try {
+        final response = await _client.post(
+          uri,
+          headers: {
+            'authorization': 'Bearer $token',
+            'content-type': 'application/json',
+          },
+          body: jsonEncode({'scope': scope, 'path': item.path}),
+        );
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          final payload = jsonDecode(response.body) as Map<String, Object?>;
+          final rawUrl = (payload['url'] as String?) ?? '';
+          if (rawUrl.isNotEmpty) {
+            sharedLinks.add(_baseUri(rawUrl).toString());
+          }
+        }
+      } catch (_) {}
+    }
+    if (sharedLinks.isNotEmpty) {
+      await SharePlus.instance.share(ShareParams(text: sharedLinks.join('\n')));
+    }
+    selectedFiles.clear();
+    notifyListeners();
   }
 
   Future<Uint8List?> loadThumbnailWithRetry(
@@ -230,6 +329,75 @@ class ServerBrowserController extends ChangeNotifier {
     final normalizedBase = base.replace(path: basePath);
     final relativePath = path.startsWith('/') ? path.substring(1) : path;
     return normalizedBase.resolve(relativePath);
+  }
+
+  Future<List<ServerFileItem>> _listDirAt(String relativePath) async {
+    final token = await authService.readAccessToken(serverId);
+    if (token == null || token.isEmpty) return const [];
+    final uri = _baseUri(
+      '/api/dir',
+    ).replace(queryParameters: {'scope': scope, 'path': relativePath});
+    final response = await _client.get(
+      uri,
+      headers: {'authorization': 'Bearer $token'},
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return const [];
+    }
+    final payload = jsonDecode(response.body) as Map<String, Object?>;
+    final entries = (payload['entries'] as List?) ?? const [];
+    return entries
+        .whereType<Map>()
+        .map((e) => ServerFileItem.fromJson(Map<String, Object?>.from(e)))
+        .toList();
+  }
+
+  Future<Directory> _downloadRoot() async {
+    final docs = await getApplicationDocumentsDirectory();
+    final safeServerName = profile.displayName.replaceAll(
+      RegExp(r'[^a-zA-Z0-9._-]'),
+      '_',
+    );
+    final dir = Directory(
+      p.join(docs.path, 'CrowleysCloud', 'Downloads', safeServerName),
+    );
+    await dir.create(recursive: true);
+    return dir;
+  }
+
+  Future<void> _downloadItemRecursive(
+    ServerFileItem item,
+    Directory root,
+  ) async {
+    if (!item.isDir) {
+      await _downloadSingleFile(item, p.join(root.path, item.path));
+      return;
+    }
+    final folderTarget = Directory(p.join(root.path, item.path));
+    await folderTarget.create(recursive: true);
+    final children = await _listDirAt(item.path);
+    for (final child in children) {
+      await _downloadItemRecursive(child, root);
+    }
+  }
+
+  Future<void> _downloadSingleFile(
+    ServerFileItem item,
+    String targetPath,
+  ) async {
+    final token = await authService.readAccessToken(serverId);
+    if (token == null || token.isEmpty) return;
+    final uri = _baseUri(
+      '/api/files',
+    ).replace(queryParameters: {'scope': scope, 'path': item.path});
+    final response = await _client.get(
+      uri,
+      headers: {'authorization': 'Bearer $token'},
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) return;
+    final file = File(targetPath);
+    await file.parent.create(recursive: true);
+    await file.writeAsBytes(response.bodyBytes, flush: true);
   }
 }
 

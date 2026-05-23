@@ -7,7 +7,7 @@ import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 
-class ServerFileBrowser extends StatelessWidget {
+class ServerFileBrowser extends StatefulWidget {
   const ServerFileBrowser({
     super.key,
     required this.controller,
@@ -16,6 +16,83 @@ class ServerFileBrowser extends StatelessWidget {
 
   final ServerBrowserController controller;
   final bool isGridView;
+
+  @override
+  State<ServerFileBrowser> createState() => _ServerFileBrowserState();
+}
+
+class _ServerFileBrowserState extends State<ServerFileBrowser> {
+  ServerBrowserController get controller => widget.controller;
+  bool get isGridView => widget.isGridView;
+
+  Future<void> _onTapItem(ServerFileItem item) async {
+    if (controller.isSelectionMode) {
+      controller.toggleSelection(item);
+      return;
+    }
+    if (item.isDir) {
+      await controller.navigateInto(item);
+      return;
+    }
+
+    final temp = await controller.downloadTempForEdit(item);
+    if (temp != null) {
+      await OpenFile.open(temp.path);
+    }
+  }
+
+  Future<void> _deleteSelectedFiles() async {
+    await controller.deleteSelectedFiles();
+  }
+
+  Future<void> _downloadSelectedFiles() async {
+    await controller.downloadSelectedFiles();
+  }
+
+  Future<void> _shareSelectedFiles() async {
+    await controller.shareSelectedFiles();
+  }
+
+  void _showContextMenu(BuildContext context, ServerFileItem item) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: appSurface,
+      builder: (_) => Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.download, color: Colors.white70),
+            title: const Text(
+              'Download',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () async {
+              Navigator.pop(context);
+              controller.toggleSelection(item);
+              await _downloadSelectedFiles();
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete, color: Colors.white70),
+            title: const Text('Delete', style: TextStyle(color: Colors.white)),
+            onTap: () async {
+              Navigator.pop(context);
+              controller.toggleSelection(item);
+              await _deleteSelectedFiles();
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.share, color: Colors.white70),
+            title: const Text('Share', style: TextStyle(color: Colors.white)),
+            onTap: () async {
+              Navigator.pop(context);
+              controller.toggleSelection(item);
+              await _shareSelectedFiles();
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,106 +109,75 @@ class ServerFileBrowser extends StatelessWidget {
           return const Center(child: Text('No files found.'));
         }
 
-        return Column(
+        return Stack(
           children: [
-            _ServerHeaderControls(controller: controller),
-            Expanded(
-              child: Scrollbar(
-                thumbVisibility: true,
-                interactive: true,
-                thickness: 8,
-                radius: const Radius.circular(4),
-                child: isGridView
-                    ? GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: controller.files.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 0.8,
+            Column(
+              children: [
+                _ServerHeaderControls(controller: controller),
+                Expanded(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    interactive: true,
+                    thickness: 8,
+                    radius: const Radius.circular(4),
+                    child: isGridView
+                        ? GridView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: controller.files.length,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  childAspectRatio: 0.8,
+                                ),
+                            itemBuilder: (context, i) => _GridItem(
+                              controller: controller,
+                              item: controller.files[i],
+                              isSelected: controller.selectedFiles.contains(
+                                controller.files[i],
+                              ),
+                              onTap: () => _onTapItem(controller.files[i]),
+                              onLongPress: () => controller.toggleSelection(
+                                controller.files[i],
+                              ),
                             ),
-                        itemBuilder: (context, i) =>
-                            _gridItem(context, controller.files[i]),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: controller.files.length,
-                        itemBuilder: (context, i) =>
-                            _listItem(context, controller.files[i]),
-                      ),
-              ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: controller.files.length,
+                            itemBuilder: (context, i) {
+                              final item = controller.files[i];
+                              return _ListItem(
+                                controller: controller,
+                                item: item,
+                                isSelected: controller.selectedFiles.contains(
+                                  item,
+                                ),
+                                onTap: () => _onTapItem(item),
+                                onLongPress: () =>
+                                    controller.toggleSelection(item),
+                                onToggle: () =>
+                                    controller.toggleSelection(item),
+                                onMenu: () => _showContextMenu(context, item),
+                              );
+                            },
+                          ),
+                  ),
+                ),
+              ],
             ),
+            if (controller.isSelectionMode)
+              _SelectionActionBar(
+                onDownload: _downloadSelectedFiles,
+                onDelete: _deleteSelectedFiles,
+                onShare: _shareSelectedFiles,
+              ),
           ],
         );
       },
     );
   }
-
-  Widget _gridItem(BuildContext context, ServerFileItem item) {
-    return InkWell(
-      key: ValueKey(item.path),
-      onTap: () => _onTapItem(item),
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: _ServerThumb(
-              controller: controller,
-              item: item,
-              isList: false,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            item.name,
-            style: const TextStyle(color: Colors.white70),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _listItem(BuildContext context, ServerFileItem item) {
-    return Padding(
-      key: ValueKey(item.path),
-      padding: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        leading: _ServerThumb(controller: controller, item: item, isList: true),
-        title: Text(
-          item.name,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.white70),
-        ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.white54),
-        onTap: () => _onTapItem(item),
-        tileColor: appSurface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  Future<void> _onTapItem(ServerFileItem item) async {
-    if (item.isDir) {
-      await controller.navigateInto(item);
-      return;
-    }
-
-    // Always open from a downloaded temp file; URL opening is unreliable
-    // with OpenFile on many platforms.
-    final temp = await controller.downloadTempForEdit(item);
-    if (temp != null) {
-      await OpenFile.open(temp.path);
-    }
-  }
-
 }
 
 IconData _iconForFile(ServerFileItem item) {
@@ -194,10 +240,8 @@ class _ServerThumbState extends State<_ServerThumb> {
               width: size,
               height: size,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _ServerFileFallbackIcon(
-                item: widget.item,
-                size: size,
-              ),
+              errorBuilder: (_, _, _) =>
+                  _ServerFileFallbackIcon(item: widget.item, size: size),
             ),
           );
         }
@@ -222,6 +266,135 @@ class _ServerFileFallbackIcon extends StatelessWidget {
   }
 }
 
+class _GridItem extends StatelessWidget {
+  const _GridItem({
+    required this.controller,
+    required this.item,
+    required this.isSelected,
+    required this.onTap,
+    required this.onLongPress,
+  });
+
+  final ServerBrowserController controller;
+  final ServerFileItem item;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      key: ValueKey(item.path),
+      onTap: onTap,
+      onLongPress: onLongPress,
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _ServerThumb(
+                  controller: controller,
+                  item: item,
+                  isList: false,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                item.name,
+                style: const TextStyle(color: Colors.white70),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          if (isSelected)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(context).primaryColor,
+                    width: 2,
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.check_circle,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ListItem extends StatelessWidget {
+  const _ListItem({
+    required this.controller,
+    required this.item,
+    required this.isSelected,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onToggle,
+    required this.onMenu,
+  });
+
+  final ServerBrowserController controller;
+  final ServerFileItem item;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final VoidCallback onToggle;
+  final VoidCallback onMenu;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      key: ValueKey(item.path),
+      padding: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        leading: _ServerThumb(controller: controller, item: item, isList: true),
+        title: Text(
+          item.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: Colors.white70),
+        ),
+        trailing: controller.isSelectionMode
+            ? Checkbox(
+                value: isSelected,
+                activeColor: Theme.of(context).primaryColor,
+                onChanged: (_) => onToggle(),
+              )
+            : IconButton(
+                icon: const Icon(Icons.more_vert, color: Colors.white70),
+                onPressed: onMenu,
+              ),
+        onTap: onTap,
+        onLongPress: onLongPress,
+        tileColor: isSelected
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+            : appSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: isSelected
+              ? BorderSide(color: Theme.of(context).primaryColor, width: 1)
+              : BorderSide.none,
+        ),
+      ),
+    );
+  }
+}
+
 class _ServerHeaderControls extends StatelessWidget {
   const _ServerHeaderControls({required this.controller});
 
@@ -229,11 +402,49 @@ class _ServerHeaderControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (controller.isSelectionMode) {
+      return Padding(
+        padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
+        child: Row(
+          children: [
+            Checkbox(
+              value:
+                  controller.selectedFiles.length == controller.files.length &&
+                  controller.files.isNotEmpty,
+              activeColor: Theme.of(context).primaryColor,
+              onChanged: (checked) => checked == true
+                  ? controller.selectAll()
+                  : controller.clearSelection(),
+            ),
+            Text(
+              '${controller.selectedFiles.length} selected',
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white70),
+              onPressed: controller.clearSelection,
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
-      padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: 'private', label: Text('Private')),
+              ButtonSegment(value: 'shared', label: Text('Shared')),
+            ],
+            selected: {controller.scope},
+            onSelectionChanged: (selection) {
+              unawaited(controller.setScope(selection.first));
+            },
+          ),
+          const Spacer(),
           Container(
             height: 40,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -294,6 +505,65 @@ class _ServerHeaderControls extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SelectionActionBar extends StatelessWidget {
+  const _SelectionActionBar({
+    required this.onDownload,
+    required this.onDelete,
+    required this.onShare,
+  });
+
+  final Future<void> Function() onDownload;
+  final Future<void> Function() onDelete;
+  final Future<void> Function() onShare;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        color: appBackground,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextButton.icon(
+                icon: const Icon(Icons.download, color: Colors.white70),
+                label: const Text(
+                  'Download',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: onDownload,
+              ),
+            ),
+            Expanded(
+              child: TextButton.icon(
+                icon: const Icon(Icons.delete, color: Colors.white70),
+                label: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: onDelete,
+              ),
+            ),
+            Expanded(
+              child: TextButton.icon(
+                icon: const Icon(Icons.share, color: Colors.white70),
+                label: const Text(
+                  'Share',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: onShare,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
