@@ -360,68 +360,48 @@ class _MainScreenState extends State<MainScreen> {
     final client = http.Client();
     try {
       for (final item in items) {
-        if (item.isDirectory) {
-          failed.add(item.name);
-          failDetails.add('${item.name}: directories are not uploadable');
-          continue;
-        }
         final localPath = await item.path;
         if (localPath.isEmpty) {
           failed.add(item.name);
           failDetails.add('${item.name}: local path is empty');
           continue;
         }
-        final file = File(localPath);
-        if (!await file.exists()) {
-          failed.add(item.name);
-          failDetails.add('${item.name}: local file not found');
+
+        if (item.isDirectory) {
+          final result = await _uploadDirectoryToServer(
+            client: client,
+            base: base,
+            activeServerId: activeServer.id,
+            activeServerBaseUrl: activeServer.baseUrl,
+            initialToken: token,
+            rootDirectory: Directory(localPath),
+            rootRemotePrefix: item.name,
+          );
+          token = result.token;
+          if (result.ok) {
+            uploaded.add(item.name);
+          } else {
+            failed.add(item.name);
+            failDetails.add('${item.name}: ${result.error}');
+          }
           continue;
         }
-        final uri = Uri.parse(base)
-            .resolve('/api/files')
-            .replace(
-              queryParameters: {
-                'scope': 'private',
-                'path': p.basename(localPath),
-              },
-            );
-        var response = await client.post(
-          uri,
-          headers: {
-            'authorization': 'Bearer $token',
-            'content-type': 'application/octet-stream',
-          },
-          body: await file.readAsBytes(),
+
+        final result = await _uploadFileToServer(
+          client: client,
+          base: base,
+          activeServerId: activeServer.id,
+          activeServerBaseUrl: activeServer.baseUrl,
+          initialToken: token,
+          localFile: File(localPath),
+          remotePath: p.basename(localPath),
         );
-        if (response.statusCode == 401) {
-          try {
-            await _serverManager.authService.refreshSession(
-              serverId: activeServer.id,
-              baseUrl: activeServer.baseUrl,
-            );
-            token = await _serverManager.authService.readAccessToken(
-              activeServer.id,
-            );
-          } catch (_) {}
-          if (token != null && token.isNotEmpty) {
-            response = await client.post(
-              uri,
-              headers: {
-                'authorization': 'Bearer $token',
-                'content-type': 'application/octet-stream',
-              },
-              body: await file.readAsBytes(),
-            );
-          }
-        }
-        if (response.statusCode >= 200 && response.statusCode < 300) {
+        token = result.token;
+        if (result.ok) {
           uploaded.add(item.name);
         } else {
           failed.add(item.name);
-          final body = response.body.trim();
-          failDetails.add(
-            '${item.name}: HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
-          );
+          failDetails.add('${item.name}: ${result.error}');
         }
       }
     } finally {
@@ -433,6 +413,181 @@ class _MainScreenState extends State<MainScreen> {
         '${failed.isNotEmpty ? ', failed ${failed.length}' : ''}.'
         '${failDetails.isNotEmpty ? '\n${failDetails.first}' : ''}';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<({bool ok, String? token, String error})> _uploadFileToServer({
+    required http.Client client,
+    required String base,
+    required String activeServerId,
+    required String activeServerBaseUrl,
+    required String? initialToken,
+    required File localFile,
+    required String remotePath,
+  }) async {
+    if (!await localFile.exists()) {
+      return (ok: false, token: initialToken, error: 'local file not found');
+    }
+
+    final bytes = await localFile.readAsBytes();
+    final uri = Uri.parse(base).resolve('/api/files').replace(
+      queryParameters: {'scope': 'private', 'path': remotePath},
+    );
+    var token = initialToken;
+    if (token == null || token.isEmpty) {
+      return (ok: false, token: token, error: 'no session token');
+    }
+
+    var response = await client.post(
+      uri,
+      headers: {
+        'authorization': 'Bearer $token',
+        'content-type': 'application/octet-stream',
+      },
+      body: bytes,
+    );
+
+    if (response.statusCode == 401) {
+      try {
+        await _serverManager.authService.refreshSession(
+          serverId: activeServerId,
+          baseUrl: activeServerBaseUrl,
+        );
+        token = await _serverManager.authService.readAccessToken(activeServerId);
+      } catch (_) {}
+      if (token != null && token.isNotEmpty) {
+        response = await client.post(
+          uri,
+          headers: {
+            'authorization': 'Bearer $token',
+            'content-type': 'application/octet-stream',
+          },
+          body: bytes,
+        );
+      }
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return (ok: true, token: token, error: '');
+    }
+    final body = response.body.trim();
+    return (
+      ok: false,
+      token: token,
+      error: 'HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
+    );
+  }
+
+  Future<({bool ok, String? token, String error})> _uploadDirectoryToServer({
+    required http.Client client,
+    required String base,
+    required String activeServerId,
+    required String activeServerBaseUrl,
+    required String? initialToken,
+    required Directory rootDirectory,
+    required String rootRemotePrefix,
+  }) async {
+    if (!await rootDirectory.exists()) {
+      return (ok: false, token: initialToken, error: 'local directory not found');
+    }
+    var token = initialToken;
+
+    final rootCreate = await _createServerFolder(
+      client: client,
+      base: base,
+      activeServerId: activeServerId,
+      activeServerBaseUrl: activeServerBaseUrl,
+      initialToken: token,
+      remotePath: rootRemotePrefix,
+    );
+    token = rootCreate.token;
+    if (!rootCreate.ok) {
+      return (ok: false, token: token, error: rootCreate.error);
+    }
+
+    await for (final entity in rootDirectory.list(recursive: true, followLinks: false)) {
+      if (entity is Directory) {
+        final relDir = p.relative(entity.path, from: rootDirectory.path);
+        final remoteDirPath = p.join(rootRemotePrefix, relDir);
+        final createDirResult = await _createServerFolder(
+          client: client,
+          base: base,
+          activeServerId: activeServerId,
+          activeServerBaseUrl: activeServerBaseUrl,
+          initialToken: token,
+          remotePath: remoteDirPath,
+        );
+        token = createDirResult.token;
+        if (!createDirResult.ok) {
+          return (ok: false, token: token, error: createDirResult.error);
+        }
+        continue;
+      }
+      if (entity is! File) continue;
+      final rel = p.relative(entity.path, from: rootDirectory.path);
+      final remotePath = p.join(rootRemotePrefix, rel);
+      final fileResult = await _uploadFileToServer(
+        client: client,
+        base: base,
+        activeServerId: activeServerId,
+        activeServerBaseUrl: activeServerBaseUrl,
+        initialToken: token,
+        localFile: entity,
+        remotePath: remotePath,
+      );
+      token = fileResult.token;
+      if (!fileResult.ok) {
+        return (ok: false, token: token, error: fileResult.error);
+      }
+    }
+    return (ok: true, token: token, error: '');
+  }
+
+  Future<({bool ok, String? token, String error})> _createServerFolder({
+    required http.Client client,
+    required String base,
+    required String activeServerId,
+    required String activeServerBaseUrl,
+    required String? initialToken,
+    required String remotePath,
+  }) async {
+    var token = initialToken;
+    if (token == null || token.isEmpty) {
+      return (ok: false, token: token, error: 'no session token');
+    }
+
+    final uri = Uri.parse(base).resolve('/api/folders').replace(
+      queryParameters: {'scope': 'private', 'path': remotePath},
+    );
+    var response = await client.post(
+      uri,
+      headers: {'authorization': 'Bearer $token'},
+      body: const [],
+    );
+    if (response.statusCode == 401) {
+      try {
+        await _serverManager.authService.refreshSession(
+          serverId: activeServerId,
+          baseUrl: activeServerBaseUrl,
+        );
+        token = await _serverManager.authService.readAccessToken(activeServerId);
+      } catch (_) {}
+      if (token != null && token.isNotEmpty) {
+        response = await client.post(
+          uri,
+          headers: {'authorization': 'Bearer $token'},
+          body: const [],
+        );
+      }
+    }
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return (ok: true, token: token, error: '');
+    }
+    final body = response.body.trim();
+    return (
+      ok: false,
+      token: token,
+      error: 'folder create HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
+    );
   }
 
   Future<bool> _requestPermission(FileCategory category) async {

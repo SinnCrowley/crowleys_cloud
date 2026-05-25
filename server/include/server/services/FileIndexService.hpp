@@ -30,6 +30,8 @@ struct ListIndexQuery {
   std::string query;
   std::string sortBy;
   bool sortAscending;
+  bool includeDirs{true};
+  bool recursiveFiles{false};
 };
 
 class FileIndexService {

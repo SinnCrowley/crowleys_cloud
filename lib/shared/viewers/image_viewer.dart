@@ -10,12 +10,14 @@ class ImageViewer extends StatefulWidget {
   final List<FileItem> imageItems;
   final int initialIndex;
   final Future<void> Function(FileItem item)? onUploadItem;
+  final Future<void> Function(FileItem item)? onAddToFolderItem;
 
   const ImageViewer({
     super.key,
     required this.imageItems,
     required this.initialIndex,
     this.onUploadItem,
+    this.onAddToFolderItem,
   });
 
   @override
@@ -156,6 +158,12 @@ class _ImageViewerState extends State<ImageViewer>
     await callback(widget.imageItems[_currentIndex]);
   }
 
+  Future<void> _addCurrentFileToFolder() async {
+    final callback = widget.onAddToFolderItem;
+    if (callback == null) return;
+    await callback(widget.imageItems[_currentIndex]);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -277,6 +285,12 @@ class _ImageViewerState extends State<ImageViewer>
                         onPressed: _deleteCurrentFile,
                       ),
                       _ActionButton(
+                        icon: Icons.drive_file_move,
+                        label: 'Add to folder',
+                        onPressed: _addCurrentFileToFolder,
+                        enabled: widget.onAddToFolderItem != null,
+                      ),
+                      _ActionButton(
                         icon: Icons.share,
                         label: 'Share',
                         onPressed: _shareCurrentFile,
@@ -304,25 +318,34 @@ class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onPressed;
+  final bool enabled;
 
   const _ActionButton({
     required this.icon,
     required this.label,
     required this.onPressed,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onPressed,
+      onTap: enabled ? onPressed : null,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white70, size: 24),
+          Icon(
+            icon,
+            color: enabled ? Colors.white70 : Colors.white24,
+            size: 24,
+          ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+            style: TextStyle(
+              color: enabled ? Colors.white : Colors.white38,
+              fontSize: 12,
+            ),
           ),
         ],
       ),

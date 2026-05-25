@@ -5,6 +5,7 @@ import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:flutter/foundation.dart';
 import 'package:open_file/open_file.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
@@ -496,5 +497,122 @@ class FileBrowserController extends ChangeNotifier {
     if (filePath.isNotEmpty) {
       await OpenFile.open(filePath);
     }
+  }
+
+  Future<String?> createFolder(String name) async {
+    if (category.name != 'All files') {
+      return 'Folder creation is only available in All files.';
+    }
+    if (directoryHistory.isEmpty) {
+      return 'Current directory is unavailable.';
+    }
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) {
+      return 'Folder name cannot be empty.';
+    }
+
+    final target = Directory('${directoryHistory.last.path}/$trimmed');
+    if (await target.exists()) {
+      return 'Folder already exists.';
+    }
+    try {
+      await target.create(recursive: true);
+      await reload();
+      return null;
+    } catch (e) {
+      return 'Failed to create folder: $e';
+    }
+  }
+
+  Future<String?> createFolderAtPath(String parentPath, String name) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return 'Folder name cannot be empty.';
+    final target = Directory('$parentPath/$trimmed');
+    if (await target.exists()) return 'Folder already exists.';
+    try {
+      await target.create(recursive: true);
+      await reload();
+      return null;
+    } catch (e) {
+      return 'Failed to create folder: $e';
+    }
+  }
+
+  Future<List<Directory>> listDirectoriesAt(String path) async {
+    try {
+      final entries = await Directory(
+        path,
+      ).list(recursive: false, followLinks: false).toList();
+      return entries
+          .whereType<Directory>()
+          .where((d) => !p.basename(d.path).startsWith('.'))
+          .toList()
+        ..sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<String?> moveSelectedToFolder(String destinationPath) async {
+    if (selectedFiles.isEmpty) return 'Nothing selected.';
+    final destination = Directory(destinationPath);
+    if (!await destination.exists()) {
+      return 'Destination folder does not exist.';
+    }
+
+    final selected = selectedFiles.toList();
+    var moved = 0;
+    var failed = 0;
+    var skipped = 0;
+    String? firstError;
+
+    for (final item in selected) {
+      final srcPath = item.fsEntity?.path.isNotEmpty == true
+          ? item.fsEntity!.path
+          : await item.path;
+      if (srcPath.isEmpty) {
+        skipped++;
+        continue;
+      }
+
+      final name = item.name;
+      final targetPath = p.join(destinationPath, name);
+      if (srcPath == targetPath) {
+        skipped++;
+        continue;
+      }
+      if (item.isDirectory &&
+          destinationPath.startsWith('$srcPath${Platform.pathSeparator}')) {
+        failed++;
+        firstError ??= 'Cannot move folder "$name" into itself.';
+        continue;
+      }
+
+      try {
+        if (item.fsEntity != null) {
+          await item.fsEntity!.rename(targetPath);
+        } else {
+          await File(srcPath).rename(targetPath);
+        }
+        moved++;
+      } catch (e) {
+        failed++;
+        firstError ??= 'Failed to move $name: $e';
+      }
+    }
+
+    if (moved > 0) {
+      selectedFiles.clear();
+      await reload();
+    }
+
+    if (failed > 0) {
+      if (moved > 0) return 'Moved $moved item(s), failed $failed.';
+      return firstError ?? 'Failed to move selected items.';
+    }
+    if (moved == 0 && skipped > 0) {
+      return 'No files were moved.';
+    }
+    return null;
   }
 }

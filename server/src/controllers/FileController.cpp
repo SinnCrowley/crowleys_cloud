@@ -8,6 +8,7 @@
 #include <fstream>
 #include <mutex>
 #include <thread>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace server::controllers {
@@ -72,6 +73,7 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
 
     const auto relPrefix = std::filesystem::path(pathRaw).lexically_normal().relative_path().generic_string();
     const auto filterType = req->getParameter("type");
+    const bool typedView = !filterType.empty() && filterType != "all";
     const auto query = req->getParameter("q");
     const auto sortBy = req->getParameter("sort");
     const auto order = req->getParameter("order");
@@ -84,16 +86,23 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
         .query = query,
         .sortBy = sortBy,
         .sortAscending = order != "desc",
+        .includeDirs = !typedView,
+        .recursiveFiles = typedView,
     });
     if (entries.empty()) {
-      const auto fsEntries = server::ctx().fileService->listDirectory(fullPath);
-      for (const auto &entry : fsEntries) {
-        if (entry.isDir) continue;
-        const auto fullRelPath = relPrefix.empty() ? entry.path : (relPrefix + "/" + entry.path);
-        const auto absolutePath = fullPath / entry.path;
-        const auto uploaderUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-        server::ctx().fileIndexService->upsertFile(
-            ownerUserId, *scope, fullRelPath, absolutePath, uploaderUserId);
+      if (typedView) {
+        const auto scopeRoot = server::ctx().fileService->resolvePath(userId, role, *scope, "", false);
+        server::ctx().fileIndexService->rebuildIndex(ownerUserId, *scope, scopeRoot);
+      } else {
+        const auto fsEntries = server::ctx().fileService->listDirectory(fullPath);
+        for (const auto &entry : fsEntries) {
+          if (entry.isDir) continue;
+          const auto fullRelPath = relPrefix.empty() ? entry.path : (relPrefix + "/" + entry.path);
+          const auto absolutePath = fullPath / entry.path;
+          const auto uploaderUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+          server::ctx().fileIndexService->upsertFile(
+              ownerUserId, *scope, fullRelPath, absolutePath, uploaderUserId);
+        }
       }
       entries = server::ctx().fileIndexService->listDirectory({
           .ownerUserId = ownerUserId,
@@ -103,12 +112,69 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
           .query = query,
           .sortBy = sortBy,
           .sortAscending = order != "desc",
+          .includeDirs = !typedView,
+          .recursiveFiles = typedView,
       });
     }
 
+    std::unordered_map<std::string, services::IndexedDirEntry> dirEntries;
+    if (!typedView) {
+      const auto fsEntries = server::ctx().fileService->listDirectory(fullPath);
+      for (const auto &entry : entries) {
+        if (entry.isDir) {
+          dirEntries[entry.path] = entry;
+        }
+      }
+      for (const auto &fsEntry : fsEntries) {
+        if (!fsEntry.isDir) continue;
+        const auto fullRelPath = relPrefix.empty() ? fsEntry.path : (relPrefix + "/" + fsEntry.path);
+        if (dirEntries.find(fullRelPath) != dirEntries.end()) continue;
+        dirEntries.emplace(
+            fullRelPath,
+            services::IndexedDirEntry{
+                .name = fsEntry.name,
+                .path = fullRelPath,
+                .isDir = true,
+                .size = 0,
+                .modifiedAt = fsEntry.modifiedAt,
+                .type = "directory",
+                .mimeType = "inode/directory",
+                .thumbnailUrl = "",
+            });
+      }
+    }
+
+    std::vector<services::IndexedDirEntry> mergedEntries;
+    mergedEntries.reserve(dirEntries.size() + entries.size());
+    for (const auto &[_, dirEntry] : dirEntries) {
+      mergedEntries.push_back(dirEntry);
+    }
+    for (const auto &entry : entries) {
+      if (!entry.isDir) mergedEntries.push_back(entry);
+    }
+
+    std::sort(mergedEntries.begin(), mergedEntries.end(), [&](const auto &a, const auto &b) {
+      if (a.isDir != b.isDir) return a.isDir > b.isDir;
+
+      auto lessByName = [&]() { return order != "desc" ? a.name < b.name : a.name > b.name; };
+      if (sortBy == "size") {
+        if (a.size == b.size) return lessByName();
+        return order != "desc" ? a.size < b.size : a.size > b.size;
+      }
+      if (sortBy == "date") {
+        if (a.modifiedAt == b.modifiedAt) return lessByName();
+        return order != "desc" ? a.modifiedAt < b.modifiedAt : a.modifiedAt > b.modifiedAt;
+      }
+      if (sortBy == "type") {
+        if (a.type == b.type) return lessByName();
+        return order != "desc" ? a.type < b.type : a.type > b.type;
+      }
+      return lessByName();
+    });
+
     Json::Value body;
     body["entries"] = Json::arrayValue;
-    for (const auto &entry : entries) {
+    for (const auto &entry : mergedEntries) {
       Json::Value v;
       v["name"] = entry.name;
       v["size"] = static_cast<Json::UInt64>(entry.size);
@@ -270,6 +336,39 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
     const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
     server::ctx().fileIndexService->upsertFile(
         ownerUserId, *scope, relPath, target, uploaderUserId);
+
+    Json::Value body;
+    body["ok"] = true;
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
+void FileController::createFolder(const drogon::HttpRequestPtr &req,
+                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  const auto scope = services::parseScope(req->getParameter("scope"));
+  if (!scope.has_value()) {
+    callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+    return;
+  }
+
+  const auto pathRaw = req->getParameter("path");
+  if (pathRaw.empty()) {
+    callback(jsonError(drogon::k400BadRequest, "path is required"));
+    return;
+  }
+
+  try {
+    const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, true);
+    std::filesystem::create_directories(target);
 
     Json::Value body;
     body["ok"] = true;

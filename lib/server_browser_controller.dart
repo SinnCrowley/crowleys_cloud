@@ -48,7 +48,7 @@ class ServerBrowserController extends ChangeNotifier {
   int _opId = 0;
 
   String get currentPath => pathStack.last;
-  bool get canNavigateBack => pathStack.length > 1;
+  bool get canNavigateBack => selectedType == 'all' && pathStack.length > 1;
   bool get isSelectionMode => selectedFiles.isNotEmpty;
 
   Future<void> initialize() async {
@@ -62,6 +62,12 @@ class ServerBrowserController extends ChangeNotifier {
 
   void setCategory(String type) {
     selectedType = type;
+    selectedFiles.clear();
+    if (selectedType != 'all') {
+      pathStack
+        ..clear()
+        ..add('');
+    }
     unawaited(reload());
   }
 
@@ -112,14 +118,14 @@ class ServerBrowserController extends ChangeNotifier {
   }
 
   Future<void> navigateInto(ServerFileItem dir) async {
-    if (!dir.isDir) return;
+    if (!dir.isDir || selectedType != 'all') return;
     pathStack.add(dir.path);
     selectedFiles.clear();
     await reload();
   }
 
   Future<void> navigateBack() async {
-    if (!canNavigateBack) return;
+    if (!canNavigateBack || selectedType != 'all') return;
     pathStack.removeLast();
     selectedFiles.clear();
     await reload();
@@ -154,10 +160,11 @@ class ServerBrowserController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final requestPath = selectedType == 'all' ? currentPath : '';
       final uri = _apiUri('/dir').replace(
         queryParameters: {
           'scope': scope,
-          'path': currentPath,
+          'path': requestPath,
           if (searchQuery.isNotEmpty) 'q': searchQuery,
           if (selectedType != 'all') 'type': selectedType,
           'sort': sortBy.name,
@@ -179,6 +186,9 @@ class ServerBrowserController extends ChangeNotifier {
             (e) => ServerFileItem.fromJson(Map<String, Object?>.from(e)),
           ),
         );
+      if (selectedType != 'all') {
+        files.removeWhere((item) => item.isDir);
+      }
     } catch (e) {
       if (opId != _opId) return;
       error = e.toString();
@@ -328,6 +338,79 @@ class ServerBrowserController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> createFolder(String name) async {
+    await createFolderAtPath(currentPath, name);
+  }
+
+  Future<void> createFolderAtPath(String parentPath, String name) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) {
+      operationMessage = 'Folder name cannot be empty.';
+      notifyListeners();
+      return;
+    }
+    final targetPath = parentPath.isEmpty
+        ? trimmed
+        : p.join(parentPath, trimmed);
+    final uri = _apiUri(
+      '/folders',
+    ).replace(queryParameters: {'scope': scope, 'path': targetPath});
+    final response = await _authorizedPostBytes(uri, const []);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      operationMessage = 'Folder created.';
+      await reload();
+      return;
+    }
+    operationMessage = 'Failed to create folder (${response.statusCode}).';
+    notifyListeners();
+  }
+
+  Future<List<ServerFileItem>> listFoldersAt(String path) async {
+    final entries = await _listDirAtScope(path, scope);
+    return entries.where((e) => e.isDir && !e.name.startsWith('.')).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+
+  Future<void> moveSelectedToFolder(String destinationPath) async {
+    operationMessage = null;
+    if (selectedFiles.isEmpty) return;
+
+    var moved = 0;
+    var failed = 0;
+    for (final item in selectedFiles.toList()) {
+      final targetPath = destinationPath.isEmpty
+          ? p.basename(item.path)
+          : p.join(destinationPath, p.basename(item.path));
+      if (item.isDir && destinationPath.startsWith('${item.path}/')) {
+        failed++;
+        continue;
+      }
+      final ok = await _copyItemWithinScope(
+        item: item,
+        sourceScope: scope,
+        targetPath: targetPath,
+      );
+      if (!ok) {
+        failed++;
+        continue;
+      }
+      final deleteUri = _apiUri(
+        '/files',
+      ).replace(queryParameters: {'scope': scope, 'path': item.path});
+      final delResp = await _authorizedDelete(deleteUri);
+      if (delResp.statusCode >= 200 && delResp.statusCode < 300) {
+        moved++;
+      } else {
+        failed++;
+      }
+    }
+    operationMessage = failed == 0
+        ? 'Moved $moved item(s).'
+        : 'Moved $moved item(s), failed $failed.';
+    selectedFiles.clear();
+    await reload();
+  }
+
   Future<Uint8List?> loadThumbnailWithRetry(
     ServerFileItem item, {
     int size = 256,
@@ -429,9 +512,7 @@ class ServerBrowserController extends ChangeNotifier {
     } else {
       baseDir = await getApplicationDocumentsDirectory();
     }
-    final dir = Directory(
-      p.join(baseDir.path, 'CrowleysCloud'),
-    );
+    final dir = Directory(p.join(baseDir.path, 'CrowleysCloud'));
     await dir.create(recursive: true);
     return dir;
   }
@@ -483,6 +564,18 @@ class ServerBrowserController extends ChangeNotifier {
     required String targetPath,
   }) async {
     if (item.isDir) {
+      final createFolderUri = _apiUri(
+        '/folders',
+      ).replace(queryParameters: {'scope': 'shared', 'path': targetPath});
+      final createFolderResponse = await _authorizedPostBytes(
+        createFolderUri,
+        const [],
+      );
+      if (createFolderResponse.statusCode < 200 ||
+          createFolderResponse.statusCode >= 300) {
+        return false;
+      }
+
       final children = await _listDirAtScope(item.path, sourceScope);
       var allOk = true;
       for (final child in children) {
@@ -501,13 +594,64 @@ class ServerBrowserController extends ChangeNotifier {
       '/files',
     ).replace(queryParameters: {'scope': sourceScope, 'path': item.path});
     final downloadResponse = await _authorizedGet(downloadUri);
-    if (downloadResponse.statusCode < 200 || downloadResponse.statusCode >= 300) {
+    if (downloadResponse.statusCode < 200 ||
+        downloadResponse.statusCode >= 300) {
       return false;
     }
 
     final uploadUri = _apiUri(
       '/files',
     ).replace(queryParameters: {'scope': 'shared', 'path': targetPath});
+    final uploadResponse = await _authorizedPostBytes(
+      uploadUri,
+      downloadResponse.bodyBytes,
+    );
+    return uploadResponse.statusCode >= 200 && uploadResponse.statusCode < 300;
+  }
+
+  Future<bool> _copyItemWithinScope({
+    required ServerFileItem item,
+    required String sourceScope,
+    required String targetPath,
+  }) async {
+    if (item.isDir) {
+      final createFolderUri = _apiUri(
+        '/folders',
+      ).replace(queryParameters: {'scope': sourceScope, 'path': targetPath});
+      final createFolderResponse = await _authorizedPostBytes(
+        createFolderUri,
+        const [],
+      );
+      if (createFolderResponse.statusCode < 200 ||
+          createFolderResponse.statusCode >= 300) {
+        return false;
+      }
+      final children = await _listDirAtScope(item.path, sourceScope);
+      var allOk = true;
+      for (final child in children) {
+        final childTargetPath = p.join(targetPath, p.basename(child.path));
+        final ok = await _copyItemWithinScope(
+          item: child,
+          sourceScope: sourceScope,
+          targetPath: childTargetPath,
+        );
+        allOk = allOk && ok;
+      }
+      return allOk;
+    }
+
+    final downloadUri = _apiUri(
+      '/files',
+    ).replace(queryParameters: {'scope': sourceScope, 'path': item.path});
+    final downloadResponse = await _authorizedGet(downloadUri);
+    if (downloadResponse.statusCode < 200 ||
+        downloadResponse.statusCode >= 300) {
+      return false;
+    }
+
+    final uploadUri = _apiUri(
+      '/files',
+    ).replace(queryParameters: {'scope': sourceScope, 'path': targetPath});
     final uploadResponse = await _authorizedPostBytes(
       uploadUri,
       downloadResponse.bodyBytes,

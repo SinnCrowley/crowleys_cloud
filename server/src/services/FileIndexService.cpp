@@ -145,6 +145,7 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
   const auto currentPath = normalizeRelPath(query.currentPath);
   const auto dirPrefix = normalizeDirPrefix(currentPath);
   const auto pattern = dirPrefix.empty() ? "%" : dirPrefix + "%";
+  const bool recursiveFiles = query.recursiveFiles;
 
   sqlite3_stmt *stmt = nullptr;
   sqlite3_prepare_v2(
@@ -173,28 +174,30 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
     const auto remaining = dirPrefix.empty() ? relPath : relPath.substr(dirPrefix.size());
     if (remaining.empty()) continue;
 
-    const auto slashPos = remaining.find('/');
-    if (slashPos != std::string::npos) {
-      const auto dirName = remaining.substr(0, slashPos);
-      auto it = dirs.find(dirName);
-      const auto fileMtime = sqlite3_column_int64(stmt, 5);
-      if (it == dirs.end()) {
-        dirs.emplace(
-            dirName,
-            IndexedDirEntry{
-                .name = dirName,
-                .path = joinRelPath(currentPath, dirName),
-                .isDir = true,
-                .size = 0,
-                .modifiedAt = fileMtime,
-                .type = "directory",
-                .mimeType = "inode/directory",
-                .thumbnailUrl = "",
-            });
-      } else if (fileMtime > it->second.modifiedAt) {
-        it->second.modifiedAt = fileMtime;
+    if (!recursiveFiles) {
+      const auto slashPos = remaining.find('/');
+      if (slashPos != std::string::npos) {
+        const auto dirName = remaining.substr(0, slashPos);
+        auto it = dirs.find(dirName);
+        const auto fileMtime = sqlite3_column_int64(stmt, 5);
+        if (it == dirs.end()) {
+          dirs.emplace(
+              dirName,
+              IndexedDirEntry{
+                  .name = dirName,
+                  .path = joinRelPath(currentPath, dirName),
+                  .isDir = true,
+                  .size = 0,
+                  .modifiedAt = fileMtime,
+                  .type = "directory",
+                  .mimeType = "inode/directory",
+                  .thumbnailUrl = "",
+              });
+        } else if (fileMtime > it->second.modifiedAt) {
+          it->second.modifiedAt = fileMtime;
+        }
+        continue;
       }
-      continue;
     }
 
     const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
@@ -217,7 +220,9 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
 
   std::vector<IndexedDirEntry> entries;
   entries.reserve(dirs.size() + files.size());
-  for (auto &pair : dirs) entries.push_back(std::move(pair.second));
+  if (query.includeDirs) {
+    for (auto &pair : dirs) entries.push_back(std::move(pair.second));
+  }
 
   const auto queryLower = toLower(query.query);
   for (const auto &entry : files) {
@@ -230,7 +235,7 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
     entries.push_back(entry);
   }
 
-  if (!queryLower.empty()) {
+  if (query.includeDirs && !queryLower.empty()) {
     entries.erase(
         std::remove_if(
             entries.begin(),
