@@ -255,6 +255,63 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     );
   }
 
+  List<({String label, String path})> _buildMainBreadcrumbItems() {
+    final items = <({String label, String path})>[(label: 'root', path: '')];
+    final segments = controller.currentPath
+        .split('/')
+        .where((s) => s.isNotEmpty);
+    var path = '';
+    for (final segment in segments) {
+      path = path.isEmpty ? segment : '$path/$segment';
+      items.add((label: segment, path: path));
+    }
+    return items;
+  }
+
+  Widget _buildMainBreadcrumb() {
+    if (controller.selectedType != 'all' || controller.isSelectionMode) {
+      return const SizedBox.shrink();
+    }
+    final items = _buildMainBreadcrumbItems();
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: appSurface,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (var i = 0; i < items.length; i++) ...[
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 32),
+                  ),
+                  onPressed: () => controller.navigateToPath(items[i].path),
+                  child: Text(
+                    items[i].label,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ),
+                if (i < items.length - 1)
+                  const Icon(
+                    Icons.chevron_right,
+                    color: Colors.white54,
+                    size: 18,
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -269,6 +326,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
                   showCreateFolder: controller.selectedType == 'all',
                   onCreateFolder: _createFolder,
                 ),
+                _buildMainBreadcrumb(),
                 Expanded(child: _buildContent()),
               ],
             ),

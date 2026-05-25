@@ -7,6 +7,7 @@ import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
 import 'package:crowleys_cloud/smart_thumbnail.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 class FileBrowser extends StatefulWidget {
@@ -260,6 +261,92 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     );
   }
 
+  List<({String label, String path})> _buildMainBreadcrumbItems(
+    String rootPath,
+    String currentPath,
+  ) {
+    final separator = Platform.pathSeparator;
+    if (currentPath == rootPath ||
+        currentPath.startsWith('$rootPath$separator')) {
+      final items = <({String label, String path})>[
+        (label: 'Storage', path: rootPath),
+      ];
+      final relativePath = currentPath == rootPath
+          ? ''
+          : currentPath.substring(rootPath.length + 1);
+      final segments = relativePath.split(separator).where((s) => s.isNotEmpty);
+      var path = rootPath;
+      for (final segment in segments) {
+        path = '$path$separator$segment';
+        items.add((label: segment, path: path));
+      }
+      return items;
+    }
+
+    final items = <({String label, String path})>[];
+    final segments = p.split(currentPath).where((s) => s.isNotEmpty);
+    var path = currentPath.startsWith(separator) ? separator : '';
+    for (final segment in segments) {
+      path = path == separator
+          ? '$separator$segment'
+          : path.isEmpty
+          ? segment
+          : '$path$separator$segment';
+      items.add((label: segment, path: path));
+    }
+    return items;
+  }
+
+  Widget _buildMainBreadcrumb() {
+    final currentDir = _controller.currentDirectory;
+    if (widget.category.name != 'All files' ||
+        _controller.isSelectionMode ||
+        currentDir == null ||
+        _controller.directoryHistory.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final rootPath = _controller.directoryHistory.first.path;
+    final items = _buildMainBreadcrumbItems(rootPath, currentDir.path);
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: appSurface,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (var i = 0; i < items.length; i++) ...[
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 32),
+                  ),
+                  onPressed: () =>
+                      _controller.navigateToDirectory(Directory(items[i].path)),
+                  child: Text(
+                    items[i].label,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ),
+                if (i < items.length - 1)
+                  const Icon(
+                    Icons.chevron_right,
+                    color: Colors.white54,
+                    size: 18,
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -274,6 +361,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
                   showCreateFolder: widget.category.name == 'All files',
                   onCreateFolder: _createFolder,
                 ),
+                _buildMainBreadcrumb(),
                 Expanded(
                   child: _FileListView(
                     controller: _controller,

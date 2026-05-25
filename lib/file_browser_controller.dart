@@ -259,6 +259,8 @@ class FileBrowserController extends ChangeNotifier {
   bool get isSelectionMode => selectedFiles.isNotEmpty;
   bool get canNavigateBack =>
       category.name == 'All files' && directoryHistory.length > 1;
+  Directory? get currentDirectory =>
+      directoryHistory.isEmpty ? null : directoryHistory.last;
 
   @visibleForTesting
   void setViewStateForTest({
@@ -362,6 +364,19 @@ class FileBrowserController extends ChangeNotifier {
   Future<void> navigateBack() async {
     if (!canNavigateBack) return;
     directoryHistory.removeLast();
+    await reload();
+  }
+
+  Future<void> navigateToDirectory(Directory dir) async {
+    if (category.name != 'All files') return;
+    final index = directoryHistory.indexWhere((d) => d.path == dir.path);
+    if (index >= 0) {
+      directoryHistory.removeRange(index + 1, directoryHistory.length);
+    } else {
+      directoryHistory
+        ..clear()
+        ..add(dir);
+    }
     await reload();
   }
 

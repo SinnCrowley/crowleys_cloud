@@ -73,8 +73,9 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
 
     const auto relPrefix = std::filesystem::path(pathRaw).lexically_normal().relative_path().generic_string();
     const auto filterType = req->getParameter("type");
-    const bool typedView = !filterType.empty() && filterType != "all";
     const auto query = req->getParameter("q");
+    const bool typedView = !filterType.empty() && filterType != "all";
+    const bool recursiveSearch = !typedView && !query.empty();
     const auto sortBy = req->getParameter("sort");
     const auto order = req->getParameter("order");
     const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
@@ -86,11 +87,11 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
         .query = query,
         .sortBy = sortBy,
         .sortAscending = order != "desc",
-        .includeDirs = !typedView,
-        .recursiveFiles = typedView,
+        .includeDirs = !typedView && !recursiveSearch,
+        .recursiveFiles = typedView || recursiveSearch,
     });
     if (entries.empty()) {
-      if (typedView) {
+      if (typedView || recursiveSearch) {
         const auto scopeRoot = server::ctx().fileService->resolvePath(userId, role, *scope, "", false);
         server::ctx().fileIndexService->rebuildIndex(ownerUserId, *scope, scopeRoot);
       } else {
@@ -112,13 +113,13 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
           .query = query,
           .sortBy = sortBy,
           .sortAscending = order != "desc",
-          .includeDirs = !typedView,
-          .recursiveFiles = typedView,
+          .includeDirs = !typedView && !recursiveSearch,
+          .recursiveFiles = typedView || recursiveSearch,
       });
     }
 
     std::unordered_map<std::string, services::IndexedDirEntry> dirEntries;
-    if (!typedView) {
+    if (!typedView && !recursiveSearch) {
       const auto fsEntries = server::ctx().fileService->listDirectory(fullPath);
       for (const auto &entry : entries) {
         if (entry.isDir) {

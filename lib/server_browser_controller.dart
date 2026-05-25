@@ -131,6 +131,21 @@ class ServerBrowserController extends ChangeNotifier {
     await reload();
   }
 
+  Future<void> navigateToPath(String path) async {
+    if (selectedType != 'all') return;
+    final normalized = path.trim();
+    final index = pathStack.indexWhere((p) => p == normalized);
+    if (index >= 0) {
+      pathStack.removeRange(index + 1, pathStack.length);
+    } else {
+      pathStack
+        ..clear()
+        ..add(normalized);
+    }
+    selectedFiles.clear();
+    await reload();
+  }
+
   void toggleSelection(ServerFileItem item) {
     if (selectedFiles.contains(item)) {
       selectedFiles.remove(item);
