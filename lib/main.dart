@@ -79,6 +79,7 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
   late final VoidCallback _searchTextListener;
+  late final VoidCallback _serverManagerListener;
   late final ActiveServerManager _serverManager;
 
   FileCategory? _selectedLocalCategory;
@@ -99,12 +100,18 @@ class _MainScreenState extends State<MainScreen> {
     );
     _searchTextListener = () => setState(() {});
     _searchController.addListener(_searchTextListener);
+    _serverManagerListener = () {
+      if (!mounted) return;
+      setState(() {});
+    };
+    _serverManager.addListener(_serverManagerListener);
     unawaited(_initializeServers());
   }
 
   @override
   void dispose() {
     _searchController.removeListener(_searchTextListener);
+    _serverManager.removeListener(_serverManagerListener);
     _searchController.dispose();
     _localController?.disposeController();
     _localController?.dispose();
@@ -122,6 +129,12 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _retryStartupValidation() async {
     await _initializeServers();
+  }
+
+  void _reportActiveServerConnectionError([String? message]) {
+    final active = _serverManager.activeServer;
+    if (active == null) return;
+    _serverManager.reportConnectionError(serverId: active.id, message: message);
   }
 
   Future<void> _openAddServerFlow() async {
@@ -460,6 +473,10 @@ class _MainScreenState extends State<MainScreen> {
           if (result.ok) {
             uploaded.add(item.name);
           } else {
+            if (_isDisconnectedOperationError(result.error)) {
+              _reportActiveServerConnectionError('Server is unreachable.');
+              return;
+            }
             failed.add(item.name);
             failDetails.add('${item.name}: ${result.error}');
           }
@@ -479,10 +496,23 @@ class _MainScreenState extends State<MainScreen> {
         if (result.ok) {
           uploaded.add(item.name);
         } else {
+          if (_isDisconnectedOperationError(result.error)) {
+            _reportActiveServerConnectionError('Server is unreachable.');
+            return;
+          }
           failed.add(item.name);
           failDetails.add('${item.name}: ${result.error}');
         }
       }
+    } on SocketException {
+      _reportActiveServerConnectionError('Server is unreachable.');
+      return;
+    } on HttpException {
+      _reportActiveServerConnectionError('Server is unreachable.');
+      return;
+    } on http.ClientException {
+      _reportActiveServerConnectionError('Server is unreachable.');
+      return;
     } finally {
       client.close();
     }
@@ -516,14 +546,23 @@ class _MainScreenState extends State<MainScreen> {
       return (ok: false, token: token, error: 'no session token');
     }
 
-    var response = await client.post(
-      uri,
-      headers: {
-        'authorization': 'Bearer $token',
-        'content-type': 'application/octet-stream',
-      },
-      body: bytes,
-    );
+    http.Response response;
+    try {
+      response = await client.post(
+        uri,
+        headers: {
+          'authorization': 'Bearer $token',
+          'content-type': 'application/octet-stream',
+        },
+        body: bytes,
+      );
+    } on SocketException {
+      return (ok: false, token: token, error: 'server disconnected');
+    } on HttpException {
+      return (ok: false, token: token, error: 'server disconnected');
+    } on http.ClientException {
+      return (ok: false, token: token, error: 'server disconnected');
+    }
 
     if (response.statusCode == 401) {
       try {
@@ -536,19 +575,30 @@ class _MainScreenState extends State<MainScreen> {
         );
       } catch (_) {}
       if (token != null && token.isNotEmpty) {
-        response = await client.post(
-          uri,
-          headers: {
-            'authorization': 'Bearer $token',
-            'content-type': 'application/octet-stream',
-          },
-          body: bytes,
-        );
+        try {
+          response = await client.post(
+            uri,
+            headers: {
+              'authorization': 'Bearer $token',
+              'content-type': 'application/octet-stream',
+            },
+            body: bytes,
+          );
+        } on SocketException {
+          return (ok: false, token: token, error: 'server disconnected');
+        } on HttpException {
+          return (ok: false, token: token, error: 'server disconnected');
+        } on http.ClientException {
+          return (ok: false, token: token, error: 'server disconnected');
+        }
       }
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return (ok: true, token: token, error: '');
+    }
+    if (_isConnectionUnavailableStatus(response.statusCode)) {
+      return (ok: false, token: token, error: 'server disconnected');
     }
     final body = response.body.trim();
     return (
@@ -646,11 +696,20 @@ class _MainScreenState extends State<MainScreen> {
     final uri = Uri.parse(base)
         .resolve('/api/folders')
         .replace(queryParameters: {'scope': 'private', 'path': remotePath});
-    var response = await client.post(
-      uri,
-      headers: {'authorization': 'Bearer $token'},
-      body: const [],
-    );
+    http.Response response;
+    try {
+      response = await client.post(
+        uri,
+        headers: {'authorization': 'Bearer $token'},
+        body: const [],
+      );
+    } on SocketException {
+      return (ok: false, token: token, error: 'server disconnected');
+    } on HttpException {
+      return (ok: false, token: token, error: 'server disconnected');
+    } on http.ClientException {
+      return (ok: false, token: token, error: 'server disconnected');
+    }
     if (response.statusCode == 401) {
       try {
         await _serverManager.authService.refreshSession(
@@ -662,15 +721,26 @@ class _MainScreenState extends State<MainScreen> {
         );
       } catch (_) {}
       if (token != null && token.isNotEmpty) {
-        response = await client.post(
-          uri,
-          headers: {'authorization': 'Bearer $token'},
-          body: const [],
-        );
+        try {
+          response = await client.post(
+            uri,
+            headers: {'authorization': 'Bearer $token'},
+            body: const [],
+          );
+        } on SocketException {
+          return (ok: false, token: token, error: 'server disconnected');
+        } on HttpException {
+          return (ok: false, token: token, error: 'server disconnected');
+        } on http.ClientException {
+          return (ok: false, token: token, error: 'server disconnected');
+        }
       }
     }
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return (ok: true, token: token, error: '');
+    }
+    if (_isConnectionUnavailableStatus(response.statusCode)) {
+      return (ok: false, token: token, error: 'server disconnected');
     }
     final body = response.body.trim();
     return (
@@ -679,6 +749,17 @@ class _MainScreenState extends State<MainScreen> {
       error:
           'folder create HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
     );
+  }
+
+  bool _isDisconnectedOperationError(String error) {
+    return error.toLowerCase().contains('server disconnected');
+  }
+
+  bool _isConnectionUnavailableStatus(int statusCode) {
+    return statusCode == 500 ||
+        statusCode == 502 ||
+        statusCode == 503 ||
+        statusCode == 504;
   }
 
   Future<bool> _requestPermission(FileCategory category) async {
@@ -724,6 +805,7 @@ class _MainScreenState extends State<MainScreen> {
       profile: active,
       serverId: active.id,
       authService: _serverManager.authService,
+      onConnectionLost: _reportActiveServerConnectionError,
     );
   }
 

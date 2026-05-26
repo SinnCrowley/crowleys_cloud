@@ -86,6 +86,14 @@ class ActiveServerManager extends ChangeNotifier {
     }
   }
 
+  void reportConnectionError({required String serverId, String? message}) {
+    if (activeServer?.id != serverId) return;
+    requiresAuth = false;
+    connectionErrorMessage =
+        message ?? 'Unable to connect to the active server.';
+    notifyListeners();
+  }
+
   Future<void> _refreshAuthAndConnectionState(ServerProfile profile) async {
     connectionErrorMessage = null;
     final hasSession = await authService.hasSession(profile.id);

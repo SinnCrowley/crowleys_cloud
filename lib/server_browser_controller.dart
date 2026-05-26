@@ -22,6 +22,7 @@ class ServerBrowserController extends ChangeNotifier {
     required this.profile,
     required this.serverId,
     required this.authService,
+    this.onConnectionLost,
     http.Client? client,
   }) : _client = client ?? http.Client() {
     unawaited(initialize());
@@ -30,6 +31,7 @@ class ServerBrowserController extends ChangeNotifier {
   final ServerProfile profile;
   final String serverId;
   final AuthService authService;
+  final ValueChanged<String>? onConnectionLost;
   final http.Client _client;
 
   final List<ServerFileItem> files = [];
@@ -697,9 +699,8 @@ class ServerBrowserController extends ChangeNotifier {
   Future<http.Response> _authorizedGet(Uri uri) async {
     var token = await authService.readAccessToken(serverId);
     if (token == null || token.isEmpty) return http.Response('', 401);
-    var response = await _client.get(
-      uri,
-      headers: {'authorization': 'Bearer $token'},
+    var response = await _safeRequest(
+      () => _client.get(uri, headers: {'authorization': 'Bearer $token'}),
     );
     if (response.statusCode != 401) return response;
 
@@ -710,9 +711,8 @@ class ServerBrowserController extends ChangeNotifier {
       );
       token = await authService.readAccessToken(serverId);
       if (token == null || token.isEmpty) return response;
-      response = await _client.get(
-        uri,
-        headers: {'authorization': 'Bearer $token'},
+      response = await _safeRequest(
+        () => _client.get(uri, headers: {'authorization': 'Bearer $token'}),
       );
     } catch (_) {}
     return response;
@@ -721,9 +721,8 @@ class ServerBrowserController extends ChangeNotifier {
   Future<http.Response> _authorizedDelete(Uri uri) async {
     var token = await authService.readAccessToken(serverId);
     if (token == null || token.isEmpty) return http.Response('', 401);
-    var response = await _client.delete(
-      uri,
-      headers: {'authorization': 'Bearer $token'},
+    var response = await _safeRequest(
+      () => _client.delete(uri, headers: {'authorization': 'Bearer $token'}),
     );
     if (response.statusCode != 401) return response;
 
@@ -734,9 +733,8 @@ class ServerBrowserController extends ChangeNotifier {
       );
       token = await authService.readAccessToken(serverId);
       if (token == null || token.isEmpty) return response;
-      response = await _client.delete(
-        uri,
-        headers: {'authorization': 'Bearer $token'},
+      response = await _safeRequest(
+        () => _client.delete(uri, headers: {'authorization': 'Bearer $token'}),
       );
     } catch (_) {}
     return response;
@@ -748,13 +746,15 @@ class ServerBrowserController extends ChangeNotifier {
   ) async {
     var token = await authService.readAccessToken(serverId);
     if (token == null || token.isEmpty) return http.Response('', 401);
-    var response = await _client.post(
-      uri,
-      headers: {
-        'authorization': 'Bearer $token',
-        'content-type': 'application/json',
-      },
-      body: jsonEncode(payload),
+    var response = await _safeRequest(
+      () => _client.post(
+        uri,
+        headers: {
+          'authorization': 'Bearer $token',
+          'content-type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      ),
     );
     if (response.statusCode != 401) return response;
 
@@ -765,13 +765,15 @@ class ServerBrowserController extends ChangeNotifier {
       );
       token = await authService.readAccessToken(serverId);
       if (token == null || token.isEmpty) return response;
-      response = await _client.post(
-        uri,
-        headers: {
-          'authorization': 'Bearer $token',
-          'content-type': 'application/json',
-        },
-        body: jsonEncode(payload),
+      response = await _safeRequest(
+        () => _client.post(
+          uri,
+          headers: {
+            'authorization': 'Bearer $token',
+            'content-type': 'application/json',
+          },
+          body: jsonEncode(payload),
+        ),
       );
     } catch (_) {}
     return response;
@@ -780,13 +782,15 @@ class ServerBrowserController extends ChangeNotifier {
   Future<http.Response> _authorizedPostBytes(Uri uri, List<int> body) async {
     var token = await authService.readAccessToken(serverId);
     if (token == null || token.isEmpty) return http.Response('', 401);
-    var response = await _client.post(
-      uri,
-      headers: {
-        'authorization': 'Bearer $token',
-        'content-type': 'application/octet-stream',
-      },
-      body: body,
+    var response = await _safeRequest(
+      () => _client.post(
+        uri,
+        headers: {
+          'authorization': 'Bearer $token',
+          'content-type': 'application/octet-stream',
+        },
+        body: body,
+      ),
     );
     if (response.statusCode != 401) return response;
 
@@ -797,16 +801,56 @@ class ServerBrowserController extends ChangeNotifier {
       );
       token = await authService.readAccessToken(serverId);
       if (token == null || token.isEmpty) return response;
-      response = await _client.post(
-        uri,
-        headers: {
-          'authorization': 'Bearer $token',
-          'content-type': 'application/octet-stream',
-        },
-        body: body,
+      response = await _safeRequest(
+        () => _client.post(
+          uri,
+          headers: {
+            'authorization': 'Bearer $token',
+            'content-type': 'application/octet-stream',
+          },
+          body: body,
+        ),
       );
     } catch (_) {}
     return response;
+  }
+
+  Future<http.Response> _safeRequest(
+    Future<http.Response> Function() send,
+  ) async {
+    try {
+      final response = await send();
+      if (_isConnectionUnavailableStatus(response.statusCode)) {
+        _notifyConnectionLost('Server is unreachable.');
+      }
+      return response;
+    } on SocketException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.Response('', 503);
+    } on HandshakeException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.Response('', 503);
+    } on HttpException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.Response('', 503);
+    } on http.ClientException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.Response('', 503);
+    } on TimeoutException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.Response('', 503);
+    }
+  }
+
+  bool _isConnectionUnavailableStatus(int statusCode) {
+    return statusCode == 500 ||
+        statusCode == 502 ||
+        statusCode == 503 ||
+        statusCode == 504;
+  }
+
+  void _notifyConnectionLost(String message) {
+    onConnectionLost?.call(message);
   }
 }
 
