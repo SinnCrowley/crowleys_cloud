@@ -160,6 +160,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _switchServer(String serverId) async {
+    if (_serverManager.activeServer?.id == serverId) return;
     await _serverManager.switchActive(serverId);
     _searchController.clear();
     _localController?.disposeController();
@@ -172,6 +173,34 @@ class _MainScreenState extends State<MainScreen> {
     _serverController = null;
     if (!mounted) return;
     setState(() {});
+  }
+
+  Future<bool> _confirmServerSwitch(String serverName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: appSurface,
+        title: const Text(
+          'Switch server?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Switch active server to "$serverName"?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Switch'),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
   }
 
   Future<void> _authenticateActiveServer() async {
@@ -268,6 +297,56 @@ class _MainScreenState extends State<MainScreen> {
     }
     if (!mounted) return;
     setState(() {});
+  }
+
+  Future<void> _chooseOtherServerFromExisting() async {
+    final activeId = _serverManager.activeServer?.id;
+    final otherServers = _serverManager.servers
+        .where((server) => server.id != activeId)
+        .toList(growable: false);
+    if (otherServers.isEmpty) return;
+
+    final selectedServerId = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: appSurface,
+        title: const Text(
+          'Choose server',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: otherServers.length,
+            itemBuilder: (context, index) {
+              final server = otherServers[index];
+              return ListTile(
+                leading: const Icon(Icons.dns, color: Colors.white70),
+                title: Text(
+                  server.displayName,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                subtitle: Text(
+                  server.baseUrl,
+                  style: const TextStyle(color: Colors.white54),
+                ),
+                onTap: () => Navigator.of(context).pop(server.id),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (selectedServerId == null) return;
+    await _switchServer(selectedServerId);
   }
 
   void _onSearchChanged(String query) {
@@ -429,9 +508,9 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     final bytes = await localFile.readAsBytes();
-    final uri = Uri.parse(base).resolve('/api/files').replace(
-      queryParameters: {'scope': 'private', 'path': remotePath},
-    );
+    final uri = Uri.parse(base)
+        .resolve('/api/files')
+        .replace(queryParameters: {'scope': 'private', 'path': remotePath});
     var token = initialToken;
     if (token == null || token.isEmpty) {
       return (ok: false, token: token, error: 'no session token');
@@ -452,7 +531,9 @@ class _MainScreenState extends State<MainScreen> {
           serverId: activeServerId,
           baseUrl: activeServerBaseUrl,
         );
-        token = await _serverManager.authService.readAccessToken(activeServerId);
+        token = await _serverManager.authService.readAccessToken(
+          activeServerId,
+        );
       } catch (_) {}
       if (token != null && token.isNotEmpty) {
         response = await client.post(
@@ -487,7 +568,11 @@ class _MainScreenState extends State<MainScreen> {
     required String rootRemotePrefix,
   }) async {
     if (!await rootDirectory.exists()) {
-      return (ok: false, token: initialToken, error: 'local directory not found');
+      return (
+        ok: false,
+        token: initialToken,
+        error: 'local directory not found',
+      );
     }
     var token = initialToken;
 
@@ -504,7 +589,10 @@ class _MainScreenState extends State<MainScreen> {
       return (ok: false, token: token, error: rootCreate.error);
     }
 
-    await for (final entity in rootDirectory.list(recursive: true, followLinks: false)) {
+    await for (final entity in rootDirectory.list(
+      recursive: true,
+      followLinks: false,
+    )) {
       if (entity is Directory) {
         final relDir = p.relative(entity.path, from: rootDirectory.path);
         final remoteDirPath = p.join(rootRemotePrefix, relDir);
@@ -555,9 +643,9 @@ class _MainScreenState extends State<MainScreen> {
       return (ok: false, token: token, error: 'no session token');
     }
 
-    final uri = Uri.parse(base).resolve('/api/folders').replace(
-      queryParameters: {'scope': 'private', 'path': remotePath},
-    );
+    final uri = Uri.parse(base)
+        .resolve('/api/folders')
+        .replace(queryParameters: {'scope': 'private', 'path': remotePath});
     var response = await client.post(
       uri,
       headers: {'authorization': 'Bearer $token'},
@@ -569,7 +657,9 @@ class _MainScreenState extends State<MainScreen> {
           serverId: activeServerId,
           baseUrl: activeServerBaseUrl,
         );
-        token = await _serverManager.authService.readAccessToken(activeServerId);
+        token = await _serverManager.authService.readAccessToken(
+          activeServerId,
+        );
       } catch (_) {}
       if (token != null && token.isNotEmpty) {
         response = await client.post(
@@ -586,7 +676,8 @@ class _MainScreenState extends State<MainScreen> {
     return (
       ok: false,
       token: token,
-      error: 'folder create HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
+      error:
+          'folder create HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
     );
   }
 
@@ -694,6 +785,9 @@ class _MainScreenState extends State<MainScreen> {
 
     if (_serverManager.connectionErrorMessage != null) {
       final active = _serverManager.activeServer;
+      final hasOtherServers = _serverManager.servers.any(
+        (server) => server.id != active?.id,
+      );
       return Scaffold(
         appBar: AppBar(
           title: const Text('Server connection failed'),
@@ -724,6 +818,16 @@ class _MainScreenState extends State<MainScreen> {
                   child: FilledButton(
                     onPressed: _retryStartupValidation,
                     child: const Text('Retry'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: hasOtherServers
+                        ? _chooseOtherServerFromExisting
+                        : null,
+                    child: const Text('Choose other server'),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -830,39 +934,72 @@ class _MainScreenState extends State<MainScreen> {
                       'Crowley\'s Cloud',
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
-                    subtitle: Text(
-                      'Active: ${_serverManager.activeServer?.displayName ?? '-'}',
-                      style: TextStyle(color: Colors.white70),
-                    ),
                   ),
                   const Divider(color: Colors.white24),
-                  ..._serverManager.servers.map(
-                    (server) => ListTile(
-                      leading: const Icon(Icons.dns, color: Colors.white70),
-                      title: Text(
-                        server.displayName,
-                        style: const TextStyle(color: Colors.white),
+                  ..._serverManager.servers.map((server) {
+                    final isActive =
+                        _serverManager.activeServer?.id == server.id;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
                       ),
-                      subtitle: Text(
-                        server.baseUrl,
-                        style: const TextStyle(color: Colors.white54),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: isActive ? appBackground : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          leading: Icon(
+                            Icons.dns,
+                            color: isActive ? Colors.white : Colors.white70,
+                          ),
+                          title: Text(
+                            server.displayName,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: isActive
+                                  ? FontWeight.w700
+                                  : FontWeight.w400,
+                            ),
+                          ),
+                          subtitle: Text(
+                            server.baseUrl,
+                            style: TextStyle(
+                              color: isActive ? Colors.white70 : Colors.white54,
+                            ),
+                          ),
+                          selected: isActive,
+                          onTap: isActive
+                              ? null
+                              : () async {
+                                  final shouldSwitch =
+                                      await _confirmServerSwitch(
+                                        server.displayName,
+                                      );
+                                  if (!shouldSwitch || !context.mounted) return;
+                                  await _switchServer(server.id);
+                                  if (!context.mounted) return;
+                                  Navigator.pop(context);
+                                },
+                          trailing: IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.white70,
+                            ),
+                            onPressed: () async {
+                              await _serverManager.removeServer(server.id);
+                              if (!context.mounted) return;
+                              setState(() {});
+                            },
+                          ),
+                        ),
                       ),
-                      selected: _serverManager.activeServer?.id == server.id,
-                      onTap: () async {
-                        await _switchServer(server.id);
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
-                      },
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.white70),
-                        onPressed: () async {
-                          await _serverManager.removeServer(server.id);
-                          if (!context.mounted) return;
-                          setState(() {});
-                        },
-                      ),
-                    ),
-                  ),
+                    );
+                  }),
                   ListTile(
                     leading: const Icon(Icons.add, color: Colors.white70),
                     title: const Text(
