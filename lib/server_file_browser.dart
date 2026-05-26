@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/server_browser_controller.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
+import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
+import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 
@@ -35,10 +39,80 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
       return;
     }
 
+    if (_isPhoto(item)) {
+      await _openPhotoViewer(item);
+      return;
+    }
+
+    if (_isText(item)) {
+      await _openTextViewer(item);
+      return;
+    }
+
     final temp = await controller.downloadTempForEdit(item);
     if (temp != null) {
       await OpenFile.open(temp.path);
     }
+  }
+
+  bool _isPhoto(ServerFileItem item) {
+    return item.type == 'photo' || photoExtensions.contains(item.extension);
+  }
+
+  bool _isText(ServerFileItem item) {
+    if (textExtensions.contains(item.extension)) return true;
+    return item.mimeType.startsWith('text/');
+  }
+
+  Future<void> _openPhotoViewer(ServerFileItem item) async {
+    final photoServerItems = controller.files
+        .where((entry) => !entry.isDir && _isPhoto(entry))
+        .toList(growable: false);
+    if (photoServerItems.isEmpty) return;
+
+    final tempToServerItem = <String, ServerFileItem>{};
+    final imageItems = <FileItem>[];
+    for (final photoItem in photoServerItems) {
+      final temp = await controller.downloadTempForEdit(photoItem);
+      if (temp == null) continue;
+      imageItems.add(FileItem.fromEntity(temp));
+      tempToServerItem[temp.path] = photoItem;
+    }
+    if (imageItems.isEmpty || !mounted) return;
+
+    var initialIndex = imageItems.indexWhere(
+      (imageItem) => tempToServerItem[imageItem.pathSync]?.path == item.path,
+    );
+    if (initialIndex < 0) initialIndex = 0;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ImageViewer(
+          imageItems: imageItems,
+          initialIndex: initialIndex,
+          onAddToFolderItem: (selectedImageItem) async {
+            final selectedServerItem =
+                tempToServerItem[selectedImageItem.pathSync];
+            if (selectedServerItem == null) return;
+            controller.clearSelection();
+            controller.toggleSelection(selectedServerItem);
+            await _addSelectedToFolder();
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openTextViewer(ServerFileItem item) async {
+    final temp = await controller.downloadTempForEdit(item);
+    if (temp == null || !mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TextViewer(file: File(temp.path)),
+      ),
+    );
   }
 
   Future<void> _deleteSelectedFiles() async {
