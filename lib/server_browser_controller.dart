@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
+import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -23,6 +24,7 @@ class ServerBrowserController extends ChangeNotifier {
     required this.serverId,
     required this.authService,
     this.onConnectionLost,
+    this.transferManager,
     http.Client? client,
   }) : _client = client ?? http.Client() {
     unawaited(initialize());
@@ -32,6 +34,7 @@ class ServerBrowserController extends ChangeNotifier {
   final String serverId;
   final AuthService authService;
   final ValueChanged<String>? onConnectionLost;
+  final TransferManager? transferManager;
   final http.Client _client;
 
   final List<ServerFileItem> files = [];
@@ -251,19 +254,58 @@ class ServerBrowserController extends ChangeNotifier {
   Future<void> downloadSelectedFiles() async {
     operationMessage = null;
     final downloadRoot = await _downloadRoot();
-    var downloaded = 0;
     final failed = <String>[];
-    for (final item in selectedFiles.toList()) {
-      final ok = await _downloadItemRecursive(item, downloadRoot);
-      if (ok) {
-        downloaded++;
-      } else {
-        failed.add(item.name);
+    final selected = selectedFiles.toList();
+    final plans = <_DownloadPlan>[];
+    try {
+      for (final item in selected) {
+        final ok = await _collectDownloadPlans(item, downloadRoot, plans);
+        if (!ok) failed.add(item.name);
       }
+      if (plans.isNotEmpty && transferManager != null) {
+        final transferItems = transferManager!.addItems(
+          plans
+              .map(
+                (plan) => TransferItemDraft(
+                  name: plan.item.path.isEmpty
+                      ? plan.item.name
+                      : plan.item.path,
+                  direction: TransferDirection.download,
+                  totalBytes: plan.item.size,
+                ),
+              )
+              .toList(growable: false),
+        );
+        for (var i = 0; i < plans.length; i++) {
+          plans[i].transferItem = transferItems[i];
+        }
+      }
+      for (final plan in plans) {
+        try {
+          final ok = await _downloadSingleFile(
+            plan.item,
+            plan.targetPath,
+            transferItem: plan.transferItem,
+          );
+          if (ok) {
+            continue;
+          } else {
+            failed.add(plan.item.name);
+          }
+        } on TransferItemCanceledException {
+          continue;
+        }
+      }
+    } on TransferCanceledException {
+      operationMessage = 'Download canceled.';
+      selectedFiles.clear();
+      notifyListeners();
+      return;
     }
+    final downloaded = plans.length - failed.length;
     operationMessage = failed.isEmpty
-        ? 'Downloaded $downloaded item(s) to ${downloadRoot.path}'
-        : 'Downloaded $downloaded item(s), failed ${failed.length}: ${failed.first}';
+        ? 'Downloaded $downloaded file(s) to ${downloadRoot.path}'
+        : 'Downloaded $downloaded file(s), failed ${failed.length}: ${failed.first}';
     selectedFiles.clear();
     notifyListeners();
   }
@@ -534,12 +576,84 @@ class ServerBrowserController extends ChangeNotifier {
     return dir;
   }
 
-  Future<bool> _downloadItemRecursive(
+  Future<bool> _downloadSingleFile(
+    ServerFileItem item,
+    String targetPath, {
+    TransferItem? transferItem,
+  }) async {
+    final uri = _apiUri(
+      '/files',
+    ).replace(queryParameters: {'scope': scope, 'path': item.path});
+    if (transferItem != null) {
+      transferManager?.throwIfItemCanceled(transferItem);
+      transferManager?.startItem(transferItem);
+    }
+    final response = await _authorizedStreamedGet(uri);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      if (transferItem != null) {
+        transferManager?.failItem(transferItem, 'HTTP ${response.statusCode}');
+      }
+      return false;
+    }
+    final file = File(targetPath);
+    try {
+      await file.parent.create(recursive: true);
+      final sink = file.openWrite();
+      var received = 0;
+      await for (final chunk in response.stream) {
+        transferManager?.throwIfCanceled();
+        if (transferItem != null) {
+          transferManager?.throwIfItemCanceled(transferItem);
+        }
+        await transferManager?.waitIfPaused();
+        if (transferItem != null) {
+          transferManager?.throwIfItemCanceled(transferItem);
+        }
+        sink.add(chunk);
+        received += chunk.length;
+        if (transferItem != null) {
+          transferManager?.updateItem(transferItem, received);
+        }
+      }
+      await sink.flush();
+      await sink.close();
+      if (transferItem != null) {
+        transferManager?.throwIfItemCanceled(transferItem);
+      }
+      if (transferItem != null) transferManager?.completeItem(transferItem);
+      return true;
+    } on TransferItemCanceledException {
+      if (await file.exists()) {
+        try {
+          await file.delete();
+        } catch (_) {}
+      }
+      rethrow;
+    } on TransferCanceledException {
+      if (await file.exists()) {
+        try {
+          await file.delete();
+        } catch (_) {}
+      }
+      rethrow;
+    } catch (_) {
+      if (transferItem != null) {
+        transferManager?.failItem(transferItem, 'Download failed');
+      }
+      return false;
+    }
+  }
+
+  Future<bool> _collectDownloadPlans(
     ServerFileItem item,
     Directory root,
+    List<_DownloadPlan> plans,
   ) async {
     if (!item.isDir) {
-      return _downloadSingleFile(item, p.join(root.path, item.path));
+      plans.add(
+        _DownloadPlan(item: item, targetPath: p.join(root.path, item.path)),
+      );
+      return true;
     }
     final folderTarget = Directory(p.join(root.path, item.path));
     try {
@@ -550,29 +664,10 @@ class ServerBrowserController extends ChangeNotifier {
     var allOk = true;
     final children = await _listDirAt(item.path);
     for (final child in children) {
-      final ok = await _downloadItemRecursive(child, root);
+      final ok = await _collectDownloadPlans(child, root, plans);
       allOk = allOk && ok;
     }
     return allOk;
-  }
-
-  Future<bool> _downloadSingleFile(
-    ServerFileItem item,
-    String targetPath,
-  ) async {
-    final uri = _apiUri(
-      '/files',
-    ).replace(queryParameters: {'scope': scope, 'path': item.path});
-    final response = await _authorizedGet(uri);
-    if (response.statusCode < 200 || response.statusCode >= 300) return false;
-    final file = File(targetPath);
-    try {
-      await file.parent.create(recursive: true);
-      await file.writeAsBytes(response.bodyBytes, flush: true);
-      return true;
-    } catch (_) {
-      return false;
-    }
   }
 
   Future<bool> _copyItemToShared({
@@ -718,6 +813,36 @@ class ServerBrowserController extends ChangeNotifier {
     return response;
   }
 
+  Future<http.StreamedResponse> _authorizedStreamedGet(Uri uri) async {
+    var token = await authService.readAccessToken(serverId);
+    if (token == null || token.isEmpty) {
+      return http.StreamedResponse(const Stream.empty(), 401);
+    }
+    var response = await _safeStreamedRequest(
+      () => _sendStreamedGet(uri, token!),
+    );
+    if (response.statusCode != 401) return response;
+
+    try {
+      await authService.refreshSession(
+        serverId: serverId,
+        baseUrl: profile.baseUrl,
+      );
+      token = await authService.readAccessToken(serverId);
+      if (token == null || token.isEmpty) return response;
+      response = await _safeStreamedRequest(
+        () => _sendStreamedGet(uri, token!),
+      );
+    } catch (_) {}
+    return response;
+  }
+
+  Future<http.StreamedResponse> _sendStreamedGet(Uri uri, String token) {
+    final request = http.Request('GET', uri)
+      ..headers['authorization'] = 'Bearer $token';
+    return _client.send(request);
+  }
+
   Future<http.Response> _authorizedDelete(Uri uri) async {
     var token = await authService.readAccessToken(serverId);
     if (token == null || token.isEmpty) return http.Response('', 401);
@@ -842,6 +967,33 @@ class ServerBrowserController extends ChangeNotifier {
     }
   }
 
+  Future<http.StreamedResponse> _safeStreamedRequest(
+    Future<http.StreamedResponse> Function() send,
+  ) async {
+    try {
+      final response = await send();
+      if (_isConnectionUnavailableStatus(response.statusCode)) {
+        _notifyConnectionLost('Server is unreachable.');
+      }
+      return response;
+    } on SocketException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.StreamedResponse(const Stream.empty(), 503);
+    } on HandshakeException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.StreamedResponse(const Stream.empty(), 503);
+    } on HttpException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.StreamedResponse(const Stream.empty(), 503);
+    } on http.ClientException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.StreamedResponse(const Stream.empty(), 503);
+    } on TimeoutException {
+      _notifyConnectionLost('Server is unreachable.');
+      return http.StreamedResponse(const Stream.empty(), 503);
+    }
+  }
+
   bool _isConnectionUnavailableStatus(int statusCode) {
     return statusCode == 500 ||
         statusCode == 502 ||
@@ -852,6 +1004,14 @@ class ServerBrowserController extends ChangeNotifier {
   void _notifyConnectionLost(String message) {
     onConnectionLost?.call(message);
   }
+}
+
+class _DownloadPlan {
+  _DownloadPlan({required this.item, required this.targetPath});
+
+  final ServerFileItem item;
+  final String targetPath;
+  TransferItem? transferItem;
 }
 
 bool isEditableType(String mimeType, String extension) {

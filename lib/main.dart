@@ -12,6 +12,8 @@ import 'package:crowleys_cloud/server_file_browser.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_setup_screen.dart';
 import 'package:crowleys_cloud/server_store.dart';
+import 'package:crowleys_cloud/transfer_manager.dart';
+import 'package:crowleys_cloud/transfer_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -48,6 +50,19 @@ class CrowleysCloudApp extends StatelessWidget {
   }
 }
 
+class _UploadPlan {
+  _UploadPlan({
+    required this.file,
+    required this.remotePath,
+    required this.totalBytes,
+  });
+
+  final File file;
+  final String remotePath;
+  final int totalBytes;
+  TransferItem? transferItem;
+}
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -80,7 +95,9 @@ class _MainScreenState extends State<MainScreen> {
   final TextEditingController _searchController = TextEditingController();
   late final VoidCallback _searchTextListener;
   late final VoidCallback _serverManagerListener;
+  late final VoidCallback _transferListener;
   late final ActiveServerManager _serverManager;
+  final TransferManager _transferManager = TransferManager();
 
   FileCategory? _selectedLocalCategory;
   FileCategory? _selectedServerCategory;
@@ -105,6 +122,11 @@ class _MainScreenState extends State<MainScreen> {
       setState(() {});
     };
     _serverManager.addListener(_serverManagerListener);
+    _transferListener = () {
+      if (!mounted) return;
+      setState(() {});
+    };
+    _transferManager.addListener(_transferListener);
     unawaited(_initializeServers());
   }
 
@@ -112,6 +134,8 @@ class _MainScreenState extends State<MainScreen> {
   void dispose() {
     _searchController.removeListener(_searchTextListener);
     _serverManager.removeListener(_serverManagerListener);
+    _transferManager.removeListener(_transferListener);
+    _transferManager.dispose();
     _searchController.dispose();
     _localController?.disposeController();
     _localController?.dispose();
@@ -129,6 +153,14 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _retryStartupValidation() async {
     await _initializeServers();
+  }
+
+  Future<void> _openTransfersPage() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => TransferPage(manager: _transferManager),
+      ),
+    );
   }
 
   void _reportActiveServerConnectionError([String? message]) {
@@ -460,7 +492,7 @@ class _MainScreenState extends State<MainScreen> {
         }
 
         if (item.isDirectory) {
-          final result = await _uploadDirectoryToServer(
+          final directoryResult = await _uploadDirectoryWithProgress(
             client: client,
             base: base,
             activeServerId: activeServer.id,
@@ -468,6 +500,36 @@ class _MainScreenState extends State<MainScreen> {
             initialToken: token,
             rootDirectory: Directory(localPath),
             rootRemotePrefix: item.name,
+          );
+          token = directoryResult.token;
+          if (directoryResult.ok) uploaded.add(item.name);
+          if (!directoryResult.ok) {
+            if (_isDisconnectedOperationError(directoryResult.error)) {
+              _reportActiveServerConnectionError('Server is unreachable.');
+              return;
+            }
+            failed.add(item.name);
+            failDetails.add('${item.name}: ${directoryResult.error}');
+          }
+          continue;
+        }
+
+        final file = File(localPath);
+        final transferItem = _transferManager.addItem(
+          name: item.name,
+          direction: TransferDirection.upload,
+          totalBytes: await file.length(),
+        );
+        try {
+          final result = await _uploadFileToServer(
+            client: client,
+            base: base,
+            activeServerId: activeServer.id,
+            activeServerBaseUrl: activeServer.baseUrl,
+            initialToken: token,
+            localFile: file,
+            remotePath: p.basename(localPath),
+            transferItem: transferItem,
           );
           token = result.token;
           if (result.ok) {
@@ -480,30 +542,12 @@ class _MainScreenState extends State<MainScreen> {
             failed.add(item.name);
             failDetails.add('${item.name}: ${result.error}');
           }
+        } on TransferItemCanceledException {
           continue;
         }
-
-        final result = await _uploadFileToServer(
-          client: client,
-          base: base,
-          activeServerId: activeServer.id,
-          activeServerBaseUrl: activeServer.baseUrl,
-          initialToken: token,
-          localFile: File(localPath),
-          remotePath: p.basename(localPath),
-        );
-        token = result.token;
-        if (result.ok) {
-          uploaded.add(item.name);
-        } else {
-          if (_isDisconnectedOperationError(result.error)) {
-            _reportActiveServerConnectionError('Server is unreachable.');
-            return;
-          }
-          failed.add(item.name);
-          failDetails.add('${item.name}: ${result.error}');
-        }
       }
+    } on TransferCanceledException {
+      return;
     } on SocketException {
       _reportActiveServerConnectionError('Server is unreachable.');
       return;
@@ -532,12 +576,12 @@ class _MainScreenState extends State<MainScreen> {
     required String? initialToken,
     required File localFile,
     required String remotePath,
+    required TransferItem transferItem,
   }) async {
     if (!await localFile.exists()) {
       return (ok: false, token: initialToken, error: 'local file not found');
     }
 
-    final bytes = await localFile.readAsBytes();
     final uri = Uri.parse(base)
         .resolve('/api/files')
         .replace(queryParameters: {'scope': 'private', 'path': remotePath});
@@ -546,21 +590,31 @@ class _MainScreenState extends State<MainScreen> {
       return (ok: false, token: token, error: 'no session token');
     }
 
-    http.Response response;
+    http.StreamedResponse response;
     try {
-      response = await client.post(
+      _transferManager.throwIfItemCanceled(transferItem);
+      _transferManager.startItem(transferItem);
+      response = await _sendUploadRequest(
+        client: client,
         uri,
-        headers: {
-          'authorization': 'Bearer $token',
-          'content-type': 'application/octet-stream',
-        },
-        body: bytes,
+        token: token,
+        localFile: localFile,
+        transferItem: transferItem,
       );
+      _transferManager.throwIfItemCanceled(transferItem);
+    } on TransferCanceledException {
+      rethrow;
+    } on TransferItemCanceledException {
+      rethrow;
     } on SocketException {
+      _transferManager.failItem(transferItem, 'server disconnected');
       return (ok: false, token: token, error: 'server disconnected');
     } on HttpException {
+      _transferManager.failItem(transferItem, 'server disconnected');
       return (ok: false, token: token, error: 'server disconnected');
     } on http.ClientException {
+      if (_transferManager.isCanceled) throw TransferCanceledException();
+      _transferManager.failItem(transferItem, 'server disconnected');
       return (ok: false, token: token, error: 'server disconnected');
     }
 
@@ -576,31 +630,44 @@ class _MainScreenState extends State<MainScreen> {
       } catch (_) {}
       if (token != null && token.isNotEmpty) {
         try {
-          response = await client.post(
+          _transferManager.updateItem(transferItem, 0);
+          _transferManager.throwIfItemCanceled(transferItem);
+          response = await _sendUploadRequest(
+            client: client,
             uri,
-            headers: {
-              'authorization': 'Bearer $token',
-              'content-type': 'application/octet-stream',
-            },
-            body: bytes,
+            token: token,
+            localFile: localFile,
+            transferItem: transferItem,
           );
+          _transferManager.throwIfItemCanceled(transferItem);
+        } on TransferCanceledException {
+          rethrow;
+        } on TransferItemCanceledException {
+          rethrow;
         } on SocketException {
+          _transferManager.failItem(transferItem, 'server disconnected');
           return (ok: false, token: token, error: 'server disconnected');
         } on HttpException {
+          _transferManager.failItem(transferItem, 'server disconnected');
           return (ok: false, token: token, error: 'server disconnected');
         } on http.ClientException {
+          if (_transferManager.isCanceled) throw TransferCanceledException();
+          _transferManager.failItem(transferItem, 'server disconnected');
           return (ok: false, token: token, error: 'server disconnected');
         }
       }
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      _transferManager.completeItem(transferItem);
       return (ok: true, token: token, error: '');
     }
     if (_isConnectionUnavailableStatus(response.statusCode)) {
+      _transferManager.failItem(transferItem, 'server disconnected');
       return (ok: false, token: token, error: 'server disconnected');
     }
-    final body = response.body.trim();
+    final body = await response.stream.bytesToString();
+    _transferManager.failItem(transferItem, 'HTTP ${response.statusCode}');
     return (
       ok: false,
       token: token,
@@ -608,7 +675,43 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Future<({bool ok, String? token, String error})> _uploadDirectoryToServer({
+  Future<http.StreamedResponse> _sendUploadRequest(
+    Uri uri, {
+    required http.Client client,
+    required String token,
+    required File localFile,
+    required TransferItem transferItem,
+  }) async {
+    final request = http.StreamedRequest('POST', uri)
+      ..headers['authorization'] = 'Bearer $token'
+      ..headers['content-type'] = 'application/octet-stream'
+      ..contentLength = await localFile.length();
+    unawaited(() async {
+      var sent = 0;
+      try {
+        await for (final chunk in localFile.openRead()) {
+          _transferManager.throwIfCanceled();
+          _transferManager.throwIfItemCanceled(transferItem);
+          await _transferManager.waitIfPaused();
+          _transferManager.throwIfItemCanceled(transferItem);
+          sent += chunk.length;
+          request.sink.add(chunk);
+          _transferManager.updateItem(transferItem, sent);
+        }
+        await request.sink.close();
+      } on TransferItemCanceledException catch (e) {
+        request.sink.addError(e);
+        await request.sink.close();
+      } catch (e) {
+        request.sink.addError(e);
+        await request.sink.close();
+      }
+    }());
+    return client.send(request);
+  }
+
+  Future<({bool ok, String? token, String error})>
+  _uploadDirectoryWithProgress({
     required http.Client client,
     required String base,
     required String activeServerId,
@@ -624,8 +727,36 @@ class _MainScreenState extends State<MainScreen> {
         error: 'local directory not found',
       );
     }
-    var token = initialToken;
+    final directories = <String>[];
+    final uploadPlans = <_UploadPlan>[];
+    try {
+      await for (final entity in rootDirectory.list(
+        recursive: true,
+        followLinks: false,
+      )) {
+        final rel = p.relative(entity.path, from: rootDirectory.path);
+        if (entity is Directory) {
+          directories.add(rel);
+          continue;
+        }
+        if (entity is! File) continue;
+        uploadPlans.add(
+          _UploadPlan(
+            file: entity,
+            remotePath: p.join(rootRemotePrefix, rel),
+            totalBytes: await entity.length(),
+          ),
+        );
+      }
+    } on FileSystemException catch (e) {
+      return (
+        ok: false,
+        token: initialToken,
+        error: e.message.isEmpty ? 'failed to scan directory' : e.message,
+      );
+    }
 
+    var token = initialToken;
     final rootCreate = await _createServerFolder(
       client: client,
       base: base,
@@ -639,42 +770,54 @@ class _MainScreenState extends State<MainScreen> {
       return (ok: false, token: token, error: rootCreate.error);
     }
 
-    await for (final entity in rootDirectory.list(
-      recursive: true,
-      followLinks: false,
-    )) {
-      if (entity is Directory) {
-        final relDir = p.relative(entity.path, from: rootDirectory.path);
-        final remoteDirPath = p.join(rootRemotePrefix, relDir);
-        final createDirResult = await _createServerFolder(
-          client: client,
-          base: base,
-          activeServerId: activeServerId,
-          activeServerBaseUrl: activeServerBaseUrl,
-          initialToken: token,
-          remotePath: remoteDirPath,
-        );
-        token = createDirResult.token;
-        if (!createDirResult.ok) {
-          return (ok: false, token: token, error: createDirResult.error);
-        }
-        continue;
-      }
-      if (entity is! File) continue;
-      final rel = p.relative(entity.path, from: rootDirectory.path);
-      final remotePath = p.join(rootRemotePrefix, rel);
-      final fileResult = await _uploadFileToServer(
+    for (final relDir in directories) {
+      final createDirResult = await _createServerFolder(
         client: client,
         base: base,
         activeServerId: activeServerId,
         activeServerBaseUrl: activeServerBaseUrl,
         initialToken: token,
-        localFile: entity,
-        remotePath: remotePath,
+        remotePath: p.join(rootRemotePrefix, relDir),
       );
-      token = fileResult.token;
-      if (!fileResult.ok) {
-        return (ok: false, token: token, error: fileResult.error);
+      token = createDirResult.token;
+      if (!createDirResult.ok) {
+        return (ok: false, token: token, error: createDirResult.error);
+      }
+    }
+
+    final transferItems = _transferManager.addItems(
+      uploadPlans
+          .map(
+            (plan) => TransferItemDraft(
+              name: plan.remotePath,
+              direction: TransferDirection.upload,
+              totalBytes: plan.totalBytes,
+            ),
+          )
+          .toList(growable: false),
+    );
+    for (var i = 0; i < uploadPlans.length; i++) {
+      uploadPlans[i].transferItem = transferItems[i];
+    }
+
+    for (final plan in uploadPlans) {
+      try {
+        final fileResult = await _uploadFileToServer(
+          client: client,
+          base: base,
+          activeServerId: activeServerId,
+          activeServerBaseUrl: activeServerBaseUrl,
+          initialToken: token,
+          localFile: plan.file,
+          remotePath: plan.remotePath,
+          transferItem: plan.transferItem!,
+        );
+        token = fileResult.token;
+        if (!fileResult.ok) {
+          return (ok: false, token: token, error: fileResult.error);
+        }
+      } on TransferItemCanceledException {
+        continue;
       }
     }
     return (ok: true, token: token, error: '');
@@ -806,6 +949,7 @@ class _MainScreenState extends State<MainScreen> {
       serverId: active.id,
       authService: _serverManager.authService,
       onConnectionLost: _reportActiveServerConnectionError,
+      transferManager: _transferManager,
     );
   }
 
@@ -1138,17 +1282,32 @@ class _MainScreenState extends State<MainScreen> {
                         onUploadItems: _uploadLocalItems,
                       ))
               : _buildServerModeBody(),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _selectedModeIndex,
-            onTap: (value) async {
-              setState(() {
-                _selectedModeIndex = value;
-              });
-              await _clearSearchAndResetFilterForCurrentMode();
-            },
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Local'),
-              BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Server'),
+          bottomNavigationBar: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TransferBottomBar(
+                manager: _transferManager,
+                onOpen: _openTransfersPage,
+              ),
+              BottomNavigationBar(
+                currentIndex: _selectedModeIndex,
+                onTap: (value) async {
+                  setState(() {
+                    _selectedModeIndex = value;
+                  });
+                  await _clearSearchAndResetFilterForCurrentMode();
+                },
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.folder),
+                    label: 'Local',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.cloud),
+                    label: 'Server',
+                  ),
+                ],
+              ),
             ],
           ),
         ),
