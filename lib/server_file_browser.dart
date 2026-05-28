@@ -520,7 +520,7 @@ class _ServerThumbState extends State<_ServerThumb> {
 
   @override
   Widget build(BuildContext context) {
-    final size = widget.isList ? 48.0 : 84.0;
+    final size = widget.isList ? 48.0 : 120.0;
     return FutureBuilder<Uint8List?>(
       future: _future,
       builder: (context, snapshot) {
@@ -553,9 +553,9 @@ class _ServerFileFallbackIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (item.isDir) {
-      return Icon(Icons.folder, color: appAccent, size: size * 0.85);
+      return Icon(Icons.folder, color: appAccent, size: size);
     }
-    return Icon(_iconForFile(item), color: appAccent, size: size * 0.8);
+    return Icon(_iconForFile(item), color: appAccent, size: size);
   }
 }
 

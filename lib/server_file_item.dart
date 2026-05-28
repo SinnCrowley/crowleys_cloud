@@ -40,4 +40,12 @@ class ServerFileItem {
     if (idx < 0) return '';
     return name.substring(idx).toLowerCase();
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ServerFileItem && other.path == path;
+  }
+
+  @override
+  int get hashCode => path.hashCode;
 }

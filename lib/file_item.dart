@@ -5,10 +5,15 @@ import 'package:path/path.dart' as p;
 class FileItem {
   final AssetEntity? asset;
   final FileSystemEntity? fsEntity;
+  final String _identity;
   String? _cachedPath;
 
-  FileItem.fromAsset(AssetEntity this.asset) : fsEntity = null;
-  FileItem.fromEntity(FileSystemEntity this.fsEntity) : asset = null;
+  FileItem.fromAsset(AssetEntity this.asset)
+    : fsEntity = null,
+      _identity = asset.id;
+  FileItem.fromEntity(FileSystemEntity this.fsEntity)
+    : asset = null,
+      _identity = fsEntity.path;
 
   bool get isDirectory => fsEntity is Directory;
   bool get isAsset => asset != null;
@@ -47,4 +52,12 @@ class FileItem {
     final title = asset?.title ?? '';
     return p.extension(title).toLowerCase();
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is FileItem && other._identity == _identity;
+  }
+
+  @override
+  int get hashCode => _identity.hashCode;
 }

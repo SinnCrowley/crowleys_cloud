@@ -73,6 +73,23 @@ void main() {
       expect(controller.selectedFiles, isEmpty);
     });
 
+    test('selection survives file list refresh with recreated items', () {
+      final controller = FileBrowserController(
+        category: const FileCategory('Documents', Icons.description),
+        loadOnInit: false,
+      );
+      final first = FileItem.fromEntity(File('/tmp/a.txt'));
+      final refreshed = FileItem.fromEntity(File('/tmp/a.txt'));
+
+      controller.setViewStateForTest(visibleFiles: [first], loading: false);
+      controller.toggleSelection(first);
+
+      controller.setViewStateForTest(visibleFiles: [refreshed], loading: false);
+
+      expect(controller.selectedFiles, contains(refreshed));
+      expect(controller.selectedFiles.length, 1);
+    });
+
     test('all files back navigation rule follows directory stack', () async {
       final fake = _FakeStrategy([]);
       final controller = FileBrowserController(
