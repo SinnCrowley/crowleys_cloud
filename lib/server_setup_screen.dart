@@ -1,3 +1,5 @@
+import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +37,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
   late final TextEditingController _urlController;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  AuthMode _mode = AuthMode.register;
+  AuthMode _mode = AuthMode.login;
 
   @override
   void initState() {
@@ -53,7 +55,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit(AuthMode mode) async {
     final name = _nameController.text.trim();
     final url = _urlController.text.trim();
     final username = _usernameController.text.trim();
@@ -70,7 +72,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       displayName: name,
       baseUrl: url,
-      authMode: _mode.name,
+      authMode: mode.name,
       lastUsedAt: DateTime.now().toUtc(),
       syncPrefs: const {'syncOnWifiOnly': true, 'thumbnailPreload': true},
     );
@@ -80,7 +82,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
         profile: profile,
         username: username,
         password: password,
-        authMode: _mode,
+        authMode: mode,
       ),
     );
   }
@@ -88,56 +90,68 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add server')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Server name'),
-            ),
-            TextField(
-              controller: _urlController,
-              decoration: const InputDecoration(labelText: 'Base URL'),
-              keyboardType: TextInputType.url,
-            ),
-            const SizedBox(height: 16),
-            SegmentedButton<AuthMode>(
-              segments: const [
-                ButtonSegment(
-                  value: AuthMode.register,
-                  label: Text('Register'),
-                ),
-                ButtonSegment(value: AuthMode.login, label: Text('Login')),
-              ],
-              selected: {_mode},
-              onSelectionChanged: (selection) {
-                setState(() {
-                  _mode = selection.first;
-                });
-              },
-            ),
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _submit,
-                child: const Text('Save server'),
+      backgroundColor: appBackground,
+      appBar: AppBar(
+        title: const Text('Add server'),
+        backgroundColor: appSurface,
+      ),
+      body: Container(
+        color: appBackground,
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: AuthCard(
+                title: 'Connect Server',
+                subtitle: 'Add your home file server and sign in.',
+                initialMode: _mode,
+                usernameController: _usernameController,
+                passwordController: _passwordController,
+                submitLabel: 'Save Server',
+                onSubmit: (mode) async {
+                  _mode = mode;
+                  await _submit(mode);
+                  return false;
+                },
+                leading: const _ServerBadge(),
+                extraFields: [
+                  AuthInputField(
+                    controller: _nameController,
+                    label: 'Server name',
+                    hintText: 'Home NAS',
+                    icon: Icons.dns_outlined,
+                  ),
+                  AuthInputField(
+                    controller: _urlController,
+                    label: 'Base URL',
+                    hintText: 'https://cloud.example.com',
+                    icon: Icons.link_outlined,
+                    keyboardType: TextInputType.url,
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _ServerBadge extends StatelessWidget {
+  const _ServerBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 58,
+      height: 58,
+      decoration: BoxDecoration(
+        color: const Color(0xFF292929),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF444444)),
+      ),
+      child: const Icon(Icons.storage_rounded, color: appAccent, size: 32),
     );
   }
 }

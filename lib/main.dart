@@ -3,13 +3,16 @@ import 'dart:io';
 
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
+import 'package:crowleys_cloud/biometric_auth_service.dart';
 import 'package:crowleys_cloud/file_browser.dart';
 import 'package:crowleys_cloud/file_browser_controller.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/server_browser_controller.dart';
 import 'package:crowleys_cloud/server_file_browser.dart';
 import 'package:crowleys_cloud/secret_store.dart';
+import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_setup_screen.dart';
 import 'package:crowleys_cloud/server_store.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
@@ -46,6 +49,104 @@ class CrowleysCloudApp extends StatelessWidget {
         ),
       ),
       home: const MainScreen(),
+    );
+  }
+}
+
+class _AuthServerBadge extends StatelessWidget {
+  const _AuthServerBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.storage_rounded, color: Colors.white70, size: 34),
+        const SizedBox(width: 8),
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: appAccent.withValues(alpha: 0.18),
+            shape: BoxShape.circle,
+            border: Border.all(color: appAccent),
+          ),
+          child: const Icon(Icons.shield_outlined, color: appAccent, size: 18),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActiveServerAuthDialog extends StatefulWidget {
+  const _ActiveServerAuthDialog({
+    required this.active,
+    required this.initialUsername,
+    required this.canUseBiometrics,
+    required this.onPasswordAuth,
+    required this.onBiometricAuth,
+  });
+
+  final ServerProfile active;
+  final String initialUsername;
+  final bool canUseBiometrics;
+  final Future<bool> Function({
+    required String username,
+    required String password,
+    required AuthMode mode,
+  })
+  onPasswordAuth;
+  final Future<bool> Function(ServerProfile active) onBiometricAuth;
+
+  @override
+  State<_ActiveServerAuthDialog> createState() =>
+      _ActiveServerAuthDialogState();
+}
+
+class _ActiveServerAuthDialogState extends State<_ActiveServerAuthDialog> {
+  late final TextEditingController _usernameController;
+  late final TextEditingController _passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameController = TextEditingController(text: widget.initialUsername);
+    _passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: appSurface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      child: SingleChildScrollView(
+        child: AuthCard(
+          title: 'Sign In',
+          subtitle: widget.active.displayName,
+          initialMode: AuthMode.login,
+          usernameController: _usernameController,
+          passwordController: _passwordController,
+          biometricAvailable: widget.canUseBiometrics,
+          leading: const _AuthServerBadge(),
+          onSubmit: (mode) async {
+            return widget.onPasswordAuth(
+              username: _usernameController.text.trim(),
+              password: _passwordController.text,
+              mode: mode,
+            );
+          },
+          onBiometricLogin: () async {
+            return widget.onBiometricAuth(widget.active);
+          },
+        ),
+      ),
     );
   }
 }
@@ -97,7 +198,9 @@ class _MainScreenState extends State<MainScreen> {
   late final VoidCallback _serverManagerListener;
   late final VoidCallback _transferListener;
   late final ActiveServerManager _serverManager;
+  late final BiometricAuthService _biometricAuthService;
   final TransferManager _transferManager = TransferManager();
+  bool _authPromptInFlight = false;
 
   FileCategory? _selectedLocalCategory;
   FileCategory? _selectedServerCategory;
@@ -115,6 +218,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+    _biometricAuthService = BiometricAuthService();
     _searchTextListener = () => setState(() {});
     _searchController.addListener(_searchTextListener);
     _serverManagerListener = () {
@@ -248,100 +352,144 @@ class _MainScreenState extends State<MainScreen> {
     return confirmed == true;
   }
 
+  void _scheduleActiveServerAuthPrompt() {
+    if (_authPromptInFlight) return;
+    final active = _serverManager.activeServer;
+    if (active == null || !_serverManager.requiresAuth) return;
+
+    _authPromptInFlight = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_serverManager.requiresAuth) {
+        _authPromptInFlight = false;
+        return;
+      }
+
+      await _authenticateActiveServer();
+      _authPromptInFlight = false;
+      if (mounted) setState(() {});
+    });
+  }
+
   Future<void> _authenticateActiveServer() async {
     final active = _serverManager.activeServer;
     if (active == null) return;
 
-    final usernameController = TextEditingController();
-    final passwordController = TextEditingController();
-    var mode = AuthMode.register;
+    final lastUsername = await _serverManager.authService.readLastUsername(
+      active.id,
+    );
+    final hasSavedCredentials = await _serverManager.authService
+        .hasSavedCredentials(active.id);
+    final canUseBiometrics =
+        hasSavedCredentials && await _biometricAuthService.canAuthenticate();
 
+    if (!mounted) return;
+    if (canUseBiometrics) {
+      final authed = await _authenticateWithBiometrics(
+        active,
+        reportFailure: false,
+      );
+      if (authed) {
+        if (!mounted) return;
+        setState(() {});
+        return;
+      }
+    }
+
+    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setLocalState) {
-            return AlertDialog(
-              title: Text('Authenticate ${active.displayName}'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SegmentedButton<AuthMode>(
-                    segments: const [
-                      ButtonSegment(
-                        value: AuthMode.register,
-                        label: Text('Register'),
-                      ),
-                      ButtonSegment(
-                        value: AuthMode.login,
-                        label: Text('Login'),
-                      ),
-                    ],
-                    selected: {mode},
-                    onSelectionChanged: (selection) {
-                      setLocalState(() {
-                        mode = selection.first;
-                      });
-                    },
-                  ),
-                  TextField(
-                    controller: usernameController,
-                    decoration: const InputDecoration(labelText: 'Username'),
-                  ),
-                  TextField(
-                    controller: passwordController,
-                    decoration: const InputDecoration(labelText: 'Password'),
-                    obscureText: true,
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Authenticate'),
-                ),
-              ],
-            );
-          },
+        return _ActiveServerAuthDialog(
+          active: active,
+          initialUsername: lastUsername ?? '',
+          canUseBiometrics: canUseBiometrics,
+          onPasswordAuth:
+              ({required username, required password, required mode}) {
+                return _authenticateWithPassword(
+                  activeId: active.id,
+                  baseUrl: active.baseUrl,
+                  username: username,
+                  password: password,
+                  mode: mode,
+                );
+              },
+          onBiometricAuth: _authenticateWithBiometrics,
         );
       },
     );
 
     if (confirmed != true) return;
-    final username = usernameController.text.trim();
-    final password = passwordController.text;
-    if (username.isEmpty || password.isEmpty) return;
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<bool> _authenticateWithPassword({
+    required String activeId,
+    required String baseUrl,
+    required String username,
+    required String password,
+    required AuthMode mode,
+  }) async {
+    if (username.isEmpty || password.isEmpty) return false;
 
     try {
       await _serverManager.authService.authenticate(
-        serverId: active.id,
-        baseUrl: active.baseUrl,
+        serverId: activeId,
+        baseUrl: baseUrl,
         username: username,
         password: password,
         mode: mode,
       );
-      await _serverManager.markAuthed(active.id);
+      await _serverManager.markAuthed(activeId);
     } on AuthException catch (e) {
-      if (!mounted) return;
+      if (!mounted) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Authentication failed: ${e.message}')),
       );
-      return;
+      return false;
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Authentication failed. Please try again.'),
         ),
       );
-      return;
+      return false;
     }
-    if (!mounted) return;
-    setState(() {});
+    return true;
+  }
+
+  Future<bool> _authenticateWithBiometrics(
+    ServerProfile active, {
+    bool reportFailure = true,
+  }) async {
+    final unlocked = await _biometricAuthService.unlockSavedCredentials();
+    if (!unlocked) return false;
+
+    try {
+      await _serverManager.authService.authenticateWithSavedCredentials(
+        serverId: active.id,
+        baseUrl: active.baseUrl,
+      );
+      await _serverManager.markAuthed(active.id);
+    } on AuthException catch (e) {
+      if (!mounted) return false;
+      if (reportFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Biometric login failed: ${e.message}')),
+        );
+      }
+      return false;
+    } catch (_) {
+      if (!mounted) return false;
+      if (reportFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Biometric login failed.')),
+        );
+      }
+      return false;
+    }
+    return true;
   }
 
   Future<void> _chooseOtherServerFromExisting() async {
@@ -993,6 +1141,7 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     if (_serverManager.requiresAuth) {
+      _scheduleActiveServerAuthPrompt();
       return Scaffold(
         appBar: AppBar(
           title: Text(
@@ -1001,9 +1150,24 @@ class _MainScreenState extends State<MainScreen> {
           backgroundColor: appSurface,
         ),
         body: Center(
-          child: FilledButton(
-            onPressed: _authenticateActiveServer,
-            child: const Text('Authenticate server'),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text(
+                  'Authentication required',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Opening sign in...',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
           ),
         ),
       );

@@ -180,6 +180,46 @@ class AuthService {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
     );
+    await secretStore.saveCredentials(
+      serverId: serverId,
+      username: username,
+      password: password,
+    );
+  }
+
+  Future<String?> readLastUsername(String serverId) {
+    return secretStore.readLastUsername(serverId);
+  }
+
+  Future<bool> hasSavedCredentials(String serverId) async {
+    final username = await secretStore.readLastUsername(serverId);
+    final password = await secretStore.readSavedPassword(serverId);
+    return username != null &&
+        username.isNotEmpty &&
+        password != null &&
+        password.isNotEmpty;
+  }
+
+  Future<void> authenticateWithSavedCredentials({
+    required String serverId,
+    required String baseUrl,
+  }) async {
+    final username = await secretStore.readLastUsername(serverId);
+    final password = await secretStore.readSavedPassword(serverId);
+    if (username == null ||
+        username.isEmpty ||
+        password == null ||
+        password.isEmpty) {
+      throw const AuthException('No saved credentials available');
+    }
+
+    await authenticate(
+      serverId: serverId,
+      baseUrl: baseUrl,
+      username: username,
+      password: password,
+      mode: AuthMode.login,
+    );
   }
 
   Future<bool> hasSession(String serverId) async {
@@ -200,9 +240,10 @@ class AuthService {
       return const SessionCheckResult(SessionCheckStatus.noSession);
     }
 
-    final uri = _endpoint(baseUrl, '/api/dir').replace(
-      queryParameters: {'scope': 'private', 'path': ''},
-    );
+    final uri = _endpoint(
+      baseUrl,
+      '/api/dir',
+    ).replace(queryParameters: {'scope': 'private', 'path': ''});
     try {
       final response = await _client
           .get(uri, headers: {'authorization': 'Bearer $token'})
@@ -260,8 +301,9 @@ class AuthService {
     );
   }
 
-  Future<void> logout(String serverId) {
-    return secretStore.clearToken(serverId);
+  Future<void> logout(String serverId) async {
+    await secretStore.clearToken(serverId);
+    await secretStore.clearCredentials(serverId);
   }
 
   Uri _endpoint(String baseUrl, String path) {

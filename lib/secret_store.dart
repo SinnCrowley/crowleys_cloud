@@ -9,32 +9,66 @@ abstract class SecretStore {
     required String refreshToken,
   });
 
+  Future<void> saveCredentials({
+    required String serverId,
+    required String username,
+    required String password,
+  });
+
   Future<String?> readToken(String serverId);
 
   Future<String?> readRefreshToken(String serverId);
 
+  Future<String?> readLastUsername(String serverId);
+
+  Future<String?> readSavedPassword(String serverId);
+
   Future<void> clearToken(String serverId);
+
+  Future<void> clearCredentials(String serverId);
 }
 
 class FlutterSecureSecretStore implements SecretStore {
   FlutterSecureSecretStore({required this.storage});
 
   final FlutterSecureStorage storage;
+  final Map<String, String> _sessionTokens = {};
+  final Map<String, String> _sessionRefreshTokens = {};
 
   @override
   Future<void> clearToken(String serverId) async {
+    _sessionTokens.remove(serverId);
+    _sessionRefreshTokens.remove(serverId);
+    // Clean up tokens written by older app versions. Current session tokens are
+    // intentionally process-only so app restarts require authentication again.
     await storage.delete(key: _tokenKey(serverId));
     await storage.delete(key: _refreshTokenKey(serverId));
   }
 
   @override
+  Future<void> clearCredentials(String serverId) async {
+    await storage.delete(key: _usernameKey(serverId));
+    await storage.delete(key: _passwordKey(serverId));
+  }
+
+  @override
   Future<String?> readToken(String serverId) async {
-    return storage.read(key: _tokenKey(serverId));
+    return _sessionTokens[serverId];
   }
 
   @override
   Future<String?> readRefreshToken(String serverId) async {
-    return storage.read(key: _refreshTokenKey(serverId));
+    return _sessionRefreshTokens[serverId];
+  }
+
+  @override
+  Future<String?> readLastUsername(String serverId) async {
+    return storage.read(key: _usernameKey(serverId));
+  }
+
+  @override
+  Future<String?> readSavedPassword(String serverId) async {
+    return storage.read(key: _passwordKey(serverId));
   }
 
   @override
@@ -42,7 +76,7 @@ class FlutterSecureSecretStore implements SecretStore {
     required String serverId,
     required String token,
   }) async {
-    await storage.write(key: _tokenKey(serverId), value: token);
+    _sessionTokens[serverId] = token;
   }
 
   @override
@@ -51,22 +85,42 @@ class FlutterSecureSecretStore implements SecretStore {
     required String accessToken,
     required String refreshToken,
   }) async {
-    await storage.write(key: _tokenKey(serverId), value: accessToken);
-    await storage.write(key: _refreshTokenKey(serverId), value: refreshToken);
+    _sessionTokens[serverId] = accessToken;
+    _sessionRefreshTokens[serverId] = refreshToken;
+  }
+
+  @override
+  Future<void> saveCredentials({
+    required String serverId,
+    required String username,
+    required String password,
+  }) async {
+    await storage.write(key: _usernameKey(serverId), value: username);
+    await storage.write(key: _passwordKey(serverId), value: password);
   }
 
   String _tokenKey(String serverId) => 'server_token_$serverId';
   String _refreshTokenKey(String serverId) => 'server_refresh_token_$serverId';
+  String _usernameKey(String serverId) => 'server_last_username_$serverId';
+  String _passwordKey(String serverId) => 'server_saved_password_$serverId';
 }
 
 class InMemorySecretStore implements SecretStore {
   final Map<String, String> _tokens = {};
   final Map<String, String> _refreshTokens = {};
+  final Map<String, String> _usernames = {};
+  final Map<String, String> _passwords = {};
 
   @override
   Future<void> clearToken(String serverId) async {
     _tokens.remove(serverId);
     _refreshTokens.remove(serverId);
+  }
+
+  @override
+  Future<void> clearCredentials(String serverId) async {
+    _usernames.remove(serverId);
+    _passwords.remove(serverId);
   }
 
   @override
@@ -77,6 +131,16 @@ class InMemorySecretStore implements SecretStore {
   @override
   Future<String?> readRefreshToken(String serverId) async {
     return _refreshTokens[serverId];
+  }
+
+  @override
+  Future<String?> readLastUsername(String serverId) async {
+    return _usernames[serverId];
+  }
+
+  @override
+  Future<String?> readSavedPassword(String serverId) async {
+    return _passwords[serverId];
   }
 
   @override
@@ -95,5 +159,15 @@ class InMemorySecretStore implements SecretStore {
   }) async {
     _tokens[serverId] = accessToken;
     _refreshTokens[serverId] = refreshToken;
+  }
+
+  @override
+  Future<void> saveCredentials({
+    required String serverId,
+    required String username,
+    required String password,
+  }) async {
+    _usernames[serverId] = username;
+    _passwords[serverId] = password;
   }
 }
