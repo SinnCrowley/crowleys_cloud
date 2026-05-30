@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crowleys_cloud/auth_service.dart';
+import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
@@ -25,8 +26,10 @@ class ServerBrowserController extends ChangeNotifier {
     required this.authService,
     this.onConnectionLost,
     this.transferManager,
+    CacheService? cacheService,
     http.Client? client,
-  }) : _client = client ?? http.Client() {
+  }) : _cacheService = cacheService ?? CacheService.instance,
+       _client = client ?? http.Client() {
     unawaited(initialize());
   }
 
@@ -35,6 +38,7 @@ class ServerBrowserController extends ChangeNotifier {
   final AuthService authService;
   final ValueChanged<String>? onConnectionLost;
   final TransferManager? transferManager;
+  final CacheService _cacheService;
   final http.Client _client;
 
   final List<ServerFileItem> files = [];
@@ -179,8 +183,27 @@ class ServerBrowserController extends ChangeNotifier {
     error = null;
     notifyListeners();
 
+    final requestPath = selectedType == 'all' ? currentPath : '';
+    final cacheKey = _directoryCacheKey(path: requestPath);
+    final cached = await _cacheService.readDirectory(
+      serverId: serverId,
+      cacheKey: cacheKey,
+    );
+    var renderedCachedData = false;
+    if (opId != _opId) return;
+    if (cached != null) {
+      files
+        ..clear()
+        ..addAll(cached.entries);
+      if (selectedType != 'all') {
+        files.removeWhere((item) => item.isDir);
+      }
+      operationMessage = cached.isStale ? 'Showing cached files.' : null;
+      renderedCachedData = true;
+      notifyListeners();
+    }
+
     try {
-      final requestPath = selectedType == 'all' ? currentPath : '';
       final uri = _apiUri('/dir').replace(
         queryParameters: {
           'scope': scope,
@@ -209,15 +232,31 @@ class ServerBrowserController extends ChangeNotifier {
       if (selectedType != 'all') {
         files.removeWhere((item) => item.isDir);
       }
+      operationMessage = null;
+      await _cacheService.writeDirectory(
+        serverId: serverId,
+        cacheKey: cacheKey,
+        scope: scope,
+        path: requestPath,
+        entries: files,
+      );
     } catch (e) {
       if (opId != _opId) return;
       error = e.toString();
+      if (renderedCachedData) {
+        operationMessage = 'Showing cached files. Refresh failed.';
+      }
     } finally {
       if (opId == _opId) {
         isLoading = false;
         notifyListeners();
       }
     }
+  }
+
+  Future<void> invalidateCurrentDirectory({bool reloadAfter = false}) async {
+    await _invalidateDirectory(scope: scope, path: currentPath);
+    if (reloadAfter) await reload();
   }
 
   Future<File?> downloadTempForEdit(ServerFileItem item) async {
@@ -323,6 +362,10 @@ class ServerBrowserController extends ChangeNotifier {
         if (response.statusCode >= 200 && response.statusCode < 300) {
           files.remove(item);
           deleted++;
+          await _invalidateDirectory(
+            scope: scope,
+            path: _parentPath(item.path),
+          );
         } else {
           failed++;
         }
@@ -385,6 +428,10 @@ class ServerBrowserController extends ChangeNotifier {
       );
       if (ok) {
         shared++;
+        await _invalidateDirectory(
+          scope: 'shared',
+          path: _parentPath(item.path),
+        );
       } else {
         failed++;
       }
@@ -417,6 +464,7 @@ class ServerBrowserController extends ChangeNotifier {
     final response = await _authorizedPostBytes(uri, const []);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       operationMessage = 'Folder created.';
+      await _invalidateDirectory(scope: scope, path: parentPath);
       await reload();
       return;
     }
@@ -459,6 +507,8 @@ class ServerBrowserController extends ChangeNotifier {
       final delResp = await _authorizedDelete(deleteUri);
       if (delResp.statusCode >= 200 && delResp.statusCode < 300) {
         moved++;
+        await _invalidateDirectory(scope: scope, path: _parentPath(item.path));
+        await _invalidateDirectory(scope: scope, path: destinationPath);
       } else {
         failed++;
       }
@@ -474,6 +524,18 @@ class ServerBrowserController extends ChangeNotifier {
     ServerFileItem item, {
     int size = 256,
   }) async {
+    final cacheKey = _thumbnailCacheKey(item, size: size);
+    return _cacheService.getRemoteThumbnail(
+      serverId: serverId,
+      cacheKey: cacheKey,
+      fetch: () => _loadThumbnailFromServer(item, size: size),
+    );
+  }
+
+  Future<Uint8List?> _loadThumbnailFromServer(
+    ServerFileItem item, {
+    required int size,
+  }) async {
     final uri = resolveThumbnailUrl(item, size: size);
     const delays = [
       Duration(milliseconds: 500),
@@ -487,6 +549,44 @@ class ServerBrowserController extends ChangeNotifier {
       await Future<void>.delayed(delays[i]);
     }
     return null;
+  }
+
+  String _directoryCacheKey({required String path}) {
+    return jsonEncode({
+      'serverId': serverId,
+      'scope': scope,
+      'path': path,
+      'selectedType': selectedType,
+      'searchQuery': searchQuery,
+      'sort': sortBy.name,
+      'order': sortAscending ? 'asc' : 'desc',
+    });
+  }
+
+  String _thumbnailCacheKey(ServerFileItem item, {required int size}) {
+    return jsonEncode({
+      'serverId': serverId,
+      'scope': scope,
+      'path': item.path,
+      'modifiedAt': item.modifiedAt.toUtc().millisecondsSinceEpoch,
+      'size': size,
+    });
+  }
+
+  Future<void> _invalidateDirectory({
+    required String scope,
+    required String path,
+  }) {
+    return _cacheService.invalidateDirectory(
+      serverId: serverId,
+      scope: scope,
+      path: path,
+    );
+  }
+
+  String _parentPath(String path) {
+    final normalized = p.dirname(path);
+    return normalized == '.' ? '' : normalized;
   }
 
   Uri _baseUri(String path) {

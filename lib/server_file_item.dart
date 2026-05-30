@@ -35,6 +35,19 @@ class ServerFileItem {
     );
   }
 
+  Map<String, Object?> toJson() {
+    return {
+      'name': name,
+      'size': size,
+      'modified_at': modifiedAt.toUtc().millisecondsSinceEpoch,
+      'type': type,
+      'mime_type': mimeType,
+      'thumbnail_url': thumbnailUrl,
+      'is_dir': isDir,
+      'path': path,
+    };
+  }
+
   String get extension {
     final idx = name.lastIndexOf('.');
     if (idx < 0) return '';

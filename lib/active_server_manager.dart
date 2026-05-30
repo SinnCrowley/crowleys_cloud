@@ -1,13 +1,19 @@
 import 'package:crowleys_cloud/auth_service.dart';
+import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_store.dart';
 import 'package:flutter/foundation.dart';
 
 class ActiveServerManager extends ChangeNotifier {
-  ActiveServerManager({required this.store, required this.authService});
+  ActiveServerManager({
+    required this.store,
+    required this.authService,
+    CacheService? cacheService,
+  }) : _cacheService = cacheService ?? CacheService.instance;
 
   final ServerStore store;
   final AuthService authService;
+  final CacheService _cacheService;
 
   List<ServerProfile> servers = [];
   ServerProfile? activeServer;
@@ -61,6 +67,7 @@ class ActiveServerManager extends ChangeNotifier {
   Future<void> removeServer(String serverId) async {
     servers = servers.where((s) => s.id != serverId).toList(growable: false);
     await authService.logout(serverId);
+    await _cacheService.deleteServer(serverId);
 
     if (servers.isEmpty) {
       activeServer = null;

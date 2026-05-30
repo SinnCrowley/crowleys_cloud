@@ -6,6 +6,7 @@ import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/biometric_auth_service.dart';
+import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/file_browser.dart';
 import 'package:crowleys_cloud/file_browser_controller.dart';
 import 'package:crowleys_cloud/file_item.dart';
@@ -27,6 +28,7 @@ import 'thumbnail_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await CacheService.instance.init();
   await ThumbnailService.instance.init();
   runApp(const CrowleysCloudApp());
 }
@@ -714,6 +716,9 @@ class _MainScreenState extends State<MainScreen> {
         '${failed.isNotEmpty ? ', failed ${failed.length}' : ''}.'
         '${failDetails.isNotEmpty ? '\n${failDetails.first}' : ''}';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    if (uploaded.isNotEmpty) {
+      await _serverController?.invalidateCurrentDirectory(reloadAfter: true);
+    }
   }
 
   Future<({bool ok, String? token, String error})> _uploadFileToServer({

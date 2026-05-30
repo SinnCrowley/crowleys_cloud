@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -28,6 +29,7 @@ class ThumbnailService {
       '${(await getTemporaryDirectory()).path}/thumb_cache',
     );
     await _cacheDir!.create(recursive: true);
+    CacheService.instance.registerLocalThumbnailDirectory(_cacheDir!);
 
     await _buildNameIndex();
   }
