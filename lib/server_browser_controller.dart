@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
@@ -27,8 +28,10 @@ class ServerBrowserController extends ChangeNotifier {
     this.onConnectionLost,
     this.transferManager,
     CacheService? cacheService,
+    AppSettingsService? settingsService,
     http.Client? client,
   }) : _cacheService = cacheService ?? CacheService.instance,
+       _settingsService = settingsService ?? AppSettingsService(),
        _client = client ?? http.Client() {
     unawaited(initialize());
   }
@@ -39,6 +42,7 @@ class ServerBrowserController extends ChangeNotifier {
   final ValueChanged<String>? onConnectionLost;
   final TransferManager? transferManager;
   final CacheService _cacheService;
+  final AppSettingsService _settingsService;
   final http.Client _client;
 
   final List<ServerFileItem> files = [];
@@ -52,6 +56,7 @@ class ServerBrowserController extends ChangeNotifier {
   bool isLoading = false;
   String? error;
   String? operationMessage;
+  bool _showHiddenFiles = false;
 
   Timer? _searchDebounce;
   int _opId = 0;
@@ -183,6 +188,9 @@ class ServerBrowserController extends ChangeNotifier {
     error = null;
     notifyListeners();
 
+    _showHiddenFiles = await _settingsService.showHiddenFiles();
+    if (opId != _opId) return;
+
     final requestPath = selectedType == 'all' ? currentPath : '';
     final cacheKey = _directoryCacheKey(path: requestPath);
     final cached = await _cacheService.readDirectory(
@@ -194,7 +202,7 @@ class ServerBrowserController extends ChangeNotifier {
     if (cached != null) {
       files
         ..clear()
-        ..addAll(cached.entries);
+        ..addAll(_filterHiddenEntries(cached.entries));
       if (selectedType != 'all') {
         files.removeWhere((item) => item.isDir);
       }
@@ -225,8 +233,13 @@ class ServerBrowserController extends ChangeNotifier {
       files
         ..clear()
         ..addAll(
-          entries.whereType<Map>().map(
-            (e) => ServerFileItem.fromJson(Map<String, Object?>.from(e)),
+          _filterHiddenEntries(
+            entries
+                .whereType<Map>()
+                .map(
+                  (e) => ServerFileItem.fromJson(Map<String, Object?>.from(e)),
+                )
+                .toList(growable: false),
           ),
         );
       if (selectedType != 'all') {
@@ -421,21 +434,21 @@ class ServerBrowserController extends ChangeNotifier {
     var shared = 0;
     var failed = 0;
     for (final item in selectedFiles.toList()) {
-      final ok = await _copyItemToShared(
-        item: item,
-        sourceScope: scope,
-        targetPath: item.path,
-      );
-      if (ok) {
+      final uri = _apiUri(
+        '/files/share',
+      ).replace(queryParameters: {'path': item.path, 'shared': '1'});
+      final response = await _authorizedPostBytes(uri, const []);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         shared++;
-        await _invalidateDirectory(
-          scope: 'shared',
-          path: _parentPath(item.path),
-        );
       } else {
         failed++;
       }
     }
+
+    await _invalidateDirectory(
+      scope: 'shared',
+      path: '',
+    );
 
     operationMessage = failed == 0
         ? 'Shared $shared item(s) in server.'
@@ -473,8 +486,11 @@ class ServerBrowserController extends ChangeNotifier {
   }
 
   Future<List<ServerFileItem>> listFoldersAt(String path) async {
+    final showHiddenFiles = await _settingsService.showHiddenFiles();
     final entries = await _listDirAtScope(path, scope);
-    return entries.where((e) => e.isDir && !e.name.startsWith('.')).toList()
+    return entries
+        .where((e) => e.isDir && (showHiddenFiles || !e.name.startsWith('.')))
+        .toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
   }
 
@@ -560,6 +576,7 @@ class ServerBrowserController extends ChangeNotifier {
       'searchQuery': searchQuery,
       'sort': sortBy.name,
       'order': sortAscending ? 'asc' : 'desc',
+      'showHiddenFiles': _showHiddenFiles,
     });
   }
 
@@ -658,6 +675,12 @@ class ServerBrowserController extends ChangeNotifier {
   }
 
   Future<Directory> _downloadRoot() async {
+    final configuredPath = await _settingsService.downloadDirectoryPath();
+    if (configuredPath != null) {
+      final configuredDir = Directory(configuredPath);
+      await configuredDir.create(recursive: true);
+      return configuredDir;
+    }
     final external = await getExternalStorageDirectory();
     Directory baseDir;
     if (external != null) {
@@ -674,6 +697,16 @@ class ServerBrowserController extends ChangeNotifier {
     final dir = Directory(p.join(baseDir.path, 'CrowleysCloud'));
     await dir.create(recursive: true);
     return dir;
+  }
+
+  @visibleForTesting
+  Future<Directory> downloadRootForTest() => _downloadRoot();
+
+  List<ServerFileItem> _filterHiddenEntries(List<ServerFileItem> entries) {
+    if (_showHiddenFiles) return entries;
+    return entries
+        .where((item) => !p.basename(item.path).startsWith('.'))
+        .toList(growable: false);
   }
 
   Future<bool> _downloadSingleFile(
@@ -770,56 +803,6 @@ class ServerBrowserController extends ChangeNotifier {
     return allOk;
   }
 
-  Future<bool> _copyItemToShared({
-    required ServerFileItem item,
-    required String sourceScope,
-    required String targetPath,
-  }) async {
-    if (item.isDir) {
-      final createFolderUri = _apiUri(
-        '/folders',
-      ).replace(queryParameters: {'scope': 'shared', 'path': targetPath});
-      final createFolderResponse = await _authorizedPostBytes(
-        createFolderUri,
-        const [],
-      );
-      if (createFolderResponse.statusCode < 200 ||
-          createFolderResponse.statusCode >= 300) {
-        return false;
-      }
-
-      final children = await _listDirAtScope(item.path, sourceScope);
-      var allOk = true;
-      for (final child in children) {
-        final childTargetPath = p.join(targetPath, p.basename(child.path));
-        final ok = await _copyItemToShared(
-          item: child,
-          sourceScope: sourceScope,
-          targetPath: childTargetPath,
-        );
-        allOk = allOk && ok;
-      }
-      return allOk;
-    }
-
-    final downloadUri = _apiUri(
-      '/files',
-    ).replace(queryParameters: {'scope': sourceScope, 'path': item.path});
-    final downloadResponse = await _authorizedGet(downloadUri);
-    if (downloadResponse.statusCode < 200 ||
-        downloadResponse.statusCode >= 300) {
-      return false;
-    }
-
-    final uploadUri = _apiUri(
-      '/files',
-    ).replace(queryParameters: {'scope': 'shared', 'path': targetPath});
-    final uploadResponse = await _authorizedPostBytes(
-      uploadUri,
-      downloadResponse.bodyBytes,
-    );
-    return uploadResponse.statusCode >= 200 && uploadResponse.statusCode < 300;
-  }
 
   Future<bool> _copyItemWithinScope({
     required ServerFileItem item,

@@ -78,6 +78,8 @@ void Database::migrate() {
       thumbnail_updated_at INTEGER,
       is_deleted INTEGER NOT NULL DEFAULT 0,
       uploader_user_id INTEGER NOT NULL DEFAULT 0,
+      sha256 TEXT NOT NULL DEFAULT '',
+      is_shared INTEGER NOT NULL DEFAULT 0,
       UNIQUE(owner_user_id, scope, rel_path)
     );
 
@@ -92,17 +94,34 @@ void Database::migrate() {
   sqlite3_stmt *stmt = nullptr;
   sqlite3_prepare_v2(db_, "PRAGMA table_info(file_index)", -1, &stmt, nullptr);
   bool hasUploaderColumn = false;
+  bool hasSha256Column = false;
+  bool hasIsSharedColumn = false;
   while (sqlite3_step(stmt) == SQLITE_ROW) {
     const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-    if (nameRaw != nullptr && std::string(nameRaw) == "uploader_user_id") {
-      hasUploaderColumn = true;
-      break;
+    if (nameRaw != nullptr) {
+      std::string nameStr(nameRaw);
+      if (nameStr == "uploader_user_id") {
+        hasUploaderColumn = true;
+      } else if (nameStr == "sha256") {
+        hasSha256Column = true;
+      } else if (nameStr == "is_shared") {
+        hasIsSharedColumn = true;
+      }
     }
   }
   sqlite3_finalize(stmt);
+
   if (!hasUploaderColumn) {
     exec("ALTER TABLE file_index ADD COLUMN uploader_user_id INTEGER NOT NULL DEFAULT 0;");
   }
+  if (!hasSha256Column) {
+    exec("ALTER TABLE file_index ADD COLUMN sha256 TEXT NOT NULL DEFAULT '';");
+  }
+  if (!hasIsSharedColumn) {
+    exec("ALTER TABLE file_index ADD COLUMN is_shared INTEGER NOT NULL DEFAULT 0;");
+  }
+  exec("CREATE INDEX IF NOT EXISTS idx_file_index_sha256 ON file_index(owner_user_id, scope, sha256, is_deleted);");
+  exec("CREATE INDEX IF NOT EXISTS idx_file_index_is_shared ON file_index(is_shared, is_deleted);");
 }
 
 }  // namespace server::db

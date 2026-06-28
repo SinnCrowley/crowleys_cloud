@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeAuthGateway implements AuthGateway {
   String? lastLoginUsername;
@@ -48,6 +49,12 @@ class _FakeAuthGateway implements AuthGateway {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   test(
     'secure store keeps tokens process-only across store instances',
     () async {
@@ -80,6 +87,29 @@ void main() {
       expect(await restartedStore.readSavedPassword('server1'), 'secret');
     },
   );
+
+  test('secure store restores tokens within configured lifetime', () async {
+    SharedPreferences.setMockInitialValues({
+      'settings.tokenLifetime': 'oneHour',
+    });
+    FlutterSecureStorage.setMockInitialValues({});
+    final firstStore = FlutterSecureSecretStore(
+      storage: const FlutterSecureStorage(),
+    );
+
+    await firstStore.saveTokens(
+      serverId: 'server1',
+      accessToken: 'access',
+      refreshToken: 'refresh',
+    );
+
+    final restartedStore = FlutterSecureSecretStore(
+      storage: const FlutterSecureStorage(),
+    );
+
+    expect(await restartedStore.readToken('server1'), 'access');
+    expect(await restartedStore.readRefreshToken('server1'), 'refresh');
+  });
 
   test('authenticate stores session and credentials', () async {
     final secrets = InMemorySecretStore();
@@ -184,4 +214,75 @@ void main() {
     );
     expect(result.status, SessionCheckStatus.noSession);
   });
+
+  test('changePassword posts new password and refreshes saved login', () async {
+    final secrets = InMemorySecretStore();
+    final gateway = _FakeAuthGateway();
+    final service = AuthService(
+      secretStore: secrets,
+      gateway: gateway,
+      client: MockClient((request) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/api/account/password');
+        expect(request.headers['authorization'], 'Bearer access');
+        expect(request.body, '{"new_password":"new-secret"}');
+        return http.Response('{"ok":true}', 200);
+      }),
+    );
+    await secrets.saveTokens(
+      serverId: 'server1',
+      accessToken: 'access',
+      refreshToken: 'refresh',
+    );
+    await secrets.saveCredentials(
+      serverId: 'server1',
+      username: 'alice',
+      password: 'old-secret',
+    );
+
+    await service.changePassword(
+      serverId: 'server1',
+      baseUrl: 'http://localhost:8080',
+      newPassword: 'new-secret',
+    );
+
+    expect(gateway.lastLoginUsername, 'alice');
+    expect(gateway.lastLoginPassword, 'new-secret');
+    expect(await secrets.readSavedPassword('server1'), 'new-secret');
+  });
+
+  test(
+    'deleteAccount deletes account endpoint and clears local auth',
+    () async {
+      final secrets = InMemorySecretStore();
+      final service = AuthService(
+        secretStore: secrets,
+        gateway: _FakeAuthGateway(),
+        client: MockClient((request) async {
+          expect(request.method, 'DELETE');
+          expect(request.url.path, '/api/account');
+          expect(request.headers['authorization'], 'Bearer access');
+          return http.Response('{"ok":true}', 200);
+        }),
+      );
+      await secrets.saveTokens(
+        serverId: 'server1',
+        accessToken: 'access',
+        refreshToken: 'refresh',
+      );
+      await secrets.saveCredentials(
+        serverId: 'server1',
+        username: 'alice',
+        password: 'secret',
+      );
+
+      await service.deleteAccount(
+        serverId: 'server1',
+        baseUrl: 'http://localhost:8080',
+      );
+
+      expect(await secrets.readToken('server1'), null);
+      expect(await secrets.readLastUsername('server1'), null);
+    },
+  );
 }

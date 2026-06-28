@@ -196,6 +196,7 @@ class CacheService {
     if (!_isReady || _remoteThumbnailDir == null) return;
     final maxBytes =
         _prefs?.getInt(thumbnailMaxBytesKey) ?? defaultThumbnailMaxBytes;
+    if (maxBytes < 0) return;
     final remoteEntries = await _manifestEntries(
       kind: CacheKind.remoteThumbnail,
     );
@@ -217,6 +218,42 @@ class CacheService {
       }
       total -= entry.size;
     }
+  }
+
+  Future<int> cacheSizeBytes() async {
+    if (!_isReady) return 0;
+    await _rebuildManifest();
+    final entries = await _manifestEntries();
+    final manifestTotal = entries.fold<int>(0, (sum, entry) {
+      return sum + (File(entry.path).existsSync() ? entry.size : 0);
+    });
+    final localEntries = await _localThumbnailEntries();
+    return manifestTotal +
+        localEntries.fold<int>(0, (sum, entry) => sum + entry.size);
+  }
+
+  Future<void> clearAll() async {
+    if (!_isReady) return;
+    for (final root in [_metadataDir, _remoteThumbnailDir]) {
+      if (root == null || !await root.exists()) continue;
+      await root.delete(recursive: true);
+      await root.create(recursive: true);
+    }
+    for (final path in _localThumbnailDirs) {
+      final root = Directory(path);
+      if (!await root.exists()) continue;
+      await for (final entity in root.list(recursive: true)) {
+        if (entity is File) await _deleteQuietly(entity);
+      }
+    }
+    await _writeManifestEntries(const []);
+  }
+
+  Future<void> setThumbnailMaxBytes(int value) async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    _prefs = prefs;
+    await prefs.setInt(thumbnailMaxBytesKey, value);
+    await evictThumbnails();
   }
 
   Future<void> _ensureDefaultPreferences(SharedPreferences prefs) async {

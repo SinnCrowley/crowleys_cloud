@@ -93,6 +93,33 @@ class ActiveServerManager extends ChangeNotifier {
     }
   }
 
+  Future<void> updateActiveServerSyncPrefs(Map<String, Object?> prefs) async {
+    final active = activeServer;
+    if (active == null) return;
+    await updateServerSyncPrefs(active.id, prefs);
+  }
+
+  Future<void> updateServerSyncPrefs(
+    String serverId,
+    Map<String, Object?> prefs,
+  ) async {
+    final current = servers
+        .where((server) => server.id == serverId)
+        .firstOrNull;
+    if (current == null) return;
+    final updated = current.copyWith(
+      syncPrefs: {...current.syncPrefs, ...prefs},
+    );
+    if (activeServer?.id == serverId) {
+      activeServer = updated;
+    }
+    servers = servers
+        .map((server) => server.id == updated.id ? updated : server)
+        .toList(growable: false);
+    await _persist();
+    notifyListeners();
+  }
+
   void reportConnectionError({required String serverId, String? message}) {
     if (activeServer?.id != serverId) return;
     requiresAuth = false;

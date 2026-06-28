@@ -1,3 +1,4 @@
+import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 abstract class SecretStore {
@@ -29,9 +30,13 @@ abstract class SecretStore {
 }
 
 class FlutterSecureSecretStore implements SecretStore {
-  FlutterSecureSecretStore({required this.storage});
+  FlutterSecureSecretStore({
+    required this.storage,
+    AppSettingsService? settingsService,
+  }) : _settingsService = settingsService ?? AppSettingsService();
 
   final FlutterSecureStorage storage;
+  final AppSettingsService _settingsService;
   final Map<String, String> _sessionTokens = {};
   final Map<String, String> _sessionRefreshTokens = {};
 
@@ -39,10 +44,9 @@ class FlutterSecureSecretStore implements SecretStore {
   Future<void> clearToken(String serverId) async {
     _sessionTokens.remove(serverId);
     _sessionRefreshTokens.remove(serverId);
-    // Clean up tokens written by older app versions. Current session tokens are
-    // intentionally process-only so app restarts require authentication again.
     await storage.delete(key: _tokenKey(serverId));
     await storage.delete(key: _refreshTokenKey(serverId));
+    await storage.delete(key: _tokenExpiresAtKey(serverId));
   }
 
   @override
@@ -53,12 +57,26 @@ class FlutterSecureSecretStore implements SecretStore {
 
   @override
   Future<String?> readToken(String serverId) async {
-    return _sessionTokens[serverId];
+    final sessionToken = _sessionTokens[serverId];
+    if (sessionToken != null && sessionToken.isNotEmpty) return sessionToken;
+    if (!await _canUseStoredTokens(serverId)) return null;
+    final token = await storage.read(key: _tokenKey(serverId));
+    if (token != null && token.isNotEmpty) {
+      _sessionTokens[serverId] = token;
+    }
+    return token;
   }
 
   @override
   Future<String?> readRefreshToken(String serverId) async {
-    return _sessionRefreshTokens[serverId];
+    final sessionToken = _sessionRefreshTokens[serverId];
+    if (sessionToken != null && sessionToken.isNotEmpty) return sessionToken;
+    if (!await _canUseStoredTokens(serverId)) return null;
+    final token = await storage.read(key: _refreshTokenKey(serverId));
+    if (token != null && token.isNotEmpty) {
+      _sessionRefreshTokens[serverId] = token;
+    }
+    return token;
   }
 
   @override
@@ -77,6 +95,7 @@ class FlutterSecureSecretStore implements SecretStore {
     required String token,
   }) async {
     _sessionTokens[serverId] = token;
+    await _persistTokensForLifetime(serverId, accessToken: token);
   }
 
   @override
@@ -87,6 +106,11 @@ class FlutterSecureSecretStore implements SecretStore {
   }) async {
     _sessionTokens[serverId] = accessToken;
     _sessionRefreshTokens[serverId] = refreshToken;
+    await _persistTokensForLifetime(
+      serverId,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    );
   }
 
   @override
@@ -101,8 +125,56 @@ class FlutterSecureSecretStore implements SecretStore {
 
   String _tokenKey(String serverId) => 'server_token_$serverId';
   String _refreshTokenKey(String serverId) => 'server_refresh_token_$serverId';
+  String _tokenExpiresAtKey(String serverId) =>
+      'server_token_expires_at_$serverId';
   String _usernameKey(String serverId) => 'server_last_username_$serverId';
   String _passwordKey(String serverId) => 'server_saved_password_$serverId';
+
+  Future<bool> _canUseStoredTokens(String serverId) async {
+    final lifetime = await _settingsService.tokenLifetime();
+    if (lifetime.expiresOnAppClose) return false;
+
+    final expiresAtRaw = await storage.read(key: _tokenExpiresAtKey(serverId));
+    if (expiresAtRaw == null || expiresAtRaw.isEmpty) return false;
+    final expiresAtMs = int.tryParse(expiresAtRaw);
+    if (expiresAtMs == null) return false;
+    if (expiresAtMs < 0) return true;
+
+    final expiresAt = DateTime.fromMillisecondsSinceEpoch(
+      expiresAtMs,
+      isUtc: true,
+    );
+    if (DateTime.now().toUtc().isBefore(expiresAt)) return true;
+
+    await clearToken(serverId);
+    return false;
+  }
+
+  Future<void> _persistTokensForLifetime(
+    String serverId, {
+    required String accessToken,
+    String? refreshToken,
+  }) async {
+    final lifetime = await _settingsService.tokenLifetime();
+    if (lifetime.expiresOnAppClose) {
+      await storage.delete(key: _tokenKey(serverId));
+      await storage.delete(key: _refreshTokenKey(serverId));
+      await storage.delete(key: _tokenExpiresAtKey(serverId));
+      return;
+    }
+
+    final expiresAt = lifetime.neverExpiresOnDevice
+        ? -1
+        : DateTime.now().toUtc().add(lifetime.duration!).millisecondsSinceEpoch;
+    await storage.write(key: _tokenKey(serverId), value: accessToken);
+    if (refreshToken != null) {
+      await storage.write(key: _refreshTokenKey(serverId), value: refreshToken);
+    }
+    await storage.write(
+      key: _tokenExpiresAtKey(serverId),
+      value: expiresAt.toString(),
+    );
+  }
 }
 
 class InMemorySecretStore implements SecretStore {

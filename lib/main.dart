@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/biometric_auth_service.dart';
@@ -15,7 +16,9 @@ import 'package:crowleys_cloud/server_file_browser.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_setup_screen.dart';
+import 'package:crowleys_cloud/settings_screen.dart';
 import 'package:crowleys_cloud/server_store.dart';
+import 'package:crowleys_cloud/sync_scheduler.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:crowleys_cloud/transfer_widgets.dart';
 import 'package:flutter/material.dart';
@@ -23,11 +26,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'thumbnail_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await WorkmanagerSyncBackgroundScheduler().initialize();
   await CacheService.instance.init();
   await ThumbnailService.instance.init();
   runApp(const CrowleysCloudApp());
@@ -201,6 +206,8 @@ class _MainScreenState extends State<MainScreen> {
   late final VoidCallback _transferListener;
   late final ActiveServerManager _serverManager;
   late final BiometricAuthService _biometricAuthService;
+  late final AppSettingsService _appSettingsService;
+  late final SyncBackgroundScheduler _syncScheduler;
   final TransferManager _transferManager = TransferManager();
   bool _authPromptInFlight = false;
 
@@ -212,11 +219,14 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _appSettingsService = AppSettingsService();
+    _syncScheduler = WorkmanagerSyncBackgroundScheduler();
     _serverManager = ActiveServerManager(
       store: ServerStore(),
       authService: AuthService(
         secretStore: FlutterSecureSecretStore(
           storage: const FlutterSecureStorage(),
+          settingsService: _appSettingsService,
         ),
       ),
     );
@@ -253,6 +263,11 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _initializeServers() async {
     await _serverManager.initialize();
+    await _syncScheduler.scheduleForServers(_serverManager.servers);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isGridView = prefs.getBool('is_grid_view') ?? true;
+    } catch (_) {}
     if (!mounted) return;
     setState(() {});
   }
@@ -267,6 +282,22 @@ class _MainScreenState extends State<MainScreen> {
         builder: (_) => TransferPage(manager: _transferManager),
       ),
     );
+  }
+
+  Future<void> _openSettingsPage() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => SettingsScreen(
+          serverManager: _serverManager,
+          settingsService: _appSettingsService,
+          biometricAuthService: _biometricAuthService,
+          syncScheduler: _syncScheduler,
+        ),
+      ),
+    );
+    await _localController?.reload();
+    await _serverController?.reload();
+    if (mounted) setState(() {});
   }
 
   void _reportActiveServerConnectionError([String? message]) {
@@ -381,8 +412,12 @@ class _MainScreenState extends State<MainScreen> {
     );
     final hasSavedCredentials = await _serverManager.authService
         .hasSavedCredentials(active.id);
+    final biometricLoginEnabled = await _appSettingsService
+        .biometricLoginEnabled();
     final canUseBiometrics =
-        hasSavedCredentials && await _biometricAuthService.canAuthenticate();
+        biometricLoginEnabled &&
+        hasSavedCredentials &&
+        await _biometricAuthService.canAuthenticate();
 
     if (!mounted) return;
     if (canUseBiometrics) {
@@ -571,7 +606,10 @@ class _MainScreenState extends State<MainScreen> {
       await _clearSearchAndResetFilterForCurrentMode();
       _localController?.disposeController();
       _localController?.dispose();
-      final controller = FileBrowserController(category: category);
+      final controller = FileBrowserController(
+        category: category,
+        settingsService: _appSettingsService,
+      );
       setState(() {
         _selectedLocalCategory = category;
         _localController = controller;
@@ -1103,6 +1141,7 @@ class _MainScreenState extends State<MainScreen> {
       authService: _serverManager.authService,
       onConnectionLost: _reportActiveServerConnectionError,
       transferManager: _transferManager,
+      settingsService: _appSettingsService,
     );
   }
 
@@ -1315,7 +1354,15 @@ class _MainScreenState extends State<MainScreen> {
             actions: [
               IconButton(
                 icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-                onPressed: () => setState(() => _isGridView = !_isGridView),
+                onPressed: () async {
+                  setState(() {
+                    _isGridView = !_isGridView;
+                  });
+                  try {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('is_grid_view', _isGridView);
+                  } catch (_) {}
+                },
               ),
             ],
           ),
@@ -1435,6 +1482,18 @@ class _MainScreenState extends State<MainScreen> {
                       });
                       unawaited(_clearSearchAndResetFilterForCurrentMode());
                       Navigator.pop(context);
+                    },
+                  ),
+                  const Divider(color: Colors.white24),
+                  ListTile(
+                    leading: const Icon(Icons.settings, color: Colors.white70),
+                    title: const Text(
+                      'Settings',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await _openSettingsPage();
                     },
                   ),
                 ],

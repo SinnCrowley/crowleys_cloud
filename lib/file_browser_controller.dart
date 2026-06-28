@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:flutter/foundation.dart';
@@ -19,6 +20,7 @@ abstract class FileLoadStrategy {
     required String searchQuery,
     Directory? baseDirectory,
     required String? tempPath,
+    required bool showHiddenFiles,
   });
 }
 
@@ -29,6 +31,7 @@ class MediaStoreLoadStrategy implements FileLoadStrategy {
     required String searchQuery,
     Directory? baseDirectory,
     required String? tempPath,
+    required bool showHiddenFiles,
   }) async {
     final perm = await PhotoManager.requestPermissionExtend();
     if (!perm.isAuth) return [];
@@ -81,6 +84,7 @@ class FileWalkLoadStrategy implements FileLoadStrategy {
     required String searchQuery,
     Directory? baseDirectory,
     required String? tempPath,
+    required bool showHiddenFiles,
   }) async {
     final storageDirs = await getExternalStorageDirectories();
     if (storageDirs == null || storageDirs.isEmpty) return [];
@@ -100,13 +104,25 @@ class FileWalkLoadStrategy implements FileLoadStrategy {
 
       for (final entity in entries) {
         if (entity is Directory) {
-          if (!isPathExcluded(entity.path, tempPath, _excludedFolders)) {
+          if (!isPathExcluded(
+            entity.path,
+            tempPath,
+            _excludedFolders,
+            showHiddenFiles: showHiddenFiles,
+          )) {
             await walkDir(entity);
           }
           continue;
         }
         if (entity is! File) continue;
-        if (isPathExcluded(entity.path, tempPath, _excludedFolders)) continue;
+        if (isPathExcluded(
+          entity.path,
+          tempPath,
+          _excludedFolders,
+          showHiddenFiles: showHiddenFiles,
+        )) {
+          continue;
+        }
         if (!entityMatchesCategory(entity, categoryName)) continue;
 
         final item = FileItem.fromEntity(entity);
@@ -130,6 +146,7 @@ class DirectoryLoadStrategy implements FileLoadStrategy {
     required String searchQuery,
     Directory? baseDirectory,
     required String? tempPath,
+    required bool showHiddenFiles,
   }) async {
     if (baseDirectory == null) return [];
 
@@ -144,7 +161,14 @@ class DirectoryLoadStrategy implements FileLoadStrategy {
       }
 
       for (final entity in entries) {
-        if (isPathExcluded(entity.path, tempPath, _excludedFolders)) continue;
+        if (isPathExcluded(
+          entity.path,
+          tempPath,
+          _excludedFolders,
+          showHiddenFiles: showHiddenFiles,
+        )) {
+          continue;
+        }
         final item = FileItem.fromEntity(entity);
         if (matchesSearch(item.name, searchQuery)) {
           files.add(item);
@@ -186,12 +210,16 @@ String? extractRootPath(String path) {
 bool isPathExcluded(
   String path,
   String? tempPath,
-  Set<String> excludedFolders,
-) {
+  Set<String> excludedFolders, {
+  required bool showHiddenFiles,
+}) {
   if (tempPath != null && path.startsWith(tempPath)) return true;
   final lower = path.toLowerCase();
   final segments = lower.split('/');
-  if (segments.any((s) => s.startsWith('.') && s.length > 1)) return true;
+  if (!showHiddenFiles &&
+      segments.any((s) => s.startsWith('.') && s.length > 1)) {
+    return true;
+  }
   if (excludedFolders.any(segments.contains)) return true;
   if (lower.contains('/android/data/') || lower.contains('/android/obb/')) {
     return true;
@@ -229,8 +257,9 @@ class FileBrowserController extends ChangeNotifier {
     this.mediaStoreStrategy,
     this.fileWalkStrategy,
     this.directoryStrategy,
+    AppSettingsService? settingsService,
     this.loadOnInit = true,
-  }) {
+  }) : _settingsService = settingsService ?? AppSettingsService() {
     if (loadOnInit) {
       unawaited(initialize());
     }
@@ -241,6 +270,7 @@ class FileBrowserController extends ChangeNotifier {
   final FileLoadStrategy? fileWalkStrategy;
   final FileLoadStrategy? directoryStrategy;
   final bool loadOnInit;
+  final AppSettingsService _settingsService;
 
   bool isLoading = true;
   String? error;
@@ -411,6 +441,7 @@ class FileBrowserController extends ChangeNotifier {
       }
 
       final strategy = _pickStrategy();
+      final showHiddenFiles = await _settingsService.showHiddenFiles();
       final loaded = await strategy.load(
         categoryName: category.name,
         searchQuery: searchQuery,
@@ -418,6 +449,7 @@ class FileBrowserController extends ChangeNotifier {
             ? (directoryHistory.isEmpty ? null : directoryHistory.last)
             : null,
         tempPath: _tempPath,
+        showHiddenFiles: showHiddenFiles,
       );
 
       if (opId != _operationId) return;

@@ -25,6 +25,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   http: ^1.2.2
   local_auth: ^3.0.1
+  workmanager: ^0.9.0+3
+  device_info_plus: ^12.4.0
 
 dev_dependencies:
   flutter_test:

@@ -5,6 +5,7 @@ import 'package:crowleys_cloud/file_browser_controller.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeStrategy implements FileLoadStrategy {
   _FakeStrategy(this.returnItems);
@@ -18,6 +19,7 @@ class _FakeStrategy implements FileLoadStrategy {
     required String searchQuery,
     Directory? baseDirectory,
     required String? tempPath,
+    required bool showHiddenFiles,
   }) async {
     calls++;
     return returnItems;
@@ -28,6 +30,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('FileBrowserController', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
     test('search debounce triggers one reload with latest value', () async {
       final fake = _FakeStrategy([]);
       final controller = FileBrowserController(
@@ -45,7 +51,7 @@ void main() {
         delay: const Duration(milliseconds: 10),
       );
 
-      await Future<void>.delayed(const Duration(milliseconds: 30));
+      await Future<void>.delayed(const Duration(milliseconds: 80));
 
       expect(controller.searchQuery, 'two');
       expect(fake.calls, 1);
@@ -135,6 +141,27 @@ void main() {
       expect(photos.strategyTypeForTest(), '_FakeStrategy');
       expect(documents.strategyTypeForTest(), '_FakeStrategy');
       expect(allFiles.strategyTypeForTest(), '_FakeStrategy');
+    });
+
+    test('hidden paths are excluded only when setting is disabled', () {
+      expect(
+        isPathExcluded(
+          '/storage/emulated/0/.hidden/file.txt',
+          null,
+          const {},
+          showHiddenFiles: false,
+        ),
+        true,
+      );
+      expect(
+        isPathExcluded(
+          '/storage/emulated/0/.hidden/file.txt',
+          null,
+          const {},
+          showHiddenFiles: true,
+        ),
+        false,
+      );
     });
   });
 }

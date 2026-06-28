@@ -193,7 +193,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     final picked = await Navigator.push<String>(
       context,
       MaterialPageRoute(
-        builder: (_) => _LocalFolderPickerScreen(
+        builder: (_) => LocalFolderPickerScreen(
           controller: _controller,
           initialPath: startDir!.path,
         ),
@@ -505,8 +505,9 @@ class _HeaderControls extends StatelessWidget {
   }
 }
 
-class _LocalFolderPickerScreen extends StatefulWidget {
-  const _LocalFolderPickerScreen({
+class LocalFolderPickerScreen extends StatefulWidget {
+  const LocalFolderPickerScreen({
+    super.key,
     required this.controller,
     required this.initialPath,
   });
@@ -515,11 +516,11 @@ class _LocalFolderPickerScreen extends StatefulWidget {
   final String initialPath;
 
   @override
-  State<_LocalFolderPickerScreen> createState() =>
+  State<LocalFolderPickerScreen> createState() =>
       _LocalFolderPickerScreenState();
 }
 
-class _LocalFolderPickerScreenState extends State<_LocalFolderPickerScreen> {
+class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
   late List<String> _pathStack;
   List<Directory> _folders = const [];
   Map<String, DateTime> _folderModifiedAt = const {};

@@ -65,12 +65,6 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
   }
 
   try {
-    const auto fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, false);
-    if (!std::filesystem::exists(fullPath) || !std::filesystem::is_directory(fullPath)) {
-      callback(jsonError(drogon::k404NotFound, "Directory not found"));
-      return;
-    }
-
     const auto relPrefix = std::filesystem::path(pathRaw).lexically_normal().relative_path().generic_string();
     const auto filterType = req->getParameter("type");
     const auto query = req->getParameter("q");
@@ -79,6 +73,15 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
     const auto sortBy = req->getParameter("sort");
     const auto order = req->getParameter("order");
     const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+
+    if (*scope != services::StorageScope::Shared) {
+      const auto fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, false);
+      if (!std::filesystem::exists(fullPath) || !std::filesystem::is_directory(fullPath)) {
+        callback(jsonError(drogon::k404NotFound, "Directory not found"));
+        return;
+      }
+    }
+
     auto entries = server::ctx().fileIndexService->listDirectory({
         .ownerUserId = ownerUserId,
         .scope = *scope,
@@ -90,7 +93,9 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
         .includeDirs = !typedView && !recursiveSearch,
         .recursiveFiles = typedView || recursiveSearch,
     });
-    if (entries.empty()) {
+
+    if (entries.empty() && *scope != services::StorageScope::Shared) {
+      const auto fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, false);
       if (typedView || recursiveSearch) {
         const auto scopeRoot = server::ctx().fileService->resolvePath(userId, role, *scope, "", false);
         server::ctx().fileIndexService->rebuildIndex(ownerUserId, *scope, scopeRoot);
@@ -120,28 +125,31 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
 
     std::unordered_map<std::string, services::IndexedDirEntry> dirEntries;
     if (!typedView && !recursiveSearch) {
-      const auto fsEntries = server::ctx().fileService->listDirectory(fullPath);
       for (const auto &entry : entries) {
         if (entry.isDir) {
           dirEntries[entry.path] = entry;
         }
       }
-      for (const auto &fsEntry : fsEntries) {
-        if (!fsEntry.isDir) continue;
-        const auto fullRelPath = relPrefix.empty() ? fsEntry.path : (relPrefix + "/" + fsEntry.path);
-        if (dirEntries.find(fullRelPath) != dirEntries.end()) continue;
-        dirEntries.emplace(
-            fullRelPath,
-            services::IndexedDirEntry{
-                .name = fsEntry.name,
-                .path = fullRelPath,
-                .isDir = true,
-                .size = 0,
-                .modifiedAt = fsEntry.modifiedAt,
-                .type = "directory",
-                .mimeType = "inode/directory",
-                .thumbnailUrl = "",
-            });
+      if (*scope != services::StorageScope::Shared) {
+        const auto fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, false);
+        const auto fsEntries = server::ctx().fileService->listDirectory(fullPath);
+        for (const auto &fsEntry : fsEntries) {
+          if (!fsEntry.isDir) continue;
+          const auto fullRelPath = relPrefix.empty() ? fsEntry.path : (relPrefix + "/" + fsEntry.path);
+          if (dirEntries.find(fullRelPath) != dirEntries.end()) continue;
+          dirEntries.emplace(
+              fullRelPath,
+              services::IndexedDirEntry{
+                  .name = fsEntry.name,
+                  .path = fullRelPath,
+                  .isDir = true,
+                  .size = 0,
+                  .modifiedAt = fsEntry.modifiedAt,
+                  .type = "directory",
+                  .mimeType = "inode/directory",
+                  .thumbnailUrl = "",
+              });
+        }
       }
     }
 
@@ -212,7 +220,20 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
 
   try {
     const auto rawPath = req->getParameter("path");
-    const auto source = server::ctx().fileService->resolvePath(userId, role, *scope, rawPath, false);
+    std::filesystem::path source;
+    std::int64_t cacheUserId = userId;
+    if (*scope == services::StorageScope::Shared) {
+      auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(rawPath);
+      if (!ownerId.has_value()) {
+        callback(jsonError(drogon::k404NotFound, "File not found"));
+        return;
+      }
+      source = server::ctx().fileService->resolvePath(*ownerId, role, services::StorageScope::Private, rawPath, false);
+      cacheUserId = *ownerId;
+    } else {
+      source = server::ctx().fileService->resolvePath(userId, role, *scope, rawPath, false);
+    }
+
     if (!std::filesystem::exists(source) || std::filesystem::is_directory(source)) {
       callback(jsonError(drogon::k404NotFound, "File not found"));
       return;
@@ -221,8 +242,8 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     const auto fileType = server::ctx().fileService->classifyType(source);
     const auto sizeRaw = req->getParameter("s").empty() ? "256" : req->getParameter("s");
     const auto thumbSize = std::max(64, std::min(1024, std::stoi(sizeRaw)));
-    const auto key = std::to_string(userId) + ":" + source.generic_string() + ":" + std::to_string(thumbSize);
-    const auto thumbRoot = std::filesystem::path(server::ctx().config.storageRoot) / ".thumbs" / std::to_string(userId);
+    const auto key = std::to_string(cacheUserId) + ":" + source.generic_string() + ":" + std::to_string(thumbSize);
+    const auto thumbRoot = std::filesystem::path(server::ctx().config.storageRoot) / ".thumbs" / std::to_string(cacheUserId);
     std::filesystem::create_directories(thumbRoot);
     const auto thumbPathBase = thumbRoot / std::to_string(std::hash<std::string>{}(key));
     const auto thumbPath = fileType == "video"
@@ -286,7 +307,18 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
   }
 
   try {
-    const auto fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), false);
+    std::filesystem::path fullPath;
+    if (*scope == services::StorageScope::Shared) {
+      auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(req->getParameter("path"));
+      if (!ownerId.has_value()) {
+        callback(jsonError(drogon::k404NotFound, "File not found"));
+        return;
+      }
+      fullPath = server::ctx().fileService->resolvePath(*ownerId, role, services::StorageScope::Private, req->getParameter("path"), false);
+    } else {
+      fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), false);
+    }
+
     if (!std::filesystem::exists(fullPath) || std::filesystem::is_directory(fullPath)) {
       callback(jsonError(drogon::k404NotFound, "File not found"));
       return;
@@ -346,6 +378,78 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
   }
 }
 
+void FileController::shareFile(const drogon::HttpRequestPtr &req,
+                               std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  const auto pathRaw = req->getParameter("path");
+  const auto sharedRaw = req->getParameter("shared");
+  if (pathRaw.empty()) {
+    callback(jsonError(drogon::k400BadRequest, "path is required"));
+    return;
+  }
+  const bool isShared = sharedRaw == "1" || sharedRaw == "true";
+
+  try {
+    server::ctx().fileIndexService->setSharedFlag(userId, pathRaw, isShared);
+    Json::Value body;
+    body["ok"] = true;
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
+void FileController::checkHashes(const drogon::HttpRequestPtr &req,
+                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  const auto scopeRaw = req->getParameter("scope");
+  const auto scope = services::parseScope(scopeRaw.empty() ? "private" : scopeRaw);
+  if (!scope.has_value()) {
+    callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+    return;
+  }
+
+  auto jsonPtr = req->getJsonObject();
+  if (!jsonPtr || !jsonPtr->isMember("hashes") || !(*jsonPtr)["hashes"].isArray()) {
+    callback(jsonError(drogon::k400BadRequest, "JSON with 'hashes' array is required"));
+    return;
+  }
+
+  const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+  const auto &hashesVal = (*jsonPtr)["hashes"];
+
+  Json::Value body;
+  body["existing"] = Json::objectValue;
+
+  for (Json::ArrayIndex i = 0; i < hashesVal.size(); ++i) {
+    if (!hashesVal[i].isString()) continue;
+    const std::string sha256 = hashesVal[i].asString();
+    if (sha256.empty()) continue;
+
+    auto entry = server::ctx().fileIndexService->findFileByHash(ownerUserId, *scope, sha256);
+    if (entry.has_value()) {
+      Json::Value item;
+      item["path"] = entry->path;
+      item["size"] = static_cast<Json::UInt64>(entry->size);
+      body["existing"][sha256] = item;
+    }
+  }
+
+  callback(drogon::HttpResponse::newHttpJsonResponse(body));
+}
+
 void FileController::createFolder(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
   std::int64_t userId;
@@ -395,28 +499,35 @@ void FileController::deleteFile(const drogon::HttpRequestPtr &req,
   }
 
   try {
-    const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
-    if (!std::filesystem::exists(target)) {
-      callback(jsonError(drogon::k404NotFound, "File not found"));
-      return;
-    }
-    const auto isDirectory = std::filesystem::is_directory(target);
     const auto relPath = std::filesystem::path(req->getParameter("path"))
                              .lexically_normal()
                              .relative_path()
                              .generic_string();
-    const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-    if (*scope == services::StorageScope::Shared &&
-        !server::ctx().fileIndexService->canDeletePath(
-            ownerUserId, *scope, relPath, userId, isDirectory)) {
-      callback(jsonError(drogon::k403Forbidden, "Only uploader can delete shared files"));
-      return;
-    }
-    std::filesystem::remove_all(target);
-    if (isDirectory) {
-      server::ctx().fileIndexService->markDeletedPrefix(ownerUserId, *scope, relPath);
+    if (*scope == services::StorageScope::Shared) {
+      auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(relPath);
+      if (!ownerId.has_value()) {
+        callback(jsonError(drogon::k404NotFound, "File not found in shared scope"));
+        return;
+      }
+      if (*ownerId != userId) {
+        callback(jsonError(drogon::k403Forbidden, "Only the owner can unshare files"));
+        return;
+      }
+      server::ctx().fileIndexService->setSharedFlag(*ownerId, relPath, false);
     } else {
-      server::ctx().fileIndexService->markDeleted(ownerUserId, *scope, relPath);
+      const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
+      if (!std::filesystem::exists(target)) {
+        callback(jsonError(drogon::k404NotFound, "File not found"));
+        return;
+      }
+      const auto isDirectory = std::filesystem::is_directory(target);
+      const auto ownerUserId = userId;
+      std::filesystem::remove_all(target);
+      if (isDirectory) {
+        server::ctx().fileIndexService->markDeletedPrefix(ownerUserId, *scope, relPath);
+      } else {
+        server::ctx().fileIndexService->markDeleted(ownerUserId, *scope, relPath);
+      }
     }
 
     Json::Value body;

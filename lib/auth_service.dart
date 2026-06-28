@@ -301,9 +301,108 @@ class AuthService {
     );
   }
 
+  Future<void> persistCurrentSessionForConfiguredLifetime(
+    String serverId,
+  ) async {
+    final accessToken = await secretStore.readToken(serverId);
+    final refreshToken = await secretStore.readRefreshToken(serverId);
+    if (accessToken == null || accessToken.isEmpty) return;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      await secretStore.saveToken(serverId: serverId, token: accessToken);
+      return;
+    }
+    await secretStore.saveTokens(
+      serverId: serverId,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    );
+  }
+
+  Future<void> changePassword({
+    required String serverId,
+    required String baseUrl,
+    required String newPassword,
+  }) async {
+    final token = await readAccessToken(serverId);
+    if (token == null || token.isEmpty) {
+      throw const AuthException('No active session available');
+    }
+    final username = await readLastUsername(serverId);
+    if (username == null || username.isEmpty) {
+      throw const AuthException('No saved username available');
+    }
+
+    await _sendAuthorizedJson(
+      method: 'POST',
+      uri: _endpoint(baseUrl, '/api/account/password'),
+      token: token,
+      payload: {'new_password': newPassword},
+      fallbackMessage: 'Password change failed',
+    );
+
+    await authenticate(
+      serverId: serverId,
+      baseUrl: baseUrl,
+      username: username,
+      password: newPassword,
+      mode: AuthMode.login,
+    );
+  }
+
+  Future<void> deleteAccount({
+    required String serverId,
+    required String baseUrl,
+  }) async {
+    final token = await readAccessToken(serverId);
+    if (token == null || token.isEmpty) {
+      throw const AuthException('No active session available');
+    }
+
+    await _sendAuthorizedJson(
+      method: 'DELETE',
+      uri: _endpoint(baseUrl, '/api/account'),
+      token: token,
+      fallbackMessage: 'Account deletion failed',
+    );
+    await logout(serverId);
+  }
+
   Future<void> logout(String serverId) async {
     await secretStore.clearToken(serverId);
     await secretStore.clearCredentials(serverId);
+  }
+
+  Future<void> _sendAuthorizedJson({
+    required String method,
+    required Uri uri,
+    required String token,
+    Map<String, Object?>? payload,
+    required String fallbackMessage,
+  }) async {
+    final request = http.Request(method, uri)
+      ..headers['authorization'] = 'Bearer $token'
+      ..headers['content-type'] = 'application/json';
+    if (payload != null) {
+      request.body = jsonEncode(payload);
+    }
+
+    final streamed = await _client.send(request);
+    final response = await http.Response.fromStream(streamed);
+    if (response.statusCode >= 200 && response.statusCode < 300) return;
+
+    throw AuthException(
+      _extractError(response.body) ??
+          '$fallbackMessage (${response.statusCode}) at ${uri.toString()}',
+    );
+  }
+
+  String? _extractError(String body) {
+    try {
+      final json = jsonDecode(body) as Map<String, Object?>;
+      return json['error'] as String?;
+    } catch (_) {
+      return null;
+    }
   }
 
   Uri _endpoint(String baseUrl, String path) {

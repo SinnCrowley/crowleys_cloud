@@ -48,6 +48,11 @@ class FileIndexService {
   void markDeletedPrefix(std::int64_t ownerUserId, StorageScope scope, const std::string &relPrefix);
 
   std::vector<IndexedDirEntry> listDirectory(const ListIndexQuery &query) const;
+  std::optional<IndexedDirEntry> findFileByHash(std::int64_t ownerUserId,
+                                                StorageScope scope,
+                                                const std::string &sha256) const;
+  void setSharedFlag(std::int64_t ownerUserId, const std::string &relPath, bool isShared);
+  std::optional<std::int64_t> getSharedFileOwner(const std::string &relPath) const;
   bool canDeletePath(std::int64_t ownerUserId,
                      StorageScope scope,
                      const std::string &relPath,

@@ -5,6 +5,7 @@
 #include <sqlite3.h>
 
 #include <chrono>
+#include <filesystem>
 #include <sstream>
 #include <vector>
 
@@ -252,13 +253,24 @@ bool UserService::changePassword(std::int64_t userId, const std::string &newPass
 
 bool UserService::deleteAccount(std::int64_t userId) {
   revokeAllRefreshTokens(userId);
+  sqlite3_stmt *fileStmt = nullptr;
+  sqlite3_prepare_v2(db_.raw(), "DELETE FROM file_index WHERE owner_user_id = ? OR uploader_user_id = ?", -1, &fileStmt, nullptr);
+  sqlite3_bind_int64(fileStmt, 1, userId);
+  sqlite3_bind_int64(fileStmt, 2, userId);
+  sqlite3_step(fileStmt);
+  sqlite3_finalize(fileStmt);
+
   sqlite3_stmt *stmt = nullptr;
   sqlite3_prepare_v2(db_.raw(), "DELETE FROM users WHERE id = ?", -1, &stmt, nullptr);
   sqlite3_bind_int64(stmt, 1, userId);
   const auto rc = sqlite3_step(stmt);
   const auto changes = sqlite3_changes(db_.raw());
   sqlite3_finalize(stmt);
-  return rc == SQLITE_DONE && changes > 0;
+  if (rc != SQLITE_DONE || changes == 0) return false;
+
+  std::error_code ec;
+  std::filesystem::remove_all(std::filesystem::path(config_.storageRoot) / "users" / std::to_string(userId), ec);
+  return true;
 }
 
 }  // namespace server::services

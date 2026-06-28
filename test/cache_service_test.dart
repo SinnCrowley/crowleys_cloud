@@ -168,4 +168,45 @@ void main() {
 
     expect(fetches, 1);
   });
+
+  test('reports cache size and clears cache files', () async {
+    await CacheService.instance.writeDirectory(
+      serverId: 'srv',
+      cacheKey: 'dir-key',
+      scope: 'private',
+      path: '',
+      entries: const [],
+    );
+    await CacheService.instance.getRemoteThumbnail(
+      serverId: 'srv',
+      cacheKey: 'thumb-key',
+      fetch: () async => utf8.encode('thumb'),
+    );
+
+    expect(await CacheService.instance.cacheSizeBytes(), greaterThan(0));
+
+    await CacheService.instance.clearAll();
+
+    expect(await CacheService.instance.cacheSizeBytes(), 0);
+  });
+
+  test('unlimited thumbnail cache skips eviction', () async {
+    await CacheService.instance.setThumbnailMaxBytes(-1);
+
+    await CacheService.instance.getRemoteThumbnail(
+      serverId: 'srv',
+      cacheKey: 'one',
+      fetch: () async => utf8.encode('1234'),
+    );
+    await CacheService.instance.getRemoteThumbnail(
+      serverId: 'srv',
+      cacheKey: 'two',
+      fetch: () async => utf8.encode('5678'),
+    );
+
+    expect(
+      await CacheService.instance.cacheSizeBytes(),
+      greaterThanOrEqualTo(8),
+    );
+  });
 }

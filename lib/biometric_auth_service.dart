@@ -17,10 +17,14 @@ class BiometricAuthService {
   }
 
   Future<bool> unlockSavedCredentials() async {
+    return _authenticate('Unlock saved credentials for Crowley\'s Cloud.');
+  }
+
+  Future<bool> _authenticate(String reason) async {
     if (!await canAuthenticate()) return false;
     try {
       return _auth.authenticate(
-        localizedReason: 'Unlock saved credentials for Crowley\'s Cloud.',
+        localizedReason: reason,
         biometricOnly: true,
         persistAcrossBackgrounding: true,
       );

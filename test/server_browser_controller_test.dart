@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/secret_store.dart';
@@ -280,6 +281,71 @@ void main() {
     controller.disposeController();
     controller.dispose();
   });
+
+  test('filters hidden server entries unless setting is enabled', () async {
+    SharedPreferences.setMockInitialValues({
+      AppSettingsService.showHiddenFilesKey: false,
+    });
+    final store = InMemorySecretStore();
+    await store.saveTokens(
+      serverId: 'srv',
+      accessToken: 'token',
+      refreshToken: 'refresh',
+    );
+
+    final client = MockClient((request) async {
+      return http.Response(
+        jsonEncode({
+          'entries': [
+            _serverItem(name: '.env', path: '.env').toJson(),
+            _serverItem(name: 'notes.txt', path: 'notes.txt').toJson(),
+          ],
+        }),
+        200,
+      );
+    });
+
+    final controller = _controller(store: store, client: client);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(controller.files.map((item) => item.name), ['notes.txt']);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppSettingsService.showHiddenFilesKey, true);
+    await controller.reload();
+    expect(controller.files.map((item) => item.name), contains('.env'));
+    controller.disposeController();
+    controller.dispose();
+  });
+
+  test('uses configured download root', () async {
+    final tempRoot = await Directory.systemTemp.createTemp(
+      'server_browser_download_root_test',
+    );
+    addTearDown(() async {
+      if (await tempRoot.exists()) await tempRoot.delete(recursive: true);
+    });
+    SharedPreferences.setMockInitialValues({
+      AppSettingsService.downloadDirectoryPathKey: tempRoot.path,
+    });
+
+    final store = InMemorySecretStore();
+    await store.saveTokens(
+      serverId: 'srv',
+      accessToken: 'token',
+      refreshToken: 'refresh',
+    );
+
+    final controller = _controller(
+      store: store,
+      client: MockClient((request) async {
+        return http.Response(jsonEncode({'entries': []}), 200);
+      }),
+    );
+
+    expect((await controller.downloadRootForTest()).path, tempRoot.path);
+    controller.disposeController();
+    controller.dispose();
+  });
 }
 
 ServerBrowserController _controller({
@@ -323,5 +389,6 @@ String _cacheKey() {
     'searchQuery': '',
     'sort': ServerSortBy.name.name,
     'order': 'asc',
+    'showHiddenFiles': false,
   });
 }
