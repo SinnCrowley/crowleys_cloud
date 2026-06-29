@@ -35,8 +35,22 @@ void Database::migrate() {
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'user',
-      created_at INTEGER NOT NULL
+      created_at INTEGER NOT NULL,
+      email TEXT UNIQUE
     );
+
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      code TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      used_at INTEGER,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_password_resets_user_code
+      ON password_resets(user_id, code);
 
     CREATE TABLE IF NOT EXISTS refresh_tokens (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,6 +136,21 @@ void Database::migrate() {
   }
   exec("CREATE INDEX IF NOT EXISTS idx_file_index_sha256 ON file_index(owner_user_id, scope, sha256, is_deleted);");
   exec("CREATE INDEX IF NOT EXISTS idx_file_index_is_shared ON file_index(is_shared, is_deleted);");
+
+  sqlite3_prepare_v2(db_, "PRAGMA table_info(users)", -1, &stmt, nullptr);
+  bool hasEmailColumn = false;
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+    const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+    if (nameRaw != nullptr && std::string(nameRaw) == "email") {
+      hasEmailColumn = true;
+      break;
+    }
+  }
+  sqlite3_finalize(stmt);
+  if (!hasEmailColumn) {
+    exec("ALTER TABLE users ADD COLUMN email TEXT;");
+    exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);");
+  }
 }
 
 }  // namespace server::db

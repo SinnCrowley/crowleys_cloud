@@ -162,6 +162,7 @@ class AuthService {
     required String username,
     required String password,
     required AuthMode mode,
+    String? email,
   }) async {
     final result = switch (mode) {
       AuthMode.register => await gateway.register(
@@ -300,7 +301,49 @@ class AuthService {
       refreshToken: result.refreshToken,
     );
   }
+  Future<void> requestPasswordReset({
+    required String baseUrl,
+    required String username,
+  }) async {
+    final uri = _endpoint(baseUrl, '/api/auth/reset-password/request');
+    final response = await _client.post(
+      uri,
+      headers: const {'content-type': 'application/json'},
+      body: jsonEncode({'username': username}),
+    );
 
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw AuthException(
+        _extractError(response.body) ??
+            'Password reset request failed (${response.statusCode})',
+      );
+    }
+  }
+
+  Future<void> verifyPasswordReset({
+    required String baseUrl,
+    required String username,
+    required String code,
+    required String newPassword,
+  }) async {
+    final uri = _endpoint(baseUrl, '/api/auth/reset-password/verify');
+    final response = await _client.post(
+      uri,
+      headers: const {'content-type': 'application/json'},
+      body: jsonEncode({
+        'username': username,
+        'code': code,
+        'new_password': newPassword,
+      }),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw AuthException(
+        _extractError(response.body) ??
+            'Password reset verification failed (${response.statusCode})',
+      );
+    }
+  }
   Future<void> persistCurrentSessionForConfiguredLifetime(
     String serverId,
   ) async {

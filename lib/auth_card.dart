@@ -1,5 +1,6 @@
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/auth_service.dart';
+import 'package:crowleys_cloud/secret_store.dart';
 import 'package:flutter/material.dart';
 
 class AuthCard extends StatefulWidget {
@@ -16,6 +17,7 @@ class AuthCard extends StatefulWidget {
     this.biometricAvailable = false,
     this.onBiometricLogin,
     this.submitLabel,
+    this.getBaseUrl,
   });
 
   final String title;
@@ -26,9 +28,10 @@ class AuthCard extends StatefulWidget {
   final TextEditingController passwordController;
   final AuthMode initialMode;
   final bool biometricAvailable;
-  final Future<bool> Function(AuthMode mode) onSubmit;
+  final Future<bool> Function(AuthMode mode, {String? email}) onSubmit;
   final Future<bool> Function()? onBiometricLogin;
   final String? submitLabel;
+  final String? Function()? getBaseUrl;
 
   @override
   State<AuthCard> createState() => _AuthCardState();
@@ -44,6 +47,11 @@ class _AuthCardState extends State<AuthCard> {
   void initState() {
     super.initState();
     _mode = widget.initialMode;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   Future<void> _submit() async {
@@ -136,6 +144,7 @@ class _AuthCardState extends State<AuthCard> {
             icon: Icons.person_outline,
             textInputAction: TextInputAction.next,
           ),
+
           const SizedBox(height: 14),
           _AuthTextField(
             controller: widget.passwordController,
@@ -158,6 +167,24 @@ class _AuthCardState extends State<AuthCard> {
               ),
             ),
           ),
+          if (_mode == AuthMode.login) ...[
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => _showForgotPasswordDialog(context),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  'Forgot password?',
+                  style: TextStyle(color: appAccent, fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 22),
           FilledButton(
             onPressed: _isSubmitting ? null : _submit,
@@ -212,6 +239,26 @@ class _AuthCardState extends State<AuthCard> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    final baseUrl = widget.getBaseUrl?.call();
+    if (baseUrl == null || baseUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a server URL first.')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return _ForgotPasswordDialog(
+          baseUrl: baseUrl,
+        );
+      },
     );
   }
 }
@@ -343,6 +390,233 @@ class _AuthTextField extends StatelessWidget {
       ),
     );
   }
+}
+
+
+class _ForgotPasswordDialog extends StatefulWidget {
+  const _ForgotPasswordDialog({required this.baseUrl});
+
+  final String baseUrl;
+
+  @override
+  State<_ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
+}
+
+class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
+  int _step = 1; // 1: request code, 2: verify code & change password
+  bool _isLoading = false;
+  String _error = '';
+  String _success = '';
+
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _codeController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendCode() async {
+    final username = _usernameController.text.trim();
+    if (username.isEmpty) {
+      setState(() => _error = 'Username is required.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+
+    try {
+      final authService = AuthService(secretStore: _DummySecretStore());
+      await authService.requestPasswordReset(
+        baseUrl: widget.baseUrl,
+        username: username,
+      );
+      setState(() {
+        _step = 2;
+        _isLoading = false;
+      });
+    } on AuthException catch (e) {
+      setState(() {
+        _error = e.message;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to request reset. Verify the server URL.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    final username = _usernameController.text.trim();
+    final code = _codeController.text.trim();
+    final password = _passwordController.text;
+
+    if (code.isEmpty || password.isEmpty) {
+      setState(() => _error = 'Code and new password are required.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+
+    try {
+      final authService = AuthService(secretStore: _DummySecretStore());
+      await authService.verifyPasswordReset(
+        baseUrl: widget.baseUrl,
+        username: username,
+        code: code,
+        newPassword: password,
+      );
+      setState(() {
+        _success = 'Password reset successfully!';
+        _isLoading = false;
+      });
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } on AuthException catch (e) {
+      setState(() {
+        _error = e.message;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to reset password. Please check the code.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: appSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: Color(0xFF444444)),
+      ),
+      title: Text(
+        _step == 1 ? 'Reset Password' : 'Enter Reset Code',
+        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+      ),
+      content: _success.isNotEmpty
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle_outline, color: Colors.green, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  _success,
+                  style: const TextStyle(color: Colors.white70, fontSize: 15),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            )
+          : SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_error.isNotEmpty) ...[
+                    Text(
+                      _error,
+                      style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  if (_step == 1) ...[
+                    const Text(
+                      'Enter your username. The 6-digit verification code will be printed to the server logs/console.',
+                      style: TextStyle(color: Colors.white60, fontSize: 13, height: 1.35),
+                    ),
+                    const SizedBox(height: 16),
+                    _AuthTextField(
+                      controller: _usernameController,
+                      label: 'Username',
+                      hintText: 'Enter your username',
+                      icon: Icons.person_outline,
+                    ),
+                  ] else ...[
+                    Text(
+                      'Verification code has been printed to the server console. Enter the 6-digit code and your new password.',
+                      style: const TextStyle(color: Colors.white60, fontSize: 13, height: 1.35),
+                    ),
+                    const SizedBox(height: 16),
+                    _AuthTextField(
+                      controller: _codeController,
+                      label: 'Reset Code',
+                      hintText: 'Enter 6-digit code',
+                      icon: Icons.vpn_key_outlined,
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 14),
+                    _AuthTextField(
+                      controller: _passwordController,
+                      label: 'New Password',
+                      hintText: 'Enter new password',
+                      icon: Icons.lock_outline,
+                      obscureText: true,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+      actions: _success.isNotEmpty
+          ? []
+          : [
+              TextButton(
+                onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              ),
+              FilledButton(
+                onPressed: _isLoading ? null : (_step == 1 ? _sendCode : _resetPassword),
+                style: FilledButton.styleFrom(
+                  backgroundColor: appAccent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: _isLoading
+                    ? const SizedBox.square(
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(_step == 1 ? 'Send Code' : 'Reset Password'),
+              ),
+            ],
+    );
+  }
+}
+
+class _DummySecretStore implements SecretStore {
+  @override
+  Future<void> clearCredentials(String serverId) async {}
+  @override
+  Future<void> clearToken(String serverId) async {}
+  @override
+  Future<String?> readLastUsername(String serverId) async => null;
+  @override
+  Future<String?> readRefreshToken(String serverId) async => null;
+  @override
+  Future<String?> readSavedPassword(String serverId) async => null;
+  @override
+  Future<String?> readToken(String serverId) async => null;
+  @override
+  Future<void> saveCredentials({required String serverId, required String username, required String password}) async {}
+  @override
+  Future<void> saveTokens({required String serverId, required String accessToken, required String refreshToken}) async {}
+  @override
+  Future<void> saveToken({required String serverId, required String token}) async {}
 }
 
 class AuthInputField extends StatelessWidget {

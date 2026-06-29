@@ -34,6 +34,9 @@ class UserService {
   std::optional<UserRecord> authenticate(const std::string &username,
                                          const std::string &password);
 
+  bool requestPasswordReset(const std::string &username, std::string &codeOut);
+  bool verifyPasswordReset(const std::string &username, const std::string &code, const std::string &newPassword);
+
   AuthTokens issueTokens(const UserRecord &user);
   std::optional<AuthTokens> refreshAccessToken(const std::string &refreshToken);
   bool logout(const std::string &refreshToken);

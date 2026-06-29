@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -285,4 +287,44 @@ void main() {
       expect(await secrets.readLastUsername('server1'), null);
     },
   );
+
+  test('requestPasswordReset posts correct username and succeeds', () async {
+    final service = AuthService(
+      secretStore: InMemorySecretStore(),
+      client: MockClient((request) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/api/auth/reset-password/request');
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body['username'], 'bob');
+        return http.Response('{"ok":true}', 200);
+      }),
+    );
+
+    await service.requestPasswordReset(
+      baseUrl: 'http://localhost:8080',
+      username: 'bob',
+    );
+  });
+
+  test('verifyPasswordReset posts code and new password and succeeds', () async {
+    final service = AuthService(
+      secretStore: InMemorySecretStore(),
+      client: MockClient((request) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/api/auth/reset-password/verify');
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body['username'], 'bob');
+        expect(body['code'], '123456');
+        expect(body['new_password'], 'brand-new-secret');
+        return http.Response('{"ok":true}', 200);
+      }),
+    );
+
+    await service.verifyPasswordReset(
+      baseUrl: 'http://localhost:8080',
+      username: 'bob',
+      code: '123456',
+      newPassword: 'brand-new-secret',
+    );
+  });
 }

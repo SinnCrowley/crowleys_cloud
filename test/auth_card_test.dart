@@ -15,7 +15,7 @@ void main() {
             title: 'Sign In',
             usernameController: usernameController,
             passwordController: passwordController,
-            onSubmit: (_) async => false,
+            onSubmit: (mode, {email}) async => false,
           ),
         ),
       ),
@@ -47,7 +47,7 @@ void main() {
             passwordController: passwordController,
             biometricAvailable: false,
             onBiometricLogin: () async => false,
-            onSubmit: (mode) async {
+            onSubmit: (mode, {email}) async {
               expect(mode, AuthMode.login);
               return false;
             },

@@ -34,7 +34,10 @@ void AuthController::registerUser(const drogon::HttpRequestPtr &req,
   }
 
   std::string error;
-  auto user = app.userService->registerUser((*json)["username"].asString(), (*json)["password"].asString(), error);
+  auto user = app.userService->registerUser(
+      (*json)["username"].asString(),
+      (*json)["password"].asString(),
+      error);
   if (!user.has_value()) {
     callback(jsonError(drogon::k409Conflict, error));
     return;
@@ -155,6 +158,54 @@ void AuthController::deleteAccount(const drogon::HttpRequestPtr &req,
   Json::Value body;
   body["ok"] = true;
   body["message"] = "Account deleted; all sessions revoked.";
+  callback(drogon::HttpResponse::newHttpJsonResponse(body));
+}
+
+void AuthController::requestReset(const drogon::HttpRequestPtr &req,
+                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  const auto json = req->getJsonObject();
+  if (!json || !json->isMember("username")) {
+    callback(jsonError(drogon::k400BadRequest, "username is required"));
+    return;
+  }
+
+  const auto username = (*json)["username"].asString();
+  std::string code;
+  const auto ok = server::ctx().userService->requestPasswordReset(username, code);
+
+  if (ok) {
+    LOG_INFO << "\n========================================\n"
+             << "PASSWORD RESET REQUESTED FOR: " << username << "\n"
+             << "TEMPORARY CODE: " << code << " (Valid for 10 minutes)\n"
+             << "========================================\n";
+  }
+
+  Json::Value body;
+  body["ok"] = true;
+  callback(drogon::HttpResponse::newHttpJsonResponse(body));
+}
+
+void AuthController::verifyReset(const drogon::HttpRequestPtr &req,
+                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  const auto json = req->getJsonObject();
+  if (!json || !json->isMember("username") || !json->isMember("code") || !json->isMember("new_password")) {
+    callback(jsonError(drogon::k400BadRequest, "username, code and new_password are required"));
+    return;
+  }
+
+  const auto username = (*json)["username"].asString();
+  const auto code = (*json)["code"].asString();
+  const auto newPassword = (*json)["new_password"].asString();
+
+  const auto ok = server::ctx().userService->verifyPasswordReset(username, code, newPassword);
+  if (!ok) {
+    callback(jsonError(drogon::k400BadRequest, "Invalid or expired recovery code"));
+    return;
+  }
+
+  Json::Value body;
+  body["ok"] = true;
+  body["message"] = "Password reset successfully; all active sessions revoked.";
   callback(drogon::HttpResponse::newHttpJsonResponse(body));
 }
 

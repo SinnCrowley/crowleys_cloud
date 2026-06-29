@@ -10,12 +10,14 @@ class ServerSetupResult {
     required this.username,
     required this.password,
     required this.authMode,
+    this.email,
   });
 
   final ServerProfile profile;
   final String username;
   final String password;
   final AuthMode authMode;
+  final String? email;
 }
 
 class ServerSetupScreen extends StatefulWidget {
@@ -108,11 +110,12 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
                 usernameController: _usernameController,
                 passwordController: _passwordController,
                 submitLabel: 'Save Server',
-                onSubmit: (mode) async {
+                onSubmit: (mode, {email}) async {
                   _mode = mode;
                   await _submit(mode);
                   return false;
                 },
+                getBaseUrl: () => _urlController.text.trim(),
                 leading: const _ServerBadge(),
                 extraFields: [
                   AuthInputField(

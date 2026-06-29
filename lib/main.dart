@@ -101,6 +101,7 @@ class _ActiveServerAuthDialog extends StatefulWidget {
     required String username,
     required String password,
     required AuthMode mode,
+    String? email,
   })
   onPasswordAuth;
   final Future<bool> Function(ServerProfile active) onBiometricAuth;
@@ -142,13 +143,15 @@ class _ActiveServerAuthDialogState extends State<_ActiveServerAuthDialog> {
           passwordController: _passwordController,
           biometricAvailable: widget.canUseBiometrics,
           leading: const _AuthServerBadge(),
-          onSubmit: (mode) async {
+          onSubmit: (mode, {email}) async {
             return widget.onPasswordAuth(
               username: _usernameController.text.trim(),
               password: _passwordController.text,
               mode: mode,
+              email: email,
             );
           },
+          getBaseUrl: () => widget.active.baseUrl,
           onBiometricLogin: () async {
             return widget.onBiometricAuth(widget.active);
           },
@@ -319,6 +322,7 @@ class _MainScreenState extends State<MainScreen> {
         username: setupResult.username,
         password: setupResult.password,
         mode: setupResult.authMode,
+        email: setupResult.email,
       );
       await _serverManager.addServer(setupResult.profile);
       await _serverManager.markAuthed(setupResult.profile.id);
@@ -441,13 +445,14 @@ class _MainScreenState extends State<MainScreen> {
           initialUsername: lastUsername ?? '',
           canUseBiometrics: canUseBiometrics,
           onPasswordAuth:
-              ({required username, required password, required mode}) {
+              ({required username, required password, required mode, email}) {
                 return _authenticateWithPassword(
                   activeId: active.id,
                   baseUrl: active.baseUrl,
                   username: username,
                   password: password,
                   mode: mode,
+                  email: email,
                 );
               },
           onBiometricAuth: _authenticateWithBiometrics,
@@ -466,6 +471,7 @@ class _MainScreenState extends State<MainScreen> {
     required String username,
     required String password,
     required AuthMode mode,
+    String? email,
   }) async {
     if (username.isEmpty || password.isEmpty) return false;
 
@@ -476,6 +482,7 @@ class _MainScreenState extends State<MainScreen> {
         username: username,
         password: password,
         mode: mode,
+        email: email,
       );
       await _serverManager.markAuthed(activeId);
     } on AuthException catch (e) {

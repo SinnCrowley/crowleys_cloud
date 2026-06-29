@@ -273,4 +273,75 @@ bool UserService::deleteAccount(std::int64_t userId) {
   return true;
 }
 
+bool UserService::requestPasswordReset(const std::string &username, std::string &codeOut) {
+  sqlite3_stmt *stmt = nullptr;
+  sqlite3_prepare_v2(db_.raw(), "SELECT id FROM users WHERE username = ?", -1, &stmt, nullptr);
+  sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+  if (sqlite3_step(stmt) != SQLITE_ROW) {
+    sqlite3_finalize(stmt);
+    return false;
+  }
+  const auto userId = sqlite3_column_int64(stmt, 0);
+  sqlite3_finalize(stmt);
+
+  std::srand(static_cast<unsigned int>(std::time(nullptr)));
+  const int randomNum = 100000 + (std::rand() % 900000);
+  const std::string code = std::to_string(randomNum);
+  codeOut = code;
+
+  const auto now = nowSeconds();
+  const auto expiresAt = now + 600;
+
+  sqlite3_stmt *insertStmt = nullptr;
+  sqlite3_prepare_v2(db_.raw(),
+                     "INSERT INTO password_resets(user_id, code, expires_at, created_at) VALUES(?, ?, ?, ?)",
+                     -1, &insertStmt, nullptr);
+  sqlite3_bind_int64(insertStmt, 1, userId);
+  sqlite3_bind_text(insertStmt, 2, code.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_int64(insertStmt, 3, expiresAt);
+  sqlite3_bind_int64(insertStmt, 4, now);
+
+  sqlite3_step(insertStmt);
+  sqlite3_finalize(insertStmt);
+  return true;
+}
+
+bool UserService::verifyPasswordReset(const std::string &username, const std::string &code, const std::string &newPassword) {
+  sqlite3_stmt *stmt = nullptr;
+  sqlite3_prepare_v2(db_.raw(), "SELECT id FROM users WHERE username = ?", -1, &stmt, nullptr);
+  sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+  if (sqlite3_step(stmt) != SQLITE_ROW) {
+    sqlite3_finalize(stmt);
+    return false;
+  }
+  const auto userId = sqlite3_column_int64(stmt, 0);
+  sqlite3_finalize(stmt);
+
+  sqlite3_stmt *codeStmt = nullptr;
+  sqlite3_prepare_v2(db_.raw(),
+                     "SELECT id FROM password_resets "
+                     "WHERE user_id = ? AND code = ? AND expires_at > ? AND used_at IS NULL "
+                     "ORDER BY id DESC LIMIT 1",
+                     -1, &codeStmt, nullptr);
+  sqlite3_bind_int64(codeStmt, 1, userId);
+  sqlite3_bind_text(codeStmt, 2, code.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_int64(codeStmt, 3, nowSeconds());
+
+  if (sqlite3_step(codeStmt) != SQLITE_ROW) {
+    sqlite3_finalize(codeStmt);
+    return false;
+  }
+  const auto resetId = sqlite3_column_int64(codeStmt, 0);
+  sqlite3_finalize(codeStmt);
+
+  sqlite3_stmt *useStmt = nullptr;
+  sqlite3_prepare_v2(db_.raw(), "UPDATE password_resets SET used_at = ? WHERE id = ?", -1, &useStmt, nullptr);
+  sqlite3_bind_int64(useStmt, 1, nowSeconds());
+  sqlite3_bind_int64(useStmt, 2, resetId);
+  sqlite3_step(useStmt);
+  sqlite3_finalize(useStmt);
+
+  return changePassword(userId, newPassword);
+}
+
 }  // namespace server::services
