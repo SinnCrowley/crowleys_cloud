@@ -173,6 +173,10 @@ class ActiveServerManager extends ChangeNotifier {
       activeServerId: activeId ?? activeServer?.id,
     );
   }
+
+  void refresh() {
+    notifyListeners();
+  }
 }
 
 extension<E> on Iterable<E> {

@@ -212,26 +212,48 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
     return;
   }
-  const auto scope = services::parseScope(req->getParameter("scope"));
-  if (!scope.has_value()) {
-    callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
-    return;
-  }
 
   try {
-    const auto rawPath = req->getParameter("path");
     std::filesystem::path source;
     std::int64_t cacheUserId = userId;
-    if (*scope == services::StorageScope::Shared) {
-      auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(rawPath);
-      if (!ownerId.has_value()) {
-        callback(jsonError(drogon::k404NotFound, "File not found"));
+
+    const auto trashIdStr = req->getParameter("trash_id");
+    if (!trashIdStr.empty()) {
+      std::int64_t trashId = std::stoll(trashIdStr);
+      sqlite3_stmt *stmt = nullptr;
+      sqlite3_prepare_v2(server::ctx().database->raw(), "SELECT owner_user_id FROM trash WHERE id = ?", -1, &stmt, nullptr);
+      sqlite3_bind_int64(stmt, 1, trashId);
+      if (sqlite3_step(stmt) != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        callback(jsonError(drogon::k404NotFound, "Trash item not found"));
         return;
       }
-      source = server::ctx().fileService->resolvePath(*ownerId, role, services::StorageScope::Private, rawPath, false);
-      cacheUserId = *ownerId;
+      std::int64_t ownerId = sqlite3_column_int64(stmt, 0);
+      sqlite3_finalize(stmt);
+      if (ownerId != userId) {
+        callback(jsonError(drogon::k403Forbidden, "Forbidden"));
+        return;
+      }
+      source = std::filesystem::path(server::ctx().config.storageRoot) / "trash" / std::to_string(userId) / std::to_string(trashId);
+      cacheUserId = userId;
     } else {
-      source = server::ctx().fileService->resolvePath(userId, role, *scope, rawPath, false);
+      const auto scope = services::parseScope(req->getParameter("scope"));
+      if (!scope.has_value()) {
+        callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+        return;
+      }
+      const auto rawPath = req->getParameter("path");
+      if (*scope == services::StorageScope::Shared) {
+        auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(rawPath);
+        if (!ownerId.has_value()) {
+          callback(jsonError(drogon::k404NotFound, "File not found"));
+          return;
+        }
+        source = server::ctx().fileService->resolvePath(*ownerId, role, services::StorageScope::Private, rawPath, false);
+        cacheUserId = *ownerId;
+      } else {
+        source = server::ctx().fileService->resolvePath(userId, role, *scope, rawPath, false);
+      }
     }
 
     if (!std::filesystem::exists(source) || std::filesystem::is_directory(source)) {
@@ -300,23 +322,42 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
     return;
   }
 
-  const auto scope = services::parseScope(req->getParameter("scope"));
-  if (!scope.has_value()) {
-    callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
-    return;
-  }
-
   try {
     std::filesystem::path fullPath;
-    if (*scope == services::StorageScope::Shared) {
-      auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(req->getParameter("path"));
-      if (!ownerId.has_value()) {
-        callback(jsonError(drogon::k404NotFound, "File not found"));
+    const auto trashIdStr = req->getParameter("trash_id");
+    if (!trashIdStr.empty()) {
+      std::int64_t trashId = std::stoll(trashIdStr);
+      sqlite3_stmt *stmt = nullptr;
+      sqlite3_prepare_v2(server::ctx().database->raw(), "SELECT owner_user_id FROM trash WHERE id = ?", -1, &stmt, nullptr);
+      sqlite3_bind_int64(stmt, 1, trashId);
+      if (sqlite3_step(stmt) != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        callback(jsonError(drogon::k404NotFound, "Trash item not found"));
         return;
       }
-      fullPath = server::ctx().fileService->resolvePath(*ownerId, role, services::StorageScope::Private, req->getParameter("path"), false);
+      std::int64_t ownerId = sqlite3_column_int64(stmt, 0);
+      sqlite3_finalize(stmt);
+      if (ownerId != userId) {
+        callback(jsonError(drogon::k403Forbidden, "Forbidden"));
+        return;
+      }
+      fullPath = std::filesystem::path(server::ctx().config.storageRoot) / "trash" / std::to_string(userId) / std::to_string(trashId);
     } else {
-      fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), false);
+      const auto scope = services::parseScope(req->getParameter("scope"));
+      if (!scope.has_value()) {
+        callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+        return;
+      }
+      if (*scope == services::StorageScope::Shared) {
+        auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(req->getParameter("path"));
+        if (!ownerId.has_value()) {
+          callback(jsonError(drogon::k404NotFound, "File not found"));
+          return;
+        }
+        fullPath = server::ctx().fileService->resolvePath(*ownerId, role, services::StorageScope::Private, req->getParameter("path"), false);
+      } else {
+        fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), false);
+      }
     }
 
     if (!std::filesystem::exists(fullPath) || std::filesystem::is_directory(fullPath)) {
@@ -515,19 +556,7 @@ void FileController::deleteFile(const drogon::HttpRequestPtr &req,
       }
       server::ctx().fileIndexService->setSharedFlag(*ownerId, relPath, false);
     } else {
-      const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
-      if (!std::filesystem::exists(target)) {
-        callback(jsonError(drogon::k404NotFound, "File not found"));
-        return;
-      }
-      const auto isDirectory = std::filesystem::is_directory(target);
-      const auto ownerUserId = userId;
-      std::filesystem::remove_all(target);
-      if (isDirectory) {
-        server::ctx().fileIndexService->markDeletedPrefix(ownerUserId, *scope, relPath);
-      } else {
-        server::ctx().fileIndexService->markDeleted(ownerUserId, *scope, relPath);
-      }
+      server::ctx().trashService->moveToTrash(userId, *scope, relPath);
     }
 
     Json::Value body;
@@ -564,6 +593,152 @@ void FileController::rebuildIndex(const drogon::HttpRequestPtr &req,
     body["ok"] = true;
     body["indexed"] = static_cast<Json::Int64>(indexed);
     body["scope"] = *scope == services::StorageScope::Private ? "private" : "shared";
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
+void FileController::getTrash(const drogon::HttpRequestPtr &req,
+                              std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  const auto scopeRaw = req->getParameter("scope");
+  const auto scope = services::parseScope(scopeRaw.empty() ? "private" : scopeRaw).value_or(services::StorageScope::Private);
+  const auto query = req->getParameter("q");
+
+  try {
+    auto entries = server::ctx().trashService->listTrash(userId, scope, query);
+    Json::Value body;
+    body["entries"] = Json::arrayValue;
+    for (const auto &entry : entries) {
+      Json::Value v;
+      v["id"] = static_cast<Json::Int64>(entry.id);
+      v["name"] = entry.name;
+      v["path"] = entry.originalPath;
+      v["is_dir"] = entry.isDir;
+      v["size"] = static_cast<Json::UInt64>(entry.size);
+      v["modified_at"] = static_cast<Json::Int64>(entry.deletedAt);
+      v["deleted_at"] = static_cast<Json::Int64>(entry.deletedAt);
+      v["type"] = entry.type;
+      v["mime_type"] = entry.mimeType;
+      if (!entry.isDir) {
+        v["thumbnail_url"] = "/api/thumb?trash_id=" + std::to_string(entry.id) + "&s=256";
+      }
+      body["entries"].append(v);
+    }
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
+void FileController::restoreTrash(const drogon::HttpRequestPtr &req,
+                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  auto json = req->getJsonObject();
+  if (!json || !json->isMember("ids") || !(*json)["ids"].isArray()) {
+    callback(jsonError(drogon::k400BadRequest, "ids array is required"));
+    return;
+  }
+
+  std::vector<std::int64_t> ids;
+  for (const auto &idVal : (*json)["ids"]) {
+    ids.push_back(idVal.asInt64());
+  }
+
+  try {
+    server::ctx().trashService->restoreFromTrash(userId, ids);
+    Json::Value body;
+    body["ok"] = true;
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
+void FileController::deleteTrash(const drogon::HttpRequestPtr &req,
+                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  auto json = req->getJsonObject();
+  if (!json || !json->isMember("ids") || !(*json)["ids"].isArray()) {
+    callback(jsonError(drogon::k400BadRequest, "ids array is required"));
+    return;
+  }
+
+  std::vector<std::int64_t> ids;
+  for (const auto &idVal : (*json)["ids"]) {
+    ids.push_back(idVal.asInt64());
+  }
+
+  try {
+    server::ctx().trashService->deletePermanently(userId, ids);
+    Json::Value body;
+    body["ok"] = true;
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
+void FileController::getTrashSettings(const drogon::HttpRequestPtr &req,
+                                      std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  try {
+    std::int64_t days = server::ctx().trashService->getTrashRetentionDays(userId);
+    Json::Value body;
+    body["trash_retention_days"] = static_cast<Json::Int64>(days);
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
+void FileController::setTrashSettings(const drogon::HttpRequestPtr &req,
+                                      std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  auto json = req->getJsonObject();
+  if (!json || !json->isMember("trash_retention_days")) {
+    callback(jsonError(drogon::k400BadRequest, "trash_retention_days is required"));
+    return;
+  }
+
+  std::int64_t days = (*json)["trash_retention_days"].asInt64();
+
+  try {
+    server::ctx().trashService->setTrashRetentionDays(userId, days);
+    Json::Value body;
+    body["ok"] = true;
+    body["trash_retention_days"] = static_cast<Json::Int64>(days);
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));

@@ -6,6 +6,7 @@
 #include "server/services/FileIndexService.hpp"
 #include "server/services/ShareService.hpp"
 #include "server/services/UserService.hpp"
+#include "server/services/TrashService.hpp"
 #include "server/utils/Config.hpp"
 
 #include <memory>
@@ -19,6 +20,7 @@ struct AppContext {
   std::unique_ptr<services::FileService> fileService;
   std::unique_ptr<services::FileIndexService> fileIndexService;
   std::unique_ptr<services::ShareService> shareService;
+  std::unique_ptr<services::TrashService> trashService;
   std::unique_ptr<middleware::RateLimiter> authRateLimiter;
 };
 

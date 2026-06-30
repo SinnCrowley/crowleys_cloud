@@ -103,6 +103,22 @@ void Database::migrate() {
       ON file_index(owner_user_id, scope, type, is_deleted);
     CREATE INDEX IF NOT EXISTS idx_file_index_name
       ON file_index(owner_user_id, scope, name, is_deleted);
+
+    CREATE TABLE IF NOT EXISTS trash (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      owner_user_id INTEGER NOT NULL,
+      scope TEXT NOT NULL,
+      original_path TEXT NOT NULL,
+      name TEXT NOT NULL,
+      is_dir INTEGER NOT NULL,
+      size_bytes INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      deleted_at INTEGER NOT NULL,
+      FOREIGN KEY(owner_user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_trash_owner ON trash(owner_user_id);
   )");
 
   sqlite3_stmt *stmt = nullptr;
@@ -110,6 +126,7 @@ void Database::migrate() {
   bool hasUploaderColumn = false;
   bool hasSha256Column = false;
   bool hasIsSharedColumn = false;
+  bool hasDeletedAtColumn = false;
   while (sqlite3_step(stmt) == SQLITE_ROW) {
     const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
     if (nameRaw != nullptr) {
@@ -120,6 +137,8 @@ void Database::migrate() {
         hasSha256Column = true;
       } else if (nameStr == "is_shared") {
         hasIsSharedColumn = true;
+      } else if (nameStr == "deleted_at") {
+        hasDeletedAtColumn = true;
       }
     }
   }
@@ -134,22 +153,33 @@ void Database::migrate() {
   if (!hasIsSharedColumn) {
     exec("ALTER TABLE file_index ADD COLUMN is_shared INTEGER NOT NULL DEFAULT 0;");
   }
+  if (!hasDeletedAtColumn) {
+    exec("ALTER TABLE file_index ADD COLUMN deleted_at INTEGER;");
+  }
   exec("CREATE INDEX IF NOT EXISTS idx_file_index_sha256 ON file_index(owner_user_id, scope, sha256, is_deleted);");
   exec("CREATE INDEX IF NOT EXISTS idx_file_index_is_shared ON file_index(is_shared, is_deleted);");
 
   sqlite3_prepare_v2(db_, "PRAGMA table_info(users)", -1, &stmt, nullptr);
   bool hasEmailColumn = false;
+  bool hasTrashRetention = false;
   while (sqlite3_step(stmt) == SQLITE_ROW) {
     const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-    if (nameRaw != nullptr && std::string(nameRaw) == "email") {
-      hasEmailColumn = true;
-      break;
+    if (nameRaw != nullptr) {
+      std::string nameStr(nameRaw);
+      if (nameStr == "email") {
+        hasEmailColumn = true;
+      } else if (nameStr == "trash_retention_days") {
+        hasTrashRetention = true;
+      }
     }
   }
   sqlite3_finalize(stmt);
   if (!hasEmailColumn) {
     exec("ALTER TABLE users ADD COLUMN email TEXT;");
     exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);");
+  }
+  if (!hasTrashRetention) {
+    exec("ALTER TABLE users ADD COLUMN trash_retention_days INTEGER NOT NULL DEFAULT 7;");
   }
 }
 

@@ -25,6 +25,7 @@ add_executable(crowleys_cloud_server
   src/services/FileService.cpp
   src/services/FileIndexService.cpp
   src/services/ShareService.cpp
+  src/services/TrashService.cpp
   src/middleware/JwtMiddleware.cpp
   src/middleware/RateLimiter.cpp
   src/controllers/AuthController.cpp

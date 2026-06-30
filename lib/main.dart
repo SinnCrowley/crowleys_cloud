@@ -29,6 +29,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'thumbnail_service.dart';
+import 'package:crowleys_cloud/trash_browser_controller.dart';
+import 'package:crowleys_cloud/trash_browser_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -213,6 +215,7 @@ class _MainScreenState extends State<MainScreen> {
   late final SyncBackgroundScheduler _syncScheduler;
   final TransferManager _transferManager = TransferManager();
   bool _authPromptInFlight = false;
+  int _trashRetentionDays = 7;
 
   FileCategory? _selectedLocalCategory;
   FileCategory? _selectedServerCategory;
@@ -238,6 +241,7 @@ class _MainScreenState extends State<MainScreen> {
     _searchController.addListener(_searchTextListener);
     _serverManagerListener = () {
       if (!mounted) return;
+      unawaited(_loadTrashRetention());
       setState(() {});
     };
     _serverManager.addListener(_serverManagerListener);
@@ -271,8 +275,23 @@ class _MainScreenState extends State<MainScreen> {
       final prefs = await SharedPreferences.getInstance();
       _isGridView = prefs.getBool('is_grid_view') ?? true;
     } catch (_) {}
+    await _loadTrashRetention();
     if (!mounted) return;
     setState(() {});
+  }
+
+  Future<void> _loadTrashRetention() async {
+    final activeServer = _serverManager.activeServer;
+    if (activeServer == null) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final days = prefs.getInt('trash.retention_days.${activeServer.id}') ?? 7;
+      if (mounted) {
+        setState(() {
+          _trashRetentionDays = days;
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _retryStartupValidation() async {
@@ -348,6 +367,7 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _switchServer(String serverId) async {
     if (_serverManager.activeServer?.id == serverId) return;
     await _serverManager.switchActive(serverId);
+    await _loadTrashRetention();
     _searchController.clear();
     _localController?.disposeController();
     _localController?.dispose();
@@ -1491,6 +1511,39 @@ class _MainScreenState extends State<MainScreen> {
                       Navigator.pop(context);
                     },
                   ),
+                  if (_serverManager.activeServer != null && _trashRetentionDays > 0)
+                    ListTile(
+                      leading: const Icon(Icons.delete_outline, color: Colors.white70),
+                      title: const Text(
+                        'Trash',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TrashBrowserScreen(
+                              controller: TrashBrowserController(
+                                serverId: _serverManager.activeServer!.id,
+                                baseUrl: _serverManager.activeServer!.baseUrl,
+                                authService: _serverManager.authService,
+                              ),
+                              isGridView: _isGridView,
+                              onToggleGridView: (val) async {
+                                setState(() {
+                                  _isGridView = val;
+                                });
+                                try {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.setBool('is_grid_view', val);
+                                } catch (_) {}
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   const Divider(color: Colors.white24),
                   ListTile(
                     leading: const Icon(Icons.settings, color: Colors.white70),

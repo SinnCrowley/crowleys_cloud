@@ -1,11 +1,14 @@
 #include "server/AppContext.hpp"
 #include "server/middleware/JwtMiddleware.hpp"
 #include "server/utils/Config.hpp"
+#include "server/services/TrashService.hpp"
 
 #include <drogon/drogon.h>
 #include <trantor/utils/Logger.h>
 
 #include <filesystem>
+#include <thread>
+#include <chrono>
 
 namespace server {
 AppContext &ctx() {
@@ -31,6 +34,8 @@ int main() {
   appCtx.fileIndexService =
       std::make_unique<server::services::FileIndexService>(*appCtx.database, *appCtx.fileService);
   appCtx.shareService = std::make_unique<server::services::ShareService>(*appCtx.database);
+  appCtx.trashService =
+      std::make_unique<server::services::TrashService>(*appCtx.database, *appCtx.fileService);
   appCtx.authRateLimiter = std::make_unique<server::middleware::RateLimiter>(appCtx.config.rateLimitPerMinute);
 
   const auto level = appCtx.config.logLevel;
@@ -63,6 +68,19 @@ int main() {
     drogon::app().setClientMaxBodySize(limit);
     drogon::app().setClientMaxMemoryBodySize(limit);
   }
+
+  // Periodic cleanup of expired trash (every hour) using a background thread
+  std::thread([]() {
+    while (true) {
+      std::this_thread::sleep_for(std::chrono::hours(1));
+      try {
+        server::ctx().trashService->cleanupExpiredTrash();
+      } catch (const std::exception &e) {
+        LOG_ERROR << "Failed to run periodic trash cleanup: " << e.what();
+      }
+    }
+  }).detach();
+
   LOG_INFO << "Starting server on " << appCtx.config.host << ":" << appCtx.config.port
            << " with logs in " << appCtx.config.logDir;
   drogon::app().run();

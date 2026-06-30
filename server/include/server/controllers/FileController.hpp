@@ -17,6 +17,11 @@ class FileController : public drogon::HttpController<FileController> {
   ADD_METHOD_TO(FileController::createFolder, "/api/folders", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::deleteFile, "/api/files", drogon::Delete, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::rebuildIndex, "/api/index/rebuild", drogon::Post, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(FileController::getTrash, "/api/trash", drogon::Get, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(FileController::restoreTrash, "/api/trash/restore", drogon::Post, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(FileController::deleteTrash, "/api/trash", drogon::Delete, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(FileController::getTrashSettings, "/api/account/settings/trash", drogon::Get, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(FileController::setTrashSettings, "/api/account/settings/trash", drogon::Post, "server::middleware::JwtMiddleware");
   METHOD_LIST_END
 
   void listDir(const drogon::HttpRequestPtr &req,
@@ -37,6 +42,16 @@ class FileController : public drogon::HttpController<FileController> {
                   std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void rebuildIndex(const drogon::HttpRequestPtr &req,
                     std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+  void getTrash(const drogon::HttpRequestPtr &req,
+                std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+  void restoreTrash(const drogon::HttpRequestPtr &req,
+                    std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+  void deleteTrash(const drogon::HttpRequestPtr &req,
+                   std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+  void getTrashSettings(const drogon::HttpRequestPtr &req,
+                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+  void setTrashSettings(const drogon::HttpRequestPtr &req,
+                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
 };
 
 }  // namespace server::controllers

@@ -8,6 +8,7 @@ class ServerFileItem {
     required this.thumbnailUrl,
     required this.isDir,
     required this.path,
+    this.id,
   });
 
   final String name;
@@ -18,6 +19,7 @@ class ServerFileItem {
   final String? thumbnailUrl;
   final bool isDir;
   final String path;
+  final int? id;
 
   factory ServerFileItem.fromJson(Map<String, Object?> json) {
     return ServerFileItem(
@@ -32,6 +34,7 @@ class ServerFileItem {
       thumbnailUrl: json['thumbnail_url'] as String?,
       isDir: json['is_dir'] == true,
       path: (json['path'] ?? '') as String,
+      id: (json['id'] as num?)?.toInt(),
     );
   }
 
@@ -45,6 +48,7 @@ class ServerFileItem {
       'thumbnail_url': thumbnailUrl,
       'is_dir': isDir,
       'path': path,
+      if (id != null) 'id': id,
     };
   }
 
@@ -56,9 +60,11 @@ class ServerFileItem {
 
   @override
   bool operator ==(Object other) {
-    return other is ServerFileItem && other.path == path;
+    return other is ServerFileItem &&
+        other.path == path &&
+        other.id == id;
   }
 
   @override
-  int get hashCode => path.hashCode;
+  int get hashCode => Object.hash(path, id);
 }
