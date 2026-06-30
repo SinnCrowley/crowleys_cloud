@@ -94,6 +94,7 @@ void Database::migrate() {
       uploader_user_id INTEGER NOT NULL DEFAULT 0,
       sha256 TEXT NOT NULL DEFAULT '',
       is_shared INTEGER NOT NULL DEFAULT 0,
+      is_explicit_shared INTEGER NOT NULL DEFAULT 0,
       UNIQUE(owner_user_id, scope, rel_path)
     );
 
@@ -126,6 +127,7 @@ void Database::migrate() {
   bool hasUploaderColumn = false;
   bool hasSha256Column = false;
   bool hasIsSharedColumn = false;
+  bool hasExplicitSharedColumn = false;
   bool hasDeletedAtColumn = false;
   while (sqlite3_step(stmt) == SQLITE_ROW) {
     const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
@@ -137,6 +139,8 @@ void Database::migrate() {
         hasSha256Column = true;
       } else if (nameStr == "is_shared") {
         hasIsSharedColumn = true;
+      } else if (nameStr == "is_explicit_shared") {
+        hasExplicitSharedColumn = true;
       } else if (nameStr == "deleted_at") {
         hasDeletedAtColumn = true;
       }
@@ -152,6 +156,9 @@ void Database::migrate() {
   }
   if (!hasIsSharedColumn) {
     exec("ALTER TABLE file_index ADD COLUMN is_shared INTEGER NOT NULL DEFAULT 0;");
+  }
+  if (!hasExplicitSharedColumn) {
+    exec("ALTER TABLE file_index ADD COLUMN is_explicit_shared INTEGER NOT NULL DEFAULT 0;");
   }
   if (!hasDeletedAtColumn) {
     exec("ALTER TABLE file_index ADD COLUMN deleted_at INTEGER;");

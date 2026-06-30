@@ -118,16 +118,19 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
   Future<void> _deleteSelectedFiles() async {
     final selectedCount = controller.selectedFiles.length;
     if (selectedCount == 0) return;
+    final isSharedScope = controller.scope == 'shared';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF333333),
-        title: const Text(
-          'Delete Files?',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          isSharedScope ? 'Unshare Items?' : 'Delete Files?',
+          style: const TextStyle(color: Colors.white),
         ),
         content: Text(
-          'Are you sure you want to delete $selectedCount selected items? This action cannot be undone.',
+          isSharedScope
+              ? 'Are you sure you want to unshare $selectedCount selected items? This will remove them from the Shared folder.'
+              : 'Are you sure you want to delete $selectedCount selected items? This action cannot be undone.',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
@@ -137,9 +140,11 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.redAccent),
+            child: Text(
+              isSharedScope ? 'Unshare' : 'Delete',
+              style: TextStyle(
+                color: isSharedScope ? appAccent : Colors.redAccent,
+              ),
             ),
           ),
         ],
@@ -280,50 +285,58 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.delete, color: Colors.white70),
-            title: const Text('Delete', style: TextStyle(color: Colors.white)),
+            leading: Icon(
+              controller.scope == 'shared' ? Icons.link_off : Icons.delete,
+              color: Colors.white70,
+            ),
+            title: Text(
+              controller.scope == 'shared' ? 'Unshare' : 'Delete',
+              style: const TextStyle(color: Colors.white),
+            ),
             onTap: () async {
               Navigator.pop(context);
               controller.toggleSelection(item);
               await _deleteSelectedFiles();
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.share, color: Colors.white70),
-            title: const Text(
-              'Share via link',
-              style: TextStyle(color: Colors.white),
+          if (controller.scope != 'shared') ...[
+            ListTile(
+              leading: const Icon(Icons.share, color: Colors.white70),
+              title: const Text(
+                'Share via link',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () async {
+                Navigator.pop(context);
+                controller.toggleSelection(item);
+                await _shareSelectedFiles();
+              },
             ),
-            onTap: () async {
-              Navigator.pop(context);
-              controller.toggleSelection(item);
-              await _shareSelectedFiles();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.folder_shared, color: Colors.white70),
-            title: const Text(
-              'Share in server',
-              style: TextStyle(color: Colors.white),
+            ListTile(
+              leading: const Icon(Icons.folder_shared, color: Colors.white70),
+              title: const Text(
+                'Share in server',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () async {
+                Navigator.pop(context);
+                controller.toggleSelection(item);
+                await _shareSelectedInServer();
+              },
             ),
-            onTap: () async {
-              Navigator.pop(context);
-              controller.toggleSelection(item);
-              await _shareSelectedInServer();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.drive_file_move, color: Colors.white70),
-            title: const Text(
-              'Add to folder',
-              style: TextStyle(color: Colors.white),
+            ListTile(
+              leading: const Icon(Icons.drive_file_move, color: Colors.white70),
+              title: const Text(
+                'Add to folder',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () async {
+                Navigator.pop(context);
+                controller.toggleSelection(item);
+                await _addSelectedToFolder();
+              },
             ),
-            onTap: () async {
-              Navigator.pop(context);
-              controller.toggleSelection(item);
-              await _addSelectedToFolder();
-            },
-          ),
+          ],
         ],
       ),
     );
@@ -408,8 +421,11 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
               _SelectionActionBar(
                 onDownload: _downloadSelectedFiles,
                 onDelete: _deleteSelectedFiles,
-                onShare: _showShareOptions,
+                onShare: controller.scope == 'shared'
+                    ? _shareSelectedFiles
+                    : _showShareOptions,
                 onAddToFolder: _addSelectedToFolder,
+                scope: controller.scope,
               ),
           ],
         );
@@ -1164,12 +1180,14 @@ class _SelectionActionBar extends StatelessWidget {
     required this.onDelete,
     required this.onShare,
     required this.onAddToFolder,
+    this.scope = 'private',
   });
 
   final Future<void> Function() onDownload;
   final Future<void> Function() onDelete;
   final Future<void> Function() onShare;
   final Future<void> Function() onAddToFolder;
+  final String scope;
 
   Widget _buildActionButton({
     required IconData icon,
@@ -1201,16 +1219,22 @@ class _SelectionActionBar extends StatelessWidget {
         onPressed: onDownload,
       ),
       _buildActionButton(
-        icon: Icons.delete,
-        label: 'Delete',
+        icon: scope == 'shared' ? Icons.link_off : Icons.delete,
+        label: scope == 'shared' ? 'Unshare' : 'Delete',
         onPressed: onDelete,
       ),
-      _buildActionButton(
-        icon: Icons.drive_file_move,
-        label: 'Add to folder',
-        onPressed: onAddToFolder,
-      ),
-      _buildActionButton(icon: Icons.share, label: 'Share', onPressed: onShare),
+      if (scope != 'shared') ...[
+        _buildActionButton(
+          icon: Icons.drive_file_move,
+          label: 'Add to folder',
+          onPressed: onAddToFolder,
+        ),
+        _buildActionButton(
+          icon: Icons.share,
+          label: 'Share',
+          onPressed: onShare,
+        ),
+      ],
     ];
 
     return Positioned(
