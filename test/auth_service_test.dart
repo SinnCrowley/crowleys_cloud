@@ -60,6 +60,9 @@ void main() {
   test(
     'secure store keeps tokens process-only across store instances',
     () async {
+      SharedPreferences.setMockInitialValues({
+        'settings.tokenLifetime': 'everyOpen',
+      });
       FlutterSecureStorage.setMockInitialValues({});
       final firstStore = FlutterSecureSecretStore(
         storage: const FlutterSecureStorage(),
@@ -306,25 +309,28 @@ void main() {
     );
   });
 
-  test('verifyPasswordReset posts code and new password and succeeds', () async {
-    final service = AuthService(
-      secretStore: InMemorySecretStore(),
-      client: MockClient((request) async {
-        expect(request.method, 'POST');
-        expect(request.url.path, '/api/auth/reset-password/verify');
-        final body = jsonDecode(request.body) as Map<String, dynamic>;
-        expect(body['username'], 'bob');
-        expect(body['code'], '123456');
-        expect(body['new_password'], 'brand-new-secret');
-        return http.Response('{"ok":true}', 200);
-      }),
-    );
+  test(
+    'verifyPasswordReset posts code and new password and succeeds',
+    () async {
+      final service = AuthService(
+        secretStore: InMemorySecretStore(),
+        client: MockClient((request) async {
+          expect(request.method, 'POST');
+          expect(request.url.path, '/api/auth/reset-password/verify');
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          expect(body['username'], 'bob');
+          expect(body['code'], '123456');
+          expect(body['new_password'], 'brand-new-secret');
+          return http.Response('{"ok":true}', 200);
+        }),
+      );
 
-    await service.verifyPasswordReset(
-      baseUrl: 'http://localhost:8080',
-      username: 'bob',
-      code: '123456',
-      newPassword: 'brand-new-secret',
-    );
-  });
+      await service.verifyPasswordReset(
+        baseUrl: 'http://localhost:8080',
+        username: 'bob',
+        code: '123456',
+        newPassword: 'brand-new-secret',
+      );
+    },
+  );
 }

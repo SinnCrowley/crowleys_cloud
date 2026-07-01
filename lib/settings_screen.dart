@@ -75,7 +75,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _selectedSyncServerId;
   SyncRunResult? _lastSyncResult;
   bool _isSyncing = false;
-  String _syncProgressMessage = '';
   double? _syncProgressPercent;
   String _defaultTargetDir = '/backup/device';
   int _trashRetentionDays = 7;
@@ -134,12 +133,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return trimmed;
   }
 
-  String _syncType() {
-    final value = _syncString('backupSyncType', 'photosVideos');
-    const allowed = {'photos', 'videos', 'photosVideos'};
-    return allowed.contains(value) ? value : 'photosVideos';
-  }
-
   List<String> _syncStringList(String key) {
     final value = _syncPrefs[key];
     if (value is List) {
@@ -161,11 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .where((item) => item.isNotEmpty)
           .toList(growable: false);
     }
-    return switch (_syncType()) {
-      'photos' => const ['photos'],
-      'videos' => const ['videos'],
-      _ => const ['photos', 'videos'],
-    };
+    return const [];
   }
 
   @override
@@ -284,10 +273,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final activeServer = widget.serverManager.activeServer;
     if (activeServer == null) return;
     try {
-      final token = await widget.serverManager.authService.readAccessToken(activeServer.id);
+      final token = await widget.serverManager.authService.readAccessToken(
+        activeServer.id,
+      );
       if (token == null || token.isEmpty) return;
-      final uri = _apiUri(activeServer.baseUrl, '/account/settings/trash');
-      final response = await http.get(uri, headers: {'authorization': 'Bearer $token'});
+      final uri = _apiUri(
+        activeServer.connectionUrl,
+        '/account/settings/trash',
+      );
+      final response = await http.get(
+        uri,
+        headers: {'authorization': 'Bearer $token'},
+      );
       if (response.statusCode == 200) {
         final payload = jsonDecode(response.body) as Map<String, Object?>;
         final days = (payload['trash_retention_days'] as num?)?.toInt() ?? 7;
@@ -318,9 +315,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _trashLoading = true;
     });
     try {
-      final token = await widget.serverManager.authService.readAccessToken(activeServer.id);
+      final token = await widget.serverManager.authService.readAccessToken(
+        activeServer.id,
+      );
       if (token == null || token.isEmpty) return;
-      final uri = _apiUri(activeServer.baseUrl, '/account/settings/trash');
+      final uri = _apiUri(
+        activeServer.connectionUrl,
+        '/account/settings/trash',
+      );
       final response = await http.post(
         uri,
         headers: {
@@ -355,7 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await widget.serverManager.authService.changePassword(
         serverId: server.id,
-        baseUrl: server.baseUrl,
+        baseUrl: server.connectionUrl,
         newPassword: password,
       );
       await widget.serverManager.markAuthed(server.id);
@@ -406,7 +408,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await widget.serverManager.authService.deleteAccount(
         serverId: server.id,
-        baseUrl: server.baseUrl,
+        baseUrl: server.connectionUrl,
       );
       await widget.serverManager.removeServer(server.id);
       if (!mounted) return;
@@ -522,7 +524,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await widget.serverManager.authService.authenticate(
         serverId: setupResult.profile.id,
-        baseUrl: setupResult.profile.baseUrl,
+        baseUrl: setupResult.profile.connectionUrl,
         username: setupResult.username,
         password: setupResult.password,
         mode: setupResult.authMode,
@@ -724,7 +726,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     setState(() {
       _isSyncing = true;
-      _syncProgressMessage = 'Initializing...';
       _syncProgressPercent = null;
     });
     final result = await _syncService.syncServer(
@@ -732,7 +733,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onProgress: (message, progress) {
         if (!mounted) return;
         setState(() {
-          _syncProgressMessage = message;
           _syncProgressPercent = progress;
         });
       },
@@ -900,12 +900,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(height: 4),
-                      Text(
-                        _syncProgressMessage,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                        ),
+                      const Text(
+                        'Syncing...',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                       const SizedBox(height: 6),
                       ClipRRect(
@@ -1054,9 +1051,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   )
                   .toList(),
-              onChanged: _trashLoading ? null : (val) {
-                if (val != null) _setTrashRetention(val);
-              },
+              onChanged: _trashLoading
+                  ? null
+                  : (val) {
+                      if (val != null) _setTrashRetention(val);
+                    },
             ),
           ),
         Padding(
@@ -1137,7 +1136,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (result == null) return 'No sync has run yet.';
     final localFinished = result.finishedAt.toLocal();
     final minute = localFinished.minute.toString().padLeft(2, '0');
-    return '${_syncResultMessage(result)} Last run ${localFinished.year}-${localFinished.month.toString().padLeft(2, '0')}-${localFinished.day.toString().padLeft(2, '0')} ${localFinished.hour}:$minute.';
+    final hour = localFinished.hour.toString().padLeft(2, '0');
+    final day = localFinished.day.toString().padLeft(2, '0');
+    final month = localFinished.month.toString().padLeft(2, '0');
+    return 'Last run $day.$month.${localFinished.year} $hour:$minute';
   }
 
   String _syncResultMessage(SyncRunResult result) {

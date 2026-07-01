@@ -29,6 +29,7 @@ class TrashBrowserController extends ChangeNotifier {
   bool sortAscending = false;
   String searchQuery = '';
 
+  final Map<String, Future<File?>> _downloadsInFlight = {};
   final http.Client _client = http.Client();
 
   Uri _baseUri(String path) {
@@ -69,13 +70,13 @@ class TrashBrowserController extends ChangeNotifier {
     if (token == null || token.isEmpty) {
       throw Exception('No active session available');
     }
-    return _client.get(
-      uri,
-      headers: {'authorization': 'Bearer $token'},
-    );
+    return _client.get(uri, headers: {'authorization': 'Bearer $token'});
   }
 
-  Future<http.Response> _authorizedPostJson(Uri uri, Map<String, Object?> payload) async {
+  Future<http.Response> _authorizedPostJson(
+    Uri uri,
+    Map<String, Object?> payload,
+  ) async {
     final token = await authService.readAccessToken(serverId);
     if (token == null || token.isEmpty) {
       throw Exception('No active session available');
@@ -90,7 +91,10 @@ class TrashBrowserController extends ChangeNotifier {
     );
   }
 
-  Future<http.Response> _authorizedDeleteJson(Uri uri, Map<String, Object?> payload) async {
+  Future<http.Response> _authorizedDeleteJson(
+    Uri uri,
+    Map<String, Object?> payload,
+  ) async {
     final token = await authService.readAccessToken(serverId);
     if (token == null || token.isEmpty) {
       throw Exception('No active session available');
@@ -115,9 +119,7 @@ class TrashBrowserController extends ChangeNotifier {
       if (searchQuery.isNotEmpty) {
         queryParams['q'] = searchQuery;
       }
-      final uri = _apiUri('/trash').replace(
-        queryParameters: queryParams,
-      );
+      final uri = _apiUri('/trash').replace(queryParameters: queryParams);
       final response = await _authorizedGet(uri);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception('Server error ${response.statusCode}');
@@ -209,9 +211,9 @@ class TrashBrowserController extends ChangeNotifier {
       if (parsed.hasScheme) return parsed;
       return _baseUri(raw);
     }
-    return _apiUri('/thumb').replace(
-      queryParameters: {'trash_id': '${item.id}', 's': '$size'},
-    );
+    return _apiUri(
+      '/thumb',
+    ).replace(queryParameters: {'trash_id': '${item.id}', 's': '$size'});
   }
 
   Future<Uint8List?> loadThumbnailWithRetry(
@@ -279,16 +281,34 @@ class TrashBrowserController extends ChangeNotifier {
   }
 
   Future<File?> downloadTempForEdit(ServerFileItem item) async {
-    final uri = _apiUri('/files').replace(
-      queryParameters: {'trash_id': '${item.id}'},
-    );
-    final response = await _authorizedGet(uri);
-    if (response.statusCode < 200 || response.statusCode >= 300) return null;
-
     final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/${item.name}');
-    await file.writeAsBytes(response.bodyBytes, flush: true);
-    return file;
+    final file = File('${tempDir.path}/${item.id ?? item.path.hashCode}_${item.name}');
+
+    if (await file.exists()) {
+      try {
+        if (await file.length() == item.size) {
+          return file;
+        }
+      } catch (_) {}
+    }
+
+    final cacheKey = '${item.id ?? item.path}';
+    return _downloadsInFlight.putIfAbsent(cacheKey, () async {
+      try {
+        final uri = _apiUri(
+          '/files',
+        ).replace(queryParameters: {'trash_id': '${item.id}'});
+        final response = await _authorizedGet(uri);
+        if (response.statusCode < 200 || response.statusCode >= 300) return null;
+
+        await file.writeAsBytes(response.bodyBytes, flush: true);
+        return file;
+      } catch (_) {
+        return null;
+      } finally {
+        _downloadsInFlight.remove(cacheKey);
+      }
+    });
   }
 
   Future<void> updateSearchQuery(String query) async {

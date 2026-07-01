@@ -949,7 +949,7 @@ class _FileListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (controller.isLoading && controller.files.isEmpty) {
+    if (controller.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
     if (controller.error != null) {

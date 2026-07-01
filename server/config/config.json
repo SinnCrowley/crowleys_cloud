@@ -11,5 +11,6 @@
   "log_level": "INFO",
   "access_log_enabled": true,
   "video_thumbs_enabled": true,
-  "ffmpeg_binary": "ffmpeg"
+  "ffmpeg_binary": "ffmpeg",
+  "log_retention_days": 30
 }

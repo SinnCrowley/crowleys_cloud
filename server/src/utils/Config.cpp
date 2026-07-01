@@ -30,6 +30,7 @@ Config loadConfig(const std::string &path) {
   cfg.accessLogEnabled = json.get("access_log_enabled", cfg.accessLogEnabled).asBool();
   cfg.videoThumbsEnabled = json.get("video_thumbs_enabled", cfg.videoThumbsEnabled).asBool();
   cfg.ffmpegBinary = json.get("ffmpeg_binary", cfg.ffmpegBinary).asString();
+  cfg.logRetentionDays = json.get("log_retention_days", cfg.logRetentionDays).asInt();
   return cfg;
 }
 

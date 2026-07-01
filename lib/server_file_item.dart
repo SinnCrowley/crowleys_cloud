@@ -60,9 +60,7 @@ class ServerFileItem {
 
   @override
   bool operator ==(Object other) {
-    return other is ServerFileItem &&
-        other.path == path &&
-        other.id == id;
+    return other is ServerFileItem && other.path == path && other.id == id;
   }
 
   @override

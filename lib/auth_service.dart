@@ -301,6 +301,7 @@ class AuthService {
       refreshToken: result.refreshToken,
     );
   }
+
   Future<void> requestPasswordReset({
     required String baseUrl,
     required String username,
@@ -344,6 +345,7 @@ class AuthService {
       );
     }
   }
+
   Future<void> persistCurrentSessionForConfiguredLifetime(
     String serverId,
   ) async {

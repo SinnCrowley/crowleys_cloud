@@ -344,7 +344,11 @@ void main() {
   });
 
   test('skips upload if file hash exists on server at different path', () async {
-    final file = await writeTestFile(tempDir, 'photo.jpg', 'same-content-different-name');
+    final file = await writeTestFile(
+      tempDir,
+      'photo.jpg',
+      'same-content-different-name',
+    );
     final stateFile = File('${tempDir.path}/state.json');
     final stateStore = FileSyncStateStore(fileProvider: () async => stateFile);
     final api = _FakeApiClient();

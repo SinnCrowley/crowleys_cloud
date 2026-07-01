@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/app_settings_service.dart';
@@ -216,6 +217,9 @@ class _MainScreenState extends State<MainScreen> {
   final TransferManager _transferManager = TransferManager();
   bool _authPromptInFlight = false;
   int _trashRetentionDays = 7;
+  double _dragStartX = 0.0;
+  bool _isValidDrag = false;
+  bool _isDrawerOpen = false;
 
   FileCategory? _selectedLocalCategory;
   FileCategory? _selectedServerCategory;
@@ -247,6 +251,13 @@ class _MainScreenState extends State<MainScreen> {
     _serverManager.addListener(_serverManagerListener);
     _transferListener = () {
       if (!mounted) return;
+      if (!_transferManager.hasActiveTransfers && _transferManager.hasItems) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _transferManager.clearFinished();
+          }
+        });
+      }
       setState(() {});
     };
     _transferManager.addListener(_transferListener);
@@ -260,12 +271,32 @@ class _MainScreenState extends State<MainScreen> {
     _transferManager.removeListener(_transferListener);
     _transferManager.dispose();
     _searchController.dispose();
-    _localController?.disposeController();
-    _localController?.dispose();
-    _serverController?.disposeController();
-    _serverController?.dispose();
+    _disposeLocalController();
+    _disposeServerController();
     _serverManager.dispose();
     super.dispose();
+  }
+
+  void _onControllerChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _disposeLocalController() {
+    if (_localController != null) {
+      _localController!.removeListener(_onControllerChanged);
+      _localController!.disposeController();
+      _localController!.dispose();
+      _localController = null;
+    }
+  }
+
+  void _disposeServerController() {
+    if (_serverController != null) {
+      _serverController!.removeListener(_onControllerChanged);
+      _serverController!.disposeController();
+      _serverController!.dispose();
+      _serverController = null;
+    }
   }
 
   Future<void> _initializeServers() async {
@@ -369,14 +400,10 @@ class _MainScreenState extends State<MainScreen> {
     await _serverManager.switchActive(serverId);
     await _loadTrashRetention();
     _searchController.clear();
-    _localController?.disposeController();
-    _localController?.dispose();
-    _localController = null;
+    _disposeLocalController();
     _selectedLocalCategory = null;
     _selectedServerCategory = null;
-    _serverController?.disposeController();
-    _serverController?.dispose();
-    _serverController = null;
+    _disposeServerController();
     if (!mounted) return;
     setState(() {});
   }
@@ -631,12 +658,11 @@ class _MainScreenState extends State<MainScreen> {
     final permissionGranted = await _requestPermission(category);
     if (permissionGranted) {
       await _clearSearchAndResetFilterForCurrentMode();
-      _localController?.disposeController();
-      _localController?.dispose();
+      _disposeLocalController();
       final controller = FileBrowserController(
         category: category,
         settingsService: _appSettingsService,
-      );
+      )..addListener(_onControllerChanged);
       setState(() {
         _selectedLocalCategory = category;
         _localController = controller;
@@ -653,16 +679,16 @@ class _MainScreenState extends State<MainScreen> {
         await _localController!.navigateBack();
       } else {
         await _clearSearchAndResetFilterForCurrentMode();
-        _localController?.disposeController();
-        _localController?.dispose();
+        _disposeLocalController();
         setState(() {
           _selectedLocalCategory = null;
-          _localController = null;
         });
       }
       return;
     }
-    if (_serverController?.canNavigateBack ?? false) {
+    if (_serverController != null && _serverController!.isSelectionMode) {
+      _serverController!.clearSelection();
+    } else if (_serverController?.canNavigateBack ?? false) {
       await _clearSearchAndResetFilterForCurrentMode();
       await _serverController!.navigateBack();
     } else if (_selectedServerCategory != null) {
@@ -1160,8 +1186,7 @@ class _MainScreenState extends State<MainScreen> {
     if (_serverController != null && _serverController!.serverId == active.id) {
       return;
     }
-    _serverController?.disposeController();
-    _serverController?.dispose();
+    _disposeServerController();
     _serverController = ServerBrowserController(
       profile: active,
       serverId: active.id,
@@ -1169,7 +1194,7 @@ class _MainScreenState extends State<MainScreen> {
       onConnectionLost: _reportActiveServerConnectionError,
       transferManager: _transferManager,
       settingsService: _appSettingsService,
-    );
+    )..addListener(_onControllerChanged);
   }
 
   @override
@@ -1308,295 +1333,361 @@ class _MainScreenState extends State<MainScreen> {
 
     _ensureServerController();
 
+
+
     return PopScope(
-      canPop: _selectedModeIndex == 1
-          ? !(_serverController?.canNavigateBack ?? false) &&
-                _selectedServerCategory == null
-          : _selectedLocalCategory == null,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        await _handleBack();
+        if (_isDrawerOpen ||
+            (_scaffoldKey.currentState?.isDrawerOpen ?? false)) {
+          _scaffoldKey.currentState?.closeDrawer();
+          return;
+        }
+
+        final bool serverSelMode = _serverController?.isSelectionMode ?? false;
+        final bool localSelMode = _localController?.isSelectionMode ?? false;
+        final bool serverCanGoBack =
+            (_serverController?.canNavigateBack ?? false) ||
+            _selectedServerCategory != null;
+        final bool localCanGoBack = _selectedLocalCategory != null;
+
+        final bool hasBackAction = _selectedModeIndex == 1
+            ? (serverSelMode || serverCanGoBack)
+            : (localSelMode || localCanGoBack);
+
+        if (hasBackAction) {
+          await _handleBack();
+        } else {
+          await SystemNavigator.pop();
+        }
       },
-      child: Listener(
+      child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onPointerDown: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-        child: Scaffold(
-          key: _scaffoldKey,
-          appBar: AppBar(
-            backgroundColor: appSurface,
-            surfaceTintColor: appSurface,
-            elevation: 0,
-            leading:
-                (_selectedModeIndex == 0 && _selectedLocalCategory != null) ||
-                    (_selectedModeIndex == 1 &&
-                        ((_serverController?.canNavigateBack ?? false) ||
-                            _selectedServerCategory != null))
-                ? IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: _handleBack,
-                  )
-                : IconButton(
+        onHorizontalDragStart: (details) {
+          final startX = details.globalPosition.dx;
+          _dragStartX = startX;
+          _isValidDrag = startX >= 25.0 && startX <= 100.0;
+        },
+        onHorizontalDragUpdate: (details) {
+          if (_isValidDrag) {
+            final deltaX = details.globalPosition.dx - _dragStartX;
+            if (deltaX > 45.0) {
+              _isValidDrag = false;
+              _scaffoldKey.currentState?.openDrawer();
+            }
+          }
+        },
+        child: Listener(
+          behavior: HitTestBehavior.translucent,
+          onPointerDown: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          child: Scaffold(
+            key: _scaffoldKey,
+            onDrawerChanged: (isOpen) {
+              setState(() {
+                _isDrawerOpen = isOpen;
+              });
+            },
+            appBar: AppBar(
+              backgroundColor: appSurface,
+              surfaceTintColor: appSurface,
+              elevation: 0,
+              leadingWidth: 96,
+              leading: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
                     iconSize: 28,
                     icon: const Icon(Icons.menu, color: Colors.white),
                     onPressed: () => _scaffoldKey.currentState!.openDrawer(),
                   ),
-            title: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: appBackground,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  const Icon(Icons.search, color: Colors.white54),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _onSearchChanged,
-                      decoration: const InputDecoration(
-                        hintText: 'Search...',
-                        hintStyle: TextStyle(color: Colors.white54),
-                        border: InputBorder.none,
-                      ),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  if (_searchController.text.isNotEmpty)
-                    GestureDetector(
-                      onTap: () async {
-                        _searchController.clear();
-                        await _resetSearchFilterForCurrentMode();
-                      },
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white54,
-                        size: 20,
-                      ),
-                    ),
+                  if ((_selectedModeIndex == 0 &&
+                          _selectedLocalCategory != null) ||
+                      (_selectedModeIndex == 1 &&
+                          ((_serverController?.canNavigateBack ?? false) ||
+                              _selectedServerCategory != null)))
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: _handleBack,
+                    )
+                  else
+                    const SizedBox(width: 48),
                 ],
               ),
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-                onPressed: () async {
-                  setState(() {
-                    _isGridView = !_isGridView;
-                  });
-                  try {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('is_grid_view', _isGridView);
-                  } catch (_) {}
-                },
-              ),
-            ],
-          ),
-          drawer: Drawer(
-            backgroundColor: appSurface,
-            child: SafeArea(
-              child: ListView(
-                children: [
-                  ListTile(
-                    title: Text(
-                      'Crowley\'s Cloud',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  ),
-                  const Divider(color: Colors.white24),
-                  ..._serverManager.servers.map((server) {
-                    final isActive =
-                        _serverManager.activeServer?.id == server.id;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: isActive ? appBackground : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
+              title: Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  color: appBackground,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search, color: Colors.white54),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: _onSearchChanged,
+                        decoration: const InputDecoration(
+                          hintText: 'Search...',
+                          hintStyle: TextStyle(color: Colors.white54),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
                         ),
-                        child: ListTile(
-                          shape: RoundedRectangleBorder(
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    if (_searchController.text.isNotEmpty)
+                      GestureDetector(
+                        onTap: () async {
+                          _searchController.clear();
+                          await _resetSearchFilterForCurrentMode();
+                        },
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white54,
+                          size: 20,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+                  onPressed: () async {
+                    setState(() {
+                      _isGridView = !_isGridView;
+                    });
+                    try {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('is_grid_view', _isGridView);
+                    } catch (_) {}
+                  },
+                ),
+              ],
+            ),
+            drawer: Drawer(
+              backgroundColor: appSurface,
+              child: SafeArea(
+                child: ListView(
+                  children: [
+                    ListTile(
+                      title: Text(
+                        'Crowley\'s Cloud',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    ),
+                    const Divider(color: Colors.white24),
+                    ..._serverManager.servers.map((server) {
+                      final isActive =
+                          _serverManager.activeServer?.id == server.id;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? appBackground
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          leading: Icon(
-                            Icons.dns,
-                            color: isActive ? Colors.white : Colors.white70,
-                          ),
-                          title: Text(
-                            server.displayName,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: isActive
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                          ),
-                          subtitle: Text(
-                            server.baseUrl,
-                            style: TextStyle(
-                              color: isActive ? Colors.white70 : Colors.white54,
+                            leading: Icon(
+                              Icons.dns,
+                              color: isActive ? Colors.white : Colors.white70,
                             ),
-                          ),
-                          selected: isActive,
-                          onTap: isActive
-                              ? null
-                              : () async {
-                                  final shouldSwitch =
-                                      await _confirmServerSwitch(
-                                        server.displayName,
-                                      );
-                                  if (!shouldSwitch || !context.mounted) return;
-                                  await _switchServer(server.id);
-                                  if (!context.mounted) return;
-                                  Navigator.pop(context);
-                                },
-                          trailing: IconButton(
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.white70,
-                            ),
-                            onPressed: () async {
-                              await _serverManager.removeServer(server.id);
-                              if (!context.mounted) return;
-                              setState(() {});
-                            },
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                  ListTile(
-                    leading: const Icon(Icons.add, color: Colors.white70),
-                    title: const Text(
-                      'Add server',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onTap: () async {
-                      Navigator.pop(context);
-                      await _openAddServerFlow();
-                    },
-                  ),
-                  const Divider(color: Colors.white24),
-                  ListTile(
-                    leading: const Icon(Icons.folder, color: Colors.white70),
-                    title: const Text(
-                      'Local',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    selected: _selectedModeIndex == 0,
-                    onTap: () {
-                      setState(() {
-                        _selectedModeIndex = 0;
-                      });
-                      unawaited(_clearSearchAndResetFilterForCurrentMode());
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.cloud, color: Colors.white70),
-                    title: const Text(
-                      'Server',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    selected: _selectedModeIndex == 1,
-                    onTap: () {
-                      setState(() {
-                        _selectedModeIndex = 1;
-                      });
-                      unawaited(_clearSearchAndResetFilterForCurrentMode());
-                      Navigator.pop(context);
-                    },
-                  ),
-                  if (_serverManager.activeServer != null && _trashRetentionDays > 0)
-                    ListTile(
-                      leading: const Icon(Icons.delete_outline, color: Colors.white70),
-                      title: const Text(
-                        'Trash',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TrashBrowserScreen(
-                              controller: TrashBrowserController(
-                                serverId: _serverManager.activeServer!.id,
-                                baseUrl: _serverManager.activeServer!.baseUrl,
-                                authService: _serverManager.authService,
+                            title: Text(
+                              server.displayName,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
                               ),
-                              isGridView: _isGridView,
-                              onToggleGridView: (val) async {
-                                setState(() {
-                                  _isGridView = val;
-                                });
-                                try {
-                                  final prefs = await SharedPreferences.getInstance();
-                                  await prefs.setBool('is_grid_view', val);
-                                } catch (_) {}
+                            ),
+                            subtitle: Text(
+                              server.baseUrl,
+                              style: TextStyle(
+                                color: isActive
+                                    ? Colors.white70
+                                    : Colors.white54,
+                              ),
+                            ),
+                            selected: isActive,
+                            onTap: isActive
+                                ? null
+                                : () async {
+                                    final shouldSwitch =
+                                        await _confirmServerSwitch(
+                                          server.displayName,
+                                        );
+                                    if (!shouldSwitch || !context.mounted) {
+                                      return;
+                                    }
+                                    await _switchServer(server.id);
+                                    if (!context.mounted) return;
+                                    Navigator.pop(context);
+                                  },
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.white70,
+                              ),
+                              onPressed: () async {
+                                await _serverManager.removeServer(server.id);
+                                if (!context.mounted) return;
+                                setState(() {});
                               },
                             ),
                           ),
-                        );
+                        ),
+                      );
+                    }),
+                    ListTile(
+                      leading: const Icon(Icons.add, color: Colors.white70),
+                      title: const Text(
+                        'Add server',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onTap: () async {
+                        Navigator.pop(context);
+                        await _openAddServerFlow();
                       },
                     ),
-                  const Divider(color: Colors.white24),
-                  ListTile(
-                    leading: const Icon(Icons.settings, color: Colors.white70),
-                    title: const Text(
-                      'Settings',
-                      style: TextStyle(color: Colors.white),
+                    const Divider(color: Colors.white24),
+                    ListTile(
+                      leading: const Icon(Icons.folder, color: Colors.white70),
+                      title: const Text(
+                        'Local',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      selected: _selectedModeIndex == 0,
+                      onTap: () {
+                        setState(() {
+                          _selectedModeIndex = 0;
+                        });
+                        unawaited(_clearSearchAndResetFilterForCurrentMode());
+                        Navigator.pop(context);
+                      },
                     ),
-                    onTap: () async {
-                      Navigator.pop(context);
-                      await _openSettingsPage();
-                    },
-                  ),
-                ],
+                    ListTile(
+                      leading: const Icon(Icons.cloud, color: Colors.white70),
+                      title: const Text(
+                        'Server',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      selected: _selectedModeIndex == 1,
+                      onTap: () {
+                        setState(() {
+                          _selectedModeIndex = 1;
+                        });
+                        unawaited(_clearSearchAndResetFilterForCurrentMode());
+                        Navigator.pop(context);
+                      },
+                    ),
+                    if (_serverManager.activeServer != null &&
+                        _trashRetentionDays > 0)
+                      ListTile(
+                        leading: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.white70,
+                        ),
+                        title: const Text(
+                          'Trash',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TrashBrowserScreen(
+                                controller: TrashBrowserController(
+                                  serverId: _serverManager.activeServer!.id,
+                                  baseUrl: _serverManager.activeServer!.baseUrl,
+                                  authService: _serverManager.authService,
+                                ),
+                                isGridView: _isGridView,
+                                onToggleGridView: (val) async {
+                                  setState(() {
+                                    _isGridView = val;
+                                  });
+                                  try {
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    await prefs.setBool('is_grid_view', val);
+                                  } catch (_) {}
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    const Divider(color: Colors.white24),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.settings,
+                        color: Colors.white70,
+                      ),
+                      title: const Text(
+                        'Settings',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onTap: () async {
+                        Navigator.pop(context);
+                        await _openSettingsPage();
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          body: _selectedModeIndex == 0
-              ? (_selectedLocalCategory == null
-                    ? _buildLocalCategoryGrid()
-                    : FileBrowser(
-                        category: _selectedLocalCategory!,
-                        isGridView: _isGridView,
-                        controller: _localController,
-                        onUploadItems: _uploadLocalItems,
-                      ))
-              : _buildServerModeBody(),
-          bottomNavigationBar: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TransferBottomBar(
-                manager: _transferManager,
-                onOpen: _openTransfersPage,
-              ),
-              BottomNavigationBar(
-                currentIndex: _selectedModeIndex,
-                onTap: (value) async {
-                  setState(() {
-                    _selectedModeIndex = value;
-                  });
-                  await _clearSearchAndResetFilterForCurrentMode();
-                },
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.folder),
-                    label: 'Local',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.cloud),
-                    label: 'Server',
-                  ),
-                ],
-              ),
-            ],
+            body: _selectedModeIndex == 0
+                ? (_selectedLocalCategory == null
+                      ? _buildLocalCategoryGrid()
+                      : FileBrowser(
+                          category: _selectedLocalCategory!,
+                          isGridView: _isGridView,
+                          controller: _localController,
+                          onUploadItems: _uploadLocalItems,
+                        ))
+                : _buildServerModeBody(),
+            bottomNavigationBar: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TransferBottomBar(
+                  manager: _transferManager,
+                  onOpen: _openTransfersPage,
+                ),
+                BottomNavigationBar(
+                  currentIndex: _selectedModeIndex,
+                  onTap: (value) async {
+                    setState(() {
+                      _selectedModeIndex = value;
+                    });
+                    await _clearSearchAndResetFilterForCurrentMode();
+                  },
+                  items: const [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.folder),
+                      label: 'Local',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.cloud),
+                      label: 'Server',
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

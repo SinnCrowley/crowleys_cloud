@@ -180,7 +180,11 @@ class _AuthCardState extends State<AuthCard> {
                 ),
                 child: const Text(
                   'Forgot password?',
-                  style: TextStyle(color: appAccent, fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: appAccent,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -255,9 +259,7 @@ class _AuthCardState extends State<AuthCard> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
-        return _ForgotPasswordDialog(
-          baseUrl: baseUrl,
-        );
+        return _ForgotPasswordDialog(baseUrl: baseUrl);
       },
     );
   }
@@ -392,7 +394,6 @@ class _AuthTextField extends StatelessWidget {
   }
 }
 
-
 class _ForgotPasswordDialog extends StatefulWidget {
   const _ForgotPasswordDialog({required this.baseUrl});
 
@@ -509,13 +510,20 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
       ),
       title: Text(
         _step == 1 ? 'Reset Password' : 'Enter Reset Code',
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       content: _success.isNotEmpty
           ? Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_circle_outline, color: Colors.green, size: 48),
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.green,
+                  size: 48,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   _success,
@@ -532,14 +540,21 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                   if (_error.isNotEmpty) ...[
                     Text(
                       _error,
-                      style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                      style: const TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 13,
+                      ),
                     ),
                     const SizedBox(height: 10),
                   ],
                   if (_step == 1) ...[
                     const Text(
                       'Enter your username. The 6-digit verification code will be printed to the server logs/console.',
-                      style: TextStyle(color: Colors.white60, fontSize: 13, height: 1.35),
+                      style: TextStyle(
+                        color: Colors.white60,
+                        fontSize: 13,
+                        height: 1.35,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     _AuthTextField(
@@ -551,7 +566,11 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                   ] else ...[
                     Text(
                       'Verification code has been printed to the server console. Enter the 6-digit code and your new password.',
-                      style: const TextStyle(color: Colors.white60, fontSize: 13, height: 1.35),
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 13,
+                        height: 1.35,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     _AuthTextField(
@@ -577,19 +596,31 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
           ? []
           : [
               TextButton(
-                onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                onPressed: _isLoading
+                    ? null
+                    : () => Navigator.of(context).pop(),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.white54),
+                ),
               ),
               FilledButton(
-                onPressed: _isLoading ? null : (_step == 1 ? _sendCode : _resetPassword),
+                onPressed: _isLoading
+                    ? null
+                    : (_step == 1 ? _sendCode : _resetPassword),
                 style: FilledButton.styleFrom(
                   backgroundColor: appAccent,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: _isLoading
                     ? const SizedBox.square(
                         dimension: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : Text(_step == 1 ? 'Send Code' : 'Reset Password'),
               ),
@@ -612,11 +643,22 @@ class _DummySecretStore implements SecretStore {
   @override
   Future<String?> readToken(String serverId) async => null;
   @override
-  Future<void> saveCredentials({required String serverId, required String username, required String password}) async {}
+  Future<void> saveCredentials({
+    required String serverId,
+    required String username,
+    required String password,
+  }) async {}
   @override
-  Future<void> saveTokens({required String serverId, required String accessToken, required String refreshToken}) async {}
+  Future<void> saveTokens({
+    required String serverId,
+    required String accessToken,
+    required String refreshToken,
+  }) async {}
   @override
-  Future<void> saveToken({required String serverId, required String token}) async {}
+  Future<void> saveToken({
+    required String serverId,
+    required String token,
+  }) async {}
 }
 
 class AuthInputField extends StatelessWidget {

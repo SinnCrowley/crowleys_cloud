@@ -69,7 +69,7 @@ int main() {
     drogon::app().setClientMaxMemoryBodySize(limit);
   }
 
-  // Periodic cleanup of expired trash (every hour) using a background thread
+  // Periodic cleanup of expired trash and logs (every hour) using a background thread
   std::thread([]() {
     while (true) {
       std::this_thread::sleep_for(std::chrono::hours(1));
@@ -77,6 +77,26 @@ int main() {
         server::ctx().trashService->cleanupExpiredTrash();
       } catch (const std::exception &e) {
         LOG_ERROR << "Failed to run periodic trash cleanup: " << e.what();
+      }
+      try {
+        auto &appCtx = server::ctx();
+        if (appCtx.config.logRetentionDays > 0) {
+          namespace fs = std::filesystem;
+          auto now = std::chrono::file_clock::now();
+          if (fs::exists(appCtx.config.logDir)) {
+            for (const auto &entry : fs::directory_iterator(appCtx.config.logDir)) {
+              if (!entry.is_regular_file()) continue;
+              auto ftime = fs::last_write_time(entry.path());
+              auto age = std::chrono::duration_cast<std::chrono::hours>(now - ftime).count();
+              if (age >= appCtx.config.logRetentionDays * 24) {
+                fs::remove(entry.path());
+                LOG_INFO << "Deleted expired log file: " << entry.path().string();
+              }
+            }
+          }
+        }
+      } catch (const std::exception &e) {
+        LOG_ERROR << "Failed to run periodic log cleanup: " << e.what();
       }
     }
   }).detach();

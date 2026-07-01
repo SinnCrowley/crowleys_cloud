@@ -19,6 +19,7 @@ struct Config {
   bool accessLogEnabled{true};
   bool videoThumbsEnabled{true};
   std::string ffmpegBinary{"ffmpeg"};
+  int logRetentionDays{0};
 };
 
 Config loadConfig(const std::string &path);

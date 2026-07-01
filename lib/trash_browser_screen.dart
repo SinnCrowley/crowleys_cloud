@@ -11,6 +11,8 @@ import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
 import 'package:crowleys_cloud/file_item.dart';
 
+import 'package:crowleys_cloud/smart_thumbnail.dart';
+
 class TrashBrowserScreen extends StatefulWidget {
   const TrashBrowserScreen({
     super.key,
@@ -34,6 +36,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   @override
   void initState() {
     super.initState();
+    controller.addListener(_onControllerChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.reload();
     });
@@ -41,8 +44,15 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
 
   @override
   void dispose() {
+    controller.removeListener(_onControllerChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onControllerChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   bool _isPhoto(ServerFileItem item) {
@@ -65,6 +75,11 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
       return;
     }
 
+    if (_isPhoto(item)) {
+      await _openImageViewer(item);
+      return;
+    }
+
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -78,7 +93,10 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
               children: [
                 CircularProgressIndicator(color: appAccent),
                 SizedBox(width: 16),
-                Text('Downloading file...', style: TextStyle(color: Colors.white)),
+                Text(
+                  'Downloading file...',
+                  style: TextStyle(color: Colors.white),
+                ),
               ],
             ),
           ),
@@ -106,41 +124,49 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
 
     if (!mounted) return;
 
-    if (_isPhoto(item)) {
-      final photoServerItems = controller.files
-          .where((entry) => !entry.isDir && _isPhoto(entry))
-          .toList(growable: false);
-
-      final tempToServerItem = <String, ServerFileItem>{};
-      final imageItems = <FileItem>[];
-
-      for (final photoItem in photoServerItems) {
-        if (photoItem.id == item.id) {
-          imageItems.add(FileItem.fromEntity(temp));
-          tempToServerItem[temp.path] = photoItem;
-        }
-      }
-
+    if (_isText(item)) {
       await Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => ImageViewer(
-            imageItems: imageItems,
-            initialIndex: 0,
-            onAddToFolderItem: (_) async {}, // Add to folder disabled in trash
-          ),
-        ),
-      );
-    } else if (_isText(item)) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TextViewer(file: temp!),
-        ),
+        MaterialPageRoute(builder: (context) => TextViewer(file: temp!)),
       );
     } else {
       await OpenFile.open(temp.path);
     }
+  }
+
+  Future<void> _openImageViewer(ServerFileItem item) async {
+    final photoServerItems = controller.files
+        .where((entry) => !entry.isDir && _isPhoto(entry))
+        .toList(growable: false);
+    if (photoServerItems.isEmpty) return;
+
+    final imageItems = photoServerItems.map(FileItem.fromServer).toList();
+    var initialIndex = imageItems.indexWhere(
+      (imageItem) => imageItem.serverFile?.id == item.id,
+    );
+    if (initialIndex < 0) initialIndex = 0;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ImageViewer(
+          imageItems: imageItems,
+          initialIndex: initialIndex,
+          onFetchRemoteFile: (fileItem) async {
+            final serverItem = fileItem.serverFile;
+            if (serverItem == null) return null;
+            return controller.downloadTempForEdit(serverItem);
+          },
+          thumbnailPlaceholderBuilder: (fileItem) {
+            return SizedBox(
+              width: 150,
+              height: 150,
+              child: SmartThumbnail(item: fileItem),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   void _showSingleItemMenu(ServerFileItem item) {
@@ -163,7 +189,10 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.delete_forever, color: appAccent),
-            title: const Text('Delete permanently', style: TextStyle(color: Colors.white)),
+            title: const Text(
+              'Delete permanently',
+              style: TextStyle(color: Colors.white),
+            ),
             onTap: () async {
               Navigator.pop(context);
               setState(() {
@@ -183,7 +212,10 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: const Text('Restore items', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Restore items',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Are you sure you want to restore ${controller.selectedFiles.length} item(s)?',
           style: const TextStyle(color: Colors.white70),
@@ -191,10 +223,15 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Restore', style: TextStyle(color: Colors.white)),
           ),
@@ -215,7 +252,10 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: const Text('Permanently delete', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Permanently delete',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Are you sure you want to permanently delete ${controller.selectedFiles.length} item(s)? This action cannot be undone.',
           style: const TextStyle(color: Colors.white70),
@@ -223,12 +263,18 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: appAccent),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete permanently', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Delete permanently',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -251,89 +297,96 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   Widget build(BuildContext context) {
     final isSelectionMode = controller.selectedFiles.isNotEmpty;
 
-    return Scaffold(
-      backgroundColor: appBackground,
-      appBar: AppBar(
-        backgroundColor: appSurface,
-        surfaceTintColor: appSurface,
-        leading: isSelectionMode
-            ? IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  setState(() {
+    return PopScope(
+      canPop: !isSelectionMode,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        controller.clearSelection();
+      },
+      child: Scaffold(
+        backgroundColor: appBackground,
+        appBar: AppBar(
+          backgroundColor: appSurface,
+          surfaceTintColor: appSurface,
+          leading: isSelectionMode
+              ? IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
                     controller.clearSelection();
-                  });
-                },
-              )
-            : null,
-        title: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: appBackground,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              const Icon(Icons.search, color: Colors.white54, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _onSearchChanged,
-                  decoration: const InputDecoration(
-                    hintText: 'Search trash...',
-                    hintStyle: TextStyle(color: Colors.white54),
-                    border: InputBorder.none,
-                  ),
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-              if (_searchController.text.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _searchController.clear();
-                    });
-                    controller.updateSearchQuery('');
                   },
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white54,
-                    size: 20,
+                )
+              : null,
+          title: Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: appBackground,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.search, color: Colors.white54, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    decoration: const InputDecoration(
+                      hintText: 'Search trash...',
+                      hintStyle: TextStyle(color: Colors.white54),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
-            ],
+                if (_searchController.text.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _searchController.clear();
+                      });
+                      controller.updateSearchQuery('');
+                    },
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white54,
+                      size: 20,
+                    ),
+                  ),
+              ],
+            ),
           ),
+          actions: [
+            IconButton(
+              icon: Icon(widget.isGridView ? Icons.view_list : Icons.grid_view),
+              onPressed: () {
+                widget.onToggleGridView(!widget.isGridView);
+              },
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(widget.isGridView ? Icons.view_list : Icons.grid_view),
-            onPressed: () {
-              widget.onToggleGridView(!widget.isGridView);
-            },
-          ),
-        ],
-      ),
-      body: AnimatedBuilder(
-        animation: controller,
-        builder: (context, _) {
-          return Stack(
-            children: [
-              Column(
-                children: [
-                  _TrashHeaderControls(controller: controller),
-                  Expanded(child: _buildContent()),
-                ],
-              ),
-              if (isSelectionMode)
-                _TrashSelectionActionBar(
-                  onRestore: _restoreSelected,
-                  onDelete: _deleteSelected,
+        body: AnimatedBuilder(
+          animation: controller,
+          builder: (context, _) {
+            return Stack(
+              children: [
+                Column(
+                  children: [
+                    _TrashHeaderControls(controller: controller),
+                    Expanded(child: _buildContent()),
+                  ],
                 ),
-            ],
-          );
-        },
+                if (isSelectionMode)
+                  _TrashSelectionActionBar(
+                    onRestore: _restoreSelected,
+                    onDelete: _deleteSelected,
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -343,10 +396,17 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (controller.error != null) {
-      return Center(child: Text('Error: ${controller.error}', style: const TextStyle(color: Colors.redAccent)));
+      return Center(
+        child: Text(
+          'Error: ${controller.error}',
+          style: const TextStyle(color: Colors.redAccent),
+        ),
+      );
     }
     if (controller.files.isEmpty) {
-      return const Center(child: Text('Trash is empty.', style: TextStyle(color: Colors.white70)));
+      return const Center(
+        child: Text('Trash is empty.', style: TextStyle(color: Colors.white70)),
+      );
     }
 
     return Scrollbar(
@@ -505,23 +565,21 @@ class _TrashListItem extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        tileColor: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.15) : appSurface,
+        tileColor: isSelected
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.15)
+            : appSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: isSelected ? BorderSide(color: Theme.of(context).primaryColor, width: 1) : BorderSide.none,
+          side: isSelected
+              ? BorderSide(color: Theme.of(context).primaryColor, width: 1)
+              : BorderSide.none,
         ),
         onTap: onTap,
         onLongPress: onLongPress,
-        leading: _TrashThumb(
-          controller: controller,
-          item: item,
-          isList: true,
-        ),
+        leading: _TrashThumb(controller: controller, item: item, isList: true),
         title: Text(
           item.name,
-          style: const TextStyle(
-            color: Colors.white70,
-          ),
+          style: const TextStyle(color: Colors.white70),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
@@ -574,7 +632,8 @@ class _TrashThumbState extends State<_TrashThumb> {
     return FutureBuilder<Uint8List?>(
       future: _future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done && snapshot.data != null) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.data != null) {
           return ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.memory(
@@ -582,7 +641,8 @@ class _TrashThumbState extends State<_TrashThumb> {
               width: size,
               height: size,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _TrashFileFallbackIcon(item: widget.item, size: size),
+              errorBuilder: (_, _, _) =>
+                  _TrashFileFallbackIcon(item: widget.item, size: size),
             ),
           );
         }
@@ -625,16 +685,16 @@ class _TrashFileFallbackIcon extends StatelessWidget {
 }
 
 class _TrashHeaderControls extends StatelessWidget {
-  const _TrashHeaderControls({
-    required this.controller,
-  });
+  const _TrashHeaderControls({required this.controller});
 
   final TrashBrowserController controller;
 
   @override
   Widget build(BuildContext context) {
     if (controller.selectedFiles.isNotEmpty) {
-      final isAllSelected = controller.selectedFiles.length == controller.files.length && controller.files.isNotEmpty;
+      final isAllSelected =
+          controller.selectedFiles.length == controller.files.length &&
+          controller.files.isNotEmpty;
       return Padding(
         padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
         child: Row(
@@ -692,7 +752,8 @@ class _TrashHeaderControls extends StatelessWidget {
                             child: Text(
                               v.name == 'date'
                                   ? 'Deletion Date'
-                                  : v.name[0].toUpperCase() + v.name.substring(1),
+                                  : v.name[0].toUpperCase() +
+                                        v.name.substring(1),
                             ),
                           ),
                         )
@@ -791,7 +852,9 @@ class _TrashSelectionActionBar extends StatelessWidget {
             final useSingleRow = constraints.maxWidth >= 664;
             if (useSingleRow) {
               return Row(
-                children: buttons.map((button) => Expanded(child: button)).toList(),
+                children: buttons
+                    .map((button) => Expanded(child: button))
+                    .toList(),
               );
             }
             final itemWidth = (constraints.maxWidth - 8) / 2;

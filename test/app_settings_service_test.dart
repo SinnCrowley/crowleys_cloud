@@ -12,9 +12,9 @@ void main() {
     final settings = AppSettingsService();
 
     expect(await settings.showHiddenFiles(), false);
-    expect(await settings.biometricLoginEnabled(), false);
+    expect(await settings.biometricLoginEnabled(), true);
     expect(await settings.downloadDirectoryPath(), null);
-    expect(await settings.tokenLifetime(), TokenLifetimeOption.everyOpen);
+    expect(await settings.tokenLifetime(), TokenLifetimeOption.oneMonth);
     expect(
       await settings.cacheMaxBytes(),
       CacheService.defaultThumbnailMaxBytes,

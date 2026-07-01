@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_item.dart';
+import 'package:crowleys_cloud/asset_size_cache.dart';
 import 'package:flutter/foundation.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
@@ -315,6 +316,7 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   Future<void> initialize() async {
+    await AssetSizeCache.load();
     await _loadSortPreferences();
     await reload();
   }
@@ -457,6 +459,15 @@ class FileBrowserController extends ChangeNotifier {
         ..clear()
         ..addAll(loaded);
       _sortFiles();
+
+      final needsSizeLoading = sortBy == SortBy.size &&
+          files.any((f) => f.isAsset && AssetSizeCache.getSize(f.asset!.id, f.modifiedDate) == null);
+
+      if (needsSizeLoading) {
+        await _startBackgroundSizeLoading(opId);
+      } else {
+        unawaited(_startBackgroundSizeLoading(opId));
+      }
     } catch (e) {
       if (opId != _operationId) return;
       error = e.toString();
@@ -485,6 +496,57 @@ class FileBrowserController extends ChangeNotifier {
 
   void _sortFiles() {
     files.sort(_compare);
+  }
+
+  Future<void> _startBackgroundSizeLoading(int opId) async {
+    final activeAssetIds = files.where((f) => f.isAsset).map((f) => f.asset!.id).toList();
+    AssetSizeCache.pruneOldEntries(activeIds: activeAssetIds);
+
+    final assetsToFetch = files
+        .where((f) => f.isAsset && AssetSizeCache.getSize(f.asset!.id, f.modifiedDate) == null)
+        .toList();
+
+    if (assetsToFetch.isEmpty) return;
+
+    // Load sizes in parallel with a limited concurrency (e.g., 8 at a time)
+    const concurrency = 8;
+    var index = 0;
+    var resolvedCount = 0;
+
+    Future<void> worker() async {
+      while (true) {
+        if (opId != _operationId) return;
+        
+        final currentIdx = index++;
+        if (currentIdx >= assetsToFetch.length) break;
+
+        final item = assetsToFetch[currentIdx];
+        final asset = item.asset!;
+        
+        try {
+          final file = await asset.originFile ?? await asset.file;
+          if (file != null) {
+            final size = await file.length();
+            AssetSizeCache.setSize(asset.id, size, item.modifiedDate);
+            resolvedCount++;
+            
+            // Re-sort and notify UI periodically (every 10 resolved items or on complete)
+            if (resolvedCount % 10 == 0 || resolvedCount == assetsToFetch.length) {
+              if (opId == _operationId) {
+                _sortFiles();
+                notifyListeners();
+              }
+            }
+          }
+        } catch (_) {
+          // Cache 0 on error to avoid endless retries
+          AssetSizeCache.setSize(asset.id, 0, item.modifiedDate);
+        }
+      }
+    }
+
+    final workers = List.generate(concurrency, (_) => worker());
+    await Future.wait(workers);
   }
 
   int _compare(FileItem a, FileItem b) {
@@ -522,6 +584,7 @@ class FileBrowserController extends ChangeNotifier {
           if (file != null && await file.exists()) {
             await file.delete();
           }
+          AssetSizeCache.remove(item.asset!.id);
         } else if (item.fsEntity != null) {
           if (item.fsEntity is Directory) {
             await item.fsEntity!.delete(recursive: true);

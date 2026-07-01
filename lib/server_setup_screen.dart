@@ -57,6 +57,41 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
     super.dispose();
   }
 
+  Map<String, String> _parseUrlInput(String input) {
+    var raw = input.trim();
+    if (raw.isEmpty) {
+      return {'baseUrl': '', 'port': ''};
+    }
+
+    String scheme = 'http';
+    if (raw.startsWith('https://')) {
+      scheme = 'https';
+      raw = raw.substring(8);
+    } else if (raw.startsWith('http://')) {
+      scheme = 'http';
+      raw = raw.substring(7);
+    }
+
+    String host = raw;
+    String port = '';
+    final colon = raw.indexOf(':');
+    if (colon != -1) {
+      host = raw.substring(0, colon);
+      port = raw.substring(colon + 1);
+    }
+
+    while (host.endsWith('/')) {
+      host = host.substring(0, host.length - 1);
+    }
+
+    final slash = port.indexOf('/');
+    if (slash != -1) {
+      port = port.substring(0, slash);
+    }
+
+    return {'baseUrl': '$scheme://$host', 'port': port};
+  }
+
   Future<void> _submit(AuthMode mode) async {
     final name = _nameController.text.trim();
     final url = _urlController.text.trim();
@@ -70,10 +105,15 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
       return;
     }
 
+    final parsed = _parseUrlInput(url);
+    final parsedBaseUrl = parsed['baseUrl']!;
+    final parsedPort = parsed['port']!;
+
     final profile = ServerProfile(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       displayName: name,
-      baseUrl: url,
+      baseUrl: parsedBaseUrl,
+      port: parsedPort.isNotEmpty ? parsedPort : null,
       authMode: mode.name,
       lastUsedAt: DateTime.now().toUtc(),
       syncPrefs: const {'syncOnWifiOnly': true, 'thumbnailPreload': true},

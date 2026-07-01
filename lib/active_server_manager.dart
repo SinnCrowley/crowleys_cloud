@@ -136,7 +136,7 @@ class ActiveServerManager extends ChangeNotifier {
 
     final check = await authService.checkSession(
       serverId: profile.id,
-      baseUrl: profile.baseUrl,
+      baseUrl: profile.connectionUrl,
     );
     switch (check.status) {
       case SessionCheckStatus.authorized:

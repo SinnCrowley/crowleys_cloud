@@ -60,6 +60,7 @@ class ServerBrowserController extends ChangeNotifier {
 
   Timer? _searchDebounce;
   int _opId = 0;
+  final Map<String, Future<File?>> _downloadsInFlight = {};
 
   String get currentPath => pathStack.last;
   bool get canNavigateBack => selectedType == 'all' && pathStack.length > 1;
@@ -273,16 +274,34 @@ class ServerBrowserController extends ChangeNotifier {
   }
 
   Future<File?> downloadTempForEdit(ServerFileItem item) async {
-    final uri = _apiUri(
-      '/files',
-    ).replace(queryParameters: {'scope': scope, 'path': item.path});
-    final response = await _authorizedGet(uri);
-    if (response.statusCode < 200 || response.statusCode >= 300) return null;
-
     final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/${item.name}');
-    await file.writeAsBytes(response.bodyBytes, flush: true);
-    return file;
+    final file = File('${tempDir.path}/${item.id ?? item.path.hashCode}_${item.name}');
+
+    if (await file.exists()) {
+      try {
+        if (await file.length() == item.size) {
+          return file;
+        }
+      } catch (_) {}
+    }
+
+    final cacheKey = '${item.id ?? item.path}';
+    return _downloadsInFlight.putIfAbsent(cacheKey, () async {
+      try {
+        final uri = _apiUri(
+          '/files',
+        ).replace(queryParameters: {'scope': scope, 'path': item.path});
+        final response = await _authorizedGet(uri);
+        if (response.statusCode < 200 || response.statusCode >= 300) return null;
+
+        await file.writeAsBytes(response.bodyBytes, flush: true);
+        return file;
+      } catch (_) {
+        return null;
+      } finally {
+        _downloadsInFlight.remove(cacheKey);
+      }
+    });
   }
 
   Uri resolveThumbnailUrl(ServerFileItem item, {int size = 256}) {
@@ -355,11 +374,21 @@ class ServerBrowserController extends ChangeNotifier {
       return;
     }
     final downloaded = plans.length - failed.length;
+    final displayPath = _formatDisplayPath(downloadRoot.path);
     operationMessage = failed.isEmpty
-        ? 'Downloaded $downloaded file(s) to ${downloadRoot.path}'
+        ? 'Downloaded $downloaded file(s) to $displayPath'
         : 'Downloaded $downloaded file(s), failed ${failed.length}: ${failed.first}';
     selectedFiles.clear();
     notifyListeners();
+  }
+
+  String _formatDisplayPath(String path) {
+    const androidPrefix = '/storage/emulated/0';
+    if (path.startsWith(androidPrefix)) {
+      final sub = path.substring(androidPrefix.length);
+      return sub.isEmpty ? 'Internal Storage' : sub;
+    }
+    return path;
   }
 
   Future<void> deleteSelectedFiles() async {
@@ -445,10 +474,7 @@ class ServerBrowserController extends ChangeNotifier {
       }
     }
 
-    await _invalidateDirectory(
-      scope: 'shared',
-      path: '',
-    );
+    await _invalidateDirectory(scope: 'shared', path: '');
 
     operationMessage = failed == 0
         ? 'Shared $shared item(s) in server.'
@@ -607,7 +633,7 @@ class ServerBrowserController extends ChangeNotifier {
   }
 
   Uri _baseUri(String path) {
-    final raw = profile.baseUrl.trim();
+    final raw = profile.connectionUrl.trim();
     final withScheme = raw.contains('://') ? raw : 'http://$raw';
     final base = Uri.parse(withScheme);
     final basePath = base.path.isEmpty
@@ -619,7 +645,7 @@ class ServerBrowserController extends ChangeNotifier {
   }
 
   Uri _apiUri(String endpointPath) {
-    final raw = profile.baseUrl.trim();
+    final raw = profile.connectionUrl.trim();
     final withScheme = raw.contains('://') ? raw : 'http://$raw';
     final base = Uri.parse(withScheme);
 
@@ -803,7 +829,6 @@ class ServerBrowserController extends ChangeNotifier {
     return allOk;
   }
 
-
   Future<bool> _copyItemWithinScope({
     required ServerFileItem item,
     required String sourceScope,
@@ -860,7 +885,7 @@ class ServerBrowserController extends ChangeNotifier {
       return Uri.parse(trimmed);
     }
     if (trimmed.startsWith('/')) {
-      final raw = profile.baseUrl.trim();
+      final raw = profile.connectionUrl.trim();
       final withScheme = raw.contains('://') ? raw : 'http://$raw';
       final base = Uri.parse(withScheme);
       var prefix = base.path;
@@ -885,7 +910,7 @@ class ServerBrowserController extends ChangeNotifier {
     try {
       await authService.refreshSession(
         serverId: serverId,
-        baseUrl: profile.baseUrl,
+        baseUrl: profile.connectionUrl,
       );
       token = await authService.readAccessToken(serverId);
       if (token == null || token.isEmpty) return response;
@@ -909,7 +934,7 @@ class ServerBrowserController extends ChangeNotifier {
     try {
       await authService.refreshSession(
         serverId: serverId,
-        baseUrl: profile.baseUrl,
+        baseUrl: profile.connectionUrl,
       );
       token = await authService.readAccessToken(serverId);
       if (token == null || token.isEmpty) return response;
@@ -937,7 +962,7 @@ class ServerBrowserController extends ChangeNotifier {
     try {
       await authService.refreshSession(
         serverId: serverId,
-        baseUrl: profile.baseUrl,
+        baseUrl: profile.connectionUrl,
       );
       token = await authService.readAccessToken(serverId);
       if (token == null || token.isEmpty) return response;
@@ -969,7 +994,7 @@ class ServerBrowserController extends ChangeNotifier {
     try {
       await authService.refreshSession(
         serverId: serverId,
-        baseUrl: profile.baseUrl,
+        baseUrl: profile.connectionUrl,
       );
       token = await authService.readAccessToken(serverId);
       if (token == null || token.isEmpty) return response;
@@ -1005,7 +1030,7 @@ class ServerBrowserController extends ChangeNotifier {
     try {
       await authService.refreshSession(
         serverId: serverId,
-        baseUrl: profile.baseUrl,
+        baseUrl: profile.connectionUrl,
       );
       token = await authService.readAccessToken(serverId);
       if (token == null || token.isEmpty) return response;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:crowleys_cloud/file_item.dart';
@@ -11,6 +12,8 @@ class ImageViewer extends StatefulWidget {
   final int initialIndex;
   final Future<void> Function(FileItem item)? onUploadItem;
   final Future<void> Function(FileItem item)? onAddToFolderItem;
+  final Future<File?> Function(FileItem item)? onFetchRemoteFile;
+  final Widget Function(FileItem item)? thumbnailPlaceholderBuilder;
 
   const ImageViewer({
     super.key,
@@ -18,6 +21,8 @@ class ImageViewer extends StatefulWidget {
     required this.initialIndex,
     this.onUploadItem,
     this.onAddToFolderItem,
+    this.onFetchRemoteFile,
+    this.thumbnailPlaceholderBuilder,
   });
 
   @override
@@ -65,6 +70,10 @@ class _ImageViewerState extends State<ImageViewer>
             ),
             context,
           );
+        } else if (item.isRemote) {
+          if (widget.onFetchRemoteFile != null) {
+            unawaited(widget.onFetchRemoteFile!(item));
+          }
         } else {
           precacheImage(FileImage(File(item.pathSync)), context);
         }
@@ -215,11 +224,17 @@ class _ImageViewerState extends State<ImageViewer>
                                     fit: BoxFit.contain,
                                     gaplessPlayback: true,
                                   )
-                                : Image.file(
-                                    File(item.pathSync),
-                                    fit: BoxFit.contain,
-                                    gaplessPlayback: true,
-                                  ),
+                                : item.isRemote
+                                    ? _RemoteImageView(
+                                        item: item,
+                                        onFetch: widget.onFetchRemoteFile,
+                                        placeholder: widget.thumbnailPlaceholderBuilder?.call(item),
+                                      )
+                                    : Image.file(
+                                        File(item.pathSync),
+                                        fit: BoxFit.contain,
+                                        gaplessPlayback: true,
+                                      ),
                           ),
                         ),
                       );
@@ -349,6 +364,118 @@ class _ActionButton extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RemoteImageView extends StatefulWidget {
+  final FileItem item;
+  final Future<File?> Function(FileItem item)? onFetch;
+  final Widget? placeholder;
+
+  const _RemoteImageView({
+    required this.item,
+    required this.onFetch,
+    this.placeholder,
+  });
+
+  @override
+  State<_RemoteImageView> createState() => _RemoteImageViewState();
+}
+
+class _RemoteImageViewState extends State<_RemoteImageView> {
+  File? _file;
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RemoteImageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item != widget.item) {
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    final existingPath = widget.item.pathSync;
+    if (existingPath.isNotEmpty && existingPath.startsWith('/')) {
+      final existingFile = File(existingPath);
+      if (await existingFile.exists()) {
+        if (mounted) {
+          setState(() {
+            _file = existingFile;
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+    }
+
+    if (widget.onFetch == null) {
+      if (mounted) {
+        setState(() {
+          _error = "No fetch handler configured";
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
+
+    try {
+      final file = await widget.onFetch!(widget.item);
+      if (file != null) {
+        widget.item.cachedPath = file.path;
+      }
+      if (mounted) {
+        setState(() {
+          _file = file;
+          _isLoading = false;
+          if (file == null) {
+            _error = "Failed to load image";
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = e.toString();
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_file != null) {
+      return Image.file(
+        _file!,
+        fit: BoxFit.contain,
+        gaplessPlayback: true,
+      );
+    }
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        if (widget.placeholder != null) widget.placeholder!,
+        if (_isLoading)
+          const CircularProgressIndicator(color: Colors.white)
+        else if (_error != null)
+          Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+      ],
     );
   }
 }

@@ -33,7 +33,7 @@ class AppSettingsService {
     final prefs = await _store;
     return prefs.getBool(biometricLoginEnabledKey) ??
         prefs.getBool(_legacyRequireBiometricOnLaunchKey) ??
-        false;
+        true;
   }
 
   Future<void> setBiometricLoginEnabled(bool value) async {
@@ -189,7 +189,7 @@ class TokenLifetimeOption {
   static TokenLifetimeOption byId(String? id) {
     return values.firstWhere(
       (option) => option.id == id,
-      orElse: () => everyOpen,
+      orElse: () => oneMonth,
     );
   }
 }

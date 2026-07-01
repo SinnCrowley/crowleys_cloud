@@ -443,7 +443,7 @@ class HttpSyncApiClient implements SyncApiClient {
     required String remotePath,
   }) async {
     final uri = _apiUri(
-      server.baseUrl,
+      server.connectionUrl,
       '/api/folders',
     ).replace(queryParameters: {'scope': 'private', 'path': remotePath});
     final response = await _authorizedRequest(
@@ -464,7 +464,7 @@ class HttpSyncApiClient implements SyncApiClient {
     required String remotePath,
   }) async {
     final uri = _apiUri(
-      server.baseUrl,
+      server.connectionUrl,
       '/api/files',
     ).replace(queryParameters: {'scope': 'private', 'path': remotePath});
     final response = await _authorizedRequest(
@@ -482,7 +482,7 @@ class HttpSyncApiClient implements SyncApiClient {
   }) async {
     if (hashes.isEmpty) return const {};
     final uri = _apiUri(
-      server.baseUrl,
+      server.connectionUrl,
       '/api/files/check-hashes',
     ).replace(queryParameters: {'scope': 'private'});
     final response = await _authorizedRequest(
@@ -514,7 +514,7 @@ class HttpSyncApiClient implements SyncApiClient {
     required File file,
   }) async {
     final uri = _apiUri(
-      server.baseUrl,
+      server.connectionUrl,
       '/api/files',
     ).replace(queryParameters: {'scope': 'private', 'path': remotePath});
     final response = await _authorizedStreamRequest(
@@ -552,7 +552,7 @@ class HttpSyncApiClient implements SyncApiClient {
     if (response.statusCode != 401) return response;
     await authService.refreshSession(
       serverId: server.id,
-      baseUrl: server.baseUrl,
+      baseUrl: server.connectionUrl,
     );
     token = await authService.readAccessToken(server.id);
     if (token == null || token.isEmpty) {
@@ -574,7 +574,7 @@ class HttpSyncApiClient implements SyncApiClient {
     await response.stream.drain<void>();
     await authService.refreshSession(
       serverId: server.id,
-      baseUrl: server.baseUrl,
+      baseUrl: server.connectionUrl,
     );
     token = await authService.readAccessToken(server.id);
     if (token == null || token.isEmpty) {
@@ -666,11 +666,12 @@ class SyncService {
           candidate.remotePath,
         );
         bool isAlreadySynced = false;
-        // Check if file is already matched by local path + size + modified date, 
+        // Check if file is already matched by local path + size + modified date,
         // and verify it still exists on the server (using its stored remote path, which might be different).
         if (existing != null &&
             existing.sizeBytes == stat.size &&
-            existing.modifiedAtMillis == stat.modified.toUtc().millisecondsSinceEpoch) {
+            existing.modifiedAtMillis ==
+                stat.modified.toUtc().millisecondsSinceEpoch) {
           try {
             if (await apiClient.fileExists(
               server: server,

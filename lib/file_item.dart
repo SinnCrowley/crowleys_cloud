@@ -1,24 +1,35 @@
 import 'dart:io';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:path/path.dart' as p;
+import 'package:crowleys_cloud/asset_size_cache.dart';
+import 'package:crowleys_cloud/server_file_item.dart';
 
 class FileItem {
   final AssetEntity? asset;
   final FileSystemEntity? fsEntity;
+  final ServerFileItem? serverFile;
   final String _identity;
   String? _cachedPath;
 
   FileItem.fromAsset(AssetEntity this.asset)
     : fsEntity = null,
+      serverFile = null,
       _identity = asset.id;
   FileItem.fromEntity(FileSystemEntity this.fsEntity)
     : asset = null,
+      serverFile = null,
       _identity = fsEntity.path;
+  FileItem.fromServer(ServerFileItem this.serverFile)
+    : asset = null,
+      fsEntity = null,
+      _identity = serverFile.path;
 
-  bool get isDirectory => fsEntity is Directory;
+  bool get isDirectory => serverFile?.isDir ?? fsEntity is Directory;
   bool get isAsset => asset != null;
+  bool get isRemote => serverFile != null;
 
   String get name {
+    if (serverFile != null) return serverFile!.name;
     if (asset != null) return asset!.title ?? asset!.id;
     return p.basename(fsEntity!.path);
   }
@@ -26,28 +37,44 @@ class FileItem {
   Future<String> get path async {
     if (_cachedPath != null) return _cachedPath!;
     if (fsEntity != null) return _cachedPath = fsEntity!.path;
+    if (serverFile != null) return _cachedPath ?? '';
     final file = await asset!.originFile;
     return _cachedPath = file?.path ?? '';
   }
 
+  // Setter to cache the path once downloaded
+  set cachedPath(String newPath) {
+    _cachedPath = newPath;
+  }
+
   String get pathSync {
     if (_cachedPath != null) return _cachedPath!;
+    if (serverFile != null) return serverFile!.path;
     if (fsEntity != null) return fsEntity!.path;
     return asset!.id;
   }
 
   DateTime get modifiedDate {
+    if (serverFile != null) return serverFile!.modifiedAt;
     if (asset != null) return asset!.modifiedDateTime;
     final stat = fsEntity?.statSync();
     return stat?.modified ?? DateTime(0);
   }
 
   int get size {
-    if (fsEntity != null) return fsEntity!.statSync().size;
-    return 0; // для asset размер недоступен без originFile
+    if (serverFile != null) return serverFile!.size;
+    if (fsEntity != null) {
+      try {
+        return fsEntity!.statSync().size;
+      } catch (_) {
+        return 0;
+      }
+    }
+    return AssetSizeCache.getSize(_identity, modifiedDate) ?? 0;
   }
 
   String get type {
+    if (serverFile != null) return serverFile!.extension;
     if (fsEntity != null) return p.extension(fsEntity!.path).toLowerCase();
     final title = asset?.title ?? '';
     return p.extension(title).toLowerCase();

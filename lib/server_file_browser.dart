@@ -11,6 +11,8 @@ import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 
+import 'package:crowleys_cloud/smart_thumbnail.dart';
+
 class ServerFileBrowser extends StatefulWidget {
   const ServerFileBrowser({
     super.key,
@@ -38,20 +40,19 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
       await controller.navigateInto(item);
       return;
     }
+    await _openFile(item);
+  }
 
+  Future<void> _openFile(ServerFileItem item) async {
     if (_isPhoto(item)) {
-      await _openPhotoViewer(item);
-      return;
-    }
-
-    if (_isText(item)) {
+      await _openImageViewer(item);
+    } else if (_isText(item)) {
       await _openTextViewer(item);
-      return;
-    }
-
-    final temp = await controller.downloadTempForEdit(item);
-    if (temp != null) {
-      await OpenFile.open(temp.path);
+    } else {
+      final temp = await controller.downloadTempForEdit(item);
+      if (temp != null) {
+        await OpenFile.open(temp.path);
+      }
     }
   }
 
@@ -64,24 +65,15 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     return item.mimeType.startsWith('text/');
   }
 
-  Future<void> _openPhotoViewer(ServerFileItem item) async {
+  Future<void> _openImageViewer(ServerFileItem item) async {
     final photoServerItems = controller.files
         .where((entry) => !entry.isDir && _isPhoto(entry))
         .toList(growable: false);
     if (photoServerItems.isEmpty) return;
 
-    final tempToServerItem = <String, ServerFileItem>{};
-    final imageItems = <FileItem>[];
-    for (final photoItem in photoServerItems) {
-      final temp = await controller.downloadTempForEdit(photoItem);
-      if (temp == null) continue;
-      imageItems.add(FileItem.fromEntity(temp));
-      tempToServerItem[temp.path] = photoItem;
-    }
-    if (imageItems.isEmpty || !mounted) return;
-
+    final imageItems = photoServerItems.map(FileItem.fromServer).toList();
     var initialIndex = imageItems.indexWhere(
-      (imageItem) => tempToServerItem[imageItem.pathSync]?.path == item.path,
+      (imageItem) => imageItem.serverFile?.path == item.path,
     );
     if (initialIndex < 0) initialIndex = 0;
 
@@ -91,9 +83,20 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
         builder: (context) => ImageViewer(
           imageItems: imageItems,
           initialIndex: initialIndex,
+          onFetchRemoteFile: (fileItem) async {
+            final serverItem = fileItem.serverFile;
+            if (serverItem == null) return null;
+            return controller.downloadTempForEdit(serverItem);
+          },
+          thumbnailPlaceholderBuilder: (fileItem) {
+            return SizedBox(
+              width: 150,
+              height: 150,
+              child: SmartThumbnail(item: fileItem),
+            );
+          },
           onAddToFolderItem: (selectedImageItem) async {
-            final selectedServerItem =
-                tempToServerItem[selectedImageItem.pathSync];
+            final selectedServerItem = selectedImageItem.serverFile;
             if (selectedServerItem == null) return;
             controller.clearSelection();
             controller.toggleSelection(selectedServerItem);
