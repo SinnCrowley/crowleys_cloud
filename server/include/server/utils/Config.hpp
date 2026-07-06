@@ -20,6 +20,8 @@ struct Config {
   bool videoThumbsEnabled{true};
   std::string ffmpegBinary{"ffmpeg"};
   int logRetentionDays{0};
+  bool hashFiles{false};
+  std::string encryptionKey{""};
 };
 
 Config loadConfig(const std::string &path);

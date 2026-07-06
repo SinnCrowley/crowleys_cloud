@@ -31,6 +31,8 @@ Config loadConfig(const std::string &path) {
   cfg.videoThumbsEnabled = json.get("video_thumbs_enabled", cfg.videoThumbsEnabled).asBool();
   cfg.ffmpegBinary = json.get("ffmpeg_binary", cfg.ffmpegBinary).asString();
   cfg.logRetentionDays = json.get("log_retention_days", cfg.logRetentionDays).asInt();
+  cfg.hashFiles = json.get("hash_files", cfg.hashFiles).asBool();
+  cfg.encryptionKey = json.get("encryption_key", cfg.encryptionKey).asString();
   return cfg;
 }
 

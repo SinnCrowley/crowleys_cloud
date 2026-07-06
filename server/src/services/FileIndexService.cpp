@@ -51,7 +51,6 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
                                   const std::string &thumbnailPath) {
   const auto normalizedRel = normalizeRelPath(relPath);
   if (normalizedRel.empty()) return;
-  const auto normalizedParent = normalizeRelPath(std::filesystem::path(normalizedRel).parent_path().generic_string());
 
   const auto fileName = absolutePath.filename().string();
   const auto size = static_cast<std::int64_t>(std::filesystem::file_size(absolutePath));
@@ -60,7 +59,6 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
                          .count();
   const auto type = fileService_.classifyType(absolutePath);
   const auto mimeType = fileService_.mimeTypeFor(absolutePath);
-  const auto now = nowMillis();
 
   std::string sha256Val;
   try {
@@ -68,6 +66,25 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
   } catch (...) {
     sha256Val = "";
   }
+
+  upsertFileExplicit(ownerUserId, scope, relPath, fileName, size, mtime, type, mimeType, uploaderUserId, sha256Val, thumbnailPath);
+}
+
+void FileIndexService::upsertFileExplicit(std::int64_t ownerUserId,
+                                          StorageScope scope,
+                                          const std::string &relPath,
+                                          const std::string &fileName,
+                                          std::int64_t size,
+                                          std::int64_t modifiedAt,
+                                          const std::string &type,
+                                          const std::string &mimeType,
+                                          std::int64_t uploaderUserId,
+                                          const std::string &sha256Val,
+                                          const std::string &thumbnailPath) {
+  const auto normalizedRel = normalizeRelPath(relPath);
+  if (normalizedRel.empty()) return;
+  const auto normalizedParent = normalizeRelPath(std::filesystem::path(normalizedRel).parent_path().generic_string());
+  const auto now = nowMillis();
 
   bool isShared = (scope == StorageScope::Private && isAncestorShared(ownerUserId, normalizedRel));
 
@@ -92,7 +109,7 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
   sqlite3_bind_text(stmt, 6, type.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_text(stmt, 7, mimeType.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_int64(stmt, 8, size);
-  sqlite3_bind_int64(stmt, 9, mtime);
+  sqlite3_bind_int64(stmt, 9, modifiedAt);
   sqlite3_bind_int64(stmt, 10, now);
   sqlite3_bind_text(stmt, 11, thumbnailPath.c_str(), -1, SQLITE_TRANSIENT);
   if (thumbnailPath.empty()) {

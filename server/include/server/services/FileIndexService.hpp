@@ -44,6 +44,17 @@ class FileIndexService {
                   const std::filesystem::path &absolutePath,
                   std::int64_t uploaderUserId,
                   const std::string &thumbnailPath = "");
+  void upsertFileExplicit(std::int64_t ownerUserId,
+                          StorageScope scope,
+                          const std::string &relPath,
+                          const std::string &fileName,
+                          std::int64_t size,
+                          std::int64_t modifiedAt,
+                          const std::string &type,
+                          const std::string &mimeType,
+                          std::int64_t uploaderUserId,
+                          const std::string &sha256Val,
+                          const std::string &thumbnailPath = "");
   void markDeleted(std::int64_t ownerUserId, StorageScope scope, const std::string &relPath);
   void markDeletedPrefix(std::int64_t ownerUserId, StorageScope scope, const std::string &relPrefix);
 

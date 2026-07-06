@@ -12,5 +12,7 @@
   "access_log_enabled": true,
   "video_thumbs_enabled": true,
   "ffmpeg_binary": "ffmpeg",
-  "log_retention_days": 30
+  "log_retention_days": 30,
+  "hash_files": true,
+  "encryption_key": "default-local-encryption-key-for-testing"
 }

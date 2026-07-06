@@ -1,6 +1,7 @@
 #include "server/controllers/FileController.hpp"
 
 #include "server/AppContext.hpp"
+#include "server/utils/Crypto.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -75,10 +76,31 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
     const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
 
     if (*scope != services::StorageScope::Shared) {
-      const auto fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, false);
-      if (!std::filesystem::exists(fullPath) || !std::filesystem::is_directory(fullPath)) {
-        callback(jsonError(drogon::k404NotFound, "Directory not found"));
-        return;
+      if (server::ctx().config.hashFiles) {
+        if (!relPrefix.empty()) {
+          sqlite3_stmt *stmt = nullptr;
+          const char *sql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND is_deleted = 0 LIMIT 1";
+          sqlite3_prepare_v2(server::ctx().database->raw(), sql, -1, &stmt, nullptr);
+          sqlite3_bind_int64(stmt, 1, ownerUserId);
+          const auto scopeStr = services::FileIndexService::scopeToString(*scope);
+          sqlite3_bind_text(stmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_text(stmt, 3, relPrefix.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_text(stmt, 4, relPrefix.c_str(), -1, SQLITE_TRANSIENT);
+          const auto pattern = relPrefix + "/%";
+          sqlite3_bind_text(stmt, 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
+          bool exists = (sqlite3_step(stmt) == SQLITE_ROW);
+          sqlite3_finalize(stmt);
+          if (!exists) {
+            callback(jsonError(drogon::k404NotFound, "Directory not found"));
+            return;
+          }
+        }
+      } else {
+        const auto fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, false);
+        if (!std::filesystem::exists(fullPath) || !std::filesystem::is_directory(fullPath)) {
+          callback(jsonError(drogon::k404NotFound, "Directory not found"));
+          return;
+        }
       }
     }
 
@@ -94,7 +116,7 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
         .recursiveFiles = typedView || recursiveSearch,
     });
 
-    if (entries.empty() && *scope != services::StorageScope::Shared) {
+    if (entries.empty() && *scope != services::StorageScope::Shared && !server::ctx().config.hashFiles) {
       const auto fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, false);
       if (typedView || recursiveSearch) {
         const auto scopeRoot = server::ctx().fileService->resolvePath(userId, role, *scope, "", false);
@@ -130,7 +152,7 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
           dirEntries[entry.path] = entry;
         }
       }
-      if (*scope != services::StorageScope::Shared) {
+      if (*scope != services::StorageScope::Shared && !server::ctx().config.hashFiles) {
         const auto fullPath = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, false);
         const auto fsEntries = server::ctx().fileService->listDirectory(fullPath);
         for (const auto &fsEntry : fsEntries) {
@@ -216,12 +238,14 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
   try {
     std::filesystem::path source;
     std::int64_t cacheUserId = userId;
+    std::string sha256Val;
+    const bool hashFiles = server::ctx().config.hashFiles;
 
     const auto trashIdStr = req->getParameter("trash_id");
     if (!trashIdStr.empty()) {
       std::int64_t trashId = std::stoll(trashIdStr);
       sqlite3_stmt *stmt = nullptr;
-      sqlite3_prepare_v2(server::ctx().database->raw(), "SELECT owner_user_id FROM trash WHERE id = ?", -1, &stmt, nullptr);
+      sqlite3_prepare_v2(server::ctx().database->raw(), "SELECT owner_user_id, original_path FROM trash WHERE id = ?", -1, &stmt, nullptr);
       sqlite3_bind_int64(stmt, 1, trashId);
       if (sqlite3_step(stmt) != SQLITE_ROW) {
         sqlite3_finalize(stmt);
@@ -229,12 +253,27 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         return;
       }
       std::int64_t ownerId = sqlite3_column_int64(stmt, 0);
+      std::string origPath = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
       sqlite3_finalize(stmt);
       if (ownerId != userId) {
         callback(jsonError(drogon::k403Forbidden, "Forbidden"));
         return;
       }
-      source = std::filesystem::path(server::ctx().config.storageRoot) / "trash" / std::to_string(userId) / std::to_string(trashId);
+
+      if (hashFiles) {
+        sqlite3_stmt *idxStmt = nullptr;
+        sqlite3_prepare_v2(server::ctx().database->raw(), "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND rel_path = ? AND is_deleted = 1 LIMIT 1", -1, &idxStmt, nullptr);
+        sqlite3_bind_int64(idxStmt, 1, userId);
+        sqlite3_bind_text(idxStmt, 2, origPath.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(idxStmt) == SQLITE_ROW) {
+          const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
+          if (shaValRaw) sha256Val = shaValRaw;
+        }
+        sqlite3_finalize(idxStmt);
+        source = std::filesystem::path(server::ctx().config.storageRoot) / "data" / sha256Val;
+      } else {
+        source = std::filesystem::path(server::ctx().config.storageRoot) / "trash" / std::to_string(userId) / std::to_string(trashId);
+      }
       cacheUserId = userId;
     } else {
       const auto scope = services::parseScope(req->getParameter("scope"));
@@ -243,17 +282,38 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         return;
       }
       const auto rawPath = req->getParameter("path");
+
+      std::int64_t fileOwnerId = userId;
       if (*scope == services::StorageScope::Shared) {
         auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(rawPath);
         if (!ownerId.has_value()) {
           callback(jsonError(drogon::k404NotFound, "File not found"));
           return;
         }
-        source = server::ctx().fileService->resolvePath(*ownerId, role, services::StorageScope::Private, rawPath, false);
-        cacheUserId = *ownerId;
-      } else {
-        source = server::ctx().fileService->resolvePath(userId, role, *scope, rawPath, false);
+        fileOwnerId = *ownerId;
       }
+
+      if (hashFiles) {
+        sqlite3_stmt *idxStmt = nullptr;
+        sqlite3_prepare_v2(server::ctx().database->raw(), "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1", -1, &idxStmt, nullptr);
+        sqlite3_bind_int64(idxStmt, 1, fileOwnerId);
+        const auto scopeStr = services::FileIndexService::scopeToString(*scope);
+        sqlite3_bind_text(idxStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(idxStmt, 3, rawPath.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(idxStmt) == SQLITE_ROW) {
+          const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
+          if (shaValRaw) sha256Val = shaValRaw;
+        }
+        sqlite3_finalize(idxStmt);
+        source = std::filesystem::path(server::ctx().config.storageRoot) / "data" / sha256Val;
+      } else {
+        if (*scope == services::StorageScope::Shared) {
+          source = server::ctx().fileService->resolvePath(fileOwnerId, role, services::StorageScope::Private, rawPath, false);
+        } else {
+          source = server::ctx().fileService->resolvePath(userId, role, *scope, rawPath, false);
+        }
+      }
+      cacheUserId = fileOwnerId;
     }
 
     if (!std::filesystem::exists(source) || std::filesystem::is_directory(source)) {
@@ -282,23 +342,50 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     {
       std::lock_guard<std::mutex> lock(thumbMutex);
       if (thumbInFlight.insert(key).second) {
-        std::thread([source, thumbPath, key, thumbSize, fileType]() {
+        std::thread([source, thumbPath, key, thumbSize, fileType, hashFiles]() {
+          std::filesystem::path actualSource = source;
+          std::filesystem::path decryptedTmp;
+
+          if (hashFiles) {
+            try {
+              std::ifstream in(source, std::ios::binary);
+              if (in) {
+                std::string cipherText((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+                in.close();
+
+                std::string plainText = utils::decryptAes256(cipherText, server::ctx().config.encryptionKey);
+                decryptedTmp = thumbPath.string() + ".dec.tmp";
+                std::ofstream out(decryptedTmp, std::ios::binary | std::ios::trunc);
+                out.write(plainText.data(), plainText.size());
+                out.close();
+                actualSource = decryptedTmp;
+              }
+            } catch (...) {
+            }
+          }
+
           try {
             if (fileType == "video" && server::ctx().config.videoThumbsEnabled) {
               const auto cmd =
                   shellQuote(server::ctx().config.ffmpegBinary) +
                   " -hide_banner -loglevel error -y -ss 00:00:01 -i " +
-                  shellQuote(source.string()) +
+                  shellQuote(actualSource.string()) +
                   " -frames:v 1 -vf " +
                   shellQuote("scale=" + std::to_string(thumbSize) + ":-1:force_original_aspect_ratio=decrease") +
                   " " + shellQuote(thumbPath.string());
               std::system(cmd.c_str());
             } else {
               std::filesystem::copy_file(
-                  source, thumbPath, std::filesystem::copy_options::overwrite_existing);
+                  actualSource, thumbPath, std::filesystem::copy_options::overwrite_existing);
             }
           } catch (...) {
           }
+
+          if (!decryptedTmp.empty()) {
+            std::error_code ec;
+            std::filesystem::remove(decryptedTmp, ec);
+          }
+
           std::lock_guard<std::mutex> lock(thumbMutex);
           thumbInFlight.erase(key);
         }).detach();
@@ -323,8 +410,114 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
   }
 
   try {
-    std::filesystem::path fullPath;
     const auto trashIdStr = req->getParameter("trash_id");
+    const bool hashFiles = server::ctx().config.hashFiles;
+
+    if (hashFiles) {
+      std::string sha256Val;
+      std::string fileName;
+      std::string mimeType = "application/octet-stream";
+
+      if (!trashIdStr.empty()) {
+        std::int64_t trashId = std::stoll(trashIdStr);
+        sqlite3_stmt *stmt = nullptr;
+        sqlite3_prepare_v2(server::ctx().database->raw(), "SELECT owner_user_id, original_path, name, mime_type FROM trash WHERE id = ?", -1, &stmt, nullptr);
+        sqlite3_bind_int64(stmt, 1, trashId);
+        if (sqlite3_step(stmt) != SQLITE_ROW) {
+          sqlite3_finalize(stmt);
+          callback(jsonError(drogon::k404NotFound, "Trash item not found"));
+          return;
+        }
+        std::int64_t ownerId = sqlite3_column_int64(stmt, 0);
+        std::string origPath = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+        fileName = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+        mimeType = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
+        sqlite3_finalize(stmt);
+
+        if (ownerId != userId) {
+          callback(jsonError(drogon::k403Forbidden, "Forbidden"));
+          return;
+        }
+
+        sqlite3_stmt *idxStmt = nullptr;
+        sqlite3_prepare_v2(server::ctx().database->raw(), "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND rel_path = ? AND is_deleted = 1 LIMIT 1", -1, &idxStmt, nullptr);
+        sqlite3_bind_int64(idxStmt, 1, userId);
+        sqlite3_bind_text(idxStmt, 2, origPath.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(idxStmt) == SQLITE_ROW) {
+          const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
+          if (shaValRaw) sha256Val = shaValRaw;
+        }
+        sqlite3_finalize(idxStmt);
+      } else {
+        const auto scope = services::parseScope(req->getParameter("scope"));
+        if (!scope.has_value()) {
+          callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+          return;
+        }
+        const auto pathParam = req->getParameter("path");
+
+        std::int64_t fileOwnerId = userId;
+        if (*scope == services::StorageScope::Shared) {
+          auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(pathParam);
+          if (!ownerId.has_value()) {
+            callback(jsonError(drogon::k404NotFound, "File not found"));
+            return;
+          }
+          fileOwnerId = *ownerId;
+        }
+
+        sqlite3_stmt *stmt = nullptr;
+        const char *sql = "SELECT sha256, mime_type, name FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1";
+        sqlite3_prepare_v2(server::ctx().database->raw(), sql, -1, &stmt, nullptr);
+        sqlite3_bind_int64(stmt, 1, fileOwnerId);
+        const auto scopeStr = services::FileIndexService::scopeToString(*scope);
+        sqlite3_bind_text(stmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 3, pathParam.c_str(), -1, SQLITE_TRANSIENT);
+
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+          const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+          if (shaValRaw) sha256Val = shaValRaw;
+          const auto mimeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+          if (mimeRaw) mimeType = mimeRaw;
+          const auto nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+          if (nameRaw) fileName = nameRaw;
+        }
+        sqlite3_finalize(stmt);
+      }
+
+      if (sha256Val.empty()) {
+        callback(jsonError(drogon::k404NotFound, "File not found"));
+        return;
+      }
+
+      const auto physicalPath = std::filesystem::path(server::ctx().config.storageRoot) / "data" / sha256Val;
+      if (!std::filesystem::exists(physicalPath)) {
+        callback(jsonError(drogon::k404NotFound, "Physical file not found"));
+        return;
+      }
+
+      std::ifstream in(physicalPath, std::ios::binary);
+      if (!in) {
+        callback(jsonError(drogon::k500InternalServerError, "Failed to read physical file"));
+        return;
+      }
+      std::string cipherText((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+      in.close();
+
+      try {
+        std::string plainText = utils::decryptAes256(cipherText, server::ctx().config.encryptionKey);
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setBody(std::move(plainText));
+        resp->setContentTypeCode(drogon::CT_APPLICATION_OCTET_STREAM);
+        resp->addHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+        callback(resp);
+      } catch (const std::exception &e) {
+        callback(jsonError(drogon::k500InternalServerError, std::string("Decryption error: ") + e.what()));
+      }
+      return;
+    }
+
+    std::filesystem::path fullPath;
     if (!trashIdStr.empty()) {
       std::int64_t trashId = std::stoll(trashIdStr);
       sqlite3_stmt *stmt = nullptr;
@@ -393,23 +586,54 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
   }
 
   try {
-    const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
-    std::filesystem::create_directories(target.parent_path());
-    const auto tmp = target.string() + ".tmp";
+    const bool hashFiles = server::ctx().config.hashFiles;
+    if (hashFiles) {
+      std::string plainData(req->bodyData(), req->bodyLength());
+      std::string plainSha256 = utils::sha256Hex(plainData);
+      std::string cipherText = utils::encryptAes256(plainData, server::ctx().config.encryptionKey);
 
-    std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
-    out.write(req->bodyData(), static_cast<std::streamsize>(req->bodyLength()));
-    out.close();
+      const auto dataDir = std::filesystem::path(server::ctx().config.storageRoot) / "data";
+      std::filesystem::create_directories(dataDir);
+      const auto physicalPath = dataDir / plainSha256;
 
-    std::filesystem::rename(tmp, target);
-    const auto relPath = std::filesystem::path(req->getParameter("path"))
-                             .lexically_normal()
-                             .relative_path()
-                             .generic_string();
-    const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-    const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
-    server::ctx().fileIndexService->upsertFile(
-        ownerUserId, *scope, relPath, target, uploaderUserId);
+      std::ofstream out(physicalPath, std::ios::binary | std::ios::trunc);
+      out.write(cipherText.data(), cipherText.size());
+      out.close();
+
+      const auto relPath = std::filesystem::path(req->getParameter("path"))
+                               .lexically_normal()
+                               .relative_path()
+                               .generic_string();
+      const auto fileName = std::filesystem::path(relPath).filename().string();
+      const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::system_clock::now().time_since_epoch())
+                           .count();
+      const auto type = server::ctx().fileService->classifyType(fileName);
+      const auto mimeType = server::ctx().fileService->mimeTypeFor(fileName);
+      const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+      const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+
+      server::ctx().fileIndexService->upsertFileExplicit(
+          ownerUserId, *scope, relPath, fileName, req->bodyLength(), now, type, mimeType, uploaderUserId, plainSha256);
+    } else {
+      const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
+      std::filesystem::create_directories(target.parent_path());
+      const auto tmp = target.string() + ".tmp";
+
+      std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
+      out.write(req->bodyData(), static_cast<std::streamsize>(req->bodyLength()));
+      out.close();
+
+      std::filesystem::rename(tmp, target);
+      const auto relPath = std::filesystem::path(req->getParameter("path"))
+                               .lexically_normal()
+                               .relative_path()
+                               .generic_string();
+      const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+      const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+      server::ctx().fileIndexService->upsertFile(
+          ownerUserId, *scope, relPath, target, uploaderUserId);
+    }
 
     Json::Value body;
     body["ok"] = true;
@@ -513,8 +737,20 @@ void FileController::createFolder(const drogon::HttpRequestPtr &req,
   }
 
   try {
-    const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, true);
-    std::filesystem::create_directories(target);
+    if (server::ctx().config.hashFiles) {
+      const auto relPath = std::filesystem::path(pathRaw).lexically_normal().relative_path().generic_string();
+      const auto fileName = std::filesystem::path(relPath).filename().string();
+      const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::system_clock::now().time_since_epoch())
+                           .count();
+      const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+      const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+      server::ctx().fileIndexService->upsertFileExplicit(
+          ownerUserId, *scope, relPath, fileName, 0, now, "directory", "inode/directory", uploaderUserId, "");
+    } else {
+      const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, pathRaw, true);
+      std::filesystem::create_directories(target);
+    }
 
     Json::Value body;
     body["ok"] = true;
