@@ -312,7 +312,6 @@ class DeviceSyncFileScanner implements SyncFileScanner {
           final rel = p.relative(file.path, from: folder.path);
           final remotePath = p.posix.join(
             target,
-            'folders',
             folderName,
             p.split(rel).join('/'),
           );
@@ -544,6 +543,12 @@ class HttpSyncApiClient implements SyncApiClient {
     required ServerProfile server,
     required Future<http.Response> Function(String token) send,
   }) async {
+    final syncToken = await authService.readSyncToken(server.id);
+    if (syncToken != null && syncToken.isNotEmpty) {
+      final response = await send(syncToken);
+      if (response.statusCode != 401) return response;
+    }
+
     var token = await authService.readAccessToken(server.id);
     if (token == null || token.isEmpty) {
       throw const SyncException('Authentication required');
@@ -565,6 +570,13 @@ class HttpSyncApiClient implements SyncApiClient {
     required ServerProfile server,
     required Future<http.StreamedResponse> Function(String token) send,
   }) async {
+    final syncToken = await authService.readSyncToken(server.id);
+    if (syncToken != null && syncToken.isNotEmpty) {
+      final response = await send(syncToken);
+      if (response.statusCode != 401) return response;
+      await response.stream.drain<void>();
+    }
+
     var token = await authService.readAccessToken(server.id);
     if (token == null || token.isEmpty) {
       throw const SyncException('Authentication required');

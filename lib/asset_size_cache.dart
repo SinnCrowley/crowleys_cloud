@@ -10,10 +10,7 @@ class AssetCacheEntry {
 
   AssetCacheEntry({required this.size, required this.modifiedTimestamp});
 
-  Map<String, dynamic> toJson() => {
-        's': size,
-        'm': modifiedTimestamp,
-      };
+  Map<String, dynamic> toJson() => {'s': size, 'm': modifiedTimestamp};
 
   factory AssetCacheEntry.fromJson(Map<String, dynamic> json) {
     return AssetCacheEntry(
@@ -68,10 +65,15 @@ class AssetSizeCache {
   static void setSize(String assetId, int size, DateTime modifiedDate) {
     final newTimestamp = modifiedDate.millisecondsSinceEpoch;
     final entry = _cache[assetId];
-    if (entry != null && entry.size == size && entry.modifiedTimestamp == newTimestamp) {
+    if (entry != null &&
+        entry.size == size &&
+        entry.modifiedTimestamp == newTimestamp) {
       return;
     }
-    _cache[assetId] = AssetCacheEntry(size: size, modifiedTimestamp: newTimestamp);
+    _cache[assetId] = AssetCacheEntry(
+      size: size,
+      modifiedTimestamp: newTimestamp,
+    );
     _saveDebounced();
   }
 
@@ -100,7 +102,9 @@ class AssetSizeCache {
     _saveTimer = Timer(const Duration(seconds: 2), () async {
       if (_cacheFile == null) return;
       try {
-        final mapToSave = _cache.map((key, value) => MapEntry(key, value.toJson()));
+        final mapToSave = _cache.map(
+          (key, value) => MapEntry(key, value.toJson()),
+        );
         await _cacheFile!.writeAsString(jsonEncode(mapToSave));
       } catch (_) {}
     });

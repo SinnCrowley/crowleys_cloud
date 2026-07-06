@@ -229,7 +229,7 @@ void main() {
     final candidates = await scanner.scan(scanServer);
 
     expect(candidates.length, 1);
-    expect(candidates.single.remotePath, 'backup/device/folders/DCIM/same.jpg');
+    expect(candidates.single.remotePath, 'backup/device/DCIM/same.jpg');
   });
 
   test(

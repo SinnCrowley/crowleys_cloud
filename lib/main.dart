@@ -1333,8 +1333,6 @@ class _MainScreenState extends State<MainScreen> {
 
     _ensureServerController();
 
-
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {

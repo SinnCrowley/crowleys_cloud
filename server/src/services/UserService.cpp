@@ -86,6 +86,14 @@ std::string UserService::makeAccessToken(const UserRecord &user) const {
   return payload + "|" + sig;
 }
 
+std::string UserService::makeSyncToken(std::int64_t userId) const {
+  const auto now = nowSeconds();
+  const auto exp = now + 365 * 24 * 60 * 60; // 365 days
+  const auto payload = std::to_string(userId) + "|sync|" + std::to_string(exp);
+  const auto sig = utils::hmacSha256Hex(config_.jwtSecret, payload);
+  return payload + "|" + sig;
+}
+
 std::string UserService::makeRefreshToken() const {
   return utils::randomTokenHex();
 }

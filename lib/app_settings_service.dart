@@ -81,6 +81,12 @@ class AppSettingsService {
       return '/backup/${_sanitizeDeviceName(Platform.localHostname)}';
     }
 
+    final store = await _store;
+    final cached = store.getString('cached_default_backup_target_dir');
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+
     try {
       final deviceInfo = DeviceInfoPlugin();
       String name = 'device';
@@ -108,15 +114,15 @@ class AppSettingsService {
         final windowsInfo = await deviceInfo.windowsInfo;
         name = windowsInfo.computerName;
       } else if (Platform.isLinux) {
-        final linuxInfo = await deviceInfo.linuxInfo;
-        name = linuxInfo.name;
+        name = Platform.localHostname;
       } else {
         name = Platform.localHostname;
       }
-      final sanitized = _sanitizeDeviceName(name);
-      return '/backup/$sanitized';
+      final result = '/backup/${_sanitizeDeviceName(name)}';
+      await store.setString('cached_default_backup_target_dir', result);
+      return result;
     } catch (_) {
-      return '/backup/${_sanitizeDeviceName(Platform.localHostname)}';
+      return '/backup/device';
     }
   }
 

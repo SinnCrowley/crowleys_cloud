@@ -460,8 +460,13 @@ class FileBrowserController extends ChangeNotifier {
         ..addAll(loaded);
       _sortFiles();
 
-      final needsSizeLoading = sortBy == SortBy.size &&
-          files.any((f) => f.isAsset && AssetSizeCache.getSize(f.asset!.id, f.modifiedDate) == null);
+      final needsSizeLoading =
+          sortBy == SortBy.size &&
+          files.any(
+            (f) =>
+                f.isAsset &&
+                AssetSizeCache.getSize(f.asset!.id, f.modifiedDate) == null,
+          );
 
       if (needsSizeLoading) {
         await _startBackgroundSizeLoading(opId);
@@ -499,11 +504,18 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   Future<void> _startBackgroundSizeLoading(int opId) async {
-    final activeAssetIds = files.where((f) => f.isAsset).map((f) => f.asset!.id).toList();
+    final activeAssetIds = files
+        .where((f) => f.isAsset)
+        .map((f) => f.asset!.id)
+        .toList();
     AssetSizeCache.pruneOldEntries(activeIds: activeAssetIds);
 
     final assetsToFetch = files
-        .where((f) => f.isAsset && AssetSizeCache.getSize(f.asset!.id, f.modifiedDate) == null)
+        .where(
+          (f) =>
+              f.isAsset &&
+              AssetSizeCache.getSize(f.asset!.id, f.modifiedDate) == null,
+        )
         .toList();
 
     if (assetsToFetch.isEmpty) return;
@@ -516,22 +528,23 @@ class FileBrowserController extends ChangeNotifier {
     Future<void> worker() async {
       while (true) {
         if (opId != _operationId) return;
-        
+
         final currentIdx = index++;
         if (currentIdx >= assetsToFetch.length) break;
 
         final item = assetsToFetch[currentIdx];
         final asset = item.asset!;
-        
+
         try {
           final file = await asset.originFile ?? await asset.file;
           if (file != null) {
             final size = await file.length();
             AssetSizeCache.setSize(asset.id, size, item.modifiedDate);
             resolvedCount++;
-            
+
             // Re-sort and notify UI periodically (every 10 resolved items or on complete)
-            if (resolvedCount % 10 == 0 || resolvedCount == assetsToFetch.length) {
+            if (resolvedCount % 10 == 0 ||
+                resolvedCount == assetsToFetch.length) {
               if (opId == _operationId) {
                 _sortFiles();
                 notifyListeners();

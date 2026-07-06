@@ -225,16 +225,18 @@ class _ImageViewerState extends State<ImageViewer>
                                     gaplessPlayback: true,
                                   )
                                 : item.isRemote
-                                    ? _RemoteImageView(
-                                        item: item,
-                                        onFetch: widget.onFetchRemoteFile,
-                                        placeholder: widget.thumbnailPlaceholderBuilder?.call(item),
-                                      )
-                                    : Image.file(
-                                        File(item.pathSync),
-                                        fit: BoxFit.contain,
-                                        gaplessPlayback: true,
-                                      ),
+                                ? _RemoteImageView(
+                                    item: item,
+                                    onFetch: widget.onFetchRemoteFile,
+                                    placeholder: widget
+                                        .thumbnailPlaceholderBuilder
+                                        ?.call(item),
+                                  )
+                                : Image.file(
+                                    File(item.pathSync),
+                                    fit: BoxFit.contain,
+                                    gaplessPlayback: true,
+                                  ),
                           ),
                         ),
                       );
@@ -460,11 +462,7 @@ class _RemoteImageViewState extends State<_RemoteImageView> {
   @override
   Widget build(BuildContext context) {
     if (_file != null) {
-      return Image.file(
-        _file!,
-        fit: BoxFit.contain,
-        gaplessPlayback: true,
-      );
+      return Image.file(_file!, fit: BoxFit.contain, gaplessPlayback: true);
     }
 
     return Stack(

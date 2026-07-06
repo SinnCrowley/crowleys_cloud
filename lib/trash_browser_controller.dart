@@ -282,7 +282,9 @@ class TrashBrowserController extends ChangeNotifier {
 
   Future<File?> downloadTempForEdit(ServerFileItem item) async {
     final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/${item.id ?? item.path.hashCode}_${item.name}');
+    final file = File(
+      '${tempDir.path}/${item.id ?? item.path.hashCode}_${item.name}',
+    );
 
     if (await file.exists()) {
       try {
@@ -299,7 +301,9 @@ class TrashBrowserController extends ChangeNotifier {
           '/files',
         ).replace(queryParameters: {'trash_id': '${item.id}'});
         final response = await _authorizedGet(uri);
-        if (response.statusCode < 200 || response.statusCode >= 300) return null;
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          return null;
+        }
 
         await file.writeAsBytes(response.bodyBytes, flush: true);
         return file;

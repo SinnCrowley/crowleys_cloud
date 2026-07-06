@@ -652,6 +652,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  String _syncFrequencyLabel(int minutes) {
+    if (minutes == 15) return 'Every 15 minutes';
+    if (minutes == 30) return 'Every 30 minutes';
+    if (minutes == 60) return 'Every hour';
+    if (minutes % 60 == 0) {
+      final hours = minutes ~/ 60;
+      if (hours == 1) return 'Every hour';
+      if (hours == 24) return 'Daily';
+      return 'Every $hours hours';
+    }
+    return 'Every $minutes minutes';
+  }
+
+  Future<void> _showSyncFrequencyPicker() async {
+    final current = _syncPrefs['syncFrequency'] as int? ?? 15;
+    final options = [15, 30, 60, 120, 240, 480, 720, 1440];
+
+    final selected = await showDialog<int>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Choose Sync Frequency'),
+        children: options.map((minutes) {
+          return SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, minutes),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(_syncFrequencyLabel(minutes)),
+                if (minutes == current)
+                  const Icon(Icons.check, color: appAccent, size: 20),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+    if (selected != null) {
+      await _updateSyncPrefs({'syncFrequency': selected});
+    }
+  }
+
   Future<void> _updateSyncPrefs(Map<String, Object?> updates) async {
     final serverId = _selectedSyncServer?.id;
     if (serverId == null) return;
@@ -673,7 +714,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return true;
     }
 
-    final needed = <Permission>{};
+    final needed = <Permission>{Permission.notification};
     if (folders.isNotEmpty) {
       needed.add(Permission.manageExternalStorage);
     }
@@ -885,6 +926,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: hasSelectedServer ? _editTargetDirectory : null,
           ),
           ListTile(
+            enabled: hasSelectedServer,
+            leading: const Icon(Icons.av_timer),
+            title: const Text('Synchronization frequency'),
+            subtitle: Text(
+              _syncFrequencyLabel(_syncPrefs['syncFrequency'] as int? ?? 15),
+            ),
+            trailing: const Icon(Icons.arrow_drop_down),
+            onTap: hasSelectedServer ? _showSyncFrequencyPicker : null,
+          ),
+          ListTile(
             enabled: hasSelectedServer && !_isSyncing,
             leading: _isSyncing
                 ? const SizedBox(
@@ -922,6 +973,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trailing: _isSyncing ? null : const Icon(Icons.chevron_right),
             onTap: hasSelectedServer && !_isSyncing
                 ? _syncSelectedServerNow
+                : null,
+          ),
+          ListTile(
+            enabled: hasSelectedServer && !_isSyncing,
+            leading: const Icon(Icons.bug_report_outlined),
+            title: const Text('Trigger Background Sync (Debug)'),
+            subtitle: const Text(
+              'Forces a WorkManager one-off background task run.',
+            ),
+            onTap: hasSelectedServer
+                ? () async {
+                    final scheduler = widget.syncScheduler;
+                    if (scheduler != null) {
+                      await scheduler.debugTriggerOneOffSync(selectedServer.id);
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'One-off background sync task scheduled! Check logs.',
+                          ),
+                        ),
+                      );
+                    }
+                  }
                 : null,
           ),
           ListTile(

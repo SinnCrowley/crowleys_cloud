@@ -186,6 +186,9 @@ class AuthService {
       username: username,
       password: password,
     );
+    try {
+      await fetchAndSaveSyncToken(serverId: serverId, baseUrl: baseUrl);
+    } catch (_) {}
   }
 
   Future<String?> readLastUsername(String serverId) {
@@ -250,6 +253,12 @@ class AuthService {
           .get(uri, headers: {'authorization': 'Bearer $token'})
           .timeout(const Duration(seconds: 5));
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        final hasSyncToken = await secretStore.readSyncToken(serverId) != null;
+        if (!hasSyncToken) {
+          try {
+            await fetchAndSaveSyncToken(serverId: serverId, baseUrl: baseUrl);
+          } catch (_) {}
+        }
         return const SessionCheckResult(SessionCheckStatus.authorized);
       }
       if (response.statusCode == 401) {
@@ -414,7 +423,35 @@ class AuthService {
 
   Future<void> logout(String serverId) async {
     await secretStore.clearToken(serverId);
+    await secretStore.clearSyncToken(serverId);
     await secretStore.clearCredentials(serverId);
+  }
+
+  Future<String?> readSyncToken(String serverId) {
+    return secretStore.readSyncToken(serverId);
+  }
+
+  Future<String?> fetchAndSaveSyncToken({
+    required String serverId,
+    required String baseUrl,
+  }) async {
+    final token = await readAccessToken(serverId);
+    if (token == null || token.isEmpty) return null;
+
+    final uri = _endpoint(baseUrl, '/api/account/sync-token');
+    final response = await _client.get(
+      uri,
+      headers: {'authorization': 'Bearer $token'},
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) return null;
+
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    final syncToken = json['sync_token'] as String?;
+    if (syncToken != null && syncToken.isNotEmpty) {
+      await secretStore.saveSyncToken(serverId: serverId, syncToken: syncToken);
+      return syncToken;
+    }
+    return null;
   }
 
   Future<void> _sendAuthorizedJson({

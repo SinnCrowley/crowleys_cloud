@@ -333,4 +333,34 @@ void main() {
       );
     },
   );
+
+  test(
+    'OverrideSyncTokenSecretStore overrides readSyncToken and delegates others',
+    () async {
+      final delegateStore = InMemorySecretStore();
+      await delegateStore.saveTokens(
+        serverId: 'srv1',
+        accessToken: 'acc1',
+        refreshToken: 'ref1',
+      );
+      await delegateStore.saveSyncToken(
+        serverId: 'srv1',
+        syncToken: 'sync-delegate',
+      );
+
+      final overrideStore = OverrideSyncTokenSecretStore(
+        delegate: delegateStore,
+        overrideSyncToken: 'sync-override',
+      );
+
+      expect(await overrideStore.readToken('srv1'), 'acc1');
+      expect(await overrideStore.readSyncToken('srv1'), 'sync-override');
+
+      final overrideStoreEmpty = OverrideSyncTokenSecretStore(
+        delegate: delegateStore,
+        overrideSyncToken: null,
+      );
+      expect(await overrideStoreEmpty.readSyncToken('srv1'), 'sync-delegate');
+    },
+  );
 }

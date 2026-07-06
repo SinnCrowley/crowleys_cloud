@@ -25,6 +25,30 @@ void JwtMiddleware::doFilter(const drogon::HttpRequestPtr &req,
     if (!claims.has_value()) {
       throw std::runtime_error("invalid token");
     }
+
+    if (claims->role == "sync") {
+      const auto &path = req->path();
+      const auto method = req->method();
+      bool allowed = false;
+
+      if (path == "/api/files") {
+        allowed = (method == drogon::Post || method == drogon::Head || method == drogon::Get);
+      } else if (path == "/api/files/check-hashes") {
+        allowed = (method == drogon::Post);
+      } else if (path == "/api/folders") {
+        allowed = (method == drogon::Post);
+      }
+
+      if (!allowed) {
+        Json::Value err;
+        err["error"] = "Forbidden for sync role";
+        auto resp = drogon::HttpResponse::newHttpJsonResponse(err);
+        resp->setStatusCode(drogon::k403Forbidden);
+        fcb(resp);
+        return;
+      }
+    }
+
     req->attributes()->insert("user_id", claims->userId);
     req->attributes()->insert("role", claims->role);
   } catch (const std::exception &) {

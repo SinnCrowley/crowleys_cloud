@@ -41,6 +41,7 @@ class UserService {
   std::optional<AuthTokens> refreshAccessToken(const std::string &refreshToken);
   bool logout(const std::string &refreshToken);
   std::optional<AccessClaims> verifyAccessToken(const std::string &accessToken) const;
+  std::string makeSyncToken(std::int64_t userId) const;
 
   void revokeAllRefreshTokens(std::int64_t userId);
   std::optional<UserRecord> getUserById(std::int64_t userId);

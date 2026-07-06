@@ -209,4 +209,23 @@ void AuthController::verifyReset(const drogon::HttpRequestPtr &req,
   callback(drogon::HttpResponse::newHttpJsonResponse(body));
 }
 
+void AuthController::getSyncToken(const drogon::HttpRequestPtr &req,
+                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  if (!req->attributes()->find("user_id")) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+  const auto role = req->attributes()->get<std::string>("role");
+  if (role == "sync") {
+    callback(jsonError(drogon::k403Forbidden, "Forbidden for sync role"));
+    return;
+  }
+  const auto userId = req->attributes()->get<std::int64_t>("user_id");
+  const auto token = server::ctx().userService->makeSyncToken(userId);
+
+  Json::Value body;
+  body["sync_token"] = token;
+  callback(drogon::HttpResponse::newHttpJsonResponse(body));
+}
+
 }  // namespace server::controllers

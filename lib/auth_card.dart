@@ -659,6 +659,15 @@ class _DummySecretStore implements SecretStore {
     required String serverId,
     required String token,
   }) async {}
+  @override
+  Future<void> saveSyncToken({
+    required String serverId,
+    required String syncToken,
+  }) async {}
+  @override
+  Future<String?> readSyncToken(String serverId) async => null;
+  @override
+  Future<void> clearSyncToken(String serverId) async {}
 }
 
 class AuthInputField extends StatelessWidget {
