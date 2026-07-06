@@ -216,6 +216,8 @@ class _MainScreenState extends State<MainScreen> {
   late final SyncBackgroundScheduler _syncScheduler;
   final TransferManager _transferManager = TransferManager();
   bool _authPromptInFlight = false;
+  bool _authPromptDismissed = false;
+  bool _canUseBiometrics = false;
   int _trashRetentionDays = 7;
   double _dragStartX = 0.0;
   bool _isValidDrag = false;
@@ -405,7 +407,9 @@ class _MainScreenState extends State<MainScreen> {
     _selectedServerCategory = null;
     _disposeServerController();
     if (!mounted) return;
-    setState(() {});
+    setState(() {
+      _authPromptDismissed = false;
+    });
   }
 
   Future<bool> _confirmServerSwitch(String serverName) async {
@@ -437,20 +441,23 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _scheduleActiveServerAuthPrompt() {
-    if (_authPromptInFlight) return;
+    if (_authPromptInFlight || _authPromptDismissed) return;
     final active = _serverManager.activeServer;
     if (active == null || !_serverManager.requiresAuth) return;
 
     _authPromptInFlight = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted || !_serverManager.requiresAuth) {
+      try {
+        if (!mounted || !_serverManager.requiresAuth) {
+          return;
+        }
+        await _authenticateActiveServer();
+      } catch (e, stack) {
+        debugPrint('Error during authentication: $e\n$stack');
+      } finally {
         _authPromptInFlight = false;
-        return;
+        if (mounted) setState(() {});
       }
-
-      await _authenticateActiveServer();
-      _authPromptInFlight = false;
-      if (mounted) setState(() {});
     });
   }
 
@@ -470,22 +477,47 @@ class _MainScreenState extends State<MainScreen> {
         hasSavedCredentials &&
         await _biometricAuthService.canAuthenticate();
 
+    if (mounted) {
+      setState(() {
+        _canUseBiometrics = canUseBiometrics;
+      });
+    }
+
     if (!mounted) return;
-    if (canUseBiometrics) {
+    if (canUseBiometrics && !_authPromptDismissed) {
       final authed = await _authenticateWithBiometrics(
         active,
         reportFailure: false,
       );
       if (authed) {
         if (!mounted) return;
-        setState(() {});
+        setState(() {
+          _authPromptDismissed = false;
+        });
+        return;
+      } else {
+        // Biometrics was cancelled or failed. Set _authPromptDismissed = true
+        // so we show the buttons page instead of automatically opening password dialog.
+        if (!mounted) return;
+        setState(() {
+          _authPromptDismissed = true;
+        });
         return;
       }
     }
 
     if (!mounted) return;
+    await _showPasswordDialog(active, lastUsername, canUseBiometrics);
+  }
+
+  Future<void> _showPasswordDialog(
+    ServerProfile active,
+    String? lastUsername,
+    bool canUseBiometrics,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return _ActiveServerAuthDialog(
           active: active,
@@ -507,9 +539,17 @@ class _MainScreenState extends State<MainScreen> {
       },
     );
 
-    if (confirmed != true) return;
     if (!mounted) return;
-    setState(() {});
+    if (confirmed != true) {
+      setState(() {
+        _authPromptDismissed = true;
+      });
+      return;
+    }
+
+    setState(() {
+      _authPromptDismissed = false;
+    });
   }
 
   Future<bool> _authenticateWithPassword({
@@ -554,10 +594,12 @@ class _MainScreenState extends State<MainScreen> {
     ServerProfile active, {
     bool reportFailure = true,
   }) async {
-    final unlocked = await _biometricAuthService.unlockSavedCredentials();
-    if (!unlocked) return false;
-
     try {
+      final unlocked = await _biometricAuthService
+          .unlockSavedCredentials()
+          .timeout(const Duration(seconds: 10), onTimeout: () => false);
+      if (!unlocked) return false;
+
       await _serverManager.authService.authenticateWithSavedCredentials(
         serverId: active.id,
         baseUrl: active.baseUrl,
@@ -1237,33 +1279,128 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     if (_serverManager.requiresAuth) {
+      debugPrint('MainScreen build requiresAuth: _authPromptDismissed=$_authPromptDismissed, _authPromptInFlight=$_authPromptInFlight');
       _scheduleActiveServerAuthPrompt();
+      final active = _serverManager.activeServer!;
       return Scaffold(
         appBar: AppBar(
           title: Text(
-            'Authenticate: ${_serverManager.activeServer!.displayName}',
+            'Authenticate: ${active.displayName}',
           ),
           backgroundColor: appSurface,
         ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text(
-                  'Authentication required',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Opening sign in...',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ],
-            ),
+            child: _authPromptDismissed
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _canUseBiometrics
+                            ? Icons.fingerprint
+                            : Icons.lock_outline,
+                        size: 64,
+                        color: appAccent,
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Authentication required',
+                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Sign in to access files on ${active.displayName}',
+                        style: const TextStyle(color: Colors.white70),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 28),
+                      Container(
+                        width: double.infinity,
+                        constraints: const BoxConstraints(maxWidth: 260),
+                        child: FilledButton.icon(
+                          onPressed: () async {
+                            final lastUsername = await _serverManager.authService.readLastUsername(
+                              active.id,
+                            );
+                            if (!mounted) return;
+                            setState(() {
+                              _authPromptInFlight = true;
+                            });
+                            try {
+                              await _showPasswordDialog(active, lastUsername, _canUseBiometrics);
+                            } finally {
+                              _authPromptInFlight = false;
+                              if (mounted) setState(() {});
+                            }
+                          },
+                          icon: const Icon(Icons.login),
+                          label: const Text('Sign In with Password'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: appAccent,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (_canUseBiometrics) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          constraints: const BoxConstraints(maxWidth: 260),
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final authed = await _authenticateWithBiometrics(active);
+                              if (authed && mounted) {
+                                setState(() {
+                                  _authPromptDismissed = false;
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.fingerprint),
+                            label: const Text('Use Biometrics'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (_serverManager.servers.length > 1) ...[
+                        const SizedBox(height: 16),
+                        TextButton.icon(
+                          onPressed: _chooseOtherServerFromExisting,
+                          icon: const Icon(Icons.swap_horiz, color: appAccent),
+                          label: const Text(
+                            'Switch Server',
+                            style: TextStyle(color: appAccent, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ],
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text(
+                        'Authentication required',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Opening sign in...',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
           ),
         ),
       );
