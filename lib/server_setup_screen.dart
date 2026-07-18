@@ -23,10 +23,12 @@ class ServerSetupResult {
 class ServerSetupScreen extends StatefulWidget {
   const ServerSetupScreen({
     super.key,
+    required this.authService,
     this.initialUrl = '',
     this.initialName = '',
   });
 
+  final AuthService authService;
   final String initialUrl;
   final String initialName;
 
@@ -92,7 +94,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
     return {'baseUrl': '$scheme://$host', 'port': port};
   }
 
-  Future<void> _submit(AuthMode mode) async {
+  Future<void> _submit(AuthMode mode, {String? email}) async {
     final name = _nameController.text.trim();
     final url = _urlController.text.trim();
     final username = _usernameController.text.trim();
@@ -119,14 +121,43 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
       syncPrefs: const {'syncOnWifiOnly': true, 'thumbnailPreload': true},
     );
 
-    Navigator.of(context).pop(
-      ServerSetupResult(
-        profile: profile,
+    try {
+      await widget.authService.authenticate(
+        serverId: profile.id,
+        baseUrl: profile.connectionUrl,
         username: username,
         password: password,
-        authMode: mode,
-      ),
-    );
+        mode: mode,
+        email: email,
+      );
+
+      if (!mounted) return;
+      Navigator.of(context).pop(
+        ServerSetupResult(
+          profile: profile,
+          username: username,
+          password: password,
+          authMode: mode,
+          email: email,
+        ),
+      );
+    } on AuthException catch (e) {
+      _usernameController.clear();
+      _passwordController.clear();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Authentication failed: ${e.message}')),
+      );
+    } catch (_) {
+      _usernameController.clear();
+      _passwordController.clear();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Authentication failed. Please try again.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -152,7 +183,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
                 submitLabel: 'Save Server',
                 onSubmit: (mode, {email}) async {
                   _mode = mode;
-                  await _submit(mode);
+                  await _submit(mode, email: email);
                   return false;
                 },
                 getBaseUrl: () => _urlController.text.trim(),

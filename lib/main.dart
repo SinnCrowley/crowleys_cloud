@@ -301,7 +301,27 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  Future<void> _requestAllPermissionsAtStartup() async {
+    try {
+      await Permission.notification.request();
+      await [
+        Permission.photos,
+        Permission.videos,
+        Permission.audio,
+      ].request();
+
+      var storageStatus = await Permission.manageExternalStorage.status;
+      if (!storageStatus.isGranted) {
+        storageStatus = await Permission.manageExternalStorage.request();
+        if (!storageStatus.isGranted) {
+          await openAppSettings();
+        }
+      }
+    } catch (_) {}
+  }
+
   Future<void> _initializeServers() async {
+    await _requestAllPermissionsAtStartup();
     await _serverManager.initialize();
     await _syncScheduler.scheduleForServers(_serverManager.servers);
     try {
@@ -363,35 +383,20 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _openAddServerFlow() async {
     final setupResult = await Navigator.of(context).push<ServerSetupResult>(
-      MaterialPageRoute(builder: (_) => const ServerSetupScreen()),
+      MaterialPageRoute(
+        builder: (_) => ServerSetupScreen(authService: _serverManager.authService),
+      ),
     );
     if (setupResult == null) return;
 
     try {
-      await _serverManager.authService.authenticate(
-        serverId: setupResult.profile.id,
-        baseUrl: setupResult.profile.baseUrl,
-        username: setupResult.username,
-        password: setupResult.password,
-        mode: setupResult.authMode,
-        email: setupResult.email,
-      );
       await _serverManager.addServer(setupResult.profile);
       await _serverManager.markAuthed(setupResult.profile.id);
-    } on AuthException catch (e) {
+    } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Authentication failed: ${e.message}')),
+        SnackBar(content: Text('Failed to save server: $e')),
       );
-      return;
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Authentication failed. Please try again.'),
-        ),
-      );
-      return;
     }
     if (!mounted) return;
     setState(() {});

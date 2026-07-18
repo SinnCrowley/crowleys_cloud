@@ -517,35 +517,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _openAddServerFlow() async {
     final setupResult = await Navigator.of(context).push<ServerSetupResult>(
-      MaterialPageRoute(builder: (_) => const ServerSetupScreen()),
+      MaterialPageRoute(
+        builder: (_) => ServerSetupScreen(authService: widget.serverManager.authService),
+      ),
     );
     if (setupResult == null) return;
 
     try {
-      await widget.serverManager.authService.authenticate(
-        serverId: setupResult.profile.id,
-        baseUrl: setupResult.profile.connectionUrl,
-        username: setupResult.username,
-        password: setupResult.password,
-        mode: setupResult.authMode,
-      );
       await widget.serverManager.addServer(setupResult.profile);
       await widget.serverManager.markAuthed(setupResult.profile.id);
       await widget.syncScheduler?.scheduleForServers(
         widget.serverManager.servers,
       );
-    } on AuthException catch (e) {
+    } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Authentication failed: ${e.message}')),
-      );
-      return;
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Authentication failed. Please try again.'),
-        ),
+        SnackBar(content: Text('Failed to save server: $e')),
       );
       return;
     }
