@@ -14,6 +14,7 @@ class ImageViewer extends StatefulWidget {
   final Future<void> Function(FileItem item)? onUploadItem;
   final Future<void> Function(FileItem item)? onDeleteItem;
   final Future<void> Function(FileItem item)? onAddToFolderItem;
+  final Future<void> Function(FileItem item)? onShareItem;
   final Future<File?> Function(FileItem item)? onFetchRemoteFile;
   final Widget Function(FileItem item)? thumbnailPlaceholderBuilder;
 
@@ -24,6 +25,7 @@ class ImageViewer extends StatefulWidget {
     this.onUploadItem,
     this.onDeleteItem,
     this.onAddToFolderItem,
+    this.onShareItem,
     this.onFetchRemoteFile,
     this.thumbnailPlaceholderBuilder,
   });
@@ -112,6 +114,10 @@ class _ImageViewerState extends State<ImageViewer>
 
   Future<void> _shareCurrentFile() async {
     if (_currentIndex < 0 || _currentIndex >= _items.length) return;
+    if (widget.onShareItem != null) {
+      await widget.onShareItem!(_items[_currentIndex]);
+      return;
+    }
     final path = await _items[_currentIndex].path;
     if (path.isNotEmpty) {
       await SharePlus.instance.share(ShareParams(files: [XFile(path)]));

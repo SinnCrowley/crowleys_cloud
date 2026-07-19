@@ -110,6 +110,17 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
             controller.toggleSelection(selectedServerItem);
             await _addSelectedToFolder();
           },
+          onShareItem: (selectedImageItem) async {
+            final selectedServerItem = selectedImageItem.serverFile;
+            if (selectedServerItem == null) return;
+            controller.clearSelection();
+            controller.toggleSelection(selectedServerItem);
+            if (controller.scope == 'shared') {
+              await _shareSelectedFiles();
+            } else {
+              await _showShareOptions();
+            }
+          },
         ),
       ),
     );
