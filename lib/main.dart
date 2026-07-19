@@ -242,6 +242,7 @@ class _MainScreenState extends State<MainScreen> {
   bool _isGridView = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   late final VoidCallback _searchTextListener;
   late final VoidCallback _serverManagerListener;
   late final VoidCallback _transferListener;
@@ -308,6 +309,7 @@ class _MainScreenState extends State<MainScreen> {
     _transferManager.removeListener(_transferListener);
     _transferManager.dispose();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     _disposeLocalController();
     _disposeServerController();
     _serverManager.dispose();
@@ -753,6 +755,10 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _handleBack() async {
+    if (_searchFocusNode.hasFocus) {
+      _searchFocusNode.unfocus();
+      return;
+    }
     if (_selectedModeIndex == 0) {
       if (_localController != null && _localController!.isSelectionMode) {
         _localController!.clearSelection();
@@ -1514,6 +1520,10 @@ class _MainScreenState extends State<MainScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (_searchFocusNode.hasFocus) {
+          _searchFocusNode.unfocus();
+          return;
+        }
         if (_isDrawerOpen ||
             (_scaffoldKey.currentState?.isDrawerOpen ?? false)) {
           _scaffoldKey.currentState?.closeDrawer();
@@ -1603,6 +1613,7 @@ class _MainScreenState extends State<MainScreen> {
                     Expanded(
                       child: TextField(
                         controller: _searchController,
+                        focusNode: _searchFocusNode,
                         onChanged: _onSearchChanged,
                         decoration: InputDecoration(
                           hintText: 'Search...',

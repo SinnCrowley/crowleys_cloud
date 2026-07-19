@@ -32,6 +32,7 @@ class TrashBrowserScreen extends StatefulWidget {
 class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   TrashBrowserController get controller => widget.controller;
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -46,6 +47,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   void dispose() {
     controller.removeListener(_onControllerChanged);
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -163,6 +165,13 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
               height: 150,
               child: SmartThumbnail(item: fileItem),
             );
+          },
+          onDeleteItem: (selectedImageItem) async {
+            final selectedServerItem = selectedImageItem.serverFile;
+            if (selectedServerItem == null) return;
+            controller.selectedFiles.clear();
+            controller.selectedFiles.add(selectedServerItem);
+            await controller.deleteSelected();
           },
         ),
       ),
@@ -298,10 +307,16 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
     final isSelectionMode = controller.selectedFiles.isNotEmpty;
 
     return PopScope(
-      canPop: !isSelectionMode,
+      canPop: !isSelectionMode && !_searchFocusNode.hasFocus,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        controller.clearSelection();
+        if (_searchFocusNode.hasFocus) {
+          _searchFocusNode.unfocus();
+          return;
+        }
+        if (isSelectionMode) {
+          controller.clearSelection();
+        }
       },
       child: Scaffold(
         backgroundColor: appBackground,
@@ -330,6 +345,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
                 Expanded(
                   child: TextField(
                     controller: _searchController,
+                    focusNode: _searchFocusNode,
                     onChanged: _onSearchChanged,
                     decoration: InputDecoration(
                       hintText: 'Search trash...',

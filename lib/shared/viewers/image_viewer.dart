@@ -12,6 +12,7 @@ class ImageViewer extends StatefulWidget {
   final List<FileItem> imageItems;
   final int initialIndex;
   final Future<void> Function(FileItem item)? onUploadItem;
+  final Future<void> Function(FileItem item)? onDeleteItem;
   final Future<void> Function(FileItem item)? onAddToFolderItem;
   final Future<File?> Function(FileItem item)? onFetchRemoteFile;
   final Widget Function(FileItem item)? thumbnailPlaceholderBuilder;
@@ -21,6 +22,7 @@ class ImageViewer extends StatefulWidget {
     required this.imageItems,
     required this.initialIndex,
     this.onUploadItem,
+    this.onDeleteItem,
     this.onAddToFolderItem,
     this.onFetchRemoteFile,
     this.thumbnailPlaceholderBuilder,
@@ -34,6 +36,7 @@ class _ImageViewerState extends State<ImageViewer>
     with SingleTickerProviderStateMixin {
   late PageController _pageController;
   late int _currentIndex;
+  late List<FileItem> _items;
   bool _isUiVisible = true;
   int _pointerCount = 0;
   double _dragOffset = 0.0;
@@ -42,6 +45,7 @@ class _ImageViewerState extends State<ImageViewer>
   @override
   void initState() {
     super.initState();
+    _items = List<FileItem>.from(widget.imageItems);
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: _currentIndex);
   }
@@ -60,8 +64,8 @@ class _ImageViewerState extends State<ImageViewer>
 
   void _precacheImages(int index) {
     for (int i = index - 1; i <= index + 1; i++) {
-      if (i >= 0 && i < widget.imageItems.length) {
-        final item = widget.imageItems[i];
+      if (i >= 0 && i < _items.length) {
+        final item = _items[i];
         if (item.isAsset) {
           precacheImage(
             AssetEntityImageProvider(
@@ -107,14 +111,16 @@ class _ImageViewerState extends State<ImageViewer>
   }
 
   Future<void> _shareCurrentFile() async {
-    final path = await widget.imageItems[_currentIndex].path;
+    if (_currentIndex < 0 || _currentIndex >= _items.length) return;
+    final path = await _items[_currentIndex].path;
     if (path.isNotEmpty) {
       await SharePlus.instance.share(ShareParams(files: [XFile(path)]));
     }
   }
 
   Future<void> _deleteCurrentFile() async {
-    final item = widget.imageItems[_currentIndex];
+    if (_currentIndex < 0 || _currentIndex >= _items.length) return;
+    final item = _items[_currentIndex];
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -145,13 +151,27 @@ class _ImageViewerState extends State<ImageViewer>
 
     if (confirmed == true) {
       try {
-        if (item.isAsset) {
+        if (widget.onDeleteItem != null) {
+          await widget.onDeleteItem!(item);
+        } else if (item.isAsset) {
           final file = await item.asset!.originFile;
           if (file != null) await file.delete();
         } else if (item.fsEntity != null) {
           await item.fsEntity!.delete();
         }
-        if (mounted) Navigator.of(context).pop(true);
+
+        _items.removeAt(_currentIndex);
+        if (_items.isEmpty) {
+          if (mounted) Navigator.of(context).pop(true);
+        } else {
+          if (_currentIndex >= _items.length) {
+            _currentIndex = _items.length - 1;
+          }
+          if (mounted) {
+            _pageController.jumpToPage(_currentIndex);
+            setState(() {});
+          }
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -164,14 +184,14 @@ class _ImageViewerState extends State<ImageViewer>
 
   Future<void> _uploadCurrentFile() async {
     final callback = widget.onUploadItem;
-    if (callback == null) return;
-    await callback(widget.imageItems[_currentIndex]);
+    if (callback == null || _currentIndex < 0 || _currentIndex >= _items.length) return;
+    await callback(_items[_currentIndex]);
   }
 
   Future<void> _addCurrentFileToFolder() async {
     final callback = widget.onAddToFolderItem;
-    if (callback == null) return;
-    await callback(widget.imageItems[_currentIndex]);
+    if (callback == null || _currentIndex < 0 || _currentIndex >= _items.length) return;
+    await callback(_items[_currentIndex]);
   }
 
   @override
@@ -201,13 +221,13 @@ class _ImageViewerState extends State<ImageViewer>
                     physics: _pointerCount > 1 || _isDraggingUp
                         ? const NeverScrollableScrollPhysics()
                         : const BouncingScrollPhysics(),
-                    itemCount: widget.imageItems.length,
+                    itemCount: _items.length,
                     onPageChanged: (index) {
                       setState(() => _currentIndex = index);
                       _precacheImages(index);
                     },
                     itemBuilder: (context, index) {
-                      final item = widget.imageItems[index];
+                      final item = _items[index];
                       return InteractiveViewer(
                         panEnabled: !_isDraggingUp,
                         minScale: 0.5,
@@ -268,7 +288,9 @@ class _ImageViewerState extends State<ImageViewer>
                       ),
                       Expanded(
                         child: Text(
-                          widget.imageItems[_currentIndex].name,
+                          _currentIndex >= 0 && _currentIndex < _items.length
+                              ? _items[_currentIndex].name
+                              : '',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,

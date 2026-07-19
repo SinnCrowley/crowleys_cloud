@@ -75,6 +75,11 @@ class _FileBrowserScreenState extends State<FileBrowser> {
             imageItems: imageItems,
             initialIndex: initialIndex >= 0 ? initialIndex : 0,
             onUploadItem: (uploadItem) => _uploadItems([uploadItem]),
+            onDeleteItem: (deleteItem) async {
+              _controller.clearSelection();
+              _controller.toggleSelection(deleteItem);
+              await _deleteSelectedFiles();
+            },
             onAddToFolderItem: (folderItem) async {
               _controller.clearSelection();
               _controller.toggleSelection(folderItem);
