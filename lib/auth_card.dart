@@ -92,7 +92,7 @@ class _AuthCardState extends State<AuthCard> {
       decoration: BoxDecoration(
         color: appSurface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF444444)),
+        border: Border.all(color: appBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.28),
@@ -112,8 +112,8 @@ class _AuthCardState extends State<AuthCard> {
           Text(
             widget.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: appText,
               fontSize: 24,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.3,
@@ -124,7 +124,7 @@ class _AuthCardState extends State<AuthCard> {
             Text(
               widget.subtitle!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white60, height: 1.35),
+              style: TextStyle(color: appSubtext, height: 1.35),
             ),
           ],
           if (widget.extraFields.isNotEmpty) ...[
@@ -163,7 +163,7 @@ class _AuthCardState extends State<AuthCard> {
                 _obscurePassword
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: Colors.white54,
+                color: appSubtext,
               ),
             ),
           ),
@@ -178,7 +178,7 @@ class _AuthCardState extends State<AuthCard> {
                   minimumSize: const Size(0, 0),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: const Text(
+                child: Text(
                   'Forgot password?',
                   style: TextStyle(
                     color: appAccent,
@@ -221,11 +221,11 @@ class _AuthCardState extends State<AuthCard> {
                       dimension: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.fingerprint),
-              label: const Text('Use Biometrics'),
+                  : Icon(Icons.fingerprint, color: appText),
+              label: Text('Use Biometrics', style: TextStyle(color: appText)),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
+                foregroundColor: appText,
+                side: BorderSide(color: appBorder),
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -239,7 +239,7 @@ class _AuthCardState extends State<AuthCard> {
                 ? 'Do not have an account? Switch to Register.'
                 : 'Already have an account? Switch to Log In.',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            style: TextStyle(color: appSubtext, fontSize: 12),
           ),
         ],
       ),
@@ -276,9 +276,9 @@ class _AuthModeTabs extends StatelessWidget {
     return Container(
       height: 46,
       decoration: BoxDecoration(
-        color: const Color(0xFF292929),
+        color: appBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF444444)),
+        border: Border.all(color: appBorder),
       ),
       child: Row(
         children: [
@@ -330,7 +330,7 @@ class _TabButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              color: selected ? Colors.white : Colors.white38,
+              color: selected ? appText : appSubtext,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
@@ -371,23 +371,23 @@ class _AuthTextField extends StatelessWidget {
       textInputAction: textInputAction,
       keyboardType: keyboardType,
       onSubmitted: onSubmitted,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: appText),
       decoration: InputDecoration(
         labelText: label,
         hintText: hintText,
-        prefixIcon: Icon(icon, color: Colors.white54),
+        prefixIcon: Icon(icon, color: appSubtext),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: const Color(0xFF292929),
-        labelStyle: const TextStyle(color: Colors.white70),
-        hintStyle: const TextStyle(color: Colors.white30),
+        fillColor: appBackground,
+        labelStyle: TextStyle(color: appSubtext),
+        hintStyle: TextStyle(color: appSubtext),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF444444)),
+          borderSide: BorderSide(color: appBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: appAccent),
+          borderSide: BorderSide(color: appAccent),
         ),
       ),
     );
@@ -506,12 +506,12 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
       backgroundColor: appSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: Color(0xFF444444)),
+        side: BorderSide(color: appBorder),
       ),
       title: Text(
         _step == 1 ? 'Reset Password' : 'Enter Reset Code',
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: appText,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -527,7 +527,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                 const SizedBox(height: 16),
                 Text(
                   _success,
-                  style: const TextStyle(color: Colors.white70, fontSize: 15),
+                  style: TextStyle(color: appSubtext, fontSize: 15),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -548,10 +548,10 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                     const SizedBox(height: 10),
                   ],
                   if (_step == 1) ...[
-                    const Text(
+                    Text(
                       'Enter your username. The 6-digit verification code will be printed to the server logs/console.',
                       style: TextStyle(
-                        color: Colors.white60,
+                        color: appSubtext,
                         fontSize: 13,
                         height: 1.35,
                       ),
@@ -599,9 +599,9 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                 onPressed: _isLoading
                     ? null
                     : () => Navigator.of(context).pop(),
-                child: const Text(
+                child: Text(
                   'Cancel',
-                  style: TextStyle(color: Colors.white54),
+                  style: TextStyle(color: appSubtext),
                 ),
               ),
               FilledButton(

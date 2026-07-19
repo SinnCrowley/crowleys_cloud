@@ -37,8 +37,8 @@ class TransferBottomBar extends StatelessWidget {
                     children: [
                       Text(
                         manager.summaryLabel,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: appText,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -46,7 +46,7 @@ class TransferBottomBar extends StatelessWidget {
                       LinearProgressIndicator(
                         value: manager.progress,
                         minHeight: 5,
-                        backgroundColor: Colors.white12,
+                        backgroundColor: appBorder.withValues(alpha: 0.2),
                         color: appAccent,
                       ),
                     ],
@@ -56,7 +56,7 @@ class TransferBottomBar extends StatelessWidget {
                   tooltip: manager.isPaused ? 'Resume' : 'Pause',
                   icon: Icon(
                     manager.isPaused ? Icons.play_arrow : Icons.pause,
-                    color: Colors.white,
+                    color: appText,
                   ),
                   onPressed: manager.hasActiveTransfers
                       ? manager.togglePause
@@ -64,7 +64,7 @@ class TransferBottomBar extends StatelessWidget {
                 ),
                 IconButton(
                   tooltip: 'Cancel',
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: Icon(Icons.close, color: appText),
                   onPressed: manager.hasActiveTransfers
                       ? manager.cancelAll
                       : manager.clearFinished,
@@ -119,7 +119,7 @@ class TransferPage extends StatelessWidget {
               : ListView.separated(
                   itemCount: manager.items.length,
                   separatorBuilder: (_, _) =>
-                      const Divider(height: 1, color: Colors.white12),
+                      Divider(height: 1, color: appBorder),
                   itemBuilder: (context, index) {
                     final item = manager.items[index];
                     return ListTile(
@@ -133,6 +133,7 @@ class TransferPage extends StatelessWidget {
                         item.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: appText),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,13 +141,13 @@ class TransferPage extends StatelessWidget {
                           Text(
                             '${_formatBytes(item.transferredBytes)} / ${_formatBytes(item.totalBytes)}'
                             '  ${_statusLabel(item.status)}',
-                            style: const TextStyle(color: Colors.white70),
+                            style: TextStyle(color: appSubtext),
                           ),
                           const SizedBox(height: 6),
                           LinearProgressIndicator(
                             value: item.progress,
                             minHeight: 4,
-                            backgroundColor: Colors.white12,
+                            backgroundColor: appBorder.withValues(alpha: 0.2),
                             color: item.status == TransferStatus.failed
                                 ? Colors.redAccent
                                 : appAccent,

@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:device_info_plus/device_info_plus.dart';
+import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/cache_service.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -133,6 +134,72 @@ class AppSettingsService {
         .replaceAll(RegExp(r'_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
     return safe.isEmpty ? 'device' : safe;
+  }
+
+  Future<AppThemeData> loadTheme() async {
+    final store = await _store;
+    final modeStr = store.getString('settings.themeMode') ?? 'dark';
+    final mode = AppThemeMode.values.firstWhere(
+      (m) => m.name == modeStr,
+      orElse: () => AppThemeMode.dark,
+    );
+
+    final font = store.getString('settings.themeFontFamily') ?? 'System';
+    final scale = store.getDouble('settings.themeFontSizeScale') ?? 1.0;
+    final customAccentInt = store.getInt('settings.themeCustomAccent');
+    final customAccent = customAccentInt != null ? Color(customAccentInt) : null;
+
+    if (mode == AppThemeMode.light) {
+      return AppThemeData.light.copyWith(
+        accent: customAccent ?? AppThemeData.light.accent,
+        fontFamily: font,
+        fontSizeScale: scale,
+      );
+    }
+
+    if (mode == AppThemeMode.dark) {
+      return AppThemeData.dark.copyWith(
+        accent: customAccent ?? AppThemeData.dark.accent,
+        fontFamily: font,
+        fontSizeScale: scale,
+      );
+    }
+
+    // Custom Mode
+    final bg = store.getInt('settings.themeCustomBackground') ?? 0xFF1E1E1E;
+    final surface = store.getInt('settings.themeCustomSurface') ?? 0xFF2C2C2C;
+    final accent = store.getInt('settings.themeCustomAccent') ?? 0xFFFA5252;
+    final text = store.getInt('settings.themeCustomText') ?? 0xFFFFFFFF;
+    final subtext = store.getInt('settings.themeCustomSubtext') ?? 0xFFA0A0A0;
+    final border = store.getInt('settings.themeCustomBorder') ?? 0xFF3D3D3D;
+
+    return AppThemeData(
+      mode: AppThemeMode.custom,
+      background: Color(bg),
+      surface: Color(surface),
+      accent: Color(accent),
+      text: Color(text),
+      subtext: Color(subtext),
+      border: Color(border),
+      fontFamily: font,
+      fontSizeScale: scale,
+    );
+  }
+
+  Future<void> saveTheme(AppThemeData theme) async {
+    final store = await _store;
+    await store.setString('settings.themeMode', theme.mode.name);
+    await store.setInt('settings.themeCustomAccent', theme.accent.toARGB32());
+    await store.setString('settings.themeFontFamily', theme.fontFamily);
+    await store.setDouble('settings.themeFontSizeScale', theme.fontSizeScale);
+
+    if (theme.mode == AppThemeMode.custom) {
+      await store.setInt('settings.themeCustomBackground', theme.background.toARGB32());
+      await store.setInt('settings.themeCustomSurface', theme.surface.toARGB32());
+      await store.setInt('settings.themeCustomText', theme.text.toARGB32());
+      await store.setInt('settings.themeCustomSubtext', theme.subtext.toARGB32());
+      await store.setInt('settings.themeCustomBorder', theme.border.toARGB32());
+    }
   }
 }
 

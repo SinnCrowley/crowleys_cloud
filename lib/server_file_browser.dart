@@ -125,16 +125,16 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF333333),
+        backgroundColor: appSurface,
         title: Text(
           isSharedScope ? 'Unshare Items?' : 'Delete Files?',
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: appText),
         ),
         content: Text(
           isSharedScope
               ? 'Are you sure you want to unshare $selectedCount selected items? This will remove them from the Shared folder.'
               : 'Are you sure you want to delete $selectedCount selected items? This action cannot be undone.',
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: appSubtext),
         ),
         actions: [
           TextButton(
@@ -182,10 +182,10 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
       builder: (_) => Wrap(
         children: [
           ListTile(
-            leading: const Icon(Icons.link, color: Colors.white70),
-            title: const Text(
+            leading: Icon(Icons.link, color: appSubtext),
+            title: Text(
               'Share via link',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: appText),
             ),
             onTap: () async {
               Navigator.pop(context);
@@ -193,10 +193,10 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.folder_shared, color: Colors.white70),
-            title: const Text(
+            leading: Icon(Icons.folder_shared, color: appSubtext),
+            title: Text(
               'Share in server',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: appText),
             ),
             onTap: () async {
               Navigator.pop(context);
@@ -213,18 +213,18 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF333333),
-        title: const Text(
+        backgroundColor: appSurface,
+        title: Text(
           'Create Folder',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: appText),
         ),
         content: TextField(
           controller: inputController,
           autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
+          style: TextStyle(color: appText),
+          decoration: InputDecoration(
             hintText: 'Folder name',
-            hintStyle: TextStyle(color: Colors.white54),
+            hintStyle: TextStyle(color: appSubtext),
           ),
         ),
         actions: [
@@ -276,10 +276,10 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
       builder: (_) => Wrap(
         children: [
           ListTile(
-            leading: const Icon(Icons.download, color: Colors.white70),
-            title: const Text(
+            leading: Icon(Icons.download, color: appSubtext),
+            title: Text(
               'Download',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: appText),
             ),
             onTap: () async {
               Navigator.pop(context);
@@ -290,11 +290,11 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
           ListTile(
             leading: Icon(
               controller.scope == 'shared' ? Icons.link_off : Icons.delete,
-              color: Colors.white70,
+              color: appSubtext,
             ),
             title: Text(
               controller.scope == 'shared' ? 'Unshare' : 'Delete',
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: appText),
             ),
             onTap: () async {
               Navigator.pop(context);
@@ -304,10 +304,10 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
           ),
           if (controller.scope != 'shared') ...[
             ListTile(
-              leading: const Icon(Icons.share, color: Colors.white70),
-              title: const Text(
+              leading: Icon(Icons.share, color: appSubtext),
+              title: Text(
                 'Share via link',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: appText),
               ),
               onTap: () async {
                 Navigator.pop(context);
@@ -316,10 +316,10 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.folder_shared, color: Colors.white70),
-              title: const Text(
+              leading: Icon(Icons.folder_shared, color: appSubtext),
+              title: Text(
                 'Share in server',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: appText),
               ),
               onTap: () async {
                 Navigator.pop(context);
@@ -328,10 +328,10 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.drive_file_move, color: Colors.white70),
-              title: const Text(
+              leading: Icon(Icons.drive_file_move, color: appSubtext),
+              title: Text(
                 'Add to folder',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: appText),
               ),
               onTap: () async {
                 Navigator.pop(context);
@@ -385,13 +385,13 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
                   onPressed: () => controller.navigateToPath(items[i].path),
                   child: Text(
                     items[i].label,
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(color: appSubtext),
                   ),
                 ),
                 if (i < items.length - 1)
-                  const Icon(
+                  Icon(
                     Icons.chevron_right,
-                    color: Colors.white54,
+                    color: appSubtext,
                     size: 18,
                   ),
               ],
@@ -615,7 +615,7 @@ class _GridItem extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 item.name,
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: appText),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -679,7 +679,7 @@ class _ListItem extends StatelessWidget {
           item.name,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: appText),
         ),
         trailing: controller.isSelectionMode
             ? Checkbox(
@@ -688,7 +688,7 @@ class _ListItem extends StatelessWidget {
                 onChanged: (_) => onToggle(),
               )
             : IconButton(
-                icon: const Icon(Icons.more_vert, color: Colors.white70),
+                icon: Icon(Icons.more_vert, color: appSubtext),
                 onPressed: onMenu,
               ),
         onTap: onTap,
@@ -736,11 +736,11 @@ class _ServerHeaderControls extends StatelessWidget {
             ),
             Text(
               '${controller.selectedFiles.length} selected',
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
+              style: TextStyle(color: appSubtext, fontSize: 16),
             ),
             const Spacer(),
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.white70),
+              icon: Icon(Icons.close, color: appSubtext),
               onPressed: controller.clearSelection,
             ),
           ],
@@ -768,16 +768,16 @@ class _ServerHeaderControls extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.sort, color: Colors.white70, size: 20),
+                Icon(Icons.sort, color: appSubtext, size: 20),
                 const SizedBox(width: 8),
                 DropdownButtonHideUnderline(
                   child: DropdownButton<ServerSortBy>(
                     value: controller.sortBy,
-                    dropdownColor: const Color(0xFF333333),
-                    style: const TextStyle(color: Colors.white),
-                    icon: const Icon(
+                    dropdownColor: appSurface,
+                    style: TextStyle(color: appText),
+                    icon: Icon(
                       Icons.arrow_drop_down,
-                      color: Colors.white70,
+                      color: appSubtext,
                     ),
                     items: ServerSortBy.values
                         .map(
@@ -813,7 +813,7 @@ class _ServerHeaderControls extends StatelessWidget {
                 controller.sortAscending
                     ? Icons.arrow_upward
                     : Icons.arrow_downward,
-                color: Colors.white70,
+                color: appSubtext,
               ),
               onPressed: () => unawaited(controller.toggleSortDirection()),
             ),
@@ -951,13 +951,13 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                   onPressed: () => _goToPath(items[i].path),
                   child: Text(
                     items[i].label,
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(color: appSubtext),
                   ),
                 ),
                 if (i < items.length - 1)
-                  const Icon(
+                  Icon(
                     Icons.chevron_right,
-                    color: Colors.white54,
+                    color: appSubtext,
                     size: 18,
                   ),
               ],
@@ -973,16 +973,19 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF333333),
-        title: const Text(
+        backgroundColor: appSurface,
+        title: Text(
           'Create Folder',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: appText),
         ),
         content: TextField(
           controller: input,
           autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(hintText: 'Folder name'),
+          style: TextStyle(color: appText),
+          decoration: InputDecoration(
+            hintText: 'Folder name',
+            hintStyle: TextStyle(color: appSubtext),
+          ),
         ),
         actions: [
           TextButton(
@@ -1034,16 +1037,16 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.sort, color: Colors.white70, size: 20),
+                      Icon(Icons.sort, color: appSubtext, size: 20),
                       const SizedBox(width: 8),
                       DropdownButtonHideUnderline(
                         child: DropdownButton<ServerSortBy>(
                           value: _sortBy,
-                          dropdownColor: const Color(0xFF333333),
-                          style: const TextStyle(color: Colors.white),
-                          icon: const Icon(
+                          dropdownColor: appSurface,
+                          style: TextStyle(color: appText),
+                          icon: Icon(
                             Icons.arrow_drop_down,
-                            color: Colors.white70,
+                            color: appSubtext,
                           ),
                           items: ServerSortBy.values
                               .map(
@@ -1080,7 +1083,7 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                       _sortAscending
                           ? Icons.arrow_upward
                           : Icons.arrow_downward,
-                      color: Colors.white70,
+                      color: appSubtext,
                     ),
                     onPressed: () {
                       setState(() => _sortAscending = !_sortAscending);
@@ -1113,13 +1116,13 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                                 horizontal: 12,
                                 vertical: 4,
                               ),
-                              leading: const Icon(
+                              leading: Icon(
                                 Icons.arrow_upward,
-                                color: Colors.white70,
+                                color: appSubtext,
                               ),
-                              title: const Text(
+                              title: Text(
                                 '..',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: appText),
                               ),
                               onTap: _goUp,
                               tileColor: appSurface,
@@ -1136,22 +1139,22 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                                 horizontal: 12,
                                 vertical: 4,
                               ),
-                              leading: const Icon(
+                              leading: Icon(
                                 Icons.folder,
-                                color: Colors.white70,
+                                color: appAccent,
                               ),
                               title: Text(
                                 d.name,
-                                style: const TextStyle(color: Colors.white70),
+                                style: TextStyle(color: appText),
                               ),
                               onTap: () {
                                 setState(() => _pathStack.add(d.path));
                                 _reload();
                               },
                               trailing: IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.check,
-                                  color: Colors.white70,
+                                  color: appAccent,
                                 ),
                                 onPressed: () => Navigator.pop(context, d.path),
                               ),
@@ -1169,6 +1172,8 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: appAccent,
+        foregroundColor: Colors.white,
         onPressed: () => Navigator.pop(context, _currentPath),
         icon: const Icon(Icons.check),
         label: const Text('Use this folder'),
@@ -1202,10 +1207,10 @@ class _SelectionActionBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         minimumSize: const Size.fromHeight(48),
       ),
-      icon: Icon(icon, color: Colors.white70),
+      icon: Icon(icon, color: appSubtext),
       label: Text(
         label,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: appText),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),

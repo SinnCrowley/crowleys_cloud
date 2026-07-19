@@ -225,7 +225,7 @@ class _ServerBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF444444)),
       ),
-      child: const Icon(Icons.storage_rounded, color: appAccent, size: 32),
+      child: Icon(Icons.storage_rounded, color: appAccent, size: 32),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -117,14 +118,14 @@ class _ImageViewerState extends State<ImageViewer>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF333333),
-        title: const Text(
+        backgroundColor: appSurface,
+        title: Text(
           'Delete File?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: appText),
         ),
         content: Text(
           'Are you sure you want to delete ${item.name}? This action cannot be undone.',
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: appSubtext),
         ),
         actions: [
           TextButton(

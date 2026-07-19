@@ -13,6 +13,7 @@ import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_setup_screen.dart';
 import 'package:crowleys_cloud/sync_scheduler.dart';
 import 'package:crowleys_cloud/sync_service.dart';
+import 'package:crowleys_cloud/theme_customizer_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -659,16 +660,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final selected = await showDialog<int>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Choose Sync Frequency'),
+        backgroundColor: appSurface,
+        title: Text('Choose Sync Frequency', style: TextStyle(color: appText)),
         children: options.map((minutes) {
           return SimpleDialogOption(
             onPressed: () => Navigator.pop(context, minutes),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(_syncFrequencyLabel(minutes)),
+                Text(_syncFrequencyLabel(minutes), style: TextStyle(color: appText)),
                 if (minutes == current)
-                  const Icon(Icons.check, color: appAccent, size: 20),
+                  Icon(Icons.check, color: appAccent, size: 20),
               ],
             ),
           );
@@ -789,6 +791,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                _themeSection(),
+                const SizedBox(height: 14),
                 _backupSection(),
                 const SizedBox(height: 14),
                 _cacheSection(),
@@ -841,11 +845,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               selected: isSelected,
               leading: Icon(
                 Icons.dns_outlined,
-                color: isSelected ? Colors.white : Colors.white70,
+                color: isSelected ? appAccent : appSubtext,
               ),
-              title: Text(server.displayName),
+              title: Text(server.displayName, style: TextStyle(color: appText)),
               subtitle: Text(
                 isActive ? '${server.baseUrl} · active' : server.baseUrl,
+                style: TextStyle(color: appSubtext),
               ),
               onTap: () {
                 setState(() => _selectedSyncServerId = server.id);
@@ -855,10 +860,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (isSelected)
-                    const Icon(Icons.check, color: Colors.white70),
+                    Icon(Icons.check, color: appAccent),
                   IconButton(
                     tooltip: 'Remove server',
-                    icon: const Icon(Icons.delete_outline),
+                    icon: Icon(Icons.delete_outline, color: appSubtext),
                     onPressed: () => _removeServer(server),
                   ),
                 ],
@@ -866,18 +871,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             );
           }),
           ListTile(
-            leading: const Icon(Icons.add, color: Colors.white70),
-            title: const Text('Add server'),
+            leading: Icon(Icons.add, color: appSubtext),
+            title: Text('Add server', style: TextStyle(color: appText)),
             onTap: _openAddServerFlow,
           ),
         ],
         SwitchListTile(
-          secondary: const Icon(Icons.sync),
-          title: const Text('Folder and category sync'),
+          secondary: Icon(Icons.sync, color: appAccent),
+          title: Text('Folder and category sync', style: TextStyle(color: appText)),
           subtitle: Text(
             hasSelectedServer
                 ? 'Keep selected local categories or folders synced with this server.'
                 : 'Add a server before enabling synchronization.',
+            style: TextStyle(color: appSubtext),
           ),
           value: hasSelectedServer && syncEnabled,
           onChanged: hasSelectedServer
@@ -888,16 +894,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         if (hasSelectedServer && syncEnabled) ...[
           ListTile(
-            leading: const Icon(Icons.wifi),
-            title: const Text('Only on Wi-Fi'),
+            leading: Icon(Icons.wifi, color: appAccent),
+            title: Text('Only on Wi-Fi', style: TextStyle(color: appText)),
             trailing: Switch(
               value: wifiOnly,
               onChanged: (value) => _updateSyncPrefs({'backupWifiOnly': value}),
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.battery_charging_full),
-            title: const Text('Only while charging'),
+            leading: Icon(Icons.battery_charging_full, color: appAccent),
+            title: Text('Only while charging', style: TextStyle(color: appText)),
             trailing: Switch(
               value: chargingOnly,
               onChanged: (value) =>
@@ -906,20 +912,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ListTile(
             enabled: hasSelectedServer,
-            leading: const Icon(Icons.folder_outlined),
-            title: const Text('Server target directory'),
-            subtitle: Text(target),
-            trailing: const Icon(Icons.chevron_right),
+            leading: Icon(Icons.folder_outlined, color: appAccent),
+            title: Text('Server target directory', style: TextStyle(color: appText)),
+            subtitle: Text(target, style: TextStyle(color: appSubtext)),
+            trailing: Icon(Icons.chevron_right, color: appSubtext),
             onTap: hasSelectedServer ? _editTargetDirectory : null,
           ),
           ListTile(
             enabled: hasSelectedServer,
-            leading: const Icon(Icons.av_timer),
-            title: const Text('Synchronization frequency'),
+            leading: Icon(Icons.av_timer, color: appAccent),
+            title: Text('Synchronization frequency', style: TextStyle(color: appText)),
             subtitle: Text(
               _syncFrequencyLabel(_syncPrefs['syncFrequency'] as int? ?? 15),
+              style: TextStyle(color: appSubtext),
             ),
-            trailing: const Icon(Icons.arrow_drop_down),
+            trailing: Icon(Icons.arrow_drop_down, color: appSubtext),
             onTap: hasSelectedServer ? _showSyncFrequencyPicker : null,
           ),
           ListTile(
@@ -930,17 +937,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     height: 24,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.sync_outlined),
-            title: const Text('Sync now'),
+                : Icon(Icons.sync_outlined, color: appAccent),
+            title: Text('Sync now', style: TextStyle(color: appText)),
             subtitle: _isSyncing
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(height: 4),
-                      const Text(
+                      Text(
                         'Syncing...',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                        style: TextStyle(color: appSubtext, fontSize: 13),
                       ),
                       const SizedBox(height: 6),
                       ClipRRect(
@@ -948,26 +955,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: LinearProgressIndicator(
                           value: _syncProgressPercent,
                           minHeight: 4,
-                          backgroundColor: Colors.white10,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
+                          backgroundColor: appBorder.withValues(alpha: 0.2),
+                          valueColor: AlwaysStoppedAnimation<Color>(
                             appAccent,
                           ),
                         ),
                       ),
                     ],
                   )
-                : Text(_syncStatusLabel(_lastSyncResult)),
-            trailing: _isSyncing ? null : const Icon(Icons.chevron_right),
+                : Text(_syncStatusLabel(_lastSyncResult), style: TextStyle(color: appSubtext)),
+            trailing: _isSyncing ? null : Icon(Icons.chevron_right, color: appSubtext),
             onTap: hasSelectedServer && !_isSyncing
                 ? _syncSelectedServerNow
                 : null,
           ),
           ListTile(
             enabled: hasSelectedServer && !_isSyncing,
-            leading: const Icon(Icons.bug_report_outlined),
-            title: const Text('Trigger Background Sync (Debug)'),
-            subtitle: const Text(
+            leading: Icon(Icons.bug_report_outlined, color: appAccent),
+            title: Text('Trigger Background Sync (Debug)', style: TextStyle(color: appText)),
+            subtitle: Text(
               'Forces a WorkManager one-off background task run.',
+              style: TextStyle(color: appSubtext),
             ),
             onTap: hasSelectedServer
                 ? () async {
@@ -987,30 +995,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 : null,
           ),
           ListTile(
-            leading: const Icon(Icons.category_outlined),
-            title: const Text('Categories to synchronize'),
+            leading: Icon(Icons.category_outlined, color: appAccent),
+            title: Text('Categories to synchronize', style: TextStyle(color: appText)),
             subtitle: Text(
               syncCategories.isEmpty
                   ? 'No categories selected.'
                   : '${syncCategories.length} selected',
+              style: TextStyle(color: appSubtext),
             ),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Icon(Icons.chevron_right, color: appSubtext),
             onTap: _editSyncCategories,
           ),
           ListTile(
-            leading: const Icon(Icons.folder_copy_outlined),
-            title: const Text('Folders to synchronize'),
+            leading: Icon(Icons.folder_copy_outlined, color: appAccent),
+            title: Text('Folders to synchronize', style: TextStyle(color: appText)),
             subtitle: Text(
               syncFolders.isEmpty
                   ? 'No custom folders configured.'
                   : syncFolders.length == 1
                   ? _displayLocalFolderPath(syncFolders.single)
                   : '${syncFolders.length} folder(s)',
+              style: TextStyle(color: appSubtext),
             ),
             onTap: hasSelectedServer ? _addSyncFolder : null,
             trailing: IconButton(
               tooltip: 'Add folder',
-              icon: const Icon(Icons.add),
+              icon: Icon(Icons.add, color: appSubtext),
               onPressed: hasSelectedServer ? _addSyncFolder : null,
             ),
           ),
@@ -1038,13 +1048,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: 'Storage & Cache',
       children: [
         ListTile(
-          leading: const Icon(Icons.storage_outlined),
-          title: const Text('Cache size'),
-          subtitle: Text(_formatBytes(_cacheSizeBytes)),
+          leading: Icon(Icons.storage_outlined, color: appAccent),
+          title: Text('Cache size', style: TextStyle(color: appText)),
+          subtitle: Text(_formatBytes(_cacheSizeBytes), style: TextStyle(color: appSubtext)),
           trailing: IconButton(
             tooltip: 'Refresh',
             onPressed: _refreshCacheSize,
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: appSubtext),
           ),
         ),
         Padding(
@@ -1070,10 +1080,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         ListTile(
-          leading: const Icon(Icons.download_outlined),
-          title: const Text('Download path'),
-          subtitle: Text(_downloadPath ?? 'Default CrowleysCloud folder'),
-          trailing: const Icon(Icons.chevron_right),
+          leading: Icon(Icons.download_outlined, color: appAccent),
+          title: Text('Download path', style: TextStyle(color: appText)),
+          subtitle: Text(_downloadPath ?? 'Default CrowleysCloud folder', style: TextStyle(color: appSubtext)),
+          trailing: Icon(Icons.chevron_right, color: appSubtext),
           onTap: _editDownloadPath,
         ),
         Padding(
@@ -1140,44 +1150,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         SwitchListTile(
-          secondary: const Icon(Icons.fingerprint),
-          title: const Text('Biometric login'),
+          secondary: Icon(Icons.fingerprint, color: appAccent),
+          title: Text('Biometric login', style: TextStyle(color: appText)),
           subtitle: Text(
             _canUseBiometrics
                 ? 'Allow saved-credential login with biometrics.'
                 : 'Biometrics are not available on this device.',
+            style: TextStyle(color: appSubtext),
           ),
           value: _canUseBiometrics && _biometricLoginEnabled,
           onChanged: _canUseBiometrics ? _setBiometricLoginEnabled : null,
         ),
         SwitchListTile(
-          secondary: const Icon(Icons.visibility_outlined),
-          title: const Text('Show hidden files'),
-          subtitle: const Text('Display dot-files and dot-folders.'),
+          secondary: Icon(Icons.visibility_outlined, color: appAccent),
+          title: Text('Show hidden files', style: TextStyle(color: appText)),
+          subtitle: Text('Display dot-files and dot-folders.', style: TextStyle(color: appSubtext)),
           value: _showHiddenFiles,
           onChanged: _setShowHiddenFiles,
         ),
         ListTile(
           enabled: hasActiveServer,
-          leading: const Icon(Icons.lock_reset_outlined),
-          title: const Text('Change password'),
+          leading: Icon(Icons.lock_reset_outlined, color: appAccent),
+          title: Text('Change password', style: TextStyle(color: appText)),
           subtitle: Text(
             hasActiveServer
                 ? 'Update password for ${activeServer.displayName}.'
                 : 'Add a server before changing password.',
+            style: TextStyle(color: appSubtext),
           ),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: Icon(Icons.chevron_right, color: appSubtext),
           onTap: hasActiveServer ? _changeActiveServerPassword : null,
         ),
         ListTile(
           enabled: hasActiveServer,
           leading: Icon(
             Icons.person_remove_outlined,
-            color: hasActiveServer ? Colors.redAccent : null,
+            color: hasActiveServer ? Colors.redAccent : appSubtext,
           ),
-          title: const Text('Delete user account'),
-          subtitle: const Text('Deletes the user and all private cloud files.'),
-          trailing: const Icon(Icons.chevron_right),
+          title: Text('Delete user account', style: TextStyle(color: appText)),
+          subtitle: Text('Deletes the user and all private cloud files.', style: TextStyle(color: appSubtext)),
+          trailing: Icon(Icons.chevron_right, color: appSubtext),
           onTap: hasActiveServer ? _deleteActiveServerAccount : null,
         ),
       ],
@@ -1202,6 +1214,233 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final day = localFinished.day.toString().padLeft(2, '0');
     final month = localFinished.month.toString().padLeft(2, '0');
     return 'Last run $day.$month.${localFinished.year} $hour:$minute';
+  }
+
+  Widget _themeSection() {
+    final currentTheme = AppTheme.current;
+
+    return _SettingsSection(
+      title: 'Appearance & Customization',
+      children: [
+        ListTile(
+          leading: Icon(
+            currentTheme.mode == AppThemeMode.light
+                ? Icons.light_mode_outlined
+                : currentTheme.mode == AppThemeMode.dark
+                    ? Icons.dark_mode_outlined
+                    : Icons.palette_outlined,
+            color: appAccent,
+          ),
+          title: Text('Theme Mode', style: TextStyle(color: appText)),
+          subtitle: Text(
+            currentTheme.mode == AppThemeMode.light
+                ? 'Light Theme'
+                : currentTheme.mode == AppThemeMode.dark
+                    ? 'Dark Theme'
+                    : 'Custom Theme',
+            style: TextStyle(color: appSubtext),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: SegmentedButton<AppThemeMode>(
+            style: SegmentedButton.styleFrom(
+              selectedBackgroundColor: appAccent.withValues(alpha: 0.25),
+              selectedForegroundColor: appAccent,
+              foregroundColor: appSubtext,
+              side: BorderSide(color: appBorder),
+            ),
+            segments: const [
+              ButtonSegment(
+                value: AppThemeMode.dark,
+                label: Text('Dark'),
+                icon: Icon(Icons.dark_mode_outlined, size: 16),
+              ),
+              ButtonSegment(
+                value: AppThemeMode.light,
+                label: Text('Light'),
+                icon: Icon(Icons.light_mode_outlined, size: 16),
+              ),
+              ButtonSegment(
+                value: AppThemeMode.custom,
+                label: Text('Custom'),
+                icon: Icon(Icons.palette_outlined, size: 16),
+              ),
+            ],
+            selected: {currentTheme.mode},
+            onSelectionChanged: (selected) async {
+              final newMode = selected.first;
+              AppThemeData newTheme;
+              if (newMode == AppThemeMode.dark) {
+                newTheme = AppThemeData.dark.copyWith(
+                  accent: currentTheme.accent,
+                  fontFamily: currentTheme.fontFamily,
+                  fontSizeScale: currentTheme.fontSizeScale,
+                );
+              } else if (newMode == AppThemeMode.light) {
+                newTheme = AppThemeData.light.copyWith(
+                  accent: currentTheme.accent,
+                  fontFamily: currentTheme.fontFamily,
+                  fontSizeScale: currentTheme.fontSizeScale,
+                );
+              } else {
+                newTheme = currentTheme.copyWith(mode: AppThemeMode.custom);
+              }
+              AppTheme.set(newTheme);
+              await widget.settingsService.saveTheme(newTheme);
+              if (mounted) setState(() {});
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Accent Color Picker
+        ListTile(
+          leading: Icon(Icons.color_lens_outlined, color: appAccent),
+          title: Text('Accent Color', style: TextStyle(color: appText)),
+          subtitle: Text('Primary accent color', style: TextStyle(color: appSubtext)),
+          trailing: GestureDetector(
+            onTap: () async {
+              final picked = await ColorPickerDialog.show(
+                context,
+                initialColor: currentTheme.accent,
+                title: 'Select Accent Color',
+              );
+              if (picked != null) {
+                final newTheme = currentTheme.copyWith(accent: picked);
+                AppTheme.set(newTheme);
+                await widget.settingsService.saveTheme(newTheme);
+                if (mounted) setState(() {});
+              }
+            },
+            child: Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: currentTheme.accent,
+                shape: BoxShape.circle,
+                border: Border.all(color: appBorder, width: 2),
+              ),
+            ),
+          ),
+        ),
+
+        // Custom Theme Colors (visible when Mode is Custom)
+        if (currentTheme.mode == AppThemeMode.custom) ...[
+          _buildColorTile(
+            title: 'Background Color',
+            color: currentTheme.background,
+            onColorPicked: (newColor) async {
+              final newTheme = currentTheme.copyWith(background: newColor);
+              AppTheme.set(newTheme);
+              await widget.settingsService.saveTheme(newTheme);
+              if (mounted) setState(() {});
+            },
+          ),
+          _buildColorTile(
+            title: 'Surface Color',
+            color: currentTheme.surface,
+            onColorPicked: (newColor) async {
+              final newTheme = currentTheme.copyWith(surface: newColor);
+              AppTheme.set(newTheme);
+              await widget.settingsService.saveTheme(newTheme);
+              if (mounted) setState(() {});
+            },
+          ),
+          _buildColorTile(
+            title: 'Text Color',
+            color: currentTheme.text,
+            onColorPicked: (newColor) async {
+              final newTheme = currentTheme.copyWith(text: newColor);
+              AppTheme.set(newTheme);
+              await widget.settingsService.saveTheme(newTheme);
+              if (mounted) setState(() {});
+            },
+          ),
+          _buildColorTile(
+            title: 'Subtext Color',
+            color: currentTheme.subtext,
+            onColorPicked: (newColor) async {
+              final newTheme = currentTheme.copyWith(subtext: newColor);
+              AppTheme.set(newTheme);
+              await widget.settingsService.saveTheme(newTheme);
+              if (mounted) setState(() {});
+            },
+          ),
+          _buildColorTile(
+            title: 'Border Color',
+            color: currentTheme.border,
+            onColorPicked: (newColor) async {
+              final newTheme = currentTheme.copyWith(border: newColor);
+              AppTheme.set(newTheme);
+              await widget.settingsService.saveTheme(newTheme);
+              if (mounted) setState(() {});
+            },
+          ),
+        ],
+
+        // Font Size Scale Slider
+        ListTile(
+          leading: Icon(Icons.format_size_outlined, color: appAccent),
+          title: Text('Font Size Scale', style: TextStyle(color: appText)),
+          subtitle: Text(
+            '${(currentTheme.fontSizeScale * 100).round()}%',
+            style: TextStyle(color: appSubtext),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Slider(
+            value: currentTheme.fontSizeScale,
+            min: 0.85,
+            max: 1.30,
+            divisions: 9,
+            activeColor: appAccent,
+            inactiveColor: appBorder,
+            label: '${(currentTheme.fontSizeScale * 100).round()}%',
+            onChanged: (val) async {
+              final newTheme = currentTheme.copyWith(fontSizeScale: val);
+              AppTheme.set(newTheme);
+              await widget.settingsService.saveTheme(newTheme);
+              if (mounted) setState(() {});
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _buildColorTile({
+    required String title,
+    required Color color,
+    required ValueChanged<Color> onColorPicked,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      title: Text(title, style: TextStyle(color: appText, fontSize: 14)),
+      trailing: GestureDetector(
+        onTap: () async {
+          final picked = await ColorPickerDialog.show(
+            context,
+            initialColor: color,
+            title: 'Select $title',
+          );
+          if (picked != null) {
+            onColorPicked(picked);
+          }
+        },
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: appBorder, width: 2),
+          ),
+        ),
+      ),
+    );
   }
 
   String _syncResultMessage(SyncRunResult result) {
@@ -1237,8 +1476,8 @@ class _SettingsSection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
             child: Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: appText,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -1457,18 +1696,21 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
 
     return AlertDialog(
       backgroundColor: appSurface,
-      title: const Text('Categories to synchronize'),
+      title: Text(
+        'Categories to synchronize',
+        style: TextStyle(color: appText),
+      ),
       content: SizedBox(
         width: double.maxFinite,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
                   'Choose one or more categories. Leaving everything unchecked is valid.',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(color: appSubtext),
                 ),
               ),
               ...sections.expand(
@@ -1479,8 +1721,8 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         section.title,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: appText,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -1490,8 +1732,9 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
                     (option) => CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
                       dense: true,
-                      secondary: Icon(option.icon),
-                      title: Text(option.label),
+                      activeColor: appAccent,
+                      secondary: Icon(option.icon, color: appAccent),
+                      title: Text(option.label, style: TextStyle(color: appText)),
                       value: _selected.contains(option.id),
                       onChanged: (value) =>
                           _setSelected(option.id, value ?? false),
@@ -1506,13 +1749,14 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
       actions: [
         TextButton(
           onPressed: () => setState(_selected.clear),
-          child: const Text('Clear all'),
+          child: Text('Clear all', style: TextStyle(color: appSubtext)),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
+          child: Text('Cancel', style: TextStyle(color: appSubtext)),
         ),
         FilledButton(
+          style: FilledButton.styleFrom(backgroundColor: appAccent),
           onPressed: () => Navigator.of(context).pop({..._selected}),
           child: const Text('Save'),
         ),

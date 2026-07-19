@@ -38,6 +38,8 @@ void main() async {
   await WorkmanagerSyncBackgroundScheduler().initialize();
   await CacheService.instance.init();
   await ThumbnailService.instance.init();
+  final theme = await AppSettingsService().loadTheme();
+  AppTheme.set(theme);
   runApp(const CrowleysCloudApp());
 }
 
@@ -46,19 +48,52 @@ class CrowleysCloudApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Crowley\'s Cloud',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: appBackground,
-        primaryColor: appAccent,
-        colorScheme: const ColorScheme.dark(
-          primary: appAccent,
-          secondary: appAccent,
-          surface: appSurface,
-        ),
-      ),
-      home: const MainScreen(),
+    return ValueListenableBuilder<AppThemeData>(
+      valueListenable: AppTheme.notifier,
+      builder: (context, appTheme, _) {
+        final isDark = appTheme.mode != AppThemeMode.light &&
+            (appTheme.mode == AppThemeMode.dark ||
+                appTheme.background.computeLuminance() < 0.5);
+
+        final baseTheme = isDark ? ThemeData.dark() : ThemeData.light();
+        final fontFamily =
+            appTheme.fontFamily == 'System' ? null : appTheme.fontFamily;
+
+        return MaterialApp(
+          title: 'Crowley\'s Cloud',
+          debugShowCheckedModeBanner: false,
+          theme: baseTheme.copyWith(
+            scaffoldBackgroundColor: appTheme.background,
+            primaryColor: appTheme.accent,
+            colorScheme:
+                (isDark ? const ColorScheme.dark() : const ColorScheme.light())
+                    .copyWith(
+              primary: appTheme.accent,
+              secondary: appTheme.accent,
+              surface: appTheme.surface,
+            ),
+            textTheme: baseTheme.textTheme.apply(
+              fontFamily: fontFamily,
+              bodyColor: appTheme.text,
+              displayColor: appTheme.text,
+            ),
+            appBarTheme: AppBarTheme(
+              backgroundColor: appTheme.surface,
+              foregroundColor: appTheme.text,
+            ),
+          ),
+          builder: (context, child) {
+            final mediaQuery = MediaQuery.of(context);
+            return MediaQuery(
+              data: mediaQuery.copyWith(
+                textScaler: TextScaler.linear(appTheme.fontSizeScale),
+              ),
+              child: child!,
+            );
+          },
+          home: const MainScreen(),
+        );
+      },
     );
   }
 }
@@ -81,7 +116,7 @@ class _AuthServerBadge extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: appAccent),
           ),
-          child: const Icon(Icons.shield_outlined, color: appAccent, size: 18),
+          child: Icon(Icons.shield_outlined, color: appAccent, size: 18),
         ),
       ],
     );
@@ -422,13 +457,13 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: const Text(
+        title: Text(
           'Switch server?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: appText),
         ),
         content: Text(
           'Switch active server to "$serverName"?',
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: appSubtext),
         ),
         actions: [
           TextButton(
@@ -641,9 +676,9 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: const Text(
+        title: Text(
           'Choose server',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: appText),
         ),
         content: SizedBox(
           width: double.maxFinite,
@@ -653,14 +688,14 @@ class _MainScreenState extends State<MainScreen> {
             itemBuilder: (context, index) {
               final server = otherServers[index];
               return ListTile(
-                leading: const Icon(Icons.dns, color: Colors.white70),
+                leading: Icon(Icons.dns, color: appSubtext),
                 title: Text(
                   server.displayName,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: appText),
                 ),
                 subtitle: Text(
                   server.baseUrl,
-                  style: const TextStyle(color: Colors.white54),
+                  style: TextStyle(color: appSubtext),
                 ),
                 onTap: () => Navigator.of(context).pop(server.id),
               );
@@ -1262,14 +1297,14 @@ class _MainScreenState extends State<MainScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'No servers configured yet.',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(color: appText, fontSize: 18),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Add your first server to continue.',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(color: appSubtext),
                 ),
                 const SizedBox(height: 20),
                 FilledButton(
@@ -1309,14 +1344,14 @@ class _MainScreenState extends State<MainScreen> {
                         color: appAccent,
                       ),
                       const SizedBox(height: 18),
-                      const Text(
+                      Text(
                         'Authentication required',
-                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: appText, fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Sign in to access files on ${active.displayName}',
-                        style: const TextStyle(color: Colors.white70),
+                        style: TextStyle(color: appSubtext),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 28),
@@ -1367,8 +1402,8 @@ class _MainScreenState extends State<MainScreen> {
                             icon: const Icon(Icons.fingerprint),
                             label: const Text('Use Biometrics'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
+                              foregroundColor: appText,
+                              side: BorderSide(color: appBorder),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -1381,8 +1416,8 @@ class _MainScreenState extends State<MainScreen> {
                         const SizedBox(height: 16),
                         TextButton.icon(
                           onPressed: _chooseOtherServerFromExisting,
-                          icon: const Icon(Icons.swap_horiz, color: appAccent),
-                          label: const Text(
+                          icon: Icon(Icons.swap_horiz, color: appAccent),
+                          label: Text(
                             'Switch Server',
                             style: TextStyle(color: appAccent, fontWeight: FontWeight.w600),
                           ),
@@ -1392,17 +1427,17 @@ class _MainScreenState extends State<MainScreen> {
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
                       Text(
                         'Authentication required',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                        style: TextStyle(color: appText, fontSize: 18),
                       ),
                       SizedBox(height: 8),
                       Text(
                         'Opening sign in...',
-                        style: TextStyle(color: Colors.white70),
+                        style: TextStyle(color: appSubtext),
                       ),
                     ],
                   ),
@@ -1431,13 +1466,13 @@ class _MainScreenState extends State<MainScreen> {
                   active == null
                       ? 'Unable to connect to the active server.'
                       : 'Unable to connect to ${active.displayName}.',
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(color: appText, fontSize: 18),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
                   _serverManager.connectionErrorMessage!,
-                  style: const TextStyle(color: Colors.white70),
+                  style: TextStyle(color: appSubtext),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
@@ -1538,7 +1573,7 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   IconButton(
                     iconSize: 28,
-                    icon: const Icon(Icons.menu, color: Colors.white),
+                    icon: Icon(Icons.menu, color: appText),
                     onPressed: () => _scaffoldKey.currentState!.openDrawer(),
                   ),
                   if ((_selectedModeIndex == 0 &&
@@ -1547,7 +1582,7 @@ class _MainScreenState extends State<MainScreen> {
                           ((_serverController?.canNavigateBack ?? false) ||
                               _selectedServerCategory != null)))
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      icon: Icon(Icons.arrow_back, color: appText),
                       onPressed: _handleBack,
                     )
                   else
@@ -1563,20 +1598,20 @@ class _MainScreenState extends State<MainScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
                   children: [
-                    const Icon(Icons.search, color: Colors.white54),
+                    Icon(Icons.search, color: appSubtext),
                     const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
                         controller: _searchController,
                         onChanged: _onSearchChanged,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'Search...',
-                          hintStyle: TextStyle(color: Colors.white54),
+                          hintStyle: TextStyle(color: appSubtext),
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
                         ),
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: appText),
                       ),
                     ),
                     if (_searchController.text.isNotEmpty)
@@ -1585,9 +1620,9 @@ class _MainScreenState extends State<MainScreen> {
                           _searchController.clear();
                           await _resetSearchFilterForCurrentMode();
                         },
-                        child: const Icon(
+                        child: Icon(
                           Icons.close,
-                          color: Colors.white54,
+                          color: appSubtext,
                           size: 20,
                         ),
                       ),
@@ -1617,10 +1652,10 @@ class _MainScreenState extends State<MainScreen> {
                     ListTile(
                       title: Text(
                         'Crowley\'s Cloud',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                        style: TextStyle(color: appText, fontSize: 18),
                       ),
                     ),
-                    const Divider(color: Colors.white24),
+                    Divider(color: appBorder),
                     ..._serverManager.servers.map((server) {
                       final isActive =
                           _serverManager.activeServer?.id == server.id;
@@ -1642,12 +1677,12 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                             leading: Icon(
                               Icons.dns,
-                              color: isActive ? Colors.white : Colors.white70,
+                              color: isActive ? appText : appSubtext,
                             ),
                             title: Text(
                               server.displayName,
                               style: TextStyle(
-                                color: Colors.white,
+                                color: appText,
                                 fontWeight: isActive
                                     ? FontWeight.w700
                                     : FontWeight.w400,
@@ -1656,9 +1691,7 @@ class _MainScreenState extends State<MainScreen> {
                             subtitle: Text(
                               server.baseUrl,
                               style: TextStyle(
-                                color: isActive
-                                    ? Colors.white70
-                                    : Colors.white54,
+                                color: appSubtext,
                               ),
                             ),
                             selected: isActive,
@@ -1677,9 +1710,9 @@ class _MainScreenState extends State<MainScreen> {
                                     Navigator.pop(context);
                                   },
                             trailing: IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.delete,
-                                color: Colors.white70,
+                                color: appSubtext,
                               ),
                               onPressed: () async {
                                 await _serverManager.removeServer(server.id);
@@ -1692,22 +1725,22 @@ class _MainScreenState extends State<MainScreen> {
                       );
                     }),
                     ListTile(
-                      leading: const Icon(Icons.add, color: Colors.white70),
-                      title: const Text(
+                      leading: Icon(Icons.add, color: appSubtext),
+                      title: Text(
                         'Add server',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: appText),
                       ),
                       onTap: () async {
                         Navigator.pop(context);
                         await _openAddServerFlow();
                       },
                     ),
-                    const Divider(color: Colors.white24),
+                    Divider(color: appBorder),
                     ListTile(
-                      leading: const Icon(Icons.folder, color: Colors.white70),
-                      title: const Text(
+                      leading: Icon(Icons.folder, color: appSubtext),
+                      title: Text(
                         'Local',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: appText),
                       ),
                       selected: _selectedModeIndex == 0,
                       onTap: () {
@@ -1719,10 +1752,10 @@ class _MainScreenState extends State<MainScreen> {
                       },
                     ),
                     ListTile(
-                      leading: const Icon(Icons.cloud, color: Colors.white70),
-                      title: const Text(
+                      leading: Icon(Icons.cloud, color: appSubtext),
+                      title: Text(
                         'Server',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: appText),
                       ),
                       selected: _selectedModeIndex == 1,
                       onTap: () {
@@ -1736,13 +1769,13 @@ class _MainScreenState extends State<MainScreen> {
                     if (_serverManager.activeServer != null &&
                         _trashRetentionDays > 0)
                       ListTile(
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.delete_outline,
-                          color: Colors.white70,
+                          color: appSubtext,
                         ),
-                        title: const Text(
+                        title: Text(
                           'Trash',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: appText),
                         ),
                         onTap: () {
                           Navigator.pop(context);
@@ -1771,15 +1804,15 @@ class _MainScreenState extends State<MainScreen> {
                           );
                         },
                       ),
-                    const Divider(color: Colors.white24),
+                    Divider(color: appBorder),
                     ListTile(
-                      leading: const Icon(
+                      leading: Icon(
                         Icons.settings,
-                        color: Colors.white70,
+                        color: appSubtext,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Settings',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: appText),
                       ),
                       onTap: () async {
                         Navigator.pop(context);
@@ -1888,11 +1921,11 @@ class _MainScreenState extends State<MainScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(category.icon, color: Colors.white70, size: 40),
+                Icon(category.icon, color: appSubtext, size: 40),
                 const SizedBox(height: 12),
                 Text(
                   category.name,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: appText, fontSize: 16),
                 ),
               ],
             ),
@@ -1925,11 +1958,11 @@ class _MainScreenState extends State<MainScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(category.icon, color: Colors.white70, size: 40),
+                Icon(category.icon, color: appSubtext, size: 40),
                 const SizedBox(height: 12),
                 Text(
                   category.name,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: appText, fontSize: 16),
                 ),
               ],
             ),
