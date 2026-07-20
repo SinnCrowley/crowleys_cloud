@@ -23,7 +23,10 @@ const syncBackgroundTag = 'crowleys_cloud_sync';
 abstract class SyncBackgroundScheduler {
   Future<void> initialize();
 
-  Future<void> scheduleForServers(List<ServerProfile> servers);
+  Future<void> scheduleForServers(
+    List<ServerProfile> servers, {
+    bool forceReRegister = false,
+  });
 
   Future<void> debugTriggerOneOffSync(String serverId);
 }
@@ -60,7 +63,10 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
   }
 
   @override
-  Future<void> scheduleForServers(List<ServerProfile> servers) async {
+  Future<void> scheduleForServers(
+    List<ServerProfile> servers, {
+    bool forceReRegister = false,
+  }) async {
     if (!Platform.isAndroid) return;
     await initialize();
     final secretStore = FlutterSecureSecretStore(
@@ -69,6 +75,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
     final prefs = await SharedPreferences.getInstance();
     for (final server in servers) {
       final uniqueName = '$syncBackgroundUniquePrefix${server.id}';
+      final prefKey = 'sync_sched_config_${server.id}';
       if (_syncEnabled(server)) {
         final frequencyMinutes =
             server.syncPrefs['syncFrequency'] as int? ?? 15;
@@ -85,10 +92,9 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
           'syncFolders': server.syncPrefs['syncFolders'],
         };
         final configJson = jsonEncode(configMap);
-        final prefKey = 'sync_sched_config_${server.id}';
         final existingConfig = prefs.getString(prefKey);
 
-        if (existingConfig == configJson) {
+        if (!forceReRegister && existingConfig == configJson) {
           // Task configuration hasn't changed. Skip re-registering to avoid resetting WorkManager timer.
           continue;
         }
@@ -111,7 +117,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
         await prefs.setString(prefKey, configJson);
       } else {
         await _workmanager.cancelByUniqueName(uniqueName);
-        await prefs.remove('sync_sched_config_${server.id}');
+        await prefs.remove(prefKey);
       }
     }
   }
@@ -210,7 +216,24 @@ Future<bool> runBackgroundSync({String? serverId, String? syncToken}) async {
       },
     );
 
-    if (result.status == SyncRunStatus.failed ||
+    if (result.status == SyncRunStatus.serverUnreachable ||
+        result.status == SyncRunStatus.authRequired) {
+      final isUnreachable = result.status == SyncRunStatus.serverUnreachable;
+      await SyncNotificationService.instance.showCompleteNotification(
+        id: notificationId,
+        title: 'Sync with $serverName paused',
+        body: isUnreachable
+            ? 'Server is unreachable. Background sync paused until app is opened.'
+            : 'Authentication required. Open app to log in.',
+        isError: true,
+      );
+      await Workmanager().cancelByUniqueName(
+        '$syncBackgroundUniquePrefix${server.id}',
+      );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('sync_sched_config_${server.id}');
+      return false;
+    } else if (result.status == SyncRunStatus.failed ||
         result.status == SyncRunStatus.partialFailure) {
       await SyncNotificationService.instance.showCompleteNotification(
         id: notificationId,

@@ -22,6 +22,7 @@ class FileController : public drogon::HttpController<FileController> {
   ADD_METHOD_TO(FileController::deleteTrash, "/api/trash", drogon::Delete, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::getTrashSettings, "/api/account/settings/trash", drogon::Get, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::setTrashSettings, "/api/account/settings/trash", drogon::Post, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(FileController::uploadStatus, "/api/files/upload-status", drogon::Get, "server::middleware::JwtMiddleware");
   METHOD_LIST_END
 
   void listDir(const drogon::HttpRequestPtr &req,
@@ -52,6 +53,8 @@ class FileController : public drogon::HttpController<FileController> {
                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void setTrashSettings(const drogon::HttpRequestPtr &req,
                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+  void uploadStatus(const drogon::HttpRequestPtr &req,
+                    std::function<void(const drogon::HttpResponsePtr &)> &&callback);
 };
 
 }  // namespace server::controllers

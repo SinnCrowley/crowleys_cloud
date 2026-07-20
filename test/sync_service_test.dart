@@ -19,7 +19,14 @@ class _FakeApiClient implements SyncApiClient {
   final existingPaths = <String>{};
   final Map<String, String> hashToExistingPath = {};
   String? failUploadPath;
+  bool isServerUnreachable = false;
   bool authRequired = false;
+
+  @override
+  Future<bool> ping({required ServerProfile server}) async {
+    if (isServerUnreachable) return false;
+    return true;
+  }
 
   @override
   Future<void> createFolder({
@@ -66,6 +73,15 @@ class _FakeApiClient implements SyncApiClient {
       }
     }
     return result;
+  }
+
+  @override
+  Future<int> getUploadStatus({
+    required ServerProfile server,
+    required String remotePath,
+  }) async {
+    if (authRequired) throw const SyncException('Authentication required');
+    return 0;
   }
 }
 
@@ -380,5 +396,27 @@ void main() {
     );
     expect(record, isNotNull);
     expect(record?.remotePath, 'manual_uploads/archived_photo.jpg');
+  });
+
+  test('aborts early and returns serverUnreachable status if ping fails', () async {
+    final file = await writeTestFile(tempDir, 'photo.jpg', 'some content');
+    final stateFile = File('${tempDir.path}/state.json');
+    final stateStore = FileSyncStateStore(fileProvider: () async => stateFile);
+    final api = _FakeApiClient()..isServerUnreachable = true;
+
+    final service = SyncService(
+      scanner: _FakeScanner([
+        SyncCandidate(file: file, remotePath: 'backup/photos/photo.jpg'),
+      ]),
+      apiClient: api,
+      stateStore: stateStore,
+    );
+
+    final result = await service.syncServer(server);
+
+    expect(result.status, SyncRunStatus.serverUnreachable);
+    expect(result.uploadedFiles, 0);
+    expect(api.uploadedPaths, isEmpty);
+    expect(result.message, contains('Could not connect'));
   });
 }

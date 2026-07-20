@@ -703,7 +703,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return true;
     }
 
-    final needed = <Permission>{Permission.notification};
+    final needed = <Permission>{
+      Permission.notification,
+      Permission.ignoreBatteryOptimizations,
+    };
     if (folders.isNotEmpty) {
       needed.add(Permission.manageExternalStorage);
     }
@@ -1451,6 +1454,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       SyncRunStatus.partialFailure =>
         'Synced ${result.uploadedFiles}, failed ${result.failedFiles}.',
       SyncRunStatus.authRequired => 'Sign in before syncing.',
+      SyncRunStatus.serverUnreachable =>
+        result.message ?? 'Server unreachable. Connection lost.',
       SyncRunStatus.failed => result.message ?? 'Sync failed.',
     };
   }

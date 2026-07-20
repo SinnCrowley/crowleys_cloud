@@ -35,5 +35,22 @@ dev_dependencies:
 
   flutter_lints: ^5.0.0
 
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.1
+
 flutter:
   uses-material-design: true
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/crowleys_cloud.png"
+  adaptive_icon_background: "#333333"
+  adaptive_icon_foreground: "assets/icon/crowleys_cloud_transparent.png"
+
+flutter_native_splash:
+  color: "#333333"
+  image: assets/icon/crowleys_cloud_transparent_smaller.png
+  android_12:
+    image: assets/icon/crowleys_cloud_transparent_smaller.png
+    color: "#333333"

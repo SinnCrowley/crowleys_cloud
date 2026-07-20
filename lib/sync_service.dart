@@ -12,7 +12,14 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-enum SyncRunStatus { success, partialFailure, authRequired, noFiles, failed }
+enum SyncRunStatus {
+  success,
+  partialFailure,
+  authRequired,
+  serverUnreachable,
+  noFiles,
+  failed,
+}
 
 class SyncRunResult {
   const SyncRunResult({
@@ -221,7 +228,16 @@ class FileSyncStateStore implements SyncStateStore {
 
   Future<Map<String, Object?>> _load() async {
     final file = await _resolveFile();
-    if (!await file.exists()) return <String, Object?>{'servers': {}};
+    if (!await file.exists()) {
+      final tmpFile = File('${file.path}.tmp');
+      if (await tmpFile.exists()) {
+        final raw = await tmpFile.readAsString();
+        if (raw.trim().isNotEmpty) {
+          return Map<String, Object?>.from(jsonDecode(raw) as Map);
+        }
+      }
+      return <String, Object?>{'servers': {}};
+    }
     final raw = await file.readAsString();
     if (raw.trim().isEmpty) return <String, Object?>{'servers': {}};
     return Map<String, Object?>.from(jsonDecode(raw) as Map);
@@ -230,7 +246,9 @@ class FileSyncStateStore implements SyncStateStore {
   Future<void> _save(Map<String, Object?> data) async {
     final file = await _resolveFile();
     await file.parent.create(recursive: true);
-    await file.writeAsString(jsonEncode(data));
+    final tmpFile = File('${file.path}.tmp');
+    await tmpFile.writeAsString(jsonEncode(data), flush: true);
+    await tmpFile.rename(file.path);
   }
 
   Future<File> _resolveFile() async {
@@ -407,6 +425,8 @@ class DeviceSyncFileScanner implements SyncFileScanner {
 }
 
 abstract class SyncApiClient {
+  Future<bool> ping({required ServerProfile server});
+
   Future<void> createFolder({
     required ServerProfile server,
     required String remotePath,
@@ -426,6 +446,11 @@ abstract class SyncApiClient {
   Future<Map<String, String>> checkHashes({
     required ServerProfile server,
     required List<String> hashes,
+  });
+
+  Future<int> getUploadStatus({
+    required ServerProfile server,
+    required String remotePath,
   });
 }
 
@@ -475,6 +500,29 @@ class HttpSyncApiClient implements SyncApiClient {
   }
 
   @override
+  Future<int> getUploadStatus({
+    required ServerProfile server,
+    required String remotePath,
+  }) async {
+    final uri = _apiUri(
+      server.connectionUrl,
+      '/api/files/upload-status',
+    ).replace(queryParameters: {'scope': 'private', 'path': remotePath});
+    try {
+      final response = await _authorizedRequest(
+        server: server,
+        send: (token) =>
+            _client.get(uri, headers: {'authorization': 'Bearer $token'}),
+      );
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        return (decoded['bytes_received'] as num?)?.toInt() ?? 0;
+      }
+    } catch (_) {}
+    return 0;
+  }
+
+  @override
   Future<Map<String, String>> checkHashes({
     required ServerProfile server,
     required List<String> hashes,
@@ -512,87 +560,147 @@ class HttpSyncApiClient implements SyncApiClient {
     required String remotePath,
     required File file,
   }) async {
+    final totalBytes = await file.length();
+    if (totalBytes == 0) {
+      final uri = _apiUri(
+        server.connectionUrl,
+        '/api/files',
+      ).replace(queryParameters: {'scope': 'private', 'path': remotePath});
+      final response = await _authorizedRequest(
+        server: server,
+        send: (token) => _client.post(
+          uri,
+          headers: {
+            'authorization': 'Bearer $token',
+            'content-type': 'application/octet-stream',
+          },
+          body: const [],
+        ),
+      );
+      if (response.statusCode >= 200 && response.statusCode < 300) return;
+      throw SyncException('Empty file upload failed: HTTP ${response.statusCode}');
+    }
+
+    const chunkSize = 2 * 1024 * 1024;
+    int offset = await getUploadStatus(server: server, remotePath: remotePath);
+    if (offset >= totalBytes) return;
+
+    final raf = await file.open(mode: FileMode.read);
+    try {
+      while (offset < totalBytes) {
+        final currentChunkSize = (offset + chunkSize > totalBytes)
+            ? (totalBytes - offset)
+            : chunkSize;
+        final isLast = (offset + currentChunkSize) >= totalBytes;
+
+        await raf.setPosition(offset);
+        final bytes = await raf.read(currentChunkSize);
+
+        final uri = _apiUri(
+          server.connectionUrl,
+          '/api/files',
+        ).replace(queryParameters: {
+          'scope': 'private',
+          'path': remotePath,
+          'offset': offset.toString(),
+          'total': totalBytes.toString(),
+          'is_last': isLast.toString(),
+        });
+
+        final response = await _authorizedRequest(
+          server: server,
+          send: (token) => _client.post(
+            uri,
+            headers: {
+              'authorization': 'Bearer $token',
+              'content-type': 'application/octet-stream',
+            },
+            body: bytes,
+          ),
+        );
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          throw SyncException(
+              'Chunk upload failed (${response.statusCode}) at offset $offset');
+        }
+
+        offset += bytes.length;
+      }
+    } finally {
+      await raf.close();
+    }
+  }
+
+  @override
+  Future<bool> ping({required ServerProfile server}) async {
     final uri = _apiUri(
       server.connectionUrl,
       '/api/files',
-    ).replace(queryParameters: {'scope': 'private', 'path': remotePath});
-    final response = await _authorizedStreamRequest(
-      server: server,
-      send: (token) async {
-        final request = http.StreamedRequest('POST', uri)
-          ..headers['authorization'] = 'Bearer $token'
-          ..headers['content-type'] = 'application/octet-stream'
-          ..contentLength = await file.length();
-
-        final responseFuture = _client.send(request);
-
-        try {
-          await request.sink.addStream(file.openRead());
-        } finally {
-          await request.sink.close();
-        }
-
-        return responseFuture;
-      },
-    );
-    if (response.statusCode >= 200 && response.statusCode < 300) return;
-    throw SyncException('Upload failed: HTTP ${response.statusCode}');
+    ).replace(queryParameters: {'scope': 'private', 'path': ''});
+    try {
+      final response = await _authorizedRequest(
+        server: server,
+        send: (token) => _client.head(
+          uri,
+          headers: {'authorization': 'Bearer $token'},
+        ).timeout(const Duration(seconds: 5)),
+      );
+      return response.statusCode >= 200 && response.statusCode < 500;
+    } on SyncException catch (e) {
+      if (e.isUnreachable) return false;
+      if (e.message == 'Authentication required') return true;
+      return false;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<http.Response> _authorizedRequest({
     required ServerProfile server,
     required Future<http.Response> Function(String token) send,
   }) async {
-    final syncToken = await authService.readSyncToken(server.id);
-    if (syncToken != null && syncToken.isNotEmpty) {
-      final response = await send(syncToken);
+    try {
+      var syncToken = await authService.readSyncToken(server.id);
+      if (syncToken != null && syncToken.isNotEmpty) {
+        final response = await send(syncToken);
+        if (response.statusCode != 401) return response;
+      }
+
+      try {
+        syncToken = await authService.fetchAndSaveSyncToken(
+          serverId: server.id,
+          baseUrl: server.connectionUrl,
+        );
+        if (syncToken != null && syncToken.isNotEmpty) {
+          final response = await send(syncToken);
+          if (response.statusCode != 401) return response;
+        }
+      } catch (_) {}
+
+      var token = await authService.readAccessToken(server.id);
+      if (token == null || token.isEmpty) {
+        throw const SyncException('Authentication required');
+      }
+      var response = await send(token);
       if (response.statusCode != 401) return response;
+      await authService.refreshSession(
+        serverId: server.id,
+        baseUrl: server.connectionUrl,
+      );
+      token = await authService.readAccessToken(server.id);
+      if (token == null || token.isEmpty) {
+        throw const SyncException('Authentication required');
+      }
+      return send(token);
+    } on SocketException catch (e) {
+      throw SyncException('Server unreachable: ${e.message}', isUnreachable: true);
+    } on http.ClientException catch (e) {
+      throw SyncException('Unable to reach server: ${e.message}', isUnreachable: true);
+    } on TimeoutException catch (_) {
+      throw const SyncException('Server connection timed out', isUnreachable: true);
+    } on HandshakeException catch (e) {
+      throw SyncException('Secure connection failed: ${e.message}', isUnreachable: true);
     }
-
-    var token = await authService.readAccessToken(server.id);
-    if (token == null || token.isEmpty) {
-      throw const SyncException('Authentication required');
-    }
-    var response = await send(token);
-    if (response.statusCode != 401) return response;
-    await authService.refreshSession(
-      serverId: server.id,
-      baseUrl: server.connectionUrl,
-    );
-    token = await authService.readAccessToken(server.id);
-    if (token == null || token.isEmpty) {
-      throw const SyncException('Authentication required');
-    }
-    return send(token);
-  }
-
-  Future<http.StreamedResponse> _authorizedStreamRequest({
-    required ServerProfile server,
-    required Future<http.StreamedResponse> Function(String token) send,
-  }) async {
-    final syncToken = await authService.readSyncToken(server.id);
-    if (syncToken != null && syncToken.isNotEmpty) {
-      final response = await send(syncToken);
-      if (response.statusCode != 401) return response;
-      await response.stream.drain<void>();
-    }
-
-    var token = await authService.readAccessToken(server.id);
-    if (token == null || token.isEmpty) {
-      throw const SyncException('Authentication required');
-    }
-    var response = await send(token);
-    if (response.statusCode != 401) return response;
-    await response.stream.drain<void>();
-    await authService.refreshSession(
-      serverId: server.id,
-      baseUrl: server.connectionUrl,
-    );
-    token = await authService.readAccessToken(server.id);
-    if (token == null || token.isEmpty) {
-      throw const SyncException('Authentication required');
-    }
-    return send(token);
   }
 
   Uri _apiUri(String baseUrl, String path) {
@@ -607,9 +715,10 @@ class HttpSyncApiClient implements SyncApiClient {
 }
 
 class SyncException implements Exception {
-  const SyncException(this.message);
+  const SyncException(this.message, {this.isUnreachable = false});
 
   final String message;
+  final bool isUnreachable;
 
   @override
   String toString() => 'SyncException($message)';
@@ -642,6 +751,23 @@ class SyncService {
     var skipped = 0;
     var failed = 0;
     String? message;
+
+    onProgress?.call('Connecting to server...', null);
+    final isAlive = await apiClient.ping(server: server);
+    if (!isAlive) {
+      final result = SyncRunResult(
+        status: SyncRunStatus.serverUnreachable,
+        scannedFiles: 0,
+        uploadedFiles: 0,
+        skippedFiles: 0,
+        failedFiles: 0,
+        startedAt: startedAt,
+        finishedAt: DateTime.now().toUtc(),
+        message: 'Could not connect to ${server.displayName}. Connection lost.',
+      );
+      await stateStore.saveLastResult(server.id, result);
+      return result;
+    }
 
     onProgress?.call('Scanning files on device...', null);
 
@@ -799,7 +925,9 @@ class SyncService {
           );
           uploaded++;
         } on SyncException catch (e) {
-          if (e.message == 'Authentication required') rethrow;
+          if (e.message == 'Authentication required' || e.isUnreachable) {
+            rethrow;
+          }
           failed++;
           message ??= e.message;
         } catch (e) {
@@ -826,9 +954,11 @@ class SyncService {
       await stateStore.saveLastResult(server.id, result);
       return result;
     } on SyncException catch (e) {
-      final status = e.message == 'Authentication required'
-          ? SyncRunStatus.authRequired
-          : SyncRunStatus.failed;
+      final status = e.isUnreachable
+          ? SyncRunStatus.serverUnreachable
+          : (e.message == 'Authentication required'
+              ? SyncRunStatus.authRequired
+              : SyncRunStatus.failed);
       final result = SyncRunResult(
         status: status,
         scannedFiles: scanned,

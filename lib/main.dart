@@ -360,7 +360,10 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _initializeServers() async {
     await _requestAllPermissionsAtStartup();
     await _serverManager.initialize();
-    await _syncScheduler.scheduleForServers(_serverManager.servers);
+    await _syncScheduler.scheduleForServers(
+      _serverManager.servers,
+      forceReRegister: true,
+    );
     try {
       final prefs = await SharedPreferences.getInstance();
       _isGridView = prefs.getBool('is_grid_view') ?? true;

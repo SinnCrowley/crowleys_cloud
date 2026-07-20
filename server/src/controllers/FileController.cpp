@@ -565,6 +565,37 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
   }
 }
 
+void FileController::uploadStatus(const drogon::HttpRequestPtr &req,
+                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  try {
+    const auto relPath = std::filesystem::path(req->getParameter("path"))
+                            .lexically_normal()
+                            .relative_path()
+                            .generic_string();
+    const auto tmpDir = std::filesystem::path(server::ctx().config.storageRoot) / ".tmp_uploads";
+    const auto tmpPath = tmpDir / (std::to_string(userId) + "_" + utils::sha256Hex(relPath));
+
+    std::size_t bytesReceived = 0;
+    if (std::filesystem::exists(tmpPath)) {
+      bytesReceived = std::filesystem::file_size(tmpPath);
+    }
+
+    Json::Value body;
+    body["ok"] = true;
+    body["bytes_received"] = static_cast<Json::UInt64>(bytesReceived);
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
 void FileController::uploadFile(const drogon::HttpRequestPtr &req,
                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
   std::int64_t userId;
@@ -578,6 +609,97 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
   if (!scope.has_value()) {
     callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
     return;
+  }
+
+  const auto offsetStr = req->getParameter("offset");
+  const auto totalStr = req->getParameter("total");
+  const auto isLastStr = req->getParameter("is_last");
+
+  if (!offsetStr.empty()) {
+    try {
+      std::size_t offset = std::stoull(offsetStr);
+      std::size_t total = totalStr.empty() ? 0 : std::stoull(totalStr);
+      bool isLast = isLastStr == "true";
+
+      const auto relPath = std::filesystem::path(req->getParameter("path"))
+                              .lexically_normal()
+                              .relative_path()
+                              .generic_string();
+      const auto tmpDir = std::filesystem::path(server::ctx().config.storageRoot) / ".tmp_uploads";
+      std::filesystem::create_directories(tmpDir);
+      const auto tmpPath = tmpDir / (std::to_string(userId) + "_" + utils::sha256Hex(relPath));
+
+      auto mode = (offset == 0) ? (std::ios::binary | std::ios::trunc) : (std::ios::binary | std::ios::app);
+      std::ofstream out(tmpPath, mode);
+      if (req->bodyLength() > 0) {
+        out.write(req->bodyData(), static_cast<std::streamsize>(req->bodyLength()));
+      }
+      out.close();
+
+      const auto currentSize = std::filesystem::file_size(tmpPath);
+      const bool completed = (total > 0 && currentSize >= total) || isLast;
+
+      if (completed) {
+        const bool hashFiles = server::ctx().config.hashFiles;
+        if (hashFiles) {
+          std::ifstream in(tmpPath, std::ios::binary);
+          std::string plainData((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+          in.close();
+
+          std::string plainSha256 = utils::sha256Hex(plainData);
+          std::string cipherText = utils::encryptAes256(plainData, server::ctx().config.encryptionKey);
+
+          const auto dataDir = std::filesystem::path(server::ctx().config.storageRoot) / "data";
+          std::filesystem::create_directories(dataDir);
+          const auto physicalPath = dataDir / plainSha256;
+
+          std::ofstream dataOut(physicalPath, std::ios::binary | std::ios::trunc);
+          dataOut.write(cipherText.data(), cipherText.size());
+          dataOut.close();
+
+          const auto fileName = std::filesystem::path(relPath).filename().string();
+          const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                               std::chrono::system_clock::now().time_since_epoch())
+                               .count();
+          const auto type = server::ctx().fileService->classifyType(fileName);
+          const auto mimeType = server::ctx().fileService->mimeTypeFor(fileName);
+          const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+          const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+
+          server::ctx().fileIndexService->upsertFileExplicit(
+              ownerUserId, *scope, relPath, fileName, plainData.size(), now, type, mimeType, uploaderUserId, plainSha256);
+        } else {
+          const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
+          std::filesystem::create_directories(target.parent_path());
+          std::filesystem::rename(tmpPath, target);
+
+          const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+          const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+          server::ctx().fileIndexService->upsertFile(
+              ownerUserId, *scope, relPath, target, uploaderUserId);
+        }
+
+        std::error_code ec;
+        std::filesystem::remove(tmpPath, ec);
+
+        Json::Value body;
+        body["ok"] = true;
+        body["completed"] = true;
+        body["bytes_received"] = static_cast<Json::UInt64>(currentSize);
+        callback(drogon::HttpResponse::newHttpJsonResponse(body));
+        return;
+      } else {
+        Json::Value body;
+        body["ok"] = true;
+        body["completed"] = false;
+        body["bytes_received"] = static_cast<Json::UInt64>(currentSize);
+        callback(drogon::HttpResponse::newHttpJsonResponse(body));
+        return;
+      }
+    } catch (const std::exception &e) {
+      callback(jsonError(drogon::k400BadRequest, e.what()));
+      return;
+    }
   }
 
   if (req->bodyLength() > static_cast<size_t>(server::ctx().config.uploadLimitBytes)) {
