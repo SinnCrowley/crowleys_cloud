@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crowleys_cloud/secret_store.dart';
+import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:http/http.dart' as http;
 
+/// Authentication mode enumeration (login or registration).
 enum AuthMode { register, login }
 
+/// Result payload containing access and refresh tokens returned from authentication endpoints.
 class AuthResult {
   const AuthResult({required this.accessToken, required this.refreshToken});
 
@@ -14,6 +17,7 @@ class AuthResult {
   final String refreshToken;
 }
 
+/// Gateway interface for executing raw HTTP network calls to backend authentication services.
 abstract class AuthGateway {
   Future<AuthResult> register({
     required String baseUrl,
@@ -33,6 +37,7 @@ abstract class AuthGateway {
   });
 }
 
+/// Concrete HTTP gateway performing login, registration, and refresh requests.
 class HttpAuthGateway implements AuthGateway {
   HttpAuthGateway({http.Client? client}) : _client = client ?? http.Client();
 
@@ -98,17 +103,8 @@ class HttpAuthGateway implements AuthGateway {
     return AuthResult(accessToken: accessToken, refreshToken: refreshToken);
   }
 
-  Uri _endpoint(String baseUrl, String path) {
-    final raw = baseUrl.trim();
-    final withScheme = raw.contains('://') ? raw : 'http://$raw';
-    final base = Uri.parse(withScheme);
-    final basePath = base.path.isEmpty
-        ? '/'
-        : (base.path.endsWith('/') ? base.path : '${base.path}/');
-    final normalizedBase = base.replace(path: basePath);
-    final relativePath = path.startsWith('/') ? path.substring(1) : path;
-    return normalizedBase.resolve(relativePath);
-  }
+  Uri _endpoint(String baseUrl, String path) =>
+      UrlUtils.buildEndpoint(baseUrl, path);
 
   String? _extractError(String body) {
     try {
@@ -144,6 +140,8 @@ class SessionCheckResult {
   final String? message;
 }
 
+/// Primary authentication service coordinating login/registration, token lifecycle management,
+/// session validation, credential persistence, and token lifetime policy synchronization with [SecretStore].
 class AuthService {
   AuthService({
     required this.secretStore,
@@ -487,15 +485,6 @@ class AuthService {
     }
   }
 
-  Uri _endpoint(String baseUrl, String path) {
-    final raw = baseUrl.trim();
-    final withScheme = raw.contains('://') ? raw : 'http://$raw';
-    final base = Uri.parse(withScheme);
-    final basePath = base.path.isEmpty
-        ? '/'
-        : (base.path.endsWith('/') ? base.path : '${base.path}/');
-    final normalizedBase = base.replace(path: basePath);
-    final relativePath = path.startsWith('/') ? path.substring(1) : path;
-    return normalizedBase.resolve(relativePath);
-  }
+  Uri _endpoint(String baseUrl, String path) =>
+      UrlUtils.buildEndpoint(baseUrl, path);
 }

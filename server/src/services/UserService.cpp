@@ -1,6 +1,7 @@
 #include "server/services/UserService.hpp"
 
 #include "server/utils/Crypto.hpp"
+#include "server/utils/TimeUtils.hpp"
 
 #include <sqlite3.h>
 
@@ -10,13 +11,6 @@
 #include <vector>
 
 namespace server::services {
-namespace {
-std::int64_t nowSeconds() {
-  return std::chrono::duration_cast<std::chrono::seconds>(
-             std::chrono::system_clock::now().time_since_epoch())
-      .count();
-}
-}  // namespace
 
 UserService::UserService(db::Database &db, const utils::Config &config)
     : db_(db), config_(config) {}
@@ -33,22 +27,20 @@ bool UserService::verifyPassword(const std::string &password, const std::string 
 std::optional<UserRecord> UserService::registerUser(const std::string &username,
                                                     const std::string &password,
                                                     std::string &error) {
-  sqlite3_stmt *stmt = nullptr;
-  const char *sql = "INSERT INTO users(username, password_hash, role, created_at) VALUES(?, ?, ?, ?)";
-  sqlite3_prepare_v2(db_.raw(), sql, -1, &stmt, nullptr);
+  auto stmtGuard = db_.getStatement("INSERT INTO users(username, password_hash, role, created_at) VALUES(?, ?, ?, ?)");
+  auto *stmt = stmtGuard.get();
+
   sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
   const auto hash = passwordHash(password);
   sqlite3_bind_text(stmt, 2, hash.c_str(), -1, SQLITE_TRANSIENT);
   const auto role = "user";
   sqlite3_bind_text(stmt, 3, role, -1, SQLITE_TRANSIENT);
-  sqlite3_bind_int64(stmt, 4, nowSeconds());
+  sqlite3_bind_int64(stmt, 4, utils::nowSeconds());
 
   if (sqlite3_step(stmt) != SQLITE_DONE) {
     error = "Username already exists";
-    sqlite3_finalize(stmt);
     return std::nullopt;
   }
-  sqlite3_finalize(stmt);
 
   const auto id = sqlite3_last_insert_rowid(db_.raw());
   return UserRecord{.id = id, .username = username, .role = role};
@@ -56,11 +48,11 @@ std::optional<UserRecord> UserService::registerUser(const std::string &username,
 
 std::optional<UserRecord> UserService::authenticate(const std::string &username,
                                                     const std::string &password) {
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "SELECT id, password_hash, role FROM users WHERE username = ?", -1, &stmt, nullptr);
+  auto stmtGuard = db_.getStatement("SELECT id, password_hash, role FROM users WHERE username = ?");
+  auto *stmt = stmtGuard.get();
+
   sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
   if (sqlite3_step(stmt) != SQLITE_ROW) {
-    sqlite3_finalize(stmt);
     return std::nullopt;
   }
 
@@ -69,7 +61,6 @@ std::optional<UserRecord> UserService::authenticate(const std::string &username,
   const auto *role = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
   const auto hashStr = std::string(hash == nullptr ? "" : hash);
   const auto roleStr = std::string(role == nullptr ? "user" : role);
-  sqlite3_finalize(stmt);
 
   if (!verifyPassword(password, hashStr)) {
     return std::nullopt;
@@ -79,7 +70,7 @@ std::optional<UserRecord> UserService::authenticate(const std::string &username,
 }
 
 std::string UserService::makeAccessToken(const UserRecord &user) const {
-  const auto now = nowSeconds();
+  const auto now = utils::nowSeconds();
   const auto exp = now + config_.accessTokenTtlSeconds;
   const auto payload = std::to_string(user.id) + "|" + user.role + "|" + std::to_string(exp);
   const auto sig = utils::hmacSha256Hex(config_.jwtSecret, payload);
@@ -87,7 +78,7 @@ std::string UserService::makeAccessToken(const UserRecord &user) const {
 }
 
 std::string UserService::makeSyncToken(std::int64_t userId) const {
-  const auto now = nowSeconds();
+  const auto now = utils::nowSeconds();
   const auto exp = now + 365 * 24 * 60 * 60; // 365 days
   const auto payload = std::to_string(userId) + "|sync|" + std::to_string(exp);
   const auto sig = utils::hmacSha256Hex(config_.jwtSecret, payload);
@@ -101,47 +92,45 @@ std::string UserService::makeRefreshToken() const {
 AuthTokens UserService::issueTokens(const UserRecord &user) {
   const auto refresh = makeRefreshToken();
   const auto refreshHash = utils::sha256Hex(refresh);
-  const auto now = nowSeconds();
+  const auto now = utils::nowSeconds();
 
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(),
-                     "INSERT INTO refresh_tokens(user_id, token_hash, expires_at, created_at) VALUES(?, ?, ?, ?)",
-                     -1,
-                     &stmt,
-                     nullptr);
+  auto stmtGuard = db_.getStatement(
+      "INSERT INTO refresh_tokens(user_id, token_hash, expires_at, created_at) VALUES(?, ?, ?, ?)");
+  auto *stmt = stmtGuard.get();
+
   sqlite3_bind_int64(stmt, 1, user.id);
   sqlite3_bind_text(stmt, 2, refreshHash.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_int64(stmt, 3, now + config_.refreshTokenTtlSeconds);
   sqlite3_bind_int64(stmt, 4, now);
   sqlite3_step(stmt);
-  sqlite3_finalize(stmt);
 
   return AuthTokens{.accessToken = makeAccessToken(user), .refreshToken = refresh};
 }
 
 std::optional<AuthTokens> UserService::refreshAccessToken(const std::string &refreshToken) {
   const auto refreshHash = utils::sha256Hex(refreshToken);
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(
-      db_.raw(),
-      "SELECT id, user_id, expires_at, revoked_at FROM refresh_tokens WHERE token_hash = ?",
-      -1,
-      &stmt,
-      nullptr);
-  sqlite3_bind_text(stmt, 1, refreshHash.c_str(), -1, SQLITE_TRANSIENT);
+  std::int64_t tokenId = 0;
+  std::int64_t userId = 0;
+  std::int64_t expiresAt = 0;
+  std::int64_t revokedAt = 0;
 
-  if (sqlite3_step(stmt) != SQLITE_ROW) {
-    sqlite3_finalize(stmt);
-    return std::nullopt;
+  {
+    auto selectGuard = db_.getStatement(
+        "SELECT id, user_id, expires_at, revoked_at FROM refresh_tokens WHERE token_hash = ?");
+    auto *stmt = selectGuard.get();
+    sqlite3_bind_text(stmt, 1, refreshHash.c_str(), -1, SQLITE_TRANSIENT);
+
+    if (sqlite3_step(stmt) != SQLITE_ROW) {
+      return std::nullopt;
+    }
+
+    tokenId = sqlite3_column_int64(stmt, 0);
+    userId = sqlite3_column_int64(stmt, 1);
+    expiresAt = sqlite3_column_int64(stmt, 2);
+    revokedAt = sqlite3_column_type(stmt, 3) == SQLITE_NULL ? 0 : sqlite3_column_int64(stmt, 3);
   }
 
-  const auto tokenId = sqlite3_column_int64(stmt, 0);
-  const auto userId = sqlite3_column_int64(stmt, 1);
-  const auto expiresAt = sqlite3_column_int64(stmt, 2);
-  const auto revokedAt = sqlite3_column_type(stmt, 3) == SQLITE_NULL ? 0 : sqlite3_column_int64(stmt, 3);
-  sqlite3_finalize(stmt);
-
-  const auto now = nowSeconds();
+  const auto now = utils::nowSeconds();
   if (revokedAt > 0 || expiresAt <= now) {
     return std::nullopt;
   }
@@ -154,48 +143,45 @@ std::optional<AuthTokens> UserService::refreshAccessToken(const std::string &ref
   const auto newRefresh = makeRefreshToken();
   const auto newRefreshHash = utils::sha256Hex(newRefresh);
 
-  sqlite3_exec(db_.raw(), "BEGIN IMMEDIATE TRANSACTION", nullptr, nullptr, nullptr);
+  // RAII Transaction Management
+  db::Database::TransactionGuard transaction(db_);
 
-  sqlite3_stmt *insertStmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(),
-                     "INSERT INTO refresh_tokens(user_id, token_hash, expires_at, created_at) VALUES(?, ?, ?, ?)",
-                     -1,
-                     &insertStmt,
-                     nullptr);
-  sqlite3_bind_int64(insertStmt, 1, userId);
-  sqlite3_bind_text(insertStmt, 2, newRefreshHash.c_str(), -1, SQLITE_TRANSIENT);
-  sqlite3_bind_int64(insertStmt, 3, now + config_.refreshTokenTtlSeconds);
-  sqlite3_bind_int64(insertStmt, 4, now);
-  sqlite3_step(insertStmt);
-  sqlite3_finalize(insertStmt);
+  {
+    auto insertGuard = db_.getStatement(
+        "INSERT INTO refresh_tokens(user_id, token_hash, expires_at, created_at) VALUES(?, ?, ?, ?)");
+    auto *insertStmt = insertGuard.get();
+    sqlite3_bind_int64(insertStmt, 1, userId);
+    sqlite3_bind_text(insertStmt, 2, newRefreshHash.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(insertStmt, 3, now + config_.refreshTokenTtlSeconds);
+    sqlite3_bind_int64(insertStmt, 4, now);
+    sqlite3_step(insertStmt);
+  }
 
-  sqlite3_stmt *updateStmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(),
-                     "UPDATE refresh_tokens SET revoked_at = ?, replaced_by_token_hash = ?, last_used_at = ? WHERE id = ?",
-                     -1,
-                     &updateStmt,
-                     nullptr);
-  sqlite3_bind_int64(updateStmt, 1, now);
-  sqlite3_bind_text(updateStmt, 2, newRefreshHash.c_str(), -1, SQLITE_TRANSIENT);
-  sqlite3_bind_int64(updateStmt, 3, now);
-  sqlite3_bind_int64(updateStmt, 4, tokenId);
-  sqlite3_step(updateStmt);
-  sqlite3_finalize(updateStmt);
+  {
+    auto updateGuard = db_.getStatement(
+        "UPDATE refresh_tokens SET revoked_at = ?, replaced_by_token_hash = ?, last_used_at = ? WHERE id = ?");
+    auto *updateStmt = updateGuard.get();
+    sqlite3_bind_int64(updateStmt, 1, now);
+    sqlite3_bind_text(updateStmt, 2, newRefreshHash.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(updateStmt, 3, now);
+    sqlite3_bind_int64(updateStmt, 4, tokenId);
+    sqlite3_step(updateStmt);
+  }
 
-  sqlite3_exec(db_.raw(), "COMMIT", nullptr, nullptr, nullptr);
+  transaction.commit();
 
   return AuthTokens{.accessToken = makeAccessToken(*user), .refreshToken = newRefresh};
 }
 
 bool UserService::logout(const std::string &refreshToken) {
   const auto refreshHash = utils::sha256Hex(refreshToken);
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "UPDATE refresh_tokens SET revoked_at = ? WHERE token_hash = ? AND revoked_at IS NULL", -1, &stmt, nullptr);
-  sqlite3_bind_int64(stmt, 1, nowSeconds());
+  auto stmtGuard = db_.getStatement("UPDATE refresh_tokens SET revoked_at = ? WHERE token_hash = ? AND revoked_at IS NULL");
+  auto *stmt = stmtGuard.get();
+
+  sqlite3_bind_int64(stmt, 1, utils::nowSeconds());
   sqlite3_bind_text(stmt, 2, refreshHash.c_str(), -1, SQLITE_TRANSIENT);
   const auto rc = sqlite3_step(stmt);
   const auto changes = sqlite3_changes(db_.raw());
-  sqlite3_finalize(stmt);
   return rc == SQLITE_DONE && changes > 0;
 }
 
@@ -213,26 +199,26 @@ std::optional<AccessClaims> UserService::verifyAccessToken(const std::string &ac
   if (sig != parts[3]) return std::nullopt;
 
   const auto exp = std::stoll(parts[2]);
-  if (exp <= nowSeconds()) return std::nullopt;
+  if (exp <= utils::nowSeconds()) return std::nullopt;
 
   return AccessClaims{.userId = std::stoll(parts[0]), .role = parts[1]};
 }
 
 void UserService::revokeAllRefreshTokens(std::int64_t userId) {
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "UPDATE refresh_tokens SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL", -1, &stmt, nullptr);
-  sqlite3_bind_int64(stmt, 1, nowSeconds());
+  auto stmtGuard = db_.getStatement("UPDATE refresh_tokens SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL");
+  auto *stmt = stmtGuard.get();
+
+  sqlite3_bind_int64(stmt, 1, utils::nowSeconds());
   sqlite3_bind_int64(stmt, 2, userId);
   sqlite3_step(stmt);
-  sqlite3_finalize(stmt);
 }
 
 std::optional<UserRecord> UserService::getUserById(std::int64_t userId) {
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "SELECT username, role FROM users WHERE id = ?", -1, &stmt, nullptr);
+  auto stmtGuard = db_.getStatement("SELECT username, role FROM users WHERE id = ?");
+  auto *stmt = stmtGuard.get();
+
   sqlite3_bind_int64(stmt, 1, userId);
   if (sqlite3_step(stmt) != SQLITE_ROW) {
-    sqlite3_finalize(stmt);
     return std::nullopt;
   }
 
@@ -241,19 +227,18 @@ std::optional<UserRecord> UserService::getUserById(std::int64_t userId) {
   UserRecord user{.id = userId,
                   .username = std::string(name == nullptr ? "" : name),
                   .role = std::string(role == nullptr ? "user" : role)};
-  sqlite3_finalize(stmt);
   return user;
 }
 
 bool UserService::changePassword(std::int64_t userId, const std::string &newPassword) {
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "UPDATE users SET password_hash = ? WHERE id = ?", -1, &stmt, nullptr);
+  auto stmtGuard = db_.getStatement("UPDATE users SET password_hash = ? WHERE id = ?");
+  auto *stmt = stmtGuard.get();
+
   const auto hash = passwordHash(newPassword);
   sqlite3_bind_text(stmt, 1, hash.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_int64(stmt, 2, userId);
   const auto rc = sqlite3_step(stmt);
   const auto changes = sqlite3_changes(db_.raw());
-  sqlite3_finalize(stmt);
   if (rc != SQLITE_DONE || changes == 0) return false;
   revokeAllRefreshTokens(userId);
   return true;
@@ -261,19 +246,25 @@ bool UserService::changePassword(std::int64_t userId, const std::string &newPass
 
 bool UserService::deleteAccount(std::int64_t userId) {
   revokeAllRefreshTokens(userId);
-  sqlite3_stmt *fileStmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "DELETE FROM file_index WHERE owner_user_id = ? OR uploader_user_id = ?", -1, &fileStmt, nullptr);
-  sqlite3_bind_int64(fileStmt, 1, userId);
-  sqlite3_bind_int64(fileStmt, 2, userId);
-  sqlite3_step(fileStmt);
-  sqlite3_finalize(fileStmt);
 
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "DELETE FROM users WHERE id = ?", -1, &stmt, nullptr);
-  sqlite3_bind_int64(stmt, 1, userId);
-  const auto rc = sqlite3_step(stmt);
-  const auto changes = sqlite3_changes(db_.raw());
-  sqlite3_finalize(stmt);
+  {
+    auto fileGuard = db_.getStatement("DELETE FROM file_index WHERE owner_user_id = ? OR uploader_user_id = ?");
+    auto *fileStmt = fileGuard.get();
+    sqlite3_bind_int64(fileStmt, 1, userId);
+    sqlite3_bind_int64(fileStmt, 2, userId);
+    sqlite3_step(fileStmt);
+  }
+
+  int changes = 0;
+  int rc = 0;
+  {
+    auto stmtGuard = db_.getStatement("DELETE FROM users WHERE id = ?");
+    auto *stmt = stmtGuard.get();
+    sqlite3_bind_int64(stmt, 1, userId);
+    rc = sqlite3_step(stmt);
+    changes = sqlite3_changes(db_.raw());
+  }
+
   if (rc != SQLITE_DONE || changes == 0) return false;
 
   std::error_code ec;
@@ -282,72 +273,73 @@ bool UserService::deleteAccount(std::int64_t userId) {
 }
 
 bool UserService::requestPasswordReset(const std::string &username, std::string &codeOut) {
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "SELECT id FROM users WHERE username = ?", -1, &stmt, nullptr);
-  sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
-  if (sqlite3_step(stmt) != SQLITE_ROW) {
-    sqlite3_finalize(stmt);
-    return false;
+  std::int64_t userId = 0;
+  {
+    auto stmtGuard = db_.getStatement("SELECT id FROM users WHERE username = ?");
+    auto *stmt = stmtGuard.get();
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    if (sqlite3_step(stmt) != SQLITE_ROW) {
+      return false;
+    }
+    userId = sqlite3_column_int64(stmt, 0);
   }
-  const auto userId = sqlite3_column_int64(stmt, 0);
-  sqlite3_finalize(stmt);
 
   std::srand(static_cast<unsigned int>(std::time(nullptr)));
   const int randomNum = 100000 + (std::rand() % 900000);
   const std::string code = std::to_string(randomNum);
   codeOut = code;
 
-  const auto now = nowSeconds();
+  const auto now = utils::nowSeconds();
   const auto expiresAt = now + 600;
 
-  sqlite3_stmt *insertStmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(),
-                     "INSERT INTO password_resets(user_id, code, expires_at, created_at) VALUES(?, ?, ?, ?)",
-                     -1, &insertStmt, nullptr);
-  sqlite3_bind_int64(insertStmt, 1, userId);
-  sqlite3_bind_text(insertStmt, 2, code.c_str(), -1, SQLITE_TRANSIENT);
-  sqlite3_bind_int64(insertStmt, 3, expiresAt);
-  sqlite3_bind_int64(insertStmt, 4, now);
+  {
+    auto insertGuard = db_.getStatement(
+        "INSERT INTO password_resets(user_id, code, expires_at, created_at) VALUES(?, ?, ?, ?)");
+    auto *insertStmt = insertGuard.get();
+    sqlite3_bind_int64(insertStmt, 1, userId);
+    sqlite3_bind_text(insertStmt, 2, code.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(insertStmt, 3, expiresAt);
+    sqlite3_bind_int64(insertStmt, 4, now);
+    sqlite3_step(insertStmt);
+  }
 
-  sqlite3_step(insertStmt);
-  sqlite3_finalize(insertStmt);
   return true;
 }
 
 bool UserService::verifyPasswordReset(const std::string &username, const std::string &code, const std::string &newPassword) {
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "SELECT id FROM users WHERE username = ?", -1, &stmt, nullptr);
-  sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
-  if (sqlite3_step(stmt) != SQLITE_ROW) {
-    sqlite3_finalize(stmt);
-    return false;
+  std::int64_t userId = 0;
+  {
+    auto stmtGuard = db_.getStatement("SELECT id FROM users WHERE username = ?");
+    auto *stmt = stmtGuard.get();
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    if (sqlite3_step(stmt) != SQLITE_ROW) {
+      return false;
+    }
+    userId = sqlite3_column_int64(stmt, 0);
   }
-  const auto userId = sqlite3_column_int64(stmt, 0);
-  sqlite3_finalize(stmt);
 
-  sqlite3_stmt *codeStmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(),
-                     "SELECT id FROM password_resets "
-                     "WHERE user_id = ? AND code = ? AND expires_at > ? AND used_at IS NULL "
-                     "ORDER BY id DESC LIMIT 1",
-                     -1, &codeStmt, nullptr);
-  sqlite3_bind_int64(codeStmt, 1, userId);
-  sqlite3_bind_text(codeStmt, 2, code.c_str(), -1, SQLITE_TRANSIENT);
-  sqlite3_bind_int64(codeStmt, 3, nowSeconds());
+  std::int64_t resetId = 0;
+  {
+    auto codeGuard = db_.getStatement(
+        "SELECT id FROM password_resets WHERE user_id = ? AND code = ? AND expires_at > ? AND used_at IS NULL ORDER BY id DESC LIMIT 1");
+    auto *codeStmt = codeGuard.get();
+    sqlite3_bind_int64(codeStmt, 1, userId);
+    sqlite3_bind_text(codeStmt, 2, code.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(codeStmt, 3, utils::nowSeconds());
 
-  if (sqlite3_step(codeStmt) != SQLITE_ROW) {
-    sqlite3_finalize(codeStmt);
-    return false;
+    if (sqlite3_step(codeStmt) != SQLITE_ROW) {
+      return false;
+    }
+    resetId = sqlite3_column_int64(codeStmt, 0);
   }
-  const auto resetId = sqlite3_column_int64(codeStmt, 0);
-  sqlite3_finalize(codeStmt);
 
-  sqlite3_stmt *useStmt = nullptr;
-  sqlite3_prepare_v2(db_.raw(), "UPDATE password_resets SET used_at = ? WHERE id = ?", -1, &useStmt, nullptr);
-  sqlite3_bind_int64(useStmt, 1, nowSeconds());
-  sqlite3_bind_int64(useStmt, 2, resetId);
-  sqlite3_step(useStmt);
-  sqlite3_finalize(useStmt);
+  {
+    auto useGuard = db_.getStatement("UPDATE password_resets SET used_at = ? WHERE id = ?");
+    auto *useStmt = useGuard.get();
+    sqlite3_bind_int64(useStmt, 1, utils::nowSeconds());
+    sqlite3_bind_int64(useStmt, 2, resetId);
+    sqlite3_step(useStmt);
+  }
 
   return changePassword(userId, newPassword);
 }

@@ -6,6 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/cache_service.dart';
+import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
+import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 
 class TrashBrowserController extends ChangeNotifier {
   TrashBrowserController({
@@ -13,12 +15,22 @@ class TrashBrowserController extends ChangeNotifier {
     required this.baseUrl,
     required this.authService,
     CacheService? cacheService,
-  }) : _cacheService = cacheService ?? CacheService.instance;
+    http.Client? client,
+  })  : _client = client ?? http.Client(),
+        _cacheService = cacheService ?? CacheService.instance;
 
   final String serverId;
   final String baseUrl;
   final AuthService authService;
   final CacheService _cacheService;
+  final http.Client _client;
+
+  late final AuthenticatedHttpClient _httpClient = AuthenticatedHttpClient(
+    authService: authService,
+    serverId: serverId,
+    baseUrl: baseUrl,
+    client: _client,
+  );
 
   List<ServerFileItem> files = [];
   final Set<ServerFileItem> selectedFiles = {};
@@ -30,84 +42,24 @@ class TrashBrowserController extends ChangeNotifier {
   String searchQuery = '';
 
   final Map<String, Future<File?>> _downloadsInFlight = {};
-  final http.Client _client = http.Client();
 
-  Uri _baseUri(String path) {
-    final raw = baseUrl.trim();
-    final withScheme = raw.contains('://') ? raw : 'http://$raw';
-    final base = Uri.parse(withScheme);
-    final basePath = base.path.isEmpty
-        ? '/'
-        : (base.path.endsWith('/') ? base.path : '${base.path}/');
-    final normalizedBase = base.replace(path: basePath);
-    final relativePath = path.startsWith('/') ? path.substring(1) : path;
-    return normalizedBase.resolve(relativePath);
-  }
+  Uri _baseUri(String path) => UrlUtils.buildEndpoint(baseUrl, path);
 
-  Uri _apiUri(String endpointPath) {
-    final raw = baseUrl.trim();
-    final withScheme = raw.contains('://') ? raw : 'http://$raw';
-    final base = Uri.parse(withScheme);
+  Uri _apiUri(String endpointPath) => UrlUtils.buildApiEndpoint(baseUrl, endpointPath);
 
-    var basePath = base.path;
-    if (basePath.isEmpty) basePath = '/';
-    if (basePath.endsWith('/')) {
-      basePath = basePath.substring(0, basePath.length - 1);
-    }
-
-    final endpoint = endpointPath.startsWith('/')
-        ? endpointPath
-        : '/$endpointPath';
-    final hasApiSuffix = basePath == '/api' || basePath.endsWith('/api');
-    final apiPath = hasApiSuffix
-        ? '$basePath$endpoint'
-        : '$basePath/api$endpoint';
-    return base.replace(path: apiPath, query: null, fragment: null);
-  }
-
-  Future<http.Response> _authorizedGet(Uri uri) async {
-    final token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) {
-      throw Exception('No active session available');
-    }
-    return _client.get(uri, headers: {'authorization': 'Bearer $token'});
-  }
+  Future<http.Response> _authorizedGet(Uri uri) => _httpClient.get(uri);
 
   Future<http.Response> _authorizedPostJson(
     Uri uri,
     Map<String, Object?> payload,
-  ) async {
-    final token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) {
-      throw Exception('No active session available');
-    }
-    return _client.post(
-      uri,
-      headers: {
-        'authorization': 'Bearer $token',
-        'content-type': 'application/json',
-      },
-      body: jsonEncode(payload),
-    );
-  }
+  ) =>
+      _httpClient.postJson(uri, payload);
 
   Future<http.Response> _authorizedDeleteJson(
     Uri uri,
     Map<String, Object?> payload,
-  ) async {
-    final token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) {
-      throw Exception('No active session available');
-    }
-    return _client.delete(
-      uri,
-      headers: {
-        'authorization': 'Bearer $token',
-        'content-type': 'application/json',
-      },
-      body: jsonEncode(payload),
-    );
-  }
+  ) =>
+      _httpClient.deleteJson(uri, payload);
 
   Future<void> reload() async {
     isLoading = true;

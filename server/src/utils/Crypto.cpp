@@ -1,3 +1,9 @@
+// Crypto.cpp implementation for OpenSSL cryptographic operations.
+// AES Encryption Format: [16-byte IV Prefix][AES-256-CBC Ciphertext]
+// Key Derivation: SHA-256 digest mapping of arbitrary secret strings to 32-byte symmetric keys.
+// Resource Lifecycle: Strict EVP_CIPHER_CTX_free cleanup across all early-exit and exception branches.
+// Streaming Operations: 64KB buffered chunking for constant-memory file encryption and decryption streams.
+
 #include "server/utils/Crypto.hpp"
 
 #include <openssl/rand.h>
@@ -13,6 +19,9 @@
 
 namespace server::utils {
 
+/**
+ * Computes hexadecimal SHA-256 hash string of an input string.
+ */
 std::string sha256Hex(const std::string &input) {
   unsigned char hash[SHA256_DIGEST_LENGTH];
   SHA256(reinterpret_cast<const unsigned char *>(input.data()), input.size(), hash);
@@ -80,6 +89,7 @@ std::string randomTokenHex(std::size_t bytes) {
 }
 
 namespace {
+// Derives a 32-byte binary key from keySource using SHA-256 digest for AES-256-CBC cipher.
 std::string derive32ByteKey(const std::string &keySource) {
   unsigned char hash[SHA256_DIGEST_LENGTH];
   SHA256(reinterpret_cast<const unsigned char *>(keySource.data()), keySource.size(), hash);
@@ -87,14 +97,20 @@ std::string derive32ByteKey(const std::string &keySource) {
 }
 } // namespace
 
+/**
+ * Encrypts plainText using AES-256-CBC with a randomly generated 16-byte IV.
+ * Returns binary payload format: [16-byte random IV][AES-256-CBC Ciphertext]
+ */
 std::string encryptAes256(const std::string &plainText, const std::string &keySource) {
   std::string key = derive32ByteKey(keySource);
   
+  // Step 1: Generate random 16-byte initialization vector (IV)
   unsigned char iv[16];
   if (RAND_bytes(iv, sizeof(iv)) != 1) {
     throw std::runtime_error("Failed to generate random IV for AES encryption");
   }
 
+  // Step 2: Initialize OpenSSL cipher context
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
   if (!ctx) {
     throw std::runtime_error("Failed to create EVP_CIPHER_CTX");
@@ -110,6 +126,7 @@ std::string encryptAes256(const std::string &plainText, const std::string &keySo
   int len = 0;
   int ciphertextLen = 0;
 
+  // Step 3: Encrypt plaintext bytes
   if (EVP_EncryptUpdate(ctx, cipherText.data(), &len, 
                         reinterpret_cast<const unsigned char *>(plainText.data()), 
                         static_cast<int>(plainText.size())) != 1) {
@@ -126,6 +143,7 @@ std::string encryptAes256(const std::string &plainText, const std::string &keySo
 
   EVP_CIPHER_CTX_free(ctx);
 
+  // Step 4: Prepend 16-byte IV to ciphertext payload
   std::string result(reinterpret_cast<char *>(iv), sizeof(iv));
   result.append(reinterpret_cast<char *>(cipherText.data()), ciphertextLen);
   return result;
@@ -175,6 +193,174 @@ std::string decryptAes256(const std::string &cipherTextWithIv, const std::string
   EVP_CIPHER_CTX_free(ctx);
 
   return std::string(reinterpret_cast<char *>(plainText.data()), plaintextLen);
+}
+
+bool encryptFileAes256(const std::filesystem::path &srcPath, const std::filesystem::path &dstPath, const std::string &keySource, std::string &outPlainSha256) {
+  std::ifstream in(srcPath, std::ios::binary);
+  if (!in) return false;
+
+  std::ofstream out(dstPath, std::ios::binary | std::ios::trunc);
+  if (!out) return false;
+
+  std::string key = derive32ByteKey(keySource);
+  unsigned char iv[16];
+  if (RAND_bytes(iv, sizeof(iv)) != 1) return false;
+
+  out.write(reinterpret_cast<const char*>(iv), sizeof(iv));
+
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  if (!ctx) return false;
+
+  if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, 
+                         reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+
+  SHA256_CTX sha256;
+  SHA256_Init(&sha256);
+
+  constexpr size_t bufferSize = 65536; // 64KB
+  std::vector<char> buffer(bufferSize);
+  std::vector<unsigned char> cipherBuffer(bufferSize + 16);
+
+  while (in.read(buffer.data(), bufferSize) || in.gcount() > 0) {
+    auto count = in.gcount();
+    SHA256_Update(&sha256, buffer.data(), count);
+
+    int outLen = 0;
+    if (EVP_EncryptUpdate(ctx, cipherBuffer.data(), &outLen,
+                           reinterpret_cast<const unsigned char*>(buffer.data()), static_cast<int>(count)) != 1) {
+      EVP_CIPHER_CTX_free(ctx);
+      return false;
+    }
+    if (outLen > 0) {
+      out.write(reinterpret_cast<const char*>(cipherBuffer.data()), outLen);
+    }
+  }
+
+  int outLen = 0;
+  if (EVP_EncryptFinal_ex(ctx, cipherBuffer.data(), &outLen) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+  if (outLen > 0) {
+    out.write(reinterpret_cast<const char*>(cipherBuffer.data()), outLen);
+  }
+
+  EVP_CIPHER_CTX_free(ctx);
+  in.close();
+  out.close();
+
+  unsigned char hash[SHA256_DIGEST_LENGTH];
+  SHA256_Final(hash, &sha256);
+
+  std::ostringstream hexOut;
+  for (unsigned char i : hash) {
+    hexOut << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(i);
+  }
+  outPlainSha256 = hexOut.str();
+
+  return true;
+}
+
+bool decryptFileAes256(const std::filesystem::path &srcPath, const std::filesystem::path &dstPath, const std::string &keySource) {
+  std::ifstream in(srcPath, std::ios::binary);
+  if (!in) return false;
+
+  unsigned char iv[16];
+  if (!in.read(reinterpret_cast<char*>(iv), sizeof(iv))) return false;
+
+  std::ofstream out(dstPath, std::ios::binary | std::ios::trunc);
+  if (!out) return false;
+
+  std::string key = derive32ByteKey(keySource);
+
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  if (!ctx) return false;
+
+  if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, 
+                         reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+
+  constexpr size_t bufferSize = 65536; // 64KB
+  std::vector<char> buffer(bufferSize);
+  std::vector<unsigned char> plainBuffer(bufferSize + 16);
+
+  while (in.read(buffer.data(), bufferSize) || in.gcount() > 0) {
+    auto count = in.gcount();
+    int outLen = 0;
+    if (EVP_DecryptUpdate(ctx, plainBuffer.data(), &outLen,
+                           reinterpret_cast<const unsigned char*>(buffer.data()), static_cast<int>(count)) != 1) {
+      EVP_CIPHER_CTX_free(ctx);
+      return false;
+    }
+    if (outLen > 0) {
+      out.write(reinterpret_cast<const char*>(plainBuffer.data()), outLen);
+    }
+  }
+
+  int outLen = 0;
+  if (EVP_DecryptFinal_ex(ctx, plainBuffer.data(), &outLen) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+  if (outLen > 0) {
+    out.write(reinterpret_cast<const char*>(plainBuffer.data()), outLen);
+  }
+
+  EVP_CIPHER_CTX_free(ctx);
+  return true;
+}
+
+bool decryptFileToStream(const std::filesystem::path &srcPath, const std::string &keySource, const std::function<void(const char* data, size_t size)> &chunkCallback) {
+  std::ifstream in(srcPath, std::ios::binary);
+  if (!in) return false;
+
+  unsigned char iv[16];
+  if (!in.read(reinterpret_cast<char*>(iv), sizeof(iv))) return false;
+
+  std::string key = derive32ByteKey(keySource);
+
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  if (!ctx) return false;
+
+  if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, 
+                         reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+
+  constexpr size_t bufferSize = 65536; // 64KB
+  std::vector<char> buffer(bufferSize);
+  std::vector<unsigned char> plainBuffer(bufferSize + 16);
+
+  while (in.read(buffer.data(), bufferSize) || in.gcount() > 0) {
+    auto count = in.gcount();
+    int outLen = 0;
+    if (EVP_DecryptUpdate(ctx, plainBuffer.data(), &outLen,
+                           reinterpret_cast<const unsigned char*>(buffer.data()), static_cast<int>(count)) != 1) {
+      EVP_CIPHER_CTX_free(ctx);
+      return false;
+    }
+    if (outLen > 0) {
+      chunkCallback(reinterpret_cast<const char*>(plainBuffer.data()), outLen);
+    }
+  }
+
+  int outLen = 0;
+  if (EVP_DecryptFinal_ex(ctx, plainBuffer.data(), &outLen) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+  if (outLen > 0) {
+    chunkCallback(reinterpret_cast<const char*>(plainBuffer.data()), outLen);
+  }
+
+  EVP_CIPHER_CTX_free(ctx);
+  return true;
 }
 
 }  // namespace server::utils

@@ -2,6 +2,7 @@ import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/server_profile.dart';
+import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:flutter/material.dart';
 
 class ServerSetupResult {
@@ -59,40 +60,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
     super.dispose();
   }
 
-  Map<String, String> _parseUrlInput(String input) {
-    var raw = input.trim();
-    if (raw.isEmpty) {
-      return {'baseUrl': '', 'port': ''};
-    }
-
-    String scheme = 'http';
-    if (raw.startsWith('https://')) {
-      scheme = 'https';
-      raw = raw.substring(8);
-    } else if (raw.startsWith('http://')) {
-      scheme = 'http';
-      raw = raw.substring(7);
-    }
-
-    String host = raw;
-    String port = '';
-    final colon = raw.indexOf(':');
-    if (colon != -1) {
-      host = raw.substring(0, colon);
-      port = raw.substring(colon + 1);
-    }
-
-    while (host.endsWith('/')) {
-      host = host.substring(0, host.length - 1);
-    }
-
-    final slash = port.indexOf('/');
-    if (slash != -1) {
-      port = port.substring(0, slash);
-    }
-
-    return {'baseUrl': '$scheme://$host', 'port': port};
-  }
+  Map<String, String> _parseUrlInput(String input) => UrlUtils.parseUrlInput(input);
 
   Future<void> _submit(AuthMode mode, {String? email}) async {
     final name = _nameController.text.trim();

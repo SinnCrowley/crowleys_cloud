@@ -6,34 +6,46 @@ version: 1.0.0+1
 environment:
   sdk: ^3.9.2
 
+# Dependency Audit (Milestone 3 / R3):
+# - PRUNED: `device_info_plus` (Replaced with Dart stdlib `dart:io` `Platform.localHostname` in AppSettingsService)
+# - AUDITED & RETAINED: All core native platform, media, storage, security, and networking packages below.
+
 dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.8
-  permission_handler: ^12.0.1
-  path_provider: ^2.1.5
-  video_thumbnail: ^0.5.3
-  async: ^2.11.0
-  shared_preferences: ^2.2.3
-  path: ^1.9.0
-  crypto: ^3.0.7
-  photo_manager: ^3.9.0
-  photo_manager_image_provider: ^2.2.0
-  share_plus: ^12.0.2
-  open_file: ^3.5.11
-  flutter_secure_storage: ^9.2.4
-  http: ^1.2.2
-  local_auth: ^3.0.1
-  workmanager: ^0.9.0+3
-  device_info_plus: ^12.4.0
-  flutter_local_notifications: ^22.0.1
+  # System Permissions & Filesystem Access
+  permission_handler: ^12.0.1      # OS permission management (storage, camera, notifications)
+  path_provider: ^2.1.5           # Platform path resolution (app documents, temp/cache)
+  path: ^1.9.0                    # Cross-platform file path manipulation (p.join, p.basename)
+
+  # Storage, Preferences & Security
+  shared_preferences: ^2.2.3     # Key-value persistent storage for settings & preferences
+  flutter_secure_storage: ^10.3.1 # Encrypted credential & token storage (KeyStore / Keychain)
+
+  # Media & Thumbnail Processing
+  photo_manager: ^3.10.0                 # Gallery and photo library asset enumeration
+  photo_manager_image_provider: ^2.2.0 # ImageProvider wrapper for photo_manager AssetEntity
+  video_thumbnail: ^0.5.3               # Frame extraction thumbnail generation for local video files
+
+  # Networking & Cryptography
+  http: ^1.2.2       # HTTP client for REST backend communication
+  crypto: ^3.0.7     # Hashing algorithms (SHA-256, MD5) for cache keys and checksums
+
+  # Authentication & Background Work
+  local_auth: ^3.0.1        # Device biometric authentication (Fingerprint / FaceID)
+  workmanager: ^0.9.0+3     # Background job scheduling on Android / iOS
+
+  # System Interop & Notifications
+  share_plus: ^13.3.0                   # Native OS content / file sharing dialogs
+  open_file: ^3.5.11                    # Opening files in external system handler apps
+  flutter_local_notifications: ^22.1.0  # System local notifications for background operations
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.1

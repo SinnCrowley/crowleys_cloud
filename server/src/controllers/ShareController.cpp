@@ -1,7 +1,14 @@
+// ShareController implementation for public resource sharing endpoints.
+// Token & Path Resolution: Resolves share link tokens and validates target subpaths.
+// Statement Caching: Uses Database::getStatement RAII StatementGuards for thread-safe query execution.
+// Serialization: Uses centralized Json DTO formatters for consistent API responses.
+
 #include "server/controllers/ShareController.hpp"
 
 #include "server/AppContext.hpp"
 #include "server/utils/Crypto.hpp"
+#include "server/utils/HttpHelpers.hpp"
+#include "server/utils/TimeUtils.hpp"
 #include "server/utils/ZipWriter.hpp"
 
 #include <chrono>
@@ -12,20 +19,19 @@
 #include <trantor/utils/Logger.h>
 
 namespace server::controllers {
-namespace {
-drogon::HttpResponsePtr jsonError(drogon::HttpStatusCode code, const std::string &msg) {
-  Json::Value body;
-  body["error"] = msg;
-  auto resp = drogon::HttpResponse::newHttpJsonResponse(body);
-  resp->setStatusCode(code);
-  return resp;
-}
+using server::utils::jsonError;
+using server::utils::nowSeconds;
 
-std::int64_t nowSeconds() {
-  return std::chrono::duration_cast<std::chrono::seconds>(
-             std::chrono::system_clock::now().time_since_epoch())
-      .count();
-}
+namespace {
+
+struct ZipCleanupHelper {
+  std::filesystem::path path;
+  drogon::HttpResponsePtr resp;
+  ~ZipCleanupHelper() {
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+  }
+};
 
 struct SharedTargetInfo {
   bool exists{false};
@@ -94,51 +100,45 @@ std::optional<SharedTargetInfo> resolveSharedTargetInfo(
 
     const auto queryOwnerUserId = (info.scope == services::StorageScope::Shared) ? 0 : info.ownerUserId;
 
-    sqlite3_stmt *stmt = nullptr;
     const char *sql = "SELECT type, sha256, mime_type, name, size_bytes, modified_at FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1";
-    if (sqlite3_prepare_v2(server::ctx().database->raw(), sql, -1, &stmt, nullptr) == SQLITE_OK && stmt != nullptr) {
-      sqlite3_bind_int64(stmt, 1, queryOwnerUserId);
-      sqlite3_bind_text(stmt, 2, info.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_text(stmt, 3, info.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+    auto stmtGuard = server::ctx().database->getStatement(sql);
+    auto *stmt = stmtGuard.get();
+    sqlite3_bind_int64(stmt, 1, queryOwnerUserId);
+    sqlite3_bind_text(stmt, 2, info.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, info.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
 
-      if (sqlite3_step(stmt) == SQLITE_ROW) {
-        const auto typeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
-        if (typeRaw) info.type = typeRaw;
-        info.isDir = (info.type == "directory");
-        const auto shaRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-        if (shaRaw) info.sha256 = shaRaw;
-        const auto mimeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
-        if (mimeRaw) info.mimeType = mimeRaw;
-        const auto nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
-        if (nameRaw) info.name = nameRaw;
-        info.size = static_cast<std::uintmax_t>(sqlite3_column_int64(stmt, 4));
-        info.modifiedAt = sqlite3_column_int64(stmt, 5);
-        info.exists = true;
-        sqlite3_finalize(stmt);
-        return info;
-      }
-      sqlite3_finalize(stmt);
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+      const auto typeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+      if (typeRaw) info.type = typeRaw;
+      info.isDir = (info.type == "directory");
+      const auto shaRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+      if (shaRaw) info.sha256 = shaRaw;
+      const auto mimeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+      if (mimeRaw) info.mimeType = mimeRaw;
+      const auto nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
+      if (nameRaw) info.name = nameRaw;
+      info.size = static_cast<std::uintmax_t>(sqlite3_column_int64(stmt, 4));
+      info.modifiedAt = sqlite3_column_int64(stmt, 5);
+      info.exists = true;
+      return info;
     }
 
-    sqlite3_stmt *dirStmt = nullptr;
     const char *dirSql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (parent_path = ? OR parent_path LIKE ?) AND is_deleted = 0 LIMIT 1";
-    if (sqlite3_prepare_v2(server::ctx().database->raw(), dirSql, -1, &dirStmt, nullptr) == SQLITE_OK && dirStmt != nullptr) {
-      sqlite3_bind_int64(dirStmt, 1, queryOwnerUserId);
-      sqlite3_bind_text(dirStmt, 2, info.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_text(dirStmt, 3, info.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
-      const auto dirPattern = info.targetRelPath + "/%";
-      sqlite3_bind_text(dirStmt, 4, dirPattern.c_str(), -1, SQLITE_TRANSIENT);
+    auto dirGuard = server::ctx().database->getStatement(dirSql);
+    auto *dirStmt = dirGuard.get();
+    sqlite3_bind_int64(dirStmt, 1, queryOwnerUserId);
+    sqlite3_bind_text(dirStmt, 2, info.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(dirStmt, 3, info.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+    const auto dirPattern = info.targetRelPath + "/%";
+    sqlite3_bind_text(dirStmt, 4, dirPattern.c_str(), -1, SQLITE_TRANSIENT);
 
-      if (sqlite3_step(dirStmt) == SQLITE_ROW) {
-        info.exists = true;
-        info.isDir = true;
-        info.type = "directory";
-        info.mimeType = "inode/directory";
-        info.name = std::filesystem::path(info.targetRelPath).filename().string();
-        sqlite3_finalize(dirStmt);
-        return info;
-      }
-      sqlite3_finalize(dirStmt);
+    if (sqlite3_step(dirStmt) == SQLITE_ROW) {
+      info.exists = true;
+      info.isDir = true;
+      info.type = "directory";
+      info.mimeType = "inode/directory";
+      info.name = std::filesystem::path(info.targetRelPath).filename().string();
+      return info;
     }
 
     outError = "Shared resource not found";
@@ -199,9 +199,9 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
       if (relPath.empty()) {
         exists = true;
       } else {
-        sqlite3_stmt *stmt = nullptr;
         const char *sql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND is_deleted = 0 LIMIT 1";
-        sqlite3_prepare_v2(server::ctx().database->raw(), sql, -1, &stmt, nullptr);
+        auto stmtGuard = server::ctx().database->getStatement(sql);
+        auto *stmt = stmtGuard.get();
         const auto ownerId = *scope == services::StorageScope::Shared ? 0 : userId;
         sqlite3_bind_int64(stmt, 1, ownerId);
         const auto scopeStr = services::FileIndexService::scopeToString(*scope);
@@ -213,7 +213,6 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
         if (sqlite3_step(stmt) == SQLITE_ROW) {
           exists = true;
         }
-        sqlite3_finalize(stmt);
       }
     } else {
       const auto resolved = server::ctx().fileService->resolvePath(userId, "user", *scope, (*json)["path"].asString(), false);
@@ -384,25 +383,31 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
       return;
     }
 
-    std::ifstream in(physicalPath, std::ios::binary);
-    if (!in) {
-      callback(jsonError(drogon::k500InternalServerError, "Failed to read physical file"));
-      return;
-    }
-    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-    in.close();
-
-    if (!server::ctx().config.encryptionKey.empty()) {
-      try {
-        content = utils::decryptAes256(content, server::ctx().config.encryptionKey);
-      } catch (const std::exception &e) {
-        callback(jsonError(drogon::k500InternalServerError, std::string("Decryption error: ") + e.what()));
-        return;
-      }
-    }
-
-    auto resp = drogon::HttpResponse::newHttpResponse();
-    resp->setBody(std::move(content));
+    auto resp = drogon::HttpResponse::newAsyncStreamResponse([physicalPath, key = server::ctx().config.encryptionKey](drogon::ResponseStreamPtr stream) {
+      std::thread([stream = std::move(stream), physicalPath, key]() mutable {
+        try {
+          if (!key.empty()) {
+            utils::decryptFileToStream(physicalPath, key, [&stream](const char* data, size_t size) {
+              stream->send(std::string(data, size));
+            });
+          } else {
+            std::ifstream in(physicalPath, std::ios::binary);
+            if (in) {
+              constexpr size_t bufferSize = 65536;
+              std::vector<char> buffer(bufferSize);
+              while (in.read(buffer.data(), bufferSize) || in.gcount() > 0) {
+                stream->send(std::string(buffer.data(), in.gcount()));
+              }
+            }
+          }
+        } catch (const std::exception &e) {
+          LOG_ERROR << "ShareController::rawFile async stream exception: " << e.what();
+        } catch (...) {
+          LOG_ERROR << "ShareController::rawFile async stream unknown exception";
+        }
+        stream->close();
+      }).detach();
+    });
     resp->setContentTypeString(target.mimeType.empty() ? "application/octet-stream" : target.mimeType);
     resp->addHeader("Content-Disposition", std::string(disposition) + "; filename=\"" + target.name + "\"");
     callback(resp);
@@ -441,26 +446,25 @@ void ShareController::downloadZip(const drogon::HttpRequestPtr &req,
   const bool hashFiles = server::ctx().config.hashFiles;
   if (hashFiles) {
     const auto queryOwnerUserId = (target.scope == services::StorageScope::Shared) ? 0 : target.ownerUserId;
-    sqlite3_stmt *stmt = nullptr;
+    db::Database::StatementGuard stmtGuard;
 
     if (target.targetRelPath.empty()) {
       const char *sql = "SELECT rel_path, sha256, name FROM file_index WHERE owner_user_id = ? AND scope = ? AND type != 'directory' AND is_deleted = 0";
-      if (sqlite3_prepare_v2(server::ctx().database->raw(), sql, -1, &stmt, nullptr) == SQLITE_OK && stmt != nullptr) {
-        sqlite3_bind_int64(stmt, 1, queryOwnerUserId);
-        sqlite3_bind_text(stmt, 2, target.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-      }
+      stmtGuard = server::ctx().database->getStatement(sql);
+      sqlite3_bind_int64(stmtGuard.get(), 1, queryOwnerUserId);
+      sqlite3_bind_text(stmtGuard.get(), 2, target.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
     } else {
       const char *sql = "SELECT rel_path, sha256, name FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND type != 'directory' AND is_deleted = 0";
-      if (sqlite3_prepare_v2(server::ctx().database->raw(), sql, -1, &stmt, nullptr) == SQLITE_OK && stmt != nullptr) {
-        sqlite3_bind_int64(stmt, 1, queryOwnerUserId);
-        sqlite3_bind_text(stmt, 2, target.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt, 3, target.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt, 4, target.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
-        const auto pattern = target.targetRelPath + "/%";
-        sqlite3_bind_text(stmt, 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
-      }
+      stmtGuard = server::ctx().database->getStatement(sql);
+      sqlite3_bind_int64(stmtGuard.get(), 1, queryOwnerUserId);
+      sqlite3_bind_text(stmtGuard.get(), 2, target.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(stmtGuard.get(), 3, target.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(stmtGuard.get(), 4, target.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+      const auto pattern = target.targetRelPath + "/%";
+      sqlite3_bind_text(stmtGuard.get(), 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
     }
 
+    auto *stmt = stmtGuard.get();
     if (stmt != nullptr) {
       while (sqlite3_step(stmt) == SQLITE_ROW) {
         const auto relPathRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
@@ -496,7 +500,6 @@ void ShareController::downloadZip(const drogon::HttpRequestPtr &req,
           hasEntries = true;
         }
       }
-      sqlite3_finalize(stmt);
     }
   } else {
     if (std::filesystem::exists(target.physicalPath) && std::filesystem::is_directory(target.physicalPath)) {
@@ -517,7 +520,10 @@ void ShareController::downloadZip(const drogon::HttpRequestPtr &req,
 
   auto resp = drogon::HttpResponse::newFileResponse(tmpZipPath.string());
   resp->addHeader("Content-Disposition", "attachment; filename=\"" + zipFilename + "\"");
-  callback(resp);
+  
+  auto helper = std::make_shared<ZipCleanupHelper>(tmpZipPath, resp);
+  drogon::HttpResponsePtr aliasedResp(helper, resp.get());
+  callback(aliasedResp);
 }
 
 void ShareController::publicAsset(const drogon::HttpRequestPtr &req,

@@ -1,43 +1,58 @@
 import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+/// Secure credential and token storage interface for multi-server profile sessions.
 abstract class SecretStore {
+  /// Saves an access token for the given [serverId].
   Future<void> saveToken({required String serverId, required String token});
 
+  /// Saves both access and refresh tokens for the given [serverId].
   Future<void> saveTokens({
     required String serverId,
     required String accessToken,
     required String refreshToken,
   });
 
+  /// Persists user credentials securely for background re-authentication.
   Future<void> saveCredentials({
     required String serverId,
     required String username,
     required String password,
   });
 
+  /// Reads the active access token for [serverId] if valid under current lifetime settings.
   Future<String?> readToken(String serverId);
 
+  /// Reads the active refresh token for [serverId] if valid.
   Future<String?> readRefreshToken(String serverId);
 
+  /// Reads the last saved username for [serverId].
   Future<String?> readLastUsername(String serverId);
 
+  /// Reads saved user password for [serverId].
   Future<String?> readSavedPassword(String serverId);
 
+  /// Persists a background sync token for fast API authentication.
   Future<void> saveSyncToken({
     required String serverId,
     required String syncToken,
   });
 
+  /// Reads the saved sync token for [serverId].
   Future<String?> readSyncToken(String serverId);
 
+  /// Clears the saved sync token for [serverId].
   Future<void> clearSyncToken(String serverId);
 
+  /// Clears stored access, refresh, and expiration timestamps for [serverId].
   Future<void> clearToken(String serverId);
 
+  /// Clears stored login credentials for [serverId].
   Future<void> clearCredentials(String serverId);
 }
 
+/// Secure storage implementation leveraging [FlutterSecureStorage] with
+/// lifetime calculation, epoch token expiration tracking, and volatile in-memory fallback.
 class FlutterSecureSecretStore implements SecretStore {
   FlutterSecureSecretStore({
     required this.storage,
@@ -231,6 +246,7 @@ class FlutterSecureSecretStore implements SecretStore {
   }
 }
 
+/// In-memory implementation of [SecretStore] for unit testing.
 class InMemorySecretStore implements SecretStore {
   final Map<String, String> _tokens = {};
   final Map<String, String> _refreshTokens = {};
@@ -317,6 +333,7 @@ class InMemorySecretStore implements SecretStore {
   }
 }
 
+/// Decorator for [SecretStore] that allows overriding sync tokens (e.g. during background jobs).
 class OverrideSyncTokenSecretStore implements SecretStore {
   OverrideSyncTokenSecretStore({
     required this.delegate,

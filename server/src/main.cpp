@@ -7,7 +7,6 @@
 #include <trantor/utils/Logger.h>
 
 #include <filesystem>
-#include <thread>
 #include <chrono>
 
 namespace server {
@@ -69,37 +68,37 @@ int main() {
     drogon::app().setClientMaxMemoryBodySize(limit);
   }
 
-  // Periodic cleanup of expired trash and logs (every hour) using a background thread
-  std::thread([]() {
-    while (true) {
-      std::this_thread::sleep_for(std::chrono::hours(1));
-      try {
-        server::ctx().trashService->cleanupExpiredTrash();
-      } catch (const std::exception &e) {
-        LOG_ERROR << "Failed to run periodic trash cleanup: " << e.what();
-      }
-      try {
-        auto &appCtx = server::ctx();
-        if (appCtx.config.logRetentionDays > 0) {
-          namespace fs = std::filesystem;
-          auto now = std::chrono::file_clock::now();
-          if (fs::exists(appCtx.config.logDir)) {
-            for (const auto &entry : fs::directory_iterator(appCtx.config.logDir)) {
-              if (!entry.is_regular_file()) continue;
-              auto ftime = fs::last_write_time(entry.path());
-              auto age = std::chrono::duration_cast<std::chrono::hours>(now - ftime).count();
-              if (age >= appCtx.config.logRetentionDays * 24) {
-                fs::remove(entry.path());
-                LOG_INFO << "Deleted expired log file: " << entry.path().string();
-              }
+  // Periodic cleanup of expired trash and logs (every hour) using Drogon native event loop timer.
+  // Must register via beginningAdvice since the event loop isn't running until app().run().
+  drogon::app().registerBeginningAdvice([]() {
+    drogon::app().getLoop()->runEvery(3600.0, []() {
+    try {
+      server::ctx().trashService->cleanupExpiredTrash();
+    } catch (const std::exception &e) {
+      LOG_ERROR << "Failed to run periodic trash cleanup: " << e.what();
+    }
+    try {
+      auto &appCtx = server::ctx();
+      if (appCtx.config.logRetentionDays > 0) {
+        namespace fs = std::filesystem;
+        auto now = std::chrono::file_clock::now();
+        if (fs::exists(appCtx.config.logDir)) {
+          for (const auto &entry : fs::directory_iterator(appCtx.config.logDir)) {
+            if (!entry.is_regular_file()) continue;
+            auto ftime = entry.last_write_time();
+            auto age = std::chrono::duration_cast<std::chrono::hours>(now - ftime).count();
+            if (age >= appCtx.config.logRetentionDays * 24) {
+              fs::remove(entry.path());
+              LOG_INFO << "Deleted expired log file: " << entry.path().string();
             }
           }
         }
-      } catch (const std::exception &e) {
-        LOG_ERROR << "Failed to run periodic log cleanup: " << e.what();
       }
+    } catch (const std::exception &e) {
+      LOG_ERROR << "Failed to run periodic log cleanup: " << e.what();
     }
-  }).detach();
+    });  // runEvery
+  });  // registerBeginningAdvice
 
   LOG_INFO << "Starting server on " << appCtx.config.host << ":" << appCtx.config.port
            << " with logs in " << appCtx.config.logDir;

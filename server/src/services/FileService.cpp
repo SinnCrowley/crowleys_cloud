@@ -27,18 +27,36 @@ std::filesystem::path FileService::resolvePath(std::int64_t userId,
                                                bool writeIntent) const {
   (void)role;
   (void)writeIntent;
-  auto root = scope == StorageScope::Private ? rootForUser(userId) : sharedRoot();
+  const auto root = scope == StorageScope::Private ? rootForUser(userId) : sharedRoot();
 
-  fs::create_directories(root);
+  std::error_code ec;
+  if (!fs::exists(root, ec)) {
+    fs::create_directories(root, ec);
+  }
 
-  const auto cleanRel = fs::path(rawPath).lexically_normal().relative_path();
-  const auto candidate = fs::weakly_canonical(root / cleanRel);
-  const auto normalizedRoot = fs::weakly_canonical(root);
+  // 1. Cleanly normalize the relative path lexically
+  auto cleanRel = fs::path(rawPath).lexically_normal().relative_path().generic_string();
+  while (!cleanRel.empty() && cleanRel.front() == '/') cleanRel.erase(cleanRel.begin());
+  if (cleanRel == ".") cleanRel.clear();
 
-  const auto candidateString = candidate.generic_string();
-  const auto rootString = normalizedRoot.generic_string();
-  if (candidateString.size() < rootString.size() || candidateString.compare(0, rootString.size(), rootString) != 0) {
-    throw std::runtime_error("Path escapes allowed root");
+  // 2. Canonicalize root and candidate target path safely (weakly_canonical works for existing & non-existing files)
+  const auto normalizedRoot = fs::weakly_canonical(root, ec);
+  const auto candidate = fs::weakly_canonical(normalizedRoot / cleanRel, ec);
+
+  // 3. Strict Boundary Verification:
+  // Prevent prefix-spoofing vulnerabilities where a root path (e.g. `/users/1`)
+  // falsely matches a target path (e.g. `/users/10/file.txt`).
+  // Enforce exact match or requiring a trailing directory separator on the root prefix.
+  const auto candidateStr = candidate.generic_string();
+  auto rootStr = normalizedRoot.generic_string();
+
+  if (candidateStr != rootStr) {
+    if (rootStr.empty() || rootStr.back() != '/') {
+      rootStr.push_back('/');
+    }
+    if (candidateStr.size() < rootStr.size() || candidateStr.compare(0, rootStr.size(), rootStr) != 0) {
+      throw std::runtime_error("Path escapes allowed root");
+    }
   }
 
   return candidate;
@@ -46,19 +64,19 @@ std::filesystem::path FileService::resolvePath(std::int64_t userId,
 
 std::vector<DirEntry> FileService::listDirectory(const std::filesystem::path &path) const {
   std::vector<DirEntry> entries;
-  for (const auto &entry : fs::directory_iterator(path)) {
-    const auto rel = fs::relative(entry.path(), path);
-    const auto status = entry.symlink_status();
-    const auto isDir = fs::is_directory(status);
-    const auto size = isDir ? 0 : fs::file_size(entry.path());
+  std::error_code ec;
+  for (const auto &entry : fs::directory_iterator(path, ec)) {
+    const auto isDir = entry.is_directory(ec);
+    const auto size = isDir ? 0 : entry.file_size(ec);
     const auto mtime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                           fs::last_write_time(entry.path()).time_since_epoch())
+                           entry.last_write_time(ec).time_since_epoch())
                            .count();
+    const auto fileName = entry.path().filename().string();
     const auto type = isDir ? "directory" : classifyType(entry.path());
     const auto mimeType = isDir ? "inode/directory" : mimeTypeFor(entry.path());
     entries.push_back(DirEntry{
-        .name = entry.path().filename().string(),
-        .path = rel.generic_string(),
+        .name = fileName,
+        .path = fileName,
         .isDir = isDir,
         .size = size,
         .modifiedAt = mtime,

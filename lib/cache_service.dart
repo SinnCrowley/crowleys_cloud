@@ -9,6 +9,9 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Multi-tier caching engine managing RAM LRU thumbnail bytes (500 items max),
+/// disk directory metadata JSON cache, disk thumbnail images, debounced manifest disk flushes (500ms),
+/// and total cache size eviction policies.
 class CacheService {
   CacheService._();
 
@@ -26,11 +29,77 @@ class CacheService {
   final Map<String, Future<Uint8List?>> _thumbnailInFlight = {};
   final Set<String> _localThumbnailDirs = {};
 
+  /// In-memory LRU cache for decoded thumbnail bytes (local & remote)
+  /// to eliminate redundant disk reads and future recreation during scrolling.
+  final Map<String, Uint8List> _memoryThumbnailCache = {};
+  final List<String> _memoryThumbnailOrder = [];
+  final Map<String, String> _filePathToMemoryKey = {};
+  static const int _maxMemoryThumbnailCount = 500;
+
+  /// Returns cached thumbnail bytes from RAM synchronously if available.
+  Uint8List? getMemoryThumbnail(String key) {
+    final cached = _memoryThumbnailCache[key];
+    if (cached != null) {
+      _memoryThumbnailOrder.remove(key);
+      _memoryThumbnailOrder.add(key);
+      return cached;
+    }
+    return null;
+  }
+
+  /// Saves thumbnail bytes in RAM cache with LRU eviction and optional file path mapping.
+  void putMemoryThumbnail(String key, Uint8List bytes, {String? filePath}) {
+    if (_memoryThumbnailCache.containsKey(key)) {
+      _memoryThumbnailOrder.remove(key);
+    } else if (_memoryThumbnailOrder.length >= _maxMemoryThumbnailCount) {
+      final oldest = _memoryThumbnailOrder.removeAt(0);
+      _memoryThumbnailCache.remove(oldest);
+      _filePathToMemoryKey.removeWhere((_, v) => v == oldest);
+    }
+    _memoryThumbnailCache[key] = bytes;
+    _memoryThumbnailOrder.add(key);
+    if (filePath != null) {
+      _filePathToMemoryKey[filePath] = key;
+    }
+  }
+
+  /// Invalidates RAM cache entry if its underlying disk file is evicted/deleted.
+  void invalidateMemoryThumbnailForPath(String filePath) {
+    final key = _filePathToMemoryKey.remove(filePath);
+    if (key != null) {
+      _memoryThumbnailCache.remove(key);
+      _memoryThumbnailOrder.remove(key);
+    }
+  }
+
+  /// Unified entry point for thumbnail requests with in-memory caching and deduplication.
+  Future<Uint8List?> getThumbnail({
+    required String cacheKey,
+    required Future<Uint8List?> Function() fetch,
+  }) {
+    final mem = getMemoryThumbnail(cacheKey);
+    if (mem != null) return Future.value(mem);
+
+    return _thumbnailInFlight.putIfAbsent(cacheKey, () async {
+      try {
+        final data = await fetch();
+        if (data != null) {
+          putMemoryThumbnail(cacheKey, data);
+        }
+        return data;
+      } finally {
+        _thumbnailInFlight.remove(cacheKey);
+      }
+    });
+  }
+
   Directory? _metadataDir;
   Directory? _remoteThumbnailDir;
   File? _manifestFile;
   SharedPreferences? _prefs;
   bool _isReady = false;
+  bool _manifestDirty = false;
+  Timer? _manifestFlushTimer;
 
   bool get isReady => _isReady;
 
@@ -44,6 +113,16 @@ class CacheService {
     Directory? tempDir,
     SharedPreferences? prefs,
   }) async {
+    // Reset transient state on re-initialization to avoid stale entries.
+    _manifestFlushTimer?.cancel();
+    _manifestFlushTimer = null;
+    _cachedManifestEntries = null;
+    _manifestDirty = false;
+    _isReady = false;
+    _memoryThumbnailCache.clear();
+    _memoryThumbnailOrder.clear();
+    _filePathToMemoryKey.clear();
+
     _prefs = prefs ?? await SharedPreferences.getInstance();
     await _ensureDefaultPreferences(_prefs!);
 
@@ -59,8 +138,47 @@ class CacheService {
     await _metadataDir!.create(recursive: true);
     await _remoteThumbnailDir!.create(recursive: true);
     await _manifestFile!.parent.create(recursive: true);
-    await _readManifest();
+    await _manifestEntries();
     _isReady = true;
+  }
+
+  void _scheduleManifestFlush() {
+    _manifestFlushTimer ??= Timer(const Duration(milliseconds: 500), () {
+      _manifestFlushTimer = null;
+      unawaited(flushManifest(immediate: true));
+    });
+  }
+
+  Future<void> flushManifest({bool immediate = false}) async {
+    if (!immediate) {
+      _scheduleManifestFlush();
+      return;
+    }
+    _manifestFlushTimer?.cancel();
+    _manifestFlushTimer = null;
+    if (!_manifestDirty) return;
+
+    final file = _manifestFile;
+    if (file == null) return;
+    try {
+      final entries = _cachedManifestEntries ?? <_CacheManifestEntry>[];
+      await file.parent.create(recursive: true);
+      await file.writeAsString(
+        jsonEncode({
+          'entries': entries.map((e) => e.toJson()).toList(growable: false),
+        }),
+        flush: true,
+      );
+      _manifestDirty = false;
+    } catch (_) {}
+  }
+
+  void dispose() {
+    _manifestFlushTimer?.cancel();
+    _manifestFlushTimer = null;
+    if (_manifestDirty) {
+      unawaited(flushManifest(immediate: true));
+    }
   }
 
   Future<CachedDirectoryListing?> readDirectory({
@@ -82,7 +200,7 @@ class CacheService {
           .whereType<Map>()
           .map((e) => ServerFileItem.fromJson(Map<String, Object?>.from(e)))
           .toList(growable: false);
-      await _touch(file, CacheKind.metadata, serverId);
+      await _touch(file, CacheKind.metadata, serverId, isRead: true);
       return CachedDirectoryListing(
         entries: entries,
         cachedAt: cachedAt,
@@ -157,14 +275,19 @@ class CacheService {
     required String cacheKey,
     required Future<Uint8List?> Function() fetch,
   }) {
-    if (!_isReady || _remoteThumbnailDir == null) return fetch();
     final inFlightKey = '$serverId:$cacheKey';
+    final mem = getMemoryThumbnail(inFlightKey);
+    if (mem != null) return Future.value(mem);
+
+    if (!_isReady || _remoteThumbnailDir == null) return fetch();
     return _thumbnailInFlight.putIfAbsent(inFlightKey, () async {
       try {
         final file = _remoteThumbnailFile(serverId, cacheKey);
         if (await file.exists()) {
-          await _touch(file, CacheKind.remoteThumbnail, serverId);
-          return file.readAsBytes();
+          await _touch(file, CacheKind.remoteThumbnail, serverId, isRead: true);
+          final bytes = await file.readAsBytes();
+          putMemoryThumbnail(inFlightKey, bytes, filePath: file.path);
+          return bytes;
         }
 
         final data = await fetch();
@@ -173,6 +296,7 @@ class CacheService {
         await file.writeAsBytes(data, flush: true);
         await _touch(file, CacheKind.remoteThumbnail, serverId);
         await evictThumbnails();
+        putMemoryThumbnail(inFlightKey, data, filePath: file.path);
         return data;
       } finally {
         _thumbnailInFlight.remove(inFlightKey);
@@ -201,16 +325,13 @@ class CacheService {
       kind: CacheKind.remoteThumbnail,
     );
     final localEntries = await _localThumbnailEntries();
-    var total = [
-      ...remoteEntries,
-      ...localEntries,
-    ].fold<int>(0, (sum, e) => sum + e.size);
+    final allEntries = [...remoteEntries, ...localEntries];
+    var total = allEntries.fold<int>(0, (sum, e) => sum + e.size);
     if (total <= maxBytes) return;
 
-    remoteEntries.sort((a, b) => a.lastAccess.compareTo(b.lastAccess));
-    localEntries.sort((a, b) => a.lastAccess.compareTo(b.lastAccess));
+    allEntries.sort((a, b) => a.lastAccess.compareTo(b.lastAccess));
 
-    for (final entry in [...remoteEntries, ...localEntries]) {
+    for (final entry in allEntries) {
       if (total <= maxBytes) break;
       final file = File(entry.path);
       if (await file.exists()) {
@@ -222,17 +343,17 @@ class CacheService {
 
   Future<int> cacheSizeBytes() async {
     if (!_isReady) return 0;
-    await _rebuildManifest();
     final entries = await _manifestEntries();
-    final manifestTotal = entries.fold<int>(0, (sum, entry) {
-      return sum + (File(entry.path).existsSync() ? entry.size : 0);
-    });
+    final manifestTotal = entries.fold<int>(0, (sum, entry) => sum + entry.size);
     final localEntries = await _localThumbnailEntries();
     return manifestTotal +
         localEntries.fold<int>(0, (sum, entry) => sum + entry.size);
   }
 
   Future<void> clearAll() async {
+    _memoryThumbnailCache.clear();
+    _memoryThumbnailOrder.clear();
+    _filePathToMemoryKey.clear();
     if (!_isReady) return;
     for (final root in [_metadataDir, _remoteThumbnailDir]) {
       if (root == null || !await root.exists()) continue;
@@ -246,7 +367,7 @@ class CacheService {
         if (entity is File) await _deleteQuietly(entity);
       }
     }
-    await _writeManifestEntries(const []);
+    await _writeManifestEntries(const [], immediate: true);
   }
 
   Future<void> setThumbnailMaxBytes(int value) async {
@@ -292,59 +413,70 @@ class CacheService {
 
   String _hash(String value) => sha256.convert(utf8.encode(value)).toString();
 
-  Future<Map<String, Object?>> _readManifest() async {
-    final file = _manifestFile;
-    if (file == null || !await file.exists()) return {'entries': <Object?>[]};
-    try {
-      final decoded = jsonDecode(await file.readAsString());
-      if (decoded is Map<String, Object?> && decoded['entries'] is List) {
-        return decoded;
-      }
-    } catch (_) {}
-    await _rebuildManifest();
-    try {
-      return jsonDecode(await file.readAsString()) as Map<String, Object?>;
-    } catch (_) {
-      return {'entries': <Object?>[]};
+  List<_CacheManifestEntry>? _cachedManifestEntries;
+
+  Future<void> _writeManifestEntries(
+    List<_CacheManifestEntry> entries, {
+    bool immediate = false,
+  }) async {
+    _cachedManifestEntries = entries;
+    _manifestDirty = true;
+    if (immediate) {
+      await flushManifest(immediate: true);
+    } else {
+      _scheduleManifestFlush();
     }
   }
 
-  Future<void> _writeManifestEntries(List<_CacheManifestEntry> entries) async {
-    final file = _manifestFile;
-    if (file == null) return;
-    await file.parent.create(recursive: true);
-    await file.writeAsString(
-      jsonEncode({
-        'entries': entries.map((e) => e.toJson()).toList(growable: false),
-      }),
-      flush: true,
-    );
-  }
-
   Future<List<_CacheManifestEntry>> _manifestEntries({CacheKind? kind}) async {
-    final manifest = await _readManifest();
-    final rawEntries = (manifest['entries'] as List?) ?? const [];
-    final entries = rawEntries
-        .whereType<Map>()
-        .map((e) => _CacheManifestEntry.fromJson(Map<String, Object?>.from(e)))
-        .where((e) => kind == null || e.kind == kind)
-        .toList(growable: true);
-    return entries;
+    if (_cachedManifestEntries == null) {
+      final file = _manifestFile;
+      if (file == null || !await file.exists()) {
+        _cachedManifestEntries = <_CacheManifestEntry>[];
+      } else {
+        try {
+          final decoded = jsonDecode(await file.readAsString());
+          if (decoded is Map<String, Object?> && decoded['entries'] is List) {
+            _cachedManifestEntries = (decoded['entries'] as List)
+                .whereType<Map>()
+                .map((e) => _CacheManifestEntry.fromJson(Map<String, Object?>.from(e)))
+                .toList(growable: true);
+          } else {
+            _cachedManifestEntries = <_CacheManifestEntry>[];
+          }
+        } catch (_) {
+          await flushManifest(immediate: true);
+          await _rebuildManifest();
+        }
+      }
+    }
+
+    final entries = _cachedManifestEntries!;
+    if (kind == null) return List.from(entries);
+    return entries.where((e) => e.kind == kind).toList(growable: true);
   }
 
-  Future<void> _touch(File file, CacheKind kind, String serverId) async {
+  Future<void> _touch(File file, CacheKind kind, String serverId, {bool isRead = false}) async {
     final now = DateTime.now().toUtc();
     final entries = await _manifestEntries();
     final path = file.path;
-    final stat = await file.stat();
     final index = entries.indexWhere((e) => e.path == path);
     if (index >= 0) {
-      entries[index] = entries[index].copyWith(
-        size: stat.size,
+      final existing = entries[index];
+      // For read hits, if the last access was less than 1 hour ago, update in memory only.
+      if (isRead && now.difference(existing.lastAccess) < const Duration(hours: 1)) {
+        entries[index] = existing.copyWith(
+          lastAccess: now,
+          updatedAt: now,
+        );
+        return;
+      }
+      entries[index] = existing.copyWith(
         lastAccess: now,
         updatedAt: now,
       );
     } else {
+      final stat = await file.stat();
       entries.add(
         _CacheManifestEntry(
           path: path,
@@ -410,9 +542,13 @@ class CacheService {
     try {
       if (await file.exists()) await file.delete();
     } catch (_) {}
+    invalidateMemoryThumbnailForPath(file.path);
     final entries = await _manifestEntries();
+    final lenBefore = entries.length;
     entries.removeWhere((e) => e.path == file.path);
-    await _writeManifestEntries(entries);
+    if (entries.length != lenBefore) {
+      await _writeManifestEntries(entries);
+    }
   }
 
   Future<void> _rebuildManifest() async {
@@ -442,7 +578,7 @@ class CacheService {
         );
       }
     }
-    await _writeManifestEntries(entries);
+    await _writeManifestEntries(entries, immediate: true);
   }
 }
 

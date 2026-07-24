@@ -5,11 +5,20 @@ import 'package:crowleys_cloud/file_browser_controller.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
+import 'package:crowleys_cloud/shared/widgets/breadcrumb_bar.dart';
+import 'package:crowleys_cloud/shared/widgets/create_folder_dialog.dart';
+import 'package:crowleys_cloud/shared/widgets/selection_action_bar.dart';
+import 'package:crowleys_cloud/shared/widgets/selection_header_bar.dart';
 import 'package:crowleys_cloud/smart_thumbnail.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+/// FileBrowser displays local filesystem files and folders in grid or list view.
+///
+/// Performance optimizations:
+/// - Uses scoped [ListenableBuilder] widgets to restrict rebuilds to affected subtrees during selection/navigation.
+/// - Delegates thumbnail rendering to [SmartThumbnail], which memoizes Futures and utilizes RAM + disk caching.
 class FileBrowser extends StatefulWidget {
   final FileCategory category;
   final bool isGridView;
@@ -142,35 +151,11 @@ class _FileBrowserScreenState extends State<FileBrowser> {
   }
 
   Future<void> _createFolder() async {
-    final inputController = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: appSurface,
-        title: Text(
-          'Create Folder',
-          style: TextStyle(color: appText),
-        ),
-        content: TextField(
-          controller: inputController,
-          autofocus: true,
-          style: TextStyle(color: appText),
-          decoration: InputDecoration(
-            hintText: 'Folder name',
-            hintStyle: TextStyle(color: appSubtext),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(inputController.text),
-            child: const Text('Create'),
-          ),
-        ],
-      ),
+    final name = await CreateFolderDialog.show(
+      context,
+      backgroundColor: appSurface,
+      textColor: appText,
+      hintColor: appSubtext,
     );
     if (name == null) return;
     final error = await _controller.createFolder(name);
@@ -312,83 +297,60 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     }
     final rootPath = _controller.directoryHistory.first.path;
     final items = _buildMainBreadcrumbItems(rootPath, currentDir.path);
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: appSurface,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (var i = 0; i < items.length; i++) ...[
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: const Size(0, 32),
-                  ),
-                  onPressed: () =>
-                      _controller.navigateToDirectory(Directory(items[i].path)),
-                  child: Text(
-                    items[i].label,
-                    style: TextStyle(color: appSubtext),
-                  ),
-                ),
-                if (i < items.length - 1)
-                  Icon(
-                    Icons.chevron_right,
-                    color: appSubtext,
-                    size: 18,
-                  ),
-              ],
-            ],
-          ),
-        ),
-      ),
+    return BreadcrumbBar(
+      items: items,
+      onItemTap: (path) => _controller.navigateToDirectory(Directory(path)),
+      backgroundColor: appSurface,
+      textColor: appSubtext,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        return Stack(
+    return Stack(
+      children: [
+        Column(
           children: [
-            Column(
-              children: [
-                _HeaderControls(
-                  controller: _controller,
-                  showCreateFolder: widget.category.name == 'All files',
-                  onCreateFolder: _createFolder,
-                ),
-                _buildMainBreadcrumb(),
-                Expanded(
-                  child: _FileListView(
-                    controller: _controller,
-                    isGridView: widget.isGridView,
-                    onItemTap: _onItemTap,
-                    onItemLongPress: _controller.toggleSelection,
-                    onContextMenu: _showContextMenu,
-                  ),
-                ),
-              ],
-            ),
-            if (_controller.isSelectionMode)
-              _SelectionActionBar(
-                onUpload: () =>
-                    _uploadItems(_controller.selectedFiles.toList()),
-                onDelete: _deleteSelectedFiles,
-                onShare: _controller.shareSelectedFiles,
-                onAddToFolder: _addSelectedToFolder,
+            ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) => _HeaderControls(
+                controller: _controller,
+                showCreateFolder: widget.category.name == 'All files',
+                onCreateFolder: _createFolder,
               ),
+            ),
+            ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) => _buildMainBreadcrumb(),
+            ),
+            Expanded(
+              child: ListenableBuilder(
+                listenable: _controller,
+                builder: (context, _) => _FileListView(
+                  controller: _controller,
+                  isGridView: widget.isGridView,
+                  onItemTap: _onItemTap,
+                  onItemLongPress: _controller.toggleSelection,
+                  onContextMenu: _showContextMenu,
+                ),
+              ),
+            ),
           ],
-        );
-      },
+        ),
+        ListenableBuilder(
+          listenable: _controller,
+          builder: (context, _) {
+            if (!_controller.isSelectionMode) return const SizedBox.shrink();
+            return _SelectionActionBar(
+              onUpload: () =>
+                  _uploadItems(_controller.selectedFiles.toList()),
+              onDelete: _deleteSelectedFiles,
+              onShare: _controller.shareSelectedFiles,
+              onAddToFolder: _addSelectedToFolder,
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -407,30 +369,12 @@ class _HeaderControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (controller.isSelectionMode) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
-        child: Row(
-          children: [
-            Checkbox(
-              value:
-                  controller.selectedFiles.length == controller.files.length &&
-                  controller.files.isNotEmpty,
-              activeColor: Theme.of(context).primaryColor,
-              onChanged: (checked) => checked == true
-                  ? controller.selectAll()
-                  : controller.clearSelection(),
-            ),
-            Text(
-              '${controller.selectedFiles.length} selected',
-              style: TextStyle(color: appSubtext, fontSize: 16),
-            ),
-            const Spacer(),
-            IconButton(
-              icon: Icon(Icons.close, color: appSubtext),
-              onPressed: controller.clearSelection,
-            ),
-          ],
-        ),
+      return SelectionHeaderBar(
+        selectedCount: controller.selectedFiles.length,
+        totalCount: controller.files.length,
+        onSelectAll: controller.selectAll,
+        onClearSelection: controller.clearSelection,
+        textColor: appSubtext,
       );
     }
 
@@ -1141,77 +1085,34 @@ class _SelectionActionBar extends StatelessWidget {
     required this.onAddToFolder,
   });
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required Future<void> Function() onPressed,
-  }) {
-    return TextButton.icon(
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        minimumSize: const Size.fromHeight(48),
-      ),
-      icon: Icon(icon, color: appSubtext),
-      label: Text(
-        label,
-        style: TextStyle(color: appText),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      onPressed: onPressed,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final buttons = <Widget>[
-      _buildActionButton(
-        icon: Icons.upload,
-        label: 'Upload',
-        onPressed: onUpload,
-      ),
-      _buildActionButton(
-        icon: Icons.delete,
-        label: 'Delete',
-        onPressed: onDelete,
-      ),
-      _buildActionButton(
-        icon: Icons.drive_file_move,
-        label: 'Add to folder',
-        onPressed: onAddToFolder,
-      ),
-      _buildActionButton(icon: Icons.share, label: 'Share', onPressed: onShare),
-    ];
-
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        color: appBackground,
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final useSingleRow = constraints.maxWidth >= 664;
-            if (useSingleRow) {
-              return Row(
-                children: buttons
-                    .map((button) => Expanded(child: button))
-                    .toList(),
-              );
-            }
-
-            final itemWidth = (constraints.maxWidth - 8) / 2;
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: buttons
-                  .map((button) => SizedBox(width: itemWidth, child: button))
-                  .toList(),
-            );
-          },
+    return SelectionActionBar(
+      backgroundColor: appSurface,
+      textColor: appText,
+      iconColor: appSubtext,
+      actions: [
+        SelectionAction(
+          icon: Icons.upload,
+          label: 'Upload',
+          onPressed: onUpload,
         ),
-      ),
+        SelectionAction(
+          icon: Icons.delete,
+          label: 'Delete',
+          onPressed: onDelete,
+        ),
+        SelectionAction(
+          icon: Icons.drive_file_move,
+          label: 'Add to folder',
+          onPressed: onAddToFolder,
+        ),
+        SelectionAction(
+          icon: Icons.share,
+          label: 'Share',
+          onPressed: onShare,
+        ),
+      ],
     );
   }
 }

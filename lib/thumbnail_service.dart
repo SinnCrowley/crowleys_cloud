@@ -16,8 +16,6 @@ class ThumbnailService {
   final Map<String, AssetEntity> _nameIndex = {};
   final Map<String, AssetEntity> _pathIndex = {};
 
-  final Map<String, Future<Uint8List?>> _inFlight = {};
-
   Directory? _cacheDir;
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -63,11 +61,13 @@ class ThumbnailService {
   // Публичное API
   // ═══════════════════════════════════════════════════════════════════════════
 
+  /// Fetches an asset thumbnail with consolidated in-memory LRU + disk caching.
   Future<Uint8List?> getAssetThumbnail(FileItem item, {int size = 300}) {
     assert(item.isAsset, 'getAssetThumbnail: item must be an asset');
-    final key = '${item.pathSync}@$size';
-    return _inFlight.putIfAbsent(key, () async {
-      try {
+    final cacheKey = 'asset:${item.pathSync}@$size';
+    return CacheService.instance.getThumbnail(
+      cacheKey: cacheKey,
+      fetch: () async {
         final cached = await _fromDiskCache(item.pathSync, size);
         if (cached != null) return cached;
 
@@ -77,18 +77,18 @@ class ThumbnailService {
         );
         if (data != null) await _saveDiskCache(item.pathSync, size, data);
         return data;
-      } finally {
-        _inFlight.remove(key);
-      }
-    });
+      },
+    );
   }
 
+  /// Fetches a filesystem thumbnail with consolidated in-memory LRU + disk caching.
   Future<Uint8List?> getFsThumbnail(FileItem item, {int size = 300}) {
     assert(!item.isAsset, 'getFsThumbnail: item must be a FS entity');
     final path = item.pathSync;
-    final key = '$path@$size';
-    return _inFlight.putIfAbsent(key, () async {
-      try {
+    final cacheKey = 'fs:$path@$size';
+    return CacheService.instance.getThumbnail(
+      cacheKey: cacheKey,
+      fetch: () async {
         final cached = await _fromDiskCache(path, size);
         if (cached != null) return cached;
 
@@ -117,10 +117,8 @@ class ThumbnailService {
 
         if (data != null) await _saveDiskCache(path, size, data);
         return data;
-      } finally {
-        _inFlight.remove(key);
-      }
-    });
+      },
+    );
   }
 
   Future<AssetEntity?> _findFsAsset(String filePath) async {

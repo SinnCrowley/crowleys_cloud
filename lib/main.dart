@@ -296,7 +296,6 @@ class _MainScreenState extends State<MainScreen> {
           }
         });
       }
-      setState(() {});
     };
     _transferManager.addListener(_transferListener);
     unawaited(_initializeServers());
@@ -316,13 +315,8 @@ class _MainScreenState extends State<MainScreen> {
     super.dispose();
   }
 
-  void _onControllerChanged() {
-    if (mounted) setState(() {});
-  }
-
   void _disposeLocalController() {
     if (_localController != null) {
-      _localController!.removeListener(_onControllerChanged);
       _localController!.disposeController();
       _localController!.dispose();
       _localController = null;
@@ -331,7 +325,6 @@ class _MainScreenState extends State<MainScreen> {
 
   void _disposeServerController() {
     if (_serverController != null) {
-      _serverController!.removeListener(_onControllerChanged);
       _serverController!.disposeController();
       _serverController!.dispose();
       _serverController = null;
@@ -749,7 +742,7 @@ class _MainScreenState extends State<MainScreen> {
       final controller = FileBrowserController(
         category: category,
         settingsService: _appSettingsService,
-      )..addListener(_onControllerChanged);
+      );
       setState(() {
         _selectedLocalCategory = category;
         _localController = controller;
@@ -1285,7 +1278,7 @@ class _MainScreenState extends State<MainScreen> {
       onConnectionLost: _reportActiveServerConnectionError,
       transferManager: _transferManager,
       settingsService: _appSettingsService,
-    )..addListener(_onControllerChanged);
+    );
   }
 
   @override
@@ -1443,7 +1436,7 @@ class _MainScreenState extends State<MainScreen> {
                         'Authentication required',
                         style: TextStyle(color: appText, fontSize: 18),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         'Opening sign in...',
                         style: TextStyle(color: appSubtext),

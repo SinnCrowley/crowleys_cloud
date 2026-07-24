@@ -1,4 +1,5 @@
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/shared/utils/byte_formatter.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:flutter/material.dart';
 
@@ -14,66 +15,71 @@ class TransferBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!manager.hasItems) return const SizedBox.shrink();
-    return Material(
-      color: appSurface,
-      child: InkWell(
-        onTap: onOpen,
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-            child: Row(
-              children: [
-                Icon(
-                  manager.isPaused ? Icons.pause_circle : Icons.sync,
-                  color: appAccent,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        manager.summaryLabel,
-                        style: TextStyle(
-                          color: appText,
-                          fontWeight: FontWeight.w600,
-                        ),
+    return AnimatedBuilder(
+      animation: manager,
+      builder: (context, _) {
+        if (!manager.hasItems) return const SizedBox.shrink();
+        return Material(
+          color: appSurface,
+          child: InkWell(
+            onTap: onOpen,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+                child: Row(
+                  children: [
+                    Icon(
+                      manager.isPaused ? Icons.pause_circle : Icons.sync,
+                      color: appAccent,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            manager.summaryLabel,
+                            style: TextStyle(
+                              color: appText,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          LinearProgressIndicator(
+                            value: manager.progress,
+                            minHeight: 5,
+                            backgroundColor: appBorder.withValues(alpha: 0.2),
+                            color: appAccent,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 6),
-                      LinearProgressIndicator(
-                        value: manager.progress,
-                        minHeight: 5,
-                        backgroundColor: appBorder.withValues(alpha: 0.2),
-                        color: appAccent,
+                    ),
+                    IconButton(
+                      tooltip: manager.isPaused ? 'Resume' : 'Pause',
+                      icon: Icon(
+                        manager.isPaused ? Icons.play_arrow : Icons.pause,
+                        color: appText,
                       ),
-                    ],
-                  ),
+                      onPressed: manager.hasActiveTransfers
+                          ? manager.togglePause
+                          : null,
+                    ),
+                    IconButton(
+                      tooltip: 'Cancel',
+                      icon: Icon(Icons.close, color: appText),
+                      onPressed: manager.hasActiveTransfers
+                          ? manager.cancelAll
+                          : manager.clearFinished,
+                    ),
+                  ],
                 ),
-                IconButton(
-                  tooltip: manager.isPaused ? 'Resume' : 'Pause',
-                  icon: Icon(
-                    manager.isPaused ? Icons.play_arrow : Icons.pause,
-                    color: appText,
-                  ),
-                  onPressed: manager.hasActiveTransfers
-                      ? manager.togglePause
-                      : null,
-                ),
-                IconButton(
-                  tooltip: 'Cancel',
-                  icon: Icon(Icons.close, color: appText),
-                  onPressed: manager.hasActiveTransfers
-                      ? manager.cancelAll
-                      : manager.clearFinished,
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -213,14 +219,4 @@ String _statusLabel(TransferStatus status) {
   };
 }
 
-String _formatBytes(int bytes) {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  var size = bytes.toDouble();
-  var unit = 0;
-  while (size >= 1024 && unit < units.length - 1) {
-    size /= 1024;
-    unit++;
-  }
-  final value = unit == 0 ? size.toStringAsFixed(0) : size.toStringAsFixed(1);
-  return '$value ${units[unit]}';
-}
+String _formatBytes(int bytes) => ByteFormatter.format(bytes);

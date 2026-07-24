@@ -13,9 +13,12 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// File sorting criteria (name, modified date, file size, or file extension type).
 enum SortBy { name, date, size, type }
 
+/// Strategy interface for loading file items based on category (MediaStore vs FileWalk vs Directory).
 abstract class FileLoadStrategy {
+  /// Asynchronously loads file items matching category, search query, and hidden file criteria.
   Future<List<FileItem>> load({
     required String categoryName,
     required String searchQuery,
@@ -25,6 +28,7 @@ abstract class FileLoadStrategy {
   });
 }
 
+/// Strategy loading media assets (photos, videos, audio) using system [PhotoManager] APIs.
 class MediaStoreLoadStrategy implements FileLoadStrategy {
   @override
   Future<List<FileItem>> load({
@@ -250,6 +254,8 @@ bool entityMatchesCategory(FileSystemEntity entity, String categoryName) {
   };
 }
 
+/// Controller for managing local file system state, multi-selection, sorting,
+/// strategy-based file loading, and asynchronous background size computation.
 class FileBrowserController extends ChangeNotifier {
   static const _mediaStoreCategories = {'Photos', 'Videos', 'Audio'};
 

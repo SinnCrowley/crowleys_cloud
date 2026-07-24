@@ -1,19 +1,16 @@
 #include "server/controllers/AuthController.hpp"
 
 #include "server/AppContext.hpp"
+#include "server/utils/HttpHelpers.hpp"
 
 #include <drogon/drogon.h>
 
 namespace server::controllers {
-namespace {
-drogon::HttpResponsePtr jsonError(drogon::HttpStatusCode code, const std::string &msg) {
-  Json::Value body;
-  body["error"] = msg;
-  auto resp = drogon::HttpResponse::newHttpJsonResponse(body);
-  resp->setStatusCode(code);
-  return resp;
-}
+using server::utils::jsonError;
+using server::utils::jsonOk;
+using server::utils::getAuthUserId;
 
+namespace {
 std::string requestIp(const drogon::HttpRequestPtr &req) {
   return req->peerAddr().toIp();
 }

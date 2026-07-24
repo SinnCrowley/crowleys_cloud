@@ -8,6 +8,9 @@ import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_browser_controller.dart';
 import 'package:crowleys_cloud/server_profile.dart';
+import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
+import 'package:crowleys_cloud/shared/utils/iterable_extensions.dart';
+import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -226,21 +229,42 @@ class FileSyncStateStore implements SyncStateStore {
     return server;
   }
 
+  static Map<String, Object?>? _cachedData;
+  static DateTime? _cacheLastModified;
+
   Future<Map<String, Object?>> _load() async {
     final file = await _resolveFile();
     if (!await file.exists()) {
       final tmpFile = File('${file.path}.tmp');
       if (await tmpFile.exists()) {
+        final stat = await tmpFile.stat();
+        if (_cachedData != null && _cacheLastModified == stat.modified) {
+          return _cachedData!;
+        }
         final raw = await tmpFile.readAsString();
         if (raw.trim().isNotEmpty) {
-          return Map<String, Object?>.from(jsonDecode(raw) as Map);
+          _cachedData = Map<String, Object?>.from(jsonDecode(raw) as Map);
+          _cacheLastModified = stat.modified;
+          return _cachedData!;
         }
       }
-      return <String, Object?>{'servers': {}};
+      _cachedData = <String, Object?>{'servers': {}};
+      _cacheLastModified = null;
+      return _cachedData!;
+    }
+    final stat = await file.stat();
+    if (_cachedData != null && _cacheLastModified == stat.modified) {
+      return _cachedData!;
     }
     final raw = await file.readAsString();
-    if (raw.trim().isEmpty) return <String, Object?>{'servers': {}};
-    return Map<String, Object?>.from(jsonDecode(raw) as Map);
+    if (raw.trim().isEmpty) {
+      _cachedData = <String, Object?>{'servers': {}};
+      _cacheLastModified = stat.modified;
+      return _cachedData!;
+    }
+    _cachedData = Map<String, Object?>.from(jsonDecode(raw) as Map);
+    _cacheLastModified = stat.modified;
+    return _cachedData!;
   }
 
   Future<void> _save(Map<String, Object?> data) async {
@@ -249,6 +273,9 @@ class FileSyncStateStore implements SyncStateStore {
     final tmpFile = File('${file.path}.tmp');
     await tmpFile.writeAsString(jsonEncode(data), flush: true);
     await tmpFile.rename(file.path);
+    final stat = await file.stat();
+    _cachedData = data;
+    _cacheLastModified = stat.modified;
   }
 
   Future<File> _resolveFile() async {
@@ -454,6 +481,7 @@ abstract class SyncApiClient {
   });
 }
 
+/// HTTP client implementation for sync API operations (upload, folder creation, deduplication).
 class HttpSyncApiClient implements SyncApiClient {
   HttpSyncApiClient({required this.authService, http.Client? client})
     : _client = client ?? http.Client();
@@ -659,6 +687,12 @@ class HttpSyncApiClient implements SyncApiClient {
     required ServerProfile server,
     required Future<http.Response> Function(String token) send,
   }) async {
+    final authClient = AuthenticatedHttpClient(
+      authService: authService,
+      serverId: server.id,
+      baseUrl: server.connectionUrl,
+      client: _client,
+    );
     try {
       var syncToken = await authService.readSyncToken(server.id);
       if (syncToken != null && syncToken.isNotEmpty) {
@@ -677,21 +711,7 @@ class HttpSyncApiClient implements SyncApiClient {
         }
       } catch (_) {}
 
-      var token = await authService.readAccessToken(server.id);
-      if (token == null || token.isEmpty) {
-        throw const SyncException('Authentication required');
-      }
-      var response = await send(token);
-      if (response.statusCode != 401) return response;
-      await authService.refreshSession(
-        serverId: server.id,
-        baseUrl: server.connectionUrl,
-      );
-      token = await authService.readAccessToken(server.id);
-      if (token == null || token.isEmpty) {
-        throw const SyncException('Authentication required');
-      }
-      return send(token);
+      return await authClient.sendAuthorized(send: send);
     } on SocketException catch (e) {
       throw SyncException('Server unreachable: ${e.message}', isUnreachable: true);
     } on http.ClientException catch (e) {
@@ -703,15 +723,8 @@ class HttpSyncApiClient implements SyncApiClient {
     }
   }
 
-  Uri _apiUri(String baseUrl, String path) {
-    final raw = baseUrl.trim();
-    final withScheme = raw.contains('://') ? raw : 'http://$raw';
-    final base = Uri.parse(withScheme);
-    final basePath = base.path.isEmpty
-        ? '/'
-        : (base.path.endsWith('/') ? base.path : '${base.path}/');
-    return base.replace(path: basePath).resolve(path.substring(1));
-  }
+  Uri _apiUri(String baseUrl, String path) =>
+      UrlUtils.buildEndpoint(baseUrl, path);
 }
 
 class SyncException implements Exception {
@@ -998,8 +1011,4 @@ class SyncService {
       await apiClient.createFolder(server: server, remotePath: current);
     }
   }
-}
-
-extension<E> on Iterable<E> {
-  E? get firstOrNull => isEmpty ? null : first;
 }

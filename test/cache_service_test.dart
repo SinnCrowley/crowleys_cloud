@@ -169,7 +169,7 @@ void main() {
     expect(fetches, 1);
   });
 
-  test('reports cache size and clears cache files', () async {
+  test('reports cache size and clears cache files and RAM thumbnail maps', () async {
     await CacheService.instance.writeDirectory(
       serverId: 'srv',
       cacheKey: 'dir-key',
@@ -182,12 +182,19 @@ void main() {
       cacheKey: 'thumb-key',
       fetch: () async => utf8.encode('thumb'),
     );
+    CacheService.instance.putMemoryThumbnail(
+      'mem-key',
+      utf8.encode('mem'),
+      filePath: '/dummy/path',
+    );
 
     expect(await CacheService.instance.cacheSizeBytes(), greaterThan(0));
+    expect(CacheService.instance.getMemoryThumbnail('mem-key'), isNotNull);
 
     await CacheService.instance.clearAll();
 
     expect(await CacheService.instance.cacheSizeBytes(), 0);
+    expect(CacheService.instance.getMemoryThumbnail('mem-key'), isNull);
   });
 
   test('unlimited thumbnail cache skips eviction', () async {

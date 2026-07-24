@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/cache_service.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppSettingsService {
@@ -89,36 +88,7 @@ class AppSettingsService {
     }
 
     try {
-      final deviceInfo = DeviceInfoPlugin();
-      String name = 'device';
-      if (Platform.isAndroid) {
-        String? customName;
-        try {
-          const platform = MethodChannel(
-            'com.sinncrowley.crowleys_cloud/device_info',
-          );
-          customName = await platform.invokeMethod<String>('getDeviceName');
-        } catch (_) {}
-        if (customName != null && customName.trim().isNotEmpty) {
-          name = customName;
-        } else {
-          final androidInfo = await deviceInfo.androidInfo;
-          name = androidInfo.model;
-        }
-      } else if (Platform.isIOS) {
-        final iosInfo = await deviceInfo.iosInfo;
-        name = iosInfo.name;
-      } else if (Platform.isMacOS) {
-        final macInfo = await deviceInfo.macOsInfo;
-        name = macInfo.computerName;
-      } else if (Platform.isWindows) {
-        final windowsInfo = await deviceInfo.windowsInfo;
-        name = windowsInfo.computerName;
-      } else if (Platform.isLinux) {
-        name = Platform.localHostname;
-      } else {
-        name = Platform.localHostname;
-      }
+      final name = Platform.localHostname;
       final result = '/backup/${_sanitizeDeviceName(name)}';
       await store.setString('cached_default_backup_target_dir', result);
       return result;

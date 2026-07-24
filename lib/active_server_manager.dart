@@ -2,6 +2,7 @@ import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_store.dart';
+import 'package:crowleys_cloud/shared/utils/iterable_extensions.dart';
 import 'package:flutter/foundation.dart';
 
 class ActiveServerManager extends ChangeNotifier {
@@ -177,8 +178,4 @@ class ActiveServerManager extends ChangeNotifier {
   void refresh() {
     notifyListeners();
   }
-}
-
-extension<E> on Iterable<E> {
-  E? get firstOrNull => isEmpty ? null : first;
 }

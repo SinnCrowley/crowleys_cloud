@@ -1,3 +1,9 @@
+// ZipWriter implementation for generating PKWARE-compliant ZIP archives.
+// Binary Specification: Writes standard Local File Headers (0x04034b50), Central Directory Headers (0x02014b50),
+// and End of Central Directory Record (0x06054b50).
+// Compression: Uses zlib raw deflate algorithm (-MAX_WBITS) for standard ZIP compatibility and CRC-32 checksum calculation.
+// Timestamps: Encodes system time into 16-bit MS-DOS time and date bitfields.
+
 #include "server/utils/ZipWriter.hpp"
 
 #include <algorithm>
@@ -8,6 +14,11 @@
 
 namespace server::utils {
 
+/**
+ * Converts current system time into MS-DOS bitfield packed date and time formats.
+ * Time format: [bits 0-4: sec/2][bits 5-10: min][bits 11-15: hour]
+ * Date format: [bits 0-4: day][bits 5-8: month][bits 9-15: year since 1980]
+ */
 void ZipWriter::getDosTimeDate(std::uint16_t &dosTime, std::uint16_t &dosDate) {
   auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   std::tm tm{};
@@ -21,7 +32,11 @@ void ZipWriter::getDosTimeDate(std::uint16_t &dosTime, std::uint16_t &dosDate) {
   dosDate = static_cast<std::uint16_t>(tm.tm_mday | ((tm.tm_mon + 1) << 5) | ((std::max(0, tm.tm_year - 80)) << 9));
 }
 
+/**
+ * Compresses data using raw zlib DEFLATE (-MAX_WBITS) and computes CRC-32 checksum.
+ */
 bool ZipWriter::compressData(const std::string &raw, std::vector<std::uint8_t> &outCompressed, std::uint32_t &outCrc32) {
+  // Step 1: Compute uncompressed payload CRC-32 checksum
   outCrc32 = static_cast<std::uint32_t>(::crc32(0L, reinterpret_cast<const Bytef*>(raw.data()), static_cast<uInt>(raw.size())));
 
   if (raw.empty()) {
@@ -37,6 +52,7 @@ bool ZipWriter::compressData(const std::string &raw, std::vector<std::uint8_t> &
   stream.zfree = Z_NULL;
   stream.opaque = Z_NULL;
 
+  // Step 2: Initialize zlib deflate stream with -MAX_WBITS for raw DEFLATE format
   if (deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -MAX_WBITS, 8, Z_DEFAULT_STRATEGY) != Z_OK) {
     return false;
   }
@@ -57,6 +73,9 @@ bool ZipWriter::compressData(const std::string &raw, std::vector<std::uint8_t> &
   return true;
 }
 
+/**
+ * Adds an in-memory string payload file to the ZIP archive entries.
+ */
 bool ZipWriter::addFile(const std::string &archivePath, const std::string &content) {
   Entry entry;
   entry.filename = archivePath;
@@ -71,6 +90,9 @@ bool ZipWriter::addFile(const std::string &archivePath, const std::string &conte
   return true;
 }
 
+/**
+ * Adds a physical disk file payload to the ZIP archive entries.
+ */
 bool ZipWriter::addFileFromDisk(const std::string &archivePath, const std::filesystem::path &filePath) {
   std::ifstream in(filePath, std::ios::binary);
   if (!in) return false;
@@ -79,12 +101,17 @@ bool ZipWriter::addFileFromDisk(const std::string &archivePath, const std::files
   return addFile(archivePath, content);
 }
 
+/**
+ * Writes standard PKWARE ZIP binary layout to target file path.
+ * Writes Local File Headers (0x04034b50), Central Directory (0x02014b50), and EOCD (0x06054b50).
+ */
 bool ZipWriter::writeToFile(const std::filesystem::path &outputPath) {
   std::ofstream out(outputPath, std::ios::binary);
   if (!out) return false;
 
   std::uint32_t currentOffset = 0;
 
+  // Step 1: Write Local File Headers and compressed file data
   for (auto &entry : entries_) {
     entry.localHeaderOffset = currentOffset;
 

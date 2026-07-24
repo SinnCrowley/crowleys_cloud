@@ -564,9 +564,9 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                       icon: Icons.person_outline,
                     ),
                   ] else ...[
-                    Text(
+                    const Text(
                       'Verification code has been printed to the server console. Enter the 6-digit code and your new password.',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white60,
                         fontSize: 13,
                         height: 1.35,

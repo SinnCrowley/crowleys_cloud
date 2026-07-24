@@ -326,7 +326,7 @@ class _SatValPainter extends CustomPainter {
     canvas.drawRect(rect, satPaint);
 
     // Value gradient (vertical transparent to black)
-    final valGradient = const LinearGradient(
+    const valGradient = LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [Colors.transparent, Colors.black],

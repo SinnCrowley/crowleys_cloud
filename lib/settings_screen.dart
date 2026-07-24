@@ -13,6 +13,8 @@ import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_setup_screen.dart';
 import 'package:crowleys_cloud/sync_scheduler.dart';
 import 'package:crowleys_cloud/sync_service.dart';
+import 'package:crowleys_cloud/shared/utils/byte_formatter.dart';
+import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:crowleys_cloud/theme_customizer_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -249,26 +251,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _tokenLifetime = value);
   }
 
-  Uri _apiUri(String baseUrl, String endpointPath) {
-    final raw = baseUrl.trim();
-    final withScheme = raw.contains('://') ? raw : 'http://$raw';
-    final base = Uri.parse(withScheme);
-
-    var basePath = base.path;
-    if (basePath.isEmpty) basePath = '/';
-    if (basePath.endsWith('/')) {
-      basePath = basePath.substring(0, basePath.length - 1);
-    }
-
-    final endpoint = endpointPath.startsWith('/')
-        ? endpointPath
-        : '/$endpointPath';
-    final hasApiSuffix = basePath == '/api' || basePath.endsWith('/api');
-    final apiPath = hasApiSuffix
-        ? '$basePath$endpoint'
-        : '$basePath/api$endpoint';
-    return base.replace(path: apiPath, query: null, fragment: null);
-  }
+  Uri _apiUri(String baseUrl, String endpointPath) =>
+      UrlUtils.buildApiEndpoint(baseUrl, endpointPath);
 
   Future<void> _loadTrashRetention() async {
     final activeServer = widget.serverManager.activeServer;
@@ -1199,15 +1183,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  String _formatBytes(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    final kb = bytes / 1024;
-    if (kb < 1024) return '${kb.toStringAsFixed(1)} KB';
-    final mb = kb / 1024;
-    if (mb < 1024) return '${mb.toStringAsFixed(1)} MB';
-    final gb = mb / 1024;
-    return '${gb.toStringAsFixed(1)} GB';
-  }
+  String _formatBytes(int bytes) => ByteFormatter.format(bytes);
 
   String _syncStatusLabel(SyncRunResult? result) {
     if (result == null) return 'No sync has run yet.';

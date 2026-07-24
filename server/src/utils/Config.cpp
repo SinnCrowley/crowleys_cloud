@@ -33,6 +33,11 @@ Config loadConfig(const std::string &path) {
   cfg.logRetentionDays = json.get("log_retention_days", cfg.logRetentionDays).asInt();
   cfg.hashFiles = json.get("hash_files", cfg.hashFiles).asBool();
   cfg.encryptionKey = json.get("encryption_key", cfg.encryptionKey).asString();
+
+  try {
+    cfg.storageRoot = std::filesystem::weakly_canonical(cfg.storageRoot).generic_string();
+  } catch (...) {}
+
   return cfg;
 }
 

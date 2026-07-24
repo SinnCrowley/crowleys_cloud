@@ -82,7 +82,7 @@ class SyncNotificationService {
       return;
     }
 
-    final androidDetails = AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       'sync_channel',
       'Background Synchronization',
       channelDescription: 'Shows status of files syncing in the background.',
@@ -92,7 +92,7 @@ class SyncNotificationService {
       playSound: true,
     );
 
-    final details = NotificationDetails(android: androidDetails);
+    const details = NotificationDetails(android: androidDetails);
     await _notificationsPlugin.show(
       id: id,
       title: title,

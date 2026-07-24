@@ -20,17 +20,22 @@ const syncBackgroundTaskName = 'crowleys_cloud_background_sync';
 const syncBackgroundUniquePrefix = 'crowleys_cloud_sync_';
 const syncBackgroundTag = 'crowleys_cloud_sync';
 
+/// Interface for background sync job scheduling.
 abstract class SyncBackgroundScheduler {
+  /// Initializes the background work manager subsystem.
   Future<void> initialize();
 
+  /// Schedules periodic background sync tasks for the given server profiles based on user settings.
   Future<void> scheduleForServers(
     List<ServerProfile> servers, {
     bool forceReRegister = false,
   });
 
+  /// Triggers a immediate one-off background sync execution for debugging.
   Future<void> debugTriggerOneOffSync(String serverId);
 }
 
+/// [Workmanager] implementation for Android background task scheduling with configuration hashing.
 class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
   WorkmanagerSyncBackgroundScheduler({Workmanager? workmanager})
     : _workmanager = workmanager ?? Workmanager();
@@ -144,6 +149,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
   }
 }
 
+/// VM entry-point function for WorkManager background execution on Android.
 @pragma('vm:entry-point')
 void syncCallbackDispatcher() {
   Workmanager().executeTask((taskName, inputData) async {
@@ -156,6 +162,7 @@ void syncCallbackDispatcher() {
   });
 }
 
+/// Executes background sync for active servers and updates system notifications.
 Future<bool> runBackgroundSync({String? serverId, String? syncToken}) async {
   final store = ServerStore();
   final snapshot = await store.load();
@@ -172,7 +179,7 @@ Future<bool> runBackgroundSync({String? serverId, String? syncToken}) async {
   final syncService = SyncService(
     scanner: DeviceSyncFileScanner(),
     apiClient: HttpSyncApiClient(authService: authService),
-    stateStore: FileSyncStateStore(),
+    stateStore: const FileSyncStateStore(),
   );
 
   final servers = snapshot.servers.where((server) {

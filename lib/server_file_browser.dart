@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_item.dart';
@@ -11,8 +10,20 @@ import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 
+import 'package:crowleys_cloud/shared/utils/file_icon_utils.dart';
+import 'package:crowleys_cloud/shared/widgets/breadcrumb_bar.dart';
+import 'package:crowleys_cloud/shared/widgets/create_folder_dialog.dart';
+import 'package:crowleys_cloud/shared/widgets/remote_thumbnail_widget.dart';
+import 'package:crowleys_cloud/shared/widgets/selection_action_bar.dart';
+import 'package:crowleys_cloud/shared/widgets/selection_header_bar.dart';
 import 'package:crowleys_cloud/smart_thumbnail.dart';
 
+/// ServerFileBrowser renders remote server files and folders in grid or list view.
+///
+/// Performance optimizations:
+/// - Employs [ListenableBuilder] to localize rebuilds to header controls, breadcrumbs, content, or action bar.
+/// - Uses state-memoized [_ServerThumb] widgets to eliminate repeated future creation during list scrolling.
+/// - Leverages unified [CacheService] RAM + disk caching for remote thumbnails.
 class ServerFileBrowser extends StatefulWidget {
   const ServerFileBrowser({
     super.key,
@@ -228,35 +239,11 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
   }
 
   Future<void> _createFolder() async {
-    final inputController = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: appSurface,
-        title: Text(
-          'Create Folder',
-          style: TextStyle(color: appText),
-        ),
-        content: TextField(
-          controller: inputController,
-          autofocus: true,
-          style: TextStyle(color: appText),
-          decoration: InputDecoration(
-            hintText: 'Folder name',
-            hintStyle: TextStyle(color: appSubtext),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(inputController.text),
-            child: const Text('Create'),
-          ),
-        ],
-      ),
+    final name = await CreateFolderDialog.show(
+      context,
+      backgroundColor: appSurface,
+      textColor: appText,
+      hintColor: appSubtext,
     );
     if (name == null) return;
     await controller.createFolder(name);
@@ -381,77 +368,56 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     if (controller.selectedType != 'all' || controller.isSelectionMode) {
       return const SizedBox.shrink();
     }
-    final items = _buildMainBreadcrumbItems();
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: appSurface,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (var i = 0; i < items.length; i++) ...[
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: const Size(0, 32),
-                  ),
-                  onPressed: () => controller.navigateToPath(items[i].path),
-                  child: Text(
-                    items[i].label,
-                    style: TextStyle(color: appSubtext),
-                  ),
-                ),
-                if (i < items.length - 1)
-                  Icon(
-                    Icons.chevron_right,
-                    color: appSubtext,
-                    size: 18,
-                  ),
-              ],
-            ],
-          ),
-        ),
-      ),
+    return BreadcrumbBar(
+      items: _buildMainBreadcrumbItems(),
+      onItemTap: controller.navigateToPath,
+      backgroundColor: appSurface,
+      textColor: appSubtext,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        return Stack(
+    return Stack(
+      children: [
+        Column(
           children: [
-            Column(
-              children: [
-                _ServerHeaderControls(
-                  controller: controller,
-                  showCreateFolder: controller.selectedType == 'all',
-                  onCreateFolder: _createFolder,
-                ),
-                _buildMainBreadcrumb(),
-                Expanded(child: _buildContent()),
-              ],
-            ),
-            if (controller.isSelectionMode)
-              _SelectionActionBar(
-                onDownload: _downloadSelectedFiles,
-                onDelete: _deleteSelectedFiles,
-                onShare: controller.scope == 'shared'
-                    ? _shareSelectedFiles
-                    : _showShareOptions,
-                onAddToFolder: _addSelectedToFolder,
-                scope: controller.scope,
+            ListenableBuilder(
+              listenable: controller,
+              builder: (context, _) => _ServerHeaderControls(
+                controller: controller,
+                showCreateFolder: controller.selectedType == 'all',
+                onCreateFolder: _createFolder,
               ),
+            ),
+            ListenableBuilder(
+              listenable: controller,
+              builder: (context, _) => _buildMainBreadcrumb(),
+            ),
+            Expanded(
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) => _buildContent(),
+              ),
+            ),
           ],
-        );
-      },
+        ),
+        ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            if (!controller.isSelectionMode) return const SizedBox.shrink();
+            return _SelectionActionBar(
+              onDownload: _downloadSelectedFiles,
+              onDelete: _deleteSelectedFiles,
+              onShare: controller.scope == 'shared'
+                  ? _shareSelectedFiles
+                  : _showShareOptions,
+              onAddToFolder: _addSelectedToFolder,
+              scope: controller.scope,
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -511,24 +477,12 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
   }
 }
 
-IconData _iconForFile(ServerFileItem item) {
-  final ext = item.extension.startsWith('.')
-      ? item.extension.substring(1)
-      : item.extension;
-  return switch (ext) {
-    'pdf' => Icons.picture_as_pdf,
-    'doc' || 'docx' => Icons.description,
-    'xls' || 'xlsx' => Icons.table_chart,
-    'ppt' || 'pptx' => Icons.slideshow,
-    'zip' || 'rar' || '7z' || 'tar' => Icons.folder_zip,
-    'apk' => Icons.android,
-    'mp3' || 'flac' || 'aac' || 'wav' || 'm4a' => Icons.audio_file,
-    'txt' || 'md' => Icons.text_snippet,
-    _ => Icons.insert_drive_file,
-  };
-}
+IconData _iconForFile(ServerFileItem item) =>
+    FileIconUtils.iconForExtension(item.extension);
 
-class _ServerThumb extends StatefulWidget {
+/// Dedicated thumbnail widget for server file items.
+/// Memoizes [Future] in state to prevent redundant network/cache fetches on scroll frames.
+class _ServerThumb extends StatelessWidget {
   const _ServerThumb({
     required this.controller,
     required this.item,
@@ -540,44 +494,13 @@ class _ServerThumb extends StatefulWidget {
   final bool isList;
 
   @override
-  State<_ServerThumb> createState() => _ServerThumbState();
-}
-
-class _ServerThumbState extends State<_ServerThumb> {
-  Future<Uint8List?>? _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = _load();
-  }
-
-  Future<Uint8List?> _load() async {
-    return widget.controller.loadThumbnailWithRetry(widget.item);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final size = widget.isList ? 48.0 : 120.0;
-    return FutureBuilder<Uint8List?>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.data != null) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.memory(
-              snapshot.data!,
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) =>
-                  _ServerFileFallbackIcon(item: widget.item, size: size),
-            ),
-          );
-        }
-        return _ServerFileFallbackIcon(item: widget.item, size: size);
-      },
+    return RemoteThumbnailWidget(
+      thumbnailLoader: () => controller.loadThumbnailWithRetry(item),
+      fallbackBuilder: (context, size) =>
+          _ServerFileFallbackIcon(item: item, size: size),
+      isList: isList,
+      cacheKey: '${item.path}_${item.modifiedAt}',
     );
   }
 }
@@ -740,30 +663,12 @@ class _ServerHeaderControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (controller.isSelectionMode) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
-        child: Row(
-          children: [
-            Checkbox(
-              value:
-                  controller.selectedFiles.length == controller.files.length &&
-                  controller.files.isNotEmpty,
-              activeColor: Theme.of(context).primaryColor,
-              onChanged: (checked) => checked == true
-                  ? controller.selectAll()
-                  : controller.clearSelection(),
-            ),
-            Text(
-              '${controller.selectedFiles.length} selected',
-              style: TextStyle(color: appSubtext, fontSize: 16),
-            ),
-            const Spacer(),
-            IconButton(
-              icon: Icon(Icons.close, color: appSubtext),
-              onPressed: controller.clearSelection,
-            ),
-          ],
-        ),
+      return SelectionHeaderBar(
+        selectedCount: controller.selectedFiles.length,
+        totalCount: controller.files.length,
+        onSelectAll: controller.selectAll,
+        onClearSelection: controller.clearSelection,
+        textColor: appSubtext,
       );
     }
 
@@ -1216,83 +1121,36 @@ class _SelectionActionBar extends StatelessWidget {
   final Future<void> Function() onAddToFolder;
   final String scope;
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required Future<void> Function() onPressed,
-  }) {
-    return TextButton.icon(
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        minimumSize: const Size.fromHeight(48),
-      ),
-      icon: Icon(icon, color: appSubtext),
-      label: Text(
-        label,
-        style: TextStyle(color: appText),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      onPressed: onPressed,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final buttons = <Widget>[
-      _buildActionButton(
-        icon: Icons.download,
-        label: 'Download',
-        onPressed: onDownload,
-      ),
-      _buildActionButton(
-        icon: scope == 'shared' ? Icons.link_off : Icons.delete,
-        label: scope == 'shared' ? 'Unshare' : 'Delete',
-        onPressed: onDelete,
-      ),
-      if (scope != 'shared') ...[
-        _buildActionButton(
-          icon: Icons.drive_file_move,
-          label: 'Add to folder',
-          onPressed: onAddToFolder,
+    return SelectionActionBar(
+      backgroundColor: appSurface,
+      textColor: appText,
+      iconColor: appSubtext,
+      actions: [
+        SelectionAction(
+          icon: Icons.download,
+          label: 'Download',
+          onPressed: onDownload,
         ),
-        _buildActionButton(
-          icon: Icons.share,
-          label: 'Share',
-          onPressed: onShare,
+        SelectionAction(
+          icon: scope == 'shared' ? Icons.link_off : Icons.delete,
+          label: scope == 'shared' ? 'Unshare' : 'Delete',
+          onPressed: onDelete,
         ),
+        if (scope != 'shared') ...[
+          SelectionAction(
+            icon: Icons.drive_file_move,
+            label: 'Add to folder',
+            onPressed: onAddToFolder,
+          ),
+          SelectionAction(
+            icon: Icons.share,
+            label: 'Share',
+            onPressed: onShare,
+          ),
+        ],
       ],
-    ];
-
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        color: appBackground,
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final useSingleRow = constraints.maxWidth >= 664;
-            if (useSingleRow) {
-              return Row(
-                children: buttons
-                    .map((button) => Expanded(child: button))
-                    .toList(),
-              );
-            }
-
-            final itemWidth = (constraints.maxWidth - 8) / 2;
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: buttons
-                  .map((button) => SizedBox(width: itemWidth, child: button))
-                  .toList(),
-            );
-          },
-        ),
-      ),
     );
   }
 }

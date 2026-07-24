@@ -5,6 +5,8 @@ import 'file_item.dart';
 import 'thumbnail_service.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import 'package:crowleys_cloud/shared/utils/file_icon_utils.dart';
+
 class _FileType {
   final IconData icon;
   final Color color;
@@ -12,25 +14,18 @@ class _FileType {
 }
 
 _FileType _fileTypeOf(String ext) {
-  return switch (ext) {
-    'pdf' => _FileType(Icons.picture_as_pdf, appAccent),
-    'doc' || 'docx' => _FileType(Icons.description, appAccent),
-    'xls' || 'xlsx' => _FileType(Icons.table_chart, appAccent),
-    'ppt' || 'pptx' => _FileType(Icons.slideshow, appAccent),
-    'zip' || 'rar' || '7z' || 'tar' => _FileType(Icons.folder_zip, appAccent),
-    'apk' => _FileType(Icons.android, appAccent),
-    'mp3' ||
-    'flac' ||
-    'aac' ||
-    'wav' ||
-    'm4a' => _FileType(Icons.audio_file, appAccent),
-    'txt' || 'md' => _FileType(Icons.text_snippet, appAccent),
-    _ => _FileType(Icons.insert_drive_file, appAccent),
-  };
+  return _FileType(FileIconUtils.iconForExtension(ext), appAccent);
 }
 
 // ── Главный виджет ───────────────────────────────────────────────
 
+/// SmartThumbnail displays image/video thumbnails or file category icons
+/// for [FileItem] objects in grid/list views.
+///
+/// Performance optimizations:
+/// - Memoizes thumbnail Futures in widget state to prevent re-triggering disk/network I/O on scroll.
+/// - Handles widget updates via [didUpdateWidget] when layout size or item properties change.
+/// - Integrates with [ThumbnailService] and [CacheService] for consolidated RAM + disk caching.
 class SmartThumbnail extends StatelessWidget {
   final FileItem item;
   final bool isList;
@@ -103,13 +98,26 @@ class _AssetThumbnail extends StatefulWidget {
 }
 
 class _AssetThumbnailState extends State<_AssetThumbnail> {
-  late final Future<Uint8List?> _future;
+  Future<Uint8List?>? _future;
 
   @override
   void initState() {
     super.initState();
+    _loadFuture();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AssetThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.pathSync != widget.item.pathSync ||
+        oldWidget.size != widget.size ||
+        oldWidget.dpr != widget.dpr) {
+      _loadFuture();
+    }
+  }
+
+  void _loadFuture() {
     final px = (widget.size * widget.dpr).toInt();
-    // Напрямую через photo_manager — никакого поиска по индексу
     _future = ThumbnailService.instance.getAssetThumbnail(
       widget.item,
       size: px,
@@ -140,11 +148,25 @@ class _FsThumbnail extends StatefulWidget {
 }
 
 class _FsThumbnailState extends State<_FsThumbnail> {
-  late final Future<Uint8List?> _future;
+  Future<Uint8List?>? _future;
 
   @override
   void initState() {
     super.initState();
+    _loadFuture();
+  }
+
+  @override
+  void didUpdateWidget(covariant _FsThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.pathSync != widget.item.pathSync ||
+        oldWidget.size != widget.size ||
+        oldWidget.dpr != widget.dpr) {
+      _loadFuture();
+    }
+  }
+
+  void _loadFuture() {
     final px = (widget.size * widget.dpr).toInt();
     _future = ThumbnailService.instance.getFsThumbnail(widget.item, size: px);
   }
@@ -157,7 +179,7 @@ class _FsThumbnailState extends State<_FsThumbnail> {
 // ── Общий FutureBuilder для обоих типов ──────────────────────────
 
 class _ThumbnailFuture extends StatelessWidget {
-  final Future<Uint8List?> future;
+  final Future<Uint8List?>? future;
   final double size;
 
   const _ThumbnailFuture({required this.future, required this.size});

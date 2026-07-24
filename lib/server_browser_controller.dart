@@ -7,6 +7,8 @@ import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
+import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
+import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -17,6 +19,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum ServerSortBy { name, date, size, type }
 
+/// Controller for managing remote server file browsing, stale-while-revalidate caching,
+/// in-flight download deduplication, recursive folder transfers, and remote multi-selection.
 class ServerBrowserController extends ChangeNotifier {
   static const _sortByPrefKey = 'serverSortBy';
   static const _sortAscendingPrefKey = 'serverSortAscending';
@@ -636,38 +640,11 @@ class ServerBrowserController extends ChangeNotifier {
     return normalized == '.' ? '' : normalized;
   }
 
-  Uri _baseUri(String path) {
-    final raw = profile.connectionUrl.trim();
-    final withScheme = raw.contains('://') ? raw : 'http://$raw';
-    final base = Uri.parse(withScheme);
-    final basePath = base.path.isEmpty
-        ? '/'
-        : (base.path.endsWith('/') ? base.path : '${base.path}/');
-    final normalizedBase = base.replace(path: basePath);
-    final relativePath = path.startsWith('/') ? path.substring(1) : path;
-    return normalizedBase.resolve(relativePath);
-  }
+  Uri _baseUri(String path) =>
+      UrlUtils.buildEndpoint(profile.connectionUrl, path);
 
-  Uri _apiUri(String endpointPath) {
-    final raw = profile.connectionUrl.trim();
-    final withScheme = raw.contains('://') ? raw : 'http://$raw';
-    final base = Uri.parse(withScheme);
-
-    var basePath = base.path;
-    if (basePath.isEmpty) basePath = '/';
-    if (basePath.endsWith('/')) {
-      basePath = basePath.substring(0, basePath.length - 1);
-    }
-
-    final endpoint = endpointPath.startsWith('/')
-        ? endpointPath
-        : '/$endpointPath';
-    final hasApiSuffix = basePath == '/api' || basePath.endsWith('/api');
-    final apiPath = hasApiSuffix
-        ? '$basePath$endpoint'
-        : '$basePath/api$endpoint';
-    return base.replace(path: apiPath, query: null, fragment: null);
-  }
+  Uri _apiUri(String endpointPath) =>
+      UrlUtils.buildApiEndpoint(profile.connectionUrl, endpointPath);
 
   Future<List<ServerFileItem>> _listDirAt(String relativePath) async {
     final uri = _apiUri(
@@ -903,219 +880,28 @@ class ServerBrowserController extends ChangeNotifier {
     return _baseUri(trimmed);
   }
 
-  Future<http.Response> _authorizedGet(Uri uri) async {
-    var token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return http.Response('', 401);
-    var response = await _safeRequest(
-      () => _client.get(uri, headers: {'authorization': 'Bearer $token'}),
-    );
-    if (response.statusCode != 401) return response;
+  late final AuthenticatedHttpClient _httpClient = AuthenticatedHttpClient(
+    authService: authService,
+    serverId: serverId,
+    baseUrl: profile.connectionUrl,
+    client: _client,
+    onConnectionLost: onConnectionLost,
+  );
 
-    try {
-      await authService.refreshSession(
-        serverId: serverId,
-        baseUrl: profile.connectionUrl,
-      );
-      token = await authService.readAccessToken(serverId);
-      if (token == null || token.isEmpty) return response;
-      response = await _safeRequest(
-        () => _client.get(uri, headers: {'authorization': 'Bearer $token'}),
-      );
-    } catch (_) {}
-    return response;
-  }
+  Future<http.Response> _authorizedGet(Uri uri) => _httpClient.get(uri);
 
-  Future<http.StreamedResponse> _authorizedStreamedGet(Uri uri) async {
-    var token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) {
-      return http.StreamedResponse(const Stream.empty(), 401);
-    }
-    var response = await _safeStreamedRequest(
-      () => _sendStreamedGet(uri, token!),
-    );
-    if (response.statusCode != 401) return response;
+  Future<http.StreamedResponse> _authorizedStreamedGet(Uri uri) =>
+      _httpClient.streamedGet(uri);
 
-    try {
-      await authService.refreshSession(
-        serverId: serverId,
-        baseUrl: profile.connectionUrl,
-      );
-      token = await authService.readAccessToken(serverId);
-      if (token == null || token.isEmpty) return response;
-      response = await _safeStreamedRequest(
-        () => _sendStreamedGet(uri, token!),
-      );
-    } catch (_) {}
-    return response;
-  }
-
-  Future<http.StreamedResponse> _sendStreamedGet(Uri uri, String token) {
-    final request = http.Request('GET', uri)
-      ..headers['authorization'] = 'Bearer $token';
-    return _client.send(request);
-  }
-
-  Future<http.Response> _authorizedDelete(Uri uri) async {
-    var token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return http.Response('', 401);
-    var response = await _safeRequest(
-      () => _client.delete(uri, headers: {'authorization': 'Bearer $token'}),
-    );
-    if (response.statusCode != 401) return response;
-
-    try {
-      await authService.refreshSession(
-        serverId: serverId,
-        baseUrl: profile.connectionUrl,
-      );
-      token = await authService.readAccessToken(serverId);
-      if (token == null || token.isEmpty) return response;
-      response = await _safeRequest(
-        () => _client.delete(uri, headers: {'authorization': 'Bearer $token'}),
-      );
-    } catch (_) {}
-    return response;
-  }
+  Future<http.Response> _authorizedDelete(Uri uri) => _httpClient.delete(uri);
 
   Future<http.Response> _authorizedPostJson(
     Uri uri,
     Map<String, Object?> payload,
-  ) async {
-    var token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return http.Response('', 401);
-    var response = await _safeRequest(
-      () => _client.post(
-        uri,
-        headers: {
-          'authorization': 'Bearer $token',
-          'content-type': 'application/json',
-        },
-        body: jsonEncode(payload),
-      ),
-    );
-    if (response.statusCode != 401) return response;
+  ) => _httpClient.postJson(uri, payload);
 
-    try {
-      await authService.refreshSession(
-        serverId: serverId,
-        baseUrl: profile.connectionUrl,
-      );
-      token = await authService.readAccessToken(serverId);
-      if (token == null || token.isEmpty) return response;
-      response = await _safeRequest(
-        () => _client.post(
-          uri,
-          headers: {
-            'authorization': 'Bearer $token',
-            'content-type': 'application/json',
-          },
-          body: jsonEncode(payload),
-        ),
-      );
-    } catch (_) {}
-    return response;
-  }
-
-  Future<http.Response> _authorizedPostBytes(Uri uri, List<int> body) async {
-    var token = await authService.readAccessToken(serverId);
-    if (token == null || token.isEmpty) return http.Response('', 401);
-    var response = await _safeRequest(
-      () => _client.post(
-        uri,
-        headers: {
-          'authorization': 'Bearer $token',
-          'content-type': 'application/octet-stream',
-        },
-        body: body,
-      ),
-    );
-    if (response.statusCode != 401) return response;
-
-    try {
-      await authService.refreshSession(
-        serverId: serverId,
-        baseUrl: profile.connectionUrl,
-      );
-      token = await authService.readAccessToken(serverId);
-      if (token == null || token.isEmpty) return response;
-      response = await _safeRequest(
-        () => _client.post(
-          uri,
-          headers: {
-            'authorization': 'Bearer $token',
-            'content-type': 'application/octet-stream',
-          },
-          body: body,
-        ),
-      );
-    } catch (_) {}
-    return response;
-  }
-
-  Future<http.Response> _safeRequest(
-    Future<http.Response> Function() send,
-  ) async {
-    try {
-      final response = await send();
-      if (_isConnectionUnavailableStatus(response.statusCode)) {
-        _notifyConnectionLost('Server is unreachable.');
-      }
-      return response;
-    } on SocketException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.Response('', 503);
-    } on HandshakeException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.Response('', 503);
-    } on HttpException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.Response('', 503);
-    } on http.ClientException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.Response('', 503);
-    } on TimeoutException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.Response('', 503);
-    }
-  }
-
-  Future<http.StreamedResponse> _safeStreamedRequest(
-    Future<http.StreamedResponse> Function() send,
-  ) async {
-    try {
-      final response = await send();
-      if (_isConnectionUnavailableStatus(response.statusCode)) {
-        _notifyConnectionLost('Server is unreachable.');
-      }
-      return response;
-    } on SocketException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.StreamedResponse(const Stream.empty(), 503);
-    } on HandshakeException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.StreamedResponse(const Stream.empty(), 503);
-    } on HttpException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.StreamedResponse(const Stream.empty(), 503);
-    } on http.ClientException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.StreamedResponse(const Stream.empty(), 503);
-    } on TimeoutException {
-      _notifyConnectionLost('Server is unreachable.');
-      return http.StreamedResponse(const Stream.empty(), 503);
-    }
-  }
-
-  bool _isConnectionUnavailableStatus(int statusCode) {
-    return statusCode == 500 ||
-        statusCode == 502 ||
-        statusCode == 503 ||
-        statusCode == 504;
-  }
-
-  void _notifyConnectionLost(String message) {
-    onConnectionLost?.call(message);
-  }
+  Future<http.Response> _authorizedPostBytes(Uri uri, List<int> body) =>
+      _httpClient.postBytes(uri, body);
 }
 
 class _DownloadPlan {
