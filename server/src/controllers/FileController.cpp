@@ -323,6 +323,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
 
   try {
     std::filesystem::path source;
+    std::filesystem::path virtualPath;
     std::int64_t cacheUserId = userId;
     std::string sha256Val;
     const bool hashFiles = server::ctx().config.hashFiles;
@@ -344,6 +345,8 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         callback(jsonError(drogon::k403Forbidden, "Forbidden"));
         return;
       }
+
+      virtualPath = origPath;
 
       if (hashFiles) {
         const char *idxSql = "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND rel_path = ? AND is_deleted = 1 LIMIT 1";
@@ -367,6 +370,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         return;
       }
       const auto rawPath = req->getParameter("path");
+      virtualPath = rawPath;
 
       std::int64_t fileOwnerId = userId;
       if (*scope == services::StorageScope::Shared) {
@@ -408,7 +412,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
       return;
     }
 
-    const auto fileType = server::ctx().fileService->classifyType(source);
+    const auto fileType = server::ctx().fileService->classifyType(virtualPath);
     const auto sizeRaw = req->getParameter("s").empty() ? "256" : req->getParameter("s");
     const auto thumbSize = std::max(64, std::min(1024, std::stoi(sizeRaw)));
     const auto key = std::to_string(cacheUserId) + ":" + source.generic_string() + ":" + std::to_string(thumbSize);

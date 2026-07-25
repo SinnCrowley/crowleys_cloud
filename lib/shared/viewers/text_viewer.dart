@@ -43,7 +43,7 @@ class _TextViewerState extends State<TextViewer> {
         title: Text(p.basename(widget.file.path)),
         backgroundColor: appSurface,
         surfaceTintColor: appSurface,
-        foregroundColor: Colors.white,
+        foregroundColor: appText,
         elevation: 0,
       ),
       body: FutureBuilder<String>(
@@ -56,7 +56,7 @@ class _TextViewerState extends State<TextViewer> {
                   padding: const EdgeInsets.all(24),
                   child: Text(
                     'Error reading file: ${snapshot.error}',
-                    style: const TextStyle(color: Colors.redAccent),
+                    style: TextStyle(color: appAccent),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -66,15 +66,15 @@ class _TextViewerState extends State<TextViewer> {
               padding: const EdgeInsets.all(16),
               child: SelectableText(
                 snapshot.data ?? '',
-                style: const TextStyle(
-                  color: Colors.white70,
+                style: TextStyle(
+                  color: appText,
                   fontFamily: 'monospace',
                   fontSize: 14,
                 ),
               ),
             );
           }
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator(color: appAccent));
         },
       ),
     );

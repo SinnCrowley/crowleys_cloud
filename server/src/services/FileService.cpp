@@ -91,7 +91,7 @@ std::string FileService::classifyType(const std::filesystem::path &path) const {
   static const std::unordered_map<std::string, std::string> map = {
       {".jpg", "photo"}, {".jpeg", "photo"}, {".png", "photo"}, {".webp", "photo"}, {".gif", "photo"},
       {".mp4", "video"}, {".mkv", "video"}, {".mov", "video"}, {".webm", "video"},
-      {".mp3", "audio"}, {".wav", "audio"}, {".ogg", "audio"}, {".flac", "audio"},
+      {".mp3", "audio"}, {".wav", "audio"}, {".ogg", "audio"}, {".flac", "audio"}, {".m4a", "audio"},
       {".pdf", "document"}, {".doc", "document"}, {".docx", "document"}, {".xls", "document"},
       {".xlsx", "document"}, {".ppt", "document"}, {".pptx", "document"}, {".txt", "document"}};
   auto ext = path.extension().string();
@@ -105,7 +105,7 @@ std::string FileService::mimeTypeFor(const std::filesystem::path &path) const {
   static const std::unordered_map<std::string, std::string> map = {
       {".jpg", "image/jpeg"}, {".jpeg", "image/jpeg"}, {".png", "image/png"}, {".webp", "image/webp"}, {".gif", "image/gif"},
       {".mp4", "video/mp4"}, {".mkv", "video/x-matroska"}, {".mov", "video/quicktime"}, {".webm", "video/webm"},
-      {".mp3", "audio/mpeg"}, {".wav", "audio/wav"}, {".ogg", "audio/ogg"}, {".flac", "audio/flac"},
+      {".mp3", "audio/mpeg"}, {".wav", "audio/wav"}, {".ogg", "audio/ogg"}, {".flac", "audio/flac"}, {".m4a", "audio/mp4"},
       {".pdf", "application/pdf"}, {".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
       {".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
       {".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"},

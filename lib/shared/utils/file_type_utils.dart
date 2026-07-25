@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'file_icon_utils.dart';
 
-/// File category data containing associated icon and color.
+/// File category data containing associated icon.
 class FileCategoryInfo {
-  const FileCategoryInfo(this.icon, this.color);
+  const FileCategoryInfo(this.icon);
 
   final IconData icon;
-  final Color color;
 }
 
 /// Centralized utility for file type and category identification.
@@ -22,12 +21,11 @@ abstract final class FileTypeUtils {
     return trimmed;
   }
 
-  /// Resolves the file category info (icon and color) for a file name or extension.
+  /// Resolves the file category info (icon) for a file name or extension.
   static FileCategoryInfo categoryForFile(String filenameOrExtension) {
     final ext = _cleanExtension(filenameOrExtension);
     return FileCategoryInfo(
       FileIconUtils.iconForExtension(ext),
-      FileIconUtils.colorForExtension(ext),
     );
   }
 
