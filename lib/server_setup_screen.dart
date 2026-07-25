@@ -60,7 +60,8 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
     super.dispose();
   }
 
-  Map<String, String> _parseUrlInput(String input) => UrlUtils.parseUrlInput(input);
+  Map<String, String> _parseUrlInput(String input) =>
+      UrlUtils.parseUrlInput(input);
 
   Future<void> _submit(AuthMode mode, {String? email}) async {
     final name = _nameController.text.trim();

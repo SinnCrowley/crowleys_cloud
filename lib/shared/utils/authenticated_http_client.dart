@@ -53,10 +53,7 @@ class AuthenticatedHttpClient {
     Map<String, Object?> payload, {
     Map<String, String>? headers,
   }) {
-    final mergedHeaders = {
-      'content-type': 'application/json',
-      ...?headers,
-    };
+    final mergedHeaders = {'content-type': 'application/json', ...?headers};
     return _sendWithRetry(
       (token) => _safeRequest(
         () => client.post(
@@ -107,10 +104,7 @@ class AuthenticatedHttpClient {
     Map<String, Object?> payload, {
     Map<String, String>? headers,
   }) {
-    final mergedHeaders = {
-      'content-type': 'application/json',
-      ...?headers,
-    };
+    final mergedHeaders = {'content-type': 'application/json', ...?headers};
     return _sendWithRetry(
       (token) => _safeRequest(
         () => client.delete(

@@ -503,7 +503,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _openAddServerFlow() async {
     final setupResult = await Navigator.of(context).push<ServerSetupResult>(
       MaterialPageRoute(
-        builder: (_) => ServerSetupScreen(authService: widget.serverManager.authService),
+        builder: (_) =>
+            ServerSetupScreen(authService: widget.serverManager.authService),
       ),
     );
     if (setupResult == null) return;
@@ -516,9 +517,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save server: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save server: $e')));
       return;
     }
 
@@ -652,7 +653,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(_syncFrequencyLabel(minutes), style: TextStyle(color: appText)),
+                Text(
+                  _syncFrequencyLabel(minutes),
+                  style: TextStyle(color: appText),
+                ),
                 if (minutes == current)
                   Icon(Icons.check, color: appAccent, size: 20),
               ],
@@ -846,8 +850,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (isSelected)
-                    Icon(Icons.check, color: appAccent),
+                  if (isSelected) Icon(Icons.check, color: appAccent),
                   IconButton(
                     tooltip: 'Remove server',
                     icon: Icon(Icons.delete_outline, color: appSubtext),
@@ -865,7 +868,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
         SwitchListTile(
           secondary: Icon(Icons.sync, color: appAccent),
-          title: Text('Folder and category sync', style: TextStyle(color: appText)),
+          title: Text(
+            'Folder and category sync',
+            style: TextStyle(color: appText),
+          ),
           subtitle: Text(
             hasSelectedServer
                 ? 'Keep selected local categories or folders synced with this server.'
@@ -890,7 +896,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ListTile(
             leading: Icon(Icons.battery_charging_full, color: appAccent),
-            title: Text('Only while charging', style: TextStyle(color: appText)),
+            title: Text(
+              'Only while charging',
+              style: TextStyle(color: appText),
+            ),
             trailing: Switch(
               value: chargingOnly,
               onChanged: (value) =>
@@ -900,7 +909,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             enabled: hasSelectedServer,
             leading: Icon(Icons.folder_outlined, color: appAccent),
-            title: Text('Server target directory', style: TextStyle(color: appText)),
+            title: Text(
+              'Server target directory',
+              style: TextStyle(color: appText),
+            ),
             subtitle: Text(target, style: TextStyle(color: appSubtext)),
             trailing: Icon(Icons.chevron_right, color: appSubtext),
             onTap: hasSelectedServer ? _editTargetDirectory : null,
@@ -908,7 +920,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             enabled: hasSelectedServer,
             leading: Icon(Icons.av_timer, color: appAccent),
-            title: Text('Synchronization frequency', style: TextStyle(color: appText)),
+            title: Text(
+              'Synchronization frequency',
+              style: TextStyle(color: appText),
+            ),
             subtitle: Text(
               _syncFrequencyLabel(_syncPrefs['syncFrequency'] as int? ?? 15),
               style: TextStyle(color: appSubtext),
@@ -943,15 +958,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           value: _syncProgressPercent,
                           minHeight: 4,
                           backgroundColor: appBorder.withValues(alpha: 0.2),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            appAccent,
-                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(appAccent),
                         ),
                       ),
                     ],
                   )
-                : Text(_syncStatusLabel(_lastSyncResult), style: TextStyle(color: appSubtext)),
-            trailing: _isSyncing ? null : Icon(Icons.chevron_right, color: appSubtext),
+                : Text(
+                    _syncStatusLabel(_lastSyncResult),
+                    style: TextStyle(color: appSubtext),
+                  ),
+            trailing: _isSyncing
+                ? null
+                : Icon(Icons.chevron_right, color: appSubtext),
             onTap: hasSelectedServer && !_isSyncing
                 ? _syncSelectedServerNow
                 : null,
@@ -959,7 +977,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             enabled: hasSelectedServer && !_isSyncing,
             leading: Icon(Icons.bug_report_outlined, color: appAccent),
-            title: Text('Trigger Background Sync (Debug)', style: TextStyle(color: appText)),
+            title: Text(
+              'Trigger Background Sync (Debug)',
+              style: TextStyle(color: appText),
+            ),
             subtitle: Text(
               'Forces a WorkManager one-off background task run.',
               style: TextStyle(color: appSubtext),
@@ -983,7 +1004,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ListTile(
             leading: Icon(Icons.category_outlined, color: appAccent),
-            title: Text('Categories to synchronize', style: TextStyle(color: appText)),
+            title: Text(
+              'Categories to synchronize',
+              style: TextStyle(color: appText),
+            ),
             subtitle: Text(
               syncCategories.isEmpty
                   ? 'No categories selected.'
@@ -995,7 +1019,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ListTile(
             leading: Icon(Icons.folder_copy_outlined, color: appAccent),
-            title: Text('Folders to synchronize', style: TextStyle(color: appText)),
+            title: Text(
+              'Folders to synchronize',
+              style: TextStyle(color: appText),
+            ),
             subtitle: Text(
               syncFolders.isEmpty
                   ? 'No custom folders configured.'
@@ -1037,7 +1064,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ListTile(
           leading: Icon(Icons.storage_outlined, color: appAccent),
           title: Text('Cache size', style: TextStyle(color: appText)),
-          subtitle: Text(_formatBytes(_cacheSizeBytes), style: TextStyle(color: appSubtext)),
+          subtitle: Text(
+            _formatBytes(_cacheSizeBytes),
+            style: TextStyle(color: appSubtext),
+          ),
           trailing: IconButton(
             tooltip: 'Refresh',
             onPressed: _refreshCacheSize,
@@ -1069,7 +1099,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ListTile(
           leading: Icon(Icons.download_outlined, color: appAccent),
           title: Text('Download path', style: TextStyle(color: appText)),
-          subtitle: Text(_downloadPath ?? 'Default CrowleysCloud folder', style: TextStyle(color: appSubtext)),
+          subtitle: Text(
+            _downloadPath ?? 'Default CrowleysCloud folder',
+            style: TextStyle(color: appSubtext),
+          ),
           trailing: Icon(Icons.chevron_right, color: appSubtext),
           onTap: _editDownloadPath,
         ),
@@ -1151,7 +1184,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         SwitchListTile(
           secondary: Icon(Icons.visibility_outlined, color: appAccent),
           title: Text('Show hidden files', style: TextStyle(color: appText)),
-          subtitle: Text('Display dot-files and dot-folders.', style: TextStyle(color: appSubtext)),
+          subtitle: Text(
+            'Display dot-files and dot-folders.',
+            style: TextStyle(color: appSubtext),
+          ),
           value: _showHiddenFiles,
           onChanged: _setShowHiddenFiles,
         ),
@@ -1175,7 +1211,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: hasActiveServer ? Colors.redAccent : appSubtext,
           ),
           title: Text('Delete user account', style: TextStyle(color: appText)),
-          subtitle: Text('Deletes the user and all private cloud files.', style: TextStyle(color: appSubtext)),
+          subtitle: Text(
+            'Deletes the user and all private cloud files.',
+            style: TextStyle(color: appSubtext),
+          ),
           trailing: Icon(Icons.chevron_right, color: appSubtext),
           onTap: hasActiveServer ? _deleteActiveServerAccount : null,
         ),
@@ -1206,8 +1245,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             currentTheme.mode == AppThemeMode.light
                 ? Icons.light_mode_outlined
                 : currentTheme.mode == AppThemeMode.dark
-                    ? Icons.dark_mode_outlined
-                    : Icons.palette_outlined,
+                ? Icons.dark_mode_outlined
+                : Icons.palette_outlined,
             color: appAccent,
           ),
           title: Text('Theme Mode', style: TextStyle(color: appText)),
@@ -1215,8 +1254,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             currentTheme.mode == AppThemeMode.light
                 ? 'Light Theme'
                 : currentTheme.mode == AppThemeMode.dark
-                    ? 'Dark Theme'
-                    : 'Custom Theme',
+                ? 'Dark Theme'
+                : 'Custom Theme',
             style: TextStyle(color: appSubtext),
           ),
         ),
@@ -1277,7 +1316,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ListTile(
           leading: Icon(Icons.color_lens_outlined, color: appAccent),
           title: Text('Accent Color', style: TextStyle(color: appText)),
-          subtitle: Text('Primary accent color', style: TextStyle(color: appSubtext)),
+          subtitle: Text(
+            'Primary accent color',
+            style: TextStyle(color: appSubtext),
+          ),
           trailing: GestureDetector(
             onTap: () async {
               final picked = await ColorPickerDialog.show(
@@ -1714,7 +1756,10 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
                       dense: true,
                       activeColor: appAccent,
                       secondary: Icon(option.icon, color: appAccent),
-                      title: Text(option.label, style: TextStyle(color: appText)),
+                      title: Text(
+                        option.label,
+                        style: TextStyle(color: appText),
+                      ),
                       value: _selected.contains(option.id),
                       onChanged: (value) =>
                           _setSelected(option.id, value ?? false),

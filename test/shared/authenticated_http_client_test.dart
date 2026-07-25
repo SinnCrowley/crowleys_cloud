@@ -13,7 +13,10 @@ class MockAuthGateway implements AuthGateway {
     required String username,
     required String password,
   }) async {
-    return const AuthResult(accessToken: 'initial_token', refreshToken: 'refresh_tok');
+    return const AuthResult(
+      accessToken: 'initial_token',
+      refreshToken: 'refresh_tok',
+    );
   }
 
   @override
@@ -22,7 +25,10 @@ class MockAuthGateway implements AuthGateway {
     required String username,
     required String password,
   }) async {
-    return const AuthResult(accessToken: 'initial_token', refreshToken: 'refresh_tok');
+    return const AuthResult(
+      accessToken: 'initial_token',
+      refreshToken: 'refresh_tok',
+    );
   }
 
   @override
@@ -30,7 +36,10 @@ class MockAuthGateway implements AuthGateway {
     required String baseUrl,
     required String refreshToken,
   }) async {
-    return const AuthResult(accessToken: 'refreshed_token', refreshToken: 'new_refresh_tok');
+    return const AuthResult(
+      accessToken: 'refreshed_token',
+      refreshToken: 'new_refresh_tok',
+    );
   }
 }
 
@@ -66,34 +75,41 @@ void main() {
         client: mockClient,
       );
 
-      final response = await client.get(Uri.parse('http://localhost:8080/api/dir'));
+      final response = await client.get(
+        Uri.parse('http://localhost:8080/api/dir'),
+      );
       expect(response.statusCode, 200);
       expect(authHeader, 'Bearer initial_token');
     });
 
-    test('automatically refreshes token on 401 response and retries request', () async {
-      var requestCount = 0;
-      final mockClient = MockClient((request) async {
-        requestCount++;
-        if (requestCount == 1) {
-          expect(request.headers['authorization'], 'Bearer initial_token');
-          return http.Response('Unauthorized', 401);
-        } else {
-          expect(request.headers['authorization'], 'Bearer refreshed_token');
-          return http.Response(jsonEncode({'status': 'ok'}), 200);
-        }
-      });
+    test(
+      'automatically refreshes token on 401 response and retries request',
+      () async {
+        var requestCount = 0;
+        final mockClient = MockClient((request) async {
+          requestCount++;
+          if (requestCount == 1) {
+            expect(request.headers['authorization'], 'Bearer initial_token');
+            return http.Response('Unauthorized', 401);
+          } else {
+            expect(request.headers['authorization'], 'Bearer refreshed_token');
+            return http.Response(jsonEncode({'status': 'ok'}), 200);
+          }
+        });
 
-      final client = AuthenticatedHttpClient(
-        authService: authService,
-        serverId: 'srv1',
-        baseUrl: 'http://localhost:8080',
-        client: mockClient,
-      );
+        final client = AuthenticatedHttpClient(
+          authService: authService,
+          serverId: 'srv1',
+          baseUrl: 'http://localhost:8080',
+          client: mockClient,
+        );
 
-      final response = await client.get(Uri.parse('http://localhost:8080/api/dir'));
-      expect(response.statusCode, 200);
-      expect(requestCount, 2);
-    });
+        final response = await client.get(
+          Uri.parse('http://localhost:8080/api/dir'),
+        );
+        expect(response.statusCode, 200);
+        expect(requestCount, 2);
+      },
+    );
   });
 }

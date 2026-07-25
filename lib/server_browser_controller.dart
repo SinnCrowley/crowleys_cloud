@@ -651,7 +651,10 @@ class ServerBrowserController extends ChangeNotifier {
     final uri = _apiUri(
       '/dir',
     ).replace(queryParameters: {'scope': scope, 'path': relativePath});
-    final response = await _authorizedGet(uri, headers: {'Accept': 'application/x-protobuf'});
+    final response = await _authorizedGet(
+      uri,
+      headers: {'Accept': 'application/x-protobuf'},
+    );
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return const [];
     }
@@ -663,7 +666,10 @@ class ServerBrowserController extends ChangeNotifier {
             (e) => ServerFileItem(
               name: e.name,
               size: e.size.toInt(),
-              modifiedAt: DateTime.fromMillisecondsSinceEpoch(e.modifiedAt.toInt(), isUtc: true),
+              modifiedAt: DateTime.fromMillisecondsSinceEpoch(
+                e.modifiedAt.toInt(),
+                isUtc: true,
+              ),
               type: e.type,
               mimeType: e.mimeType,
               thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,
@@ -688,7 +694,10 @@ class ServerBrowserController extends ChangeNotifier {
     final uri = _apiUri(
       '/dir',
     ).replace(queryParameters: {'scope': requestedScope, 'path': relativePath});
-    final response = await _authorizedGet(uri, headers: {'Accept': 'application/x-protobuf'});
+    final response = await _authorizedGet(
+      uri,
+      headers: {'Accept': 'application/x-protobuf'},
+    );
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return const [];
     }
@@ -700,7 +709,10 @@ class ServerBrowserController extends ChangeNotifier {
             (e) => ServerFileItem(
               name: e.name,
               size: e.size.toInt(),
-              modifiedAt: DateTime.fromMillisecondsSinceEpoch(e.modifiedAt.toInt(), isUtc: true),
+              modifiedAt: DateTime.fromMillisecondsSinceEpoch(
+                e.modifiedAt.toInt(),
+                isUtc: true,
+              ),
               type: e.type,
               mimeType: e.mimeType,
               thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,
@@ -925,8 +937,10 @@ class ServerBrowserController extends ChangeNotifier {
     onConnectionLost: onConnectionLost,
   );
 
-  Future<http.Response> _authorizedGet(Uri uri, {Map<String, String>? headers}) =>
-      _httpClient.get(uri, headers: headers);
+  Future<http.Response> _authorizedGet(
+    Uri uri, {
+    Map<String, String>? headers,
+  }) => _httpClient.get(uri, headers: headers);
 
   Future<http.StreamedResponse> _authorizedStreamedGet(Uri uri) =>
       _httpClient.streamedGet(uri);

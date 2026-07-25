@@ -131,10 +131,7 @@ class _ImageViewerState extends State<ImageViewer>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text(
-          'Delete File?',
-          style: TextStyle(color: appText),
-        ),
+        title: Text('Delete File?', style: TextStyle(color: appText)),
         content: Text(
           'Are you sure you want to delete ${item.name}? This action cannot be undone.',
           style: TextStyle(color: appSubtext),
@@ -190,13 +187,15 @@ class _ImageViewerState extends State<ImageViewer>
 
   Future<void> _uploadCurrentFile() async {
     final callback = widget.onUploadItem;
-    if (callback == null || _currentIndex < 0 || _currentIndex >= _items.length) return;
+    if (callback == null || _currentIndex < 0 || _currentIndex >= _items.length)
+      return;
     await callback(_items[_currentIndex]);
   }
 
   Future<void> _addCurrentFileToFolder() async {
     final callback = widget.onAddToFolderItem;
-    if (callback == null || _currentIndex < 0 || _currentIndex >= _items.length) return;
+    if (callback == null || _currentIndex < 0 || _currentIndex >= _items.length)
+      return;
     await callback(_items[_currentIndex]);
   }
 

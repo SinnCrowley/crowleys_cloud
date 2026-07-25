@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('ColorPickerDialog renders without layout assertion errors', (tester) async {
+  testWidgets('ColorPickerDialog renders without layout assertion errors', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -33,7 +35,9 @@ void main() {
     expect(find.text('HEX RGB Code'), findsOneWidget);
   });
 
-  testWidgets('Font size scaling works without TextStyle assertions', (tester) async {
+  testWidgets('Font size scaling works without TextStyle assertions', (
+    tester,
+  ) async {
     AppTheme.set(AppThemeData.dark.copyWith(fontSizeScale: 1.25));
 
     await tester.pumpWidget(
@@ -50,11 +54,7 @@ void main() {
                 child: child!,
               );
             },
-            home: const Scaffold(
-              body: Center(
-                child: Text('Scaled Text Test'),
-              ),
-            ),
+            home: const Scaffold(body: Center(child: Text('Scaled Text Test'))),
           );
         },
       ),

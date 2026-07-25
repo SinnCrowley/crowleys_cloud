@@ -16,7 +16,10 @@ class FailingRefreshGateway implements AuthGateway {
   final bool throwOnRefresh;
   final String? newAccessToken;
 
-  const FailingRefreshGateway({this.throwOnRefresh = false, this.newAccessToken});
+  const FailingRefreshGateway({
+    this.throwOnRefresh = false,
+    this.newAccessToken,
+  });
 
   @override
   Future<AuthResult> login({
@@ -52,12 +55,18 @@ class FailingRefreshGateway implements AuthGateway {
 void main() {
   group('UrlUtils Adversarial Edge Cases', () {
     test('buildEndpoint with query params in baseUrl', () {
-      final uri = UrlUtils.buildEndpoint('http://example.com/api?v=1', 'download');
+      final uri = UrlUtils.buildEndpoint(
+        'http://example.com/api?v=1',
+        'download',
+      );
       expect(uri.toString(), 'http://example.com/api/download?v=1');
     });
 
     test('buildEndpoint with multiple consecutive slashes', () {
-      final uri = UrlUtils.buildEndpoint('http://example.com///sub///', '///dir///file.txt');
+      final uri = UrlUtils.buildEndpoint(
+        'http://example.com///sub///',
+        '///dir///file.txt',
+      );
       expect(uri.toString(), 'http://example.com/sub/dir/file.txt');
     });
 
@@ -67,7 +76,10 @@ void main() {
     });
 
     test('buildApiEndpoint with baseUrl containing /api/v1', () {
-      final uri = UrlUtils.buildApiEndpoint('http://localhost:8080/api/v1', '/users');
+      final uri = UrlUtils.buildApiEndpoint(
+        'http://localhost:8080/api/v1',
+        '/users',
+      );
       expect(uri.toString(), 'http://localhost:8080/api/v1/users');
     });
 
@@ -77,11 +89,16 @@ void main() {
         '/users',
         {'limit': '10'},
       );
-      expect(uri.toString(), 'http://localhost:8080/v1/api/users?token=abc&limit=10');
+      expect(
+        uri.toString(),
+        'http://localhost:8080/v1/api/users?token=abc&limit=10',
+      );
     });
 
     test('parseUrlInput with user authentication in URL', () {
-      final res = UrlUtils.parseUrlInput('http://admin:secret@192.168.1.1:8080/path');
+      final res = UrlUtils.parseUrlInput(
+        'http://admin:secret@192.168.1.1:8080/path',
+      );
       expect(res['baseUrl'], 'http://admin:secret@192.168.1.1');
       expect(res['port'], '8080');
     });
@@ -133,7 +150,9 @@ void main() {
         client: mockClient,
       );
 
-      final resp = await client.get(Uri.parse('http://localhost:8080/api/test'));
+      final resp = await client.get(
+        Uri.parse('http://localhost:8080/api/test'),
+      );
       expect(resp.statusCode, 401);
     });
 
@@ -154,47 +173,52 @@ void main() {
         client: mockClient,
       );
 
-      final resp = await client.get(Uri.parse('http://localhost:8080/api/test'));
+      final resp = await client.get(
+        Uri.parse('http://localhost:8080/api/test'),
+      );
       expect(resp.statusCode, 401);
     });
 
-    test('sendAuthorized with explicitToken falls back to stored session token on 401', () async {
-      final authService = AuthService(
-        secretStore: secretStore,
-        gateway: const FailingRefreshGateway(newAccessToken: 'new_token'),
-      );
+    test(
+      'sendAuthorized with explicitToken falls back to stored session token on 401',
+      () async {
+        final authService = AuthService(
+          secretStore: secretStore,
+          gateway: const FailingRefreshGateway(newAccessToken: 'new_token'),
+        );
 
-      final sentTokens = <String?>[];
-      final mockClient = MockClient((req) async {
-        final authHeader = req.headers['authorization'];
-        sentTokens.add(authHeader);
-        if (authHeader == 'Bearer custom_explicit_token') {
-          return http.Response('Unauthorized', 401);
-        }
-        return http.Response('OK', 200);
-      });
+        final sentTokens = <String?>[];
+        final mockClient = MockClient((req) async {
+          final authHeader = req.headers['authorization'];
+          sentTokens.add(authHeader);
+          if (authHeader == 'Bearer custom_explicit_token') {
+            return http.Response('Unauthorized', 401);
+          }
+          return http.Response('OK', 200);
+        });
 
-      final client = AuthenticatedHttpClient(
-        authService: authService,
-        serverId: 'srv1',
-        baseUrl: 'http://localhost:8080',
-        client: mockClient,
-      );
+        final client = AuthenticatedHttpClient(
+          authService: authService,
+          serverId: 'srv1',
+          baseUrl: 'http://localhost:8080',
+          client: mockClient,
+        );
 
-      final resp = await client.sendAuthorized(
-        explicitToken: 'custom_explicit_token',
-        send: (token) => client.get(
-          Uri.parse('http://localhost:8080/api/test'),
-          headers: {'authorization': 'Bearer $token'},
-        ),
-      );
+        final resp = await client.sendAuthorized(
+          explicitToken: 'custom_explicit_token',
+          send: (token) => client.get(
+            Uri.parse('http://localhost:8080/api/test'),
+            headers: {'authorization': 'Bearer $token'},
+          ),
+        );
 
-      expect(resp.statusCode, 200);
-      expect(sentTokens, [
-        'Bearer custom_explicit_token',
-        'Bearer new_token',
-      ]);
-    });
+        expect(resp.statusCode, 200);
+        expect(sentTokens, [
+          'Bearer custom_explicit_token',
+          'Bearer new_token',
+        ]);
+      },
+    );
 
     test('onConnectionLost callback throws exception when invoked', () async {
       final authService = AuthService(
@@ -216,7 +240,9 @@ void main() {
         },
       );
 
-      final resp = await client.get(Uri.parse('http://localhost:8080/api/test'));
+      final resp = await client.get(
+        Uri.parse('http://localhost:8080/api/test'),
+      );
       expect(resp.statusCode, 503);
     });
 
@@ -229,7 +255,9 @@ void main() {
       final mockClient = MockClient.streaming((req, bodyStream) async {
         final controller = StreamController<List<int>>();
         controller.add([1, 2, 3]);
-        controller.addError(const SocketException('Connection broken mid-stream'));
+        controller.addError(
+          const SocketException('Connection broken mid-stream'),
+        );
         controller.close();
         return http.StreamedResponse(controller.stream, 200);
       });
@@ -241,7 +269,9 @@ void main() {
         client: mockClient,
       );
 
-      final streamedResp = await client.streamedGet(Uri.parse('http://localhost:8080/api/stream'));
+      final streamedResp = await client.streamedGet(
+        Uri.parse('http://localhost:8080/api/stream'),
+      );
       expect(streamedResp.statusCode, 200);
       expect(
         () async => await streamedResp.stream.toBytes(),
@@ -268,13 +298,16 @@ void main() {
       expect(FileTypeUtils.isAudio('song.mp3'), isTrue);
     });
 
-    test('FileIconUtils and FileTypeUtils on dotfiles and compound extensions', () {
-      expect(FileIconUtils.iconForExtension('.tar.gz'), isNotNull);
-      expect(FileTypeUtils.categoryForFile('.gitignore').icon, isNotNull);
-      expect(FileTypeUtils.categoryForFile('.env').icon, isNotNull);
-      expect(FileTypeUtils.categoryForFile('.pdf').icon, isNotNull);
-      expect(FileTypeUtils.categoryForFile('.').icon, isNotNull);
-      expect(FileTypeUtils.categoryForFile('').icon, isNotNull);
-    });
+    test(
+      'FileIconUtils and FileTypeUtils on dotfiles and compound extensions',
+      () {
+        expect(FileIconUtils.iconForExtension('.tar.gz'), isNotNull);
+        expect(FileTypeUtils.categoryForFile('.gitignore').icon, isNotNull);
+        expect(FileTypeUtils.categoryForFile('.env').icon, isNotNull);
+        expect(FileTypeUtils.categoryForFile('.pdf').icon, isNotNull);
+        expect(FileTypeUtils.categoryForFile('.').icon, isNotNull);
+        expect(FileTypeUtils.categoryForFile('').icon, isNotNull);
+      },
+    );
   });
 }

@@ -606,7 +606,9 @@ class HttpSyncApiClient implements SyncApiClient {
         ),
       );
       if (response.statusCode >= 200 && response.statusCode < 300) return;
-      throw SyncException('Empty file upload failed: HTTP ${response.statusCode}');
+      throw SyncException(
+        'Empty file upload failed: HTTP ${response.statusCode}',
+      );
     }
 
     const chunkSize = 2 * 1024 * 1024;
@@ -624,16 +626,15 @@ class HttpSyncApiClient implements SyncApiClient {
         await raf.setPosition(offset);
         final bytes = await raf.read(currentChunkSize);
 
-        final uri = _apiUri(
-          server.connectionUrl,
-          '/api/files',
-        ).replace(queryParameters: {
-          'scope': 'private',
-          'path': remotePath,
-          'offset': offset.toString(),
-          'total': totalBytes.toString(),
-          'is_last': isLast.toString(),
-        });
+        final uri = _apiUri(server.connectionUrl, '/api/files').replace(
+          queryParameters: {
+            'scope': 'private',
+            'path': remotePath,
+            'offset': offset.toString(),
+            'total': totalBytes.toString(),
+            'is_last': isLast.toString(),
+          },
+        );
 
         final response = await _authorizedRequest(
           server: server,
@@ -649,7 +650,8 @@ class HttpSyncApiClient implements SyncApiClient {
 
         if (response.statusCode < 200 || response.statusCode >= 300) {
           throw SyncException(
-              'Chunk upload failed (${response.statusCode}) at offset $offset');
+            'Chunk upload failed (${response.statusCode}) at offset $offset',
+          );
         }
 
         offset += bytes.length;
@@ -668,10 +670,9 @@ class HttpSyncApiClient implements SyncApiClient {
     try {
       final response = await _authorizedRequest(
         server: server,
-        send: (token) => _client.head(
-          uri,
-          headers: {'authorization': 'Bearer $token'},
-        ).timeout(const Duration(seconds: 5)),
+        send: (token) => _client
+            .head(uri, headers: {'authorization': 'Bearer $token'})
+            .timeout(const Duration(seconds: 5)),
       );
       return response.statusCode >= 200 && response.statusCode < 500;
     } on SyncException catch (e) {
@@ -713,13 +714,25 @@ class HttpSyncApiClient implements SyncApiClient {
 
       return await authClient.sendAuthorized(send: send);
     } on SocketException catch (e) {
-      throw SyncException('Server unreachable: ${e.message}', isUnreachable: true);
+      throw SyncException(
+        'Server unreachable: ${e.message}',
+        isUnreachable: true,
+      );
     } on http.ClientException catch (e) {
-      throw SyncException('Unable to reach server: ${e.message}', isUnreachable: true);
+      throw SyncException(
+        'Unable to reach server: ${e.message}',
+        isUnreachable: true,
+      );
     } on TimeoutException catch (_) {
-      throw const SyncException('Server connection timed out', isUnreachable: true);
+      throw const SyncException(
+        'Server connection timed out',
+        isUnreachable: true,
+      );
     } on HandshakeException catch (e) {
-      throw SyncException('Secure connection failed: ${e.message}', isUnreachable: true);
+      throw SyncException(
+        'Secure connection failed: ${e.message}',
+        isUnreachable: true,
+      );
     }
   }
 
@@ -970,8 +983,8 @@ class SyncService {
       final status = e.isUnreachable
           ? SyncRunStatus.serverUnreachable
           : (e.message == 'Authentication required'
-              ? SyncRunStatus.authRequired
-              : SyncRunStatus.failed);
+                ? SyncRunStatus.authRequired
+                : SyncRunStatus.failed);
       final result = SyncRunResult(
         status: status,
         scannedFiles: scanned,

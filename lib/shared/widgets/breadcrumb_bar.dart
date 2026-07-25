@@ -47,17 +47,10 @@ class BreadcrumbBar extends StatelessWidget {
                     minimumSize: const Size(0, 32),
                   ),
                   onPressed: () => onItemTap(items[i].path),
-                  child: Text(
-                    items[i].label,
-                    style: TextStyle(color: txt),
-                  ),
+                  child: Text(items[i].label, style: TextStyle(color: txt)),
                 ),
                 if (i < items.length - 1)
-                  Icon(
-                    Icons.chevron_right,
-                    color: txt,
-                    size: 18,
-                  ),
+                  Icon(Icons.chevron_right, color: txt, size: 18),
               ],
             ],
           ),

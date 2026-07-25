@@ -54,7 +54,8 @@ class _CreateFolderDialogState extends State<CreateFolderDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bg = widget.backgroundColor ??
+    final bg =
+        widget.backgroundColor ??
         theme.dialogTheme.backgroundColor ??
         theme.colorScheme.surface;
     final txt = widget.textColor ?? theme.textTheme.bodyLarge?.color;
@@ -62,10 +63,7 @@ class _CreateFolderDialogState extends State<CreateFolderDialog> {
 
     return AlertDialog(
       backgroundColor: bg,
-      title: Text(
-        widget.title,
-        style: TextStyle(color: txt),
-      ),
+      title: Text(widget.title, style: TextStyle(color: txt)),
       content: TextField(
         controller: _inputController,
         autofocus: true,

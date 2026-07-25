@@ -114,10 +114,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text(
-          'Delete Files?',
-          style: TextStyle(color: appText),
-        ),
+        title: Text('Delete Files?', style: TextStyle(color: appText)),
         content: Text(
           'Are you sure you want to delete ${_controller.selectedFiles.length} selected items? This action cannot be undone.',
           style: TextStyle(color: appSubtext),
@@ -236,10 +233,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
           ),
           ListTile(
             leading: Icon(Icons.drive_file_move, color: appSubtext),
-            title: Text(
-              'Add to folder',
-              style: TextStyle(color: appText),
-            ),
+            title: Text('Add to folder', style: TextStyle(color: appText)),
             onTap: () async {
               Navigator.pop(context);
               _controller.toggleSelection(item);
@@ -342,8 +336,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
           builder: (context, _) {
             if (!_controller.isSelectionMode) return const SizedBox.shrink();
             return _SelectionActionBar(
-              onUpload: () =>
-                  _uploadItems(_controller.selectedFiles.toList()),
+              onUpload: () => _uploadItems(_controller.selectedFiles.toList()),
               onDelete: _deleteSelectedFiles,
               onShare: _controller.shareSelectedFiles,
               onAddToFolder: _addSelectedToFolder,
@@ -405,10 +398,7 @@ class _HeaderControls extends StatelessWidget {
                     value: controller.sortBy,
                     dropdownColor: appSurface,
                     style: TextStyle(color: appText),
-                    icon: Icon(
-                      Icons.arrow_drop_down,
-                      color: appSubtext,
-                    ),
+                    icon: Icon(Icons.arrow_drop_down, color: appSubtext),
                     items: SortBy.values
                         .map(
                           (v) => DropdownMenuItem(
@@ -655,11 +645,7 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
                   ),
                 ),
                 if (i < items.length - 1)
-                  Icon(
-                    Icons.chevron_right,
-                    color: appSubtext,
-                    size: 18,
-                  ),
+                  Icon(Icons.chevron_right, color: appSubtext, size: 18),
               ],
             ],
           ),
@@ -674,10 +660,7 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text(
-          'Create Folder',
-          style: TextStyle(color: appText),
-        ),
+        title: Text('Create Folder', style: TextStyle(color: appText)),
         content: TextField(
           controller: input,
           autofocus: true,
@@ -748,10 +731,7 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
                           value: _sortBy,
                           dropdownColor: appSurface,
                           style: TextStyle(color: appText),
-                          icon: Icon(
-                            Icons.arrow_drop_down,
-                            color: appSubtext,
-                          ),
+                          icon: Icon(Icons.arrow_drop_down, color: appSubtext),
                           items: SortBy.values
                               .map(
                                 (v) => DropdownMenuItem(
@@ -843,10 +823,7 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
                                 horizontal: 12,
                                 vertical: 4,
                               ),
-                              leading: Icon(
-                                Icons.folder,
-                                color: appAccent,
-                              ),
+                              leading: Icon(Icons.folder, color: appAccent),
                               title: Text(
                                 d.path.split('/').last,
                                 style: TextStyle(color: appText),
@@ -856,10 +833,7 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
                                 _reload();
                               },
                               trailing: IconButton(
-                                icon: Icon(
-                                  Icons.check,
-                                  color: appAccent,
-                                ),
+                                icon: Icon(Icons.check, color: appAccent),
                                 onPressed: () => Navigator.pop(context, d.path),
                               ),
                               tileColor: appSurface,
@@ -1107,11 +1081,7 @@ class _SelectionActionBar extends StatelessWidget {
           label: 'Add to folder',
           onPressed: onAddToFolder,
         ),
-        SelectionAction(
-          icon: Icons.share,
-          label: 'Share',
-          onPressed: onShare,
-        ),
+        SelectionAction(icon: Icons.share, label: 'Share', onPressed: onShare),
       ],
     );
   }

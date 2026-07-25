@@ -24,15 +24,21 @@ abstract final class FileTypeUtils {
   /// Resolves the file category info (icon) for a file name or extension.
   static FileCategoryInfo categoryForFile(String filenameOrExtension) {
     final ext = _cleanExtension(filenameOrExtension);
-    return FileCategoryInfo(
-      FileIconUtils.iconForExtension(ext),
-    );
+    return FileCategoryInfo(FileIconUtils.iconForExtension(ext));
   }
 
   /// Checks if an extension or filename belongs to an image file.
   static bool isImage(String extensionOrFilename) {
     final ext = _cleanExtension(extensionOrFilename);
-    return const {'jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'heic'}.contains(ext);
+    return const {
+      'jpg',
+      'jpeg',
+      'png',
+      'webp',
+      'gif',
+      'bmp',
+      'heic',
+    }.contains(ext);
   }
 
   /// Checks if an extension or filename belongs to a video file.

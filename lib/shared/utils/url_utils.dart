@@ -27,10 +27,7 @@ abstract final class UrlUtils {
 
     Map<String, String>? mergedQuery;
     if (baseUri.hasQuery || targetUri.hasQuery) {
-      mergedQuery = {
-        ...baseUri.queryParameters,
-        ...targetUri.queryParameters,
-      };
+      mergedQuery = {...baseUri.queryParameters, ...targetUri.queryParameters};
     }
 
     String? fragment;
@@ -42,8 +39,9 @@ abstract final class UrlUtils {
 
     return baseUri.replace(
       path: targetUri.path,
-      queryParameters:
-          (mergedQuery != null && mergedQuery.isNotEmpty) ? mergedQuery : null,
+      queryParameters: (mergedQuery != null && mergedQuery.isNotEmpty)
+          ? mergedQuery
+          : null,
       fragment: fragment,
     );
   }
@@ -66,10 +64,12 @@ abstract final class UrlUtils {
       basePath = basePath.substring(0, basePath.length - 1);
     }
 
-    final cleanEndpoint =
-        endpointPath.startsWith('/') ? endpointPath : '/$endpointPath';
+    final cleanEndpoint = endpointPath.startsWith('/')
+        ? endpointPath
+        : '/$endpointPath';
 
-    final hasApiSegment = basePath == '/api' ||
+    final hasApiSegment =
+        basePath == '/api' ||
         basePath.startsWith('/api/') ||
         basePath.contains('/api/') ||
         basePath.endsWith('/api');
@@ -77,16 +77,13 @@ abstract final class UrlUtils {
     final apiPath = hasApiSegment
         ? '$basePath$cleanEndpoint'
         : (basePath == '/'
-            ? '/api$cleanEndpoint'
-            : '$basePath/api$cleanEndpoint');
+              ? '/api$cleanEndpoint'
+              : '$basePath/api$cleanEndpoint');
 
     Map<String, String>? mergedQuery;
     if (base.hasQuery ||
         (queryParameters != null && queryParameters.isNotEmpty)) {
-      mergedQuery = {
-        ...base.queryParameters,
-        ...?queryParameters,
-      };
+      mergedQuery = {...base.queryParameters, ...?queryParameters};
     }
 
     String? fragment;
@@ -96,8 +93,9 @@ abstract final class UrlUtils {
 
     return base.replace(
       path: apiPath.replaceAll(RegExp(r'/+'), '/'),
-      queryParameters:
-          (mergedQuery != null && mergedQuery.isNotEmpty) ? mergedQuery : null,
+      queryParameters: (mergedQuery != null && mergedQuery.isNotEmpty)
+          ? mergedQuery
+          : null,
       fragment: fragment,
     );
   }
@@ -123,17 +121,16 @@ abstract final class UrlUtils {
 
     final parsedUri = Uri.tryParse('$scheme://$raw');
     if (parsedUri != null && parsedUri.hasAuthority) {
-      final userInfo =
-          parsedUri.userInfo.isNotEmpty ? '${parsedUri.userInfo}@' : '';
+      final userInfo = parsedUri.userInfo.isNotEmpty
+          ? '${parsedUri.userInfo}@'
+          : '';
       final host = parsedUri.host;
       final port = parsedUri.hasPort ? parsedUri.port.toString() : '';
 
-      final hostPart =
-          host.contains(':') && !host.startsWith('[') ? '[$host]' : host;
-      return {
-        'baseUrl': '$scheme://$userInfo$hostPart',
-        'port': port,
-      };
+      final hostPart = host.contains(':') && !host.startsWith('[')
+          ? '[$host]'
+          : host;
+      return {'baseUrl': '$scheme://$userInfo$hostPart', 'port': port};
     }
 
     return {'baseUrl': '$scheme://$raw', 'port': ''};
@@ -154,6 +151,8 @@ abstract final class UrlUtils {
     if (uri.hasFragment && uri.fragment.isNotEmpty) {
       fragment = uri.fragment;
     }
-    return uri.replace(path: path == '/' ? '' : path, fragment: fragment).toString();
+    return uri
+        .replace(path: path == '/' ? '' : path, fragment: fragment)
+        .toString();
   }
 }

@@ -213,10 +213,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
         children: [
           ListTile(
             leading: Icon(Icons.link, color: appSubtext),
-            title: Text(
-              'Share via link',
-              style: TextStyle(color: appText),
-            ),
+            title: Text('Share via link', style: TextStyle(color: appText)),
             onTap: () async {
               Navigator.pop(context);
               await _shareSelectedFiles();
@@ -224,10 +221,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
           ),
           ListTile(
             leading: Icon(Icons.folder_shared, color: appSubtext),
-            title: Text(
-              'Share in server',
-              style: TextStyle(color: appText),
-            ),
+            title: Text('Share in server', style: TextStyle(color: appText)),
             onTap: () async {
               Navigator.pop(context);
               await _shareSelectedInServer();
@@ -283,10 +277,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
         children: [
           ListTile(
             leading: Icon(Icons.download, color: appSubtext),
-            title: Text(
-              'Download',
-              style: TextStyle(color: appText),
-            ),
+            title: Text('Download', style: TextStyle(color: appText)),
             onTap: () async {
               Navigator.pop(context);
               controller.toggleSelection(item);
@@ -311,10 +302,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
           if (controller.scope != 'shared') ...[
             ListTile(
               leading: Icon(Icons.share, color: appSubtext),
-              title: Text(
-                'Share via link',
-                style: TextStyle(color: appText),
-              ),
+              title: Text('Share via link', style: TextStyle(color: appText)),
               onTap: () async {
                 Navigator.pop(context);
                 controller.toggleSelection(item);
@@ -323,10 +311,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
             ),
             ListTile(
               leading: Icon(Icons.folder_shared, color: appSubtext),
-              title: Text(
-                'Share in server',
-                style: TextStyle(color: appText),
-              ),
+              title: Text('Share in server', style: TextStyle(color: appText)),
               onTap: () async {
                 Navigator.pop(context);
                 controller.toggleSelection(item);
@@ -335,10 +320,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
             ),
             ListTile(
               leading: Icon(Icons.drive_file_move, color: appSubtext),
-              title: Text(
-                'Add to folder',
-                style: TextStyle(color: appText),
-              ),
+              title: Text('Add to folder', style: TextStyle(color: appText)),
               onTap: () async {
                 Navigator.pop(context);
                 controller.toggleSelection(item);
@@ -699,10 +681,7 @@ class _ServerHeaderControls extends StatelessWidget {
                     value: controller.sortBy,
                     dropdownColor: appSurface,
                     style: TextStyle(color: appText),
-                    icon: Icon(
-                      Icons.arrow_drop_down,
-                      color: appSubtext,
-                    ),
+                    icon: Icon(Icons.arrow_drop_down, color: appSubtext),
                     items: ServerSortBy.values
                         .map(
                           (v) => DropdownMenuItem(
@@ -879,11 +858,7 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                   ),
                 ),
                 if (i < items.length - 1)
-                  Icon(
-                    Icons.chevron_right,
-                    color: appSubtext,
-                    size: 18,
-                  ),
+                  Icon(Icons.chevron_right, color: appSubtext, size: 18),
               ],
             ],
           ),
@@ -898,10 +873,7 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text(
-          'Create Folder',
-          style: TextStyle(color: appText),
-        ),
+        title: Text('Create Folder', style: TextStyle(color: appText)),
         content: TextField(
           controller: input,
           autofocus: true,
@@ -968,10 +940,7 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                           value: _sortBy,
                           dropdownColor: appSurface,
                           style: TextStyle(color: appText),
-                          icon: Icon(
-                            Icons.arrow_drop_down,
-                            color: appSubtext,
-                          ),
+                          icon: Icon(Icons.arrow_drop_down, color: appSubtext),
                           items: ServerSortBy.values
                               .map(
                                 (v) => DropdownMenuItem(
@@ -1063,10 +1032,7 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                                 horizontal: 12,
                                 vertical: 4,
                               ),
-                              leading: Icon(
-                                Icons.folder,
-                                color: appAccent,
-                              ),
+                              leading: Icon(Icons.folder, color: appAccent),
                               title: Text(
                                 d.name,
                                 style: TextStyle(color: appText),
@@ -1076,10 +1042,7 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                                 _reload();
                               },
                               trailing: IconButton(
-                                icon: Icon(
-                                  Icons.check,
-                                  color: appAccent,
-                                ),
+                                icon: Icon(Icons.check, color: appAccent),
                                 onPressed: () => Navigator.pop(context, d.path),
                               ),
                               tileColor: appSurface,

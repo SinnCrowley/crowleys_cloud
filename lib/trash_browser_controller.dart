@@ -18,8 +18,8 @@ class TrashBrowserController extends ChangeNotifier {
     required this.authService,
     CacheService? cacheService,
     http.Client? client,
-  })  : _client = client ?? http.Client(),
-        _cacheService = cacheService ?? CacheService.instance;
+  }) : _client = client ?? http.Client(),
+       _cacheService = cacheService ?? CacheService.instance;
 
   final String serverId;
   final String baseUrl;
@@ -47,22 +47,23 @@ class TrashBrowserController extends ChangeNotifier {
 
   Uri _baseUri(String path) => UrlUtils.buildEndpoint(baseUrl, path);
 
-  Uri _apiUri(String endpointPath) => UrlUtils.buildApiEndpoint(baseUrl, endpointPath);
+  Uri _apiUri(String endpointPath) =>
+      UrlUtils.buildApiEndpoint(baseUrl, endpointPath);
 
-  Future<http.Response> _authorizedGet(Uri uri, {Map<String, String>? headers}) =>
-      _httpClient.get(uri, headers: headers);
+  Future<http.Response> _authorizedGet(
+    Uri uri, {
+    Map<String, String>? headers,
+  }) => _httpClient.get(uri, headers: headers);
 
   Future<http.Response> _authorizedPostJson(
     Uri uri,
     Map<String, Object?> payload,
-  ) =>
-      _httpClient.postJson(uri, payload);
+  ) => _httpClient.postJson(uri, payload);
 
   Future<http.Response> _authorizedDeleteJson(
     Uri uri,
     Map<String, Object?> payload,
-  ) =>
-      _httpClient.deleteJson(uri, payload);
+  ) => _httpClient.deleteJson(uri, payload);
 
   Future<void> reload() async {
     isLoading = true;
@@ -75,7 +76,10 @@ class TrashBrowserController extends ChangeNotifier {
         queryParams['q'] = searchQuery;
       }
       final uri = _apiUri('/trash').replace(queryParameters: queryParams);
-      final response = await _authorizedGet(uri, headers: {'Accept': 'application/x-protobuf'});
+      final response = await _authorizedGet(
+        uri,
+        headers: {'Accept': 'application/x-protobuf'},
+      );
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception('Server error ${response.statusCode}');
       }
@@ -88,7 +92,10 @@ class TrashBrowserController extends ChangeNotifier {
               (e) => ServerFileItem(
                 name: e.name,
                 size: e.size.toInt(),
-                modifiedAt: DateTime.fromMillisecondsSinceEpoch(e.modifiedAt.toInt(), isUtc: true),
+                modifiedAt: DateTime.fromMillisecondsSinceEpoch(
+                  e.modifiedAt.toInt(),
+                  isUtc: true,
+                ),
                 type: e.type,
                 mimeType: e.mimeType,
                 thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,

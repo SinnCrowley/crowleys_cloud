@@ -11,7 +11,10 @@ void main() {
       expect(FileIconUtils.iconForExtension('png'), Icons.image);
       expect(FileIconUtils.iconForExtension('mp4'), Icons.movie);
       expect(FileIconUtils.iconForExtension('zip'), Icons.folder_zip);
-      expect(FileIconUtils.iconForExtension('unknown_ext'), Icons.insert_drive_file);
+      expect(
+        FileIconUtils.iconForExtension('unknown_ext'),
+        Icons.insert_drive_file,
+      );
     });
 
     test('categoryForFile resolves category info', () {

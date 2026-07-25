@@ -51,13 +51,15 @@ class CrowleysCloudApp extends StatelessWidget {
     return ValueListenableBuilder<AppThemeData>(
       valueListenable: AppTheme.notifier,
       builder: (context, appTheme, _) {
-        final isDark = appTheme.mode != AppThemeMode.light &&
+        final isDark =
+            appTheme.mode != AppThemeMode.light &&
             (appTheme.mode == AppThemeMode.dark ||
                 appTheme.background.computeLuminance() < 0.5);
 
         final baseTheme = isDark ? ThemeData.dark() : ThemeData.light();
-        final fontFamily =
-            appTheme.fontFamily == 'System' ? null : appTheme.fontFamily;
+        final fontFamily = appTheme.fontFamily == 'System'
+            ? null
+            : appTheme.fontFamily;
 
         return MaterialApp(
           title: 'Crowley\'s Cloud',
@@ -68,10 +70,10 @@ class CrowleysCloudApp extends StatelessWidget {
             colorScheme:
                 (isDark ? const ColorScheme.dark() : const ColorScheme.light())
                     .copyWith(
-              primary: appTheme.accent,
-              secondary: appTheme.accent,
-              surface: appTheme.surface,
-            ),
+                      primary: appTheme.accent,
+                      secondary: appTheme.accent,
+                      surface: appTheme.surface,
+                    ),
             textTheme: baseTheme.textTheme.apply(
               fontFamily: fontFamily,
               bodyColor: appTheme.text,
@@ -334,11 +336,7 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _requestAllPermissionsAtStartup() async {
     try {
       await Permission.notification.request();
-      await [
-        Permission.photos,
-        Permission.videos,
-        Permission.audio,
-      ].request();
+      await [Permission.photos, Permission.videos, Permission.audio].request();
 
       var storageStatus = await Permission.manageExternalStorage.status;
       if (!storageStatus.isGranted) {
@@ -417,7 +415,8 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _openAddServerFlow() async {
     final setupResult = await Navigator.of(context).push<ServerSetupResult>(
       MaterialPageRoute(
-        builder: (_) => ServerSetupScreen(authService: _serverManager.authService),
+        builder: (_) =>
+            ServerSetupScreen(authService: _serverManager.authService),
       ),
     );
     if (setupResult == null) return;
@@ -427,9 +426,9 @@ class _MainScreenState extends State<MainScreen> {
       await _serverManager.markAuthed(setupResult.profile.id);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save server: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save server: $e')));
     }
     if (!mounted) return;
     setState(() {});
@@ -455,10 +454,7 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text(
-          'Switch server?',
-          style: TextStyle(color: appText),
-        ),
+        title: Text('Switch server?', style: TextStyle(color: appText)),
         content: Text(
           'Switch active server to "$serverName"?',
           style: TextStyle(color: appSubtext),
@@ -674,10 +670,7 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text(
-          'Choose server',
-          style: TextStyle(color: appText),
-        ),
+        title: Text('Choose server', style: TextStyle(color: appText)),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -1321,14 +1314,14 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     if (_serverManager.requiresAuth) {
-      debugPrint('MainScreen build requiresAuth: _authPromptDismissed=$_authPromptDismissed, _authPromptInFlight=$_authPromptInFlight');
+      debugPrint(
+        'MainScreen build requiresAuth: _authPromptDismissed=$_authPromptDismissed, _authPromptInFlight=$_authPromptInFlight',
+      );
       _scheduleActiveServerAuthPrompt();
       final active = _serverManager.activeServer!;
       return Scaffold(
         appBar: AppBar(
-          title: Text(
-            'Authenticate: ${active.displayName}',
-          ),
+          title: Text('Authenticate: ${active.displayName}'),
           backgroundColor: appSurface,
         ),
         body: Center(
@@ -1348,7 +1341,11 @@ class _MainScreenState extends State<MainScreen> {
                       const SizedBox(height: 18),
                       Text(
                         'Authentication required',
-                        style: TextStyle(color: appText, fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: appText,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -1362,15 +1359,19 @@ class _MainScreenState extends State<MainScreen> {
                         constraints: const BoxConstraints(maxWidth: 260),
                         child: FilledButton.icon(
                           onPressed: () async {
-                            final lastUsername = await _serverManager.authService.readLastUsername(
-                              active.id,
-                            );
+                            final lastUsername = await _serverManager
+                                .authService
+                                .readLastUsername(active.id);
                             if (!mounted) return;
                             setState(() {
                               _authPromptInFlight = true;
                             });
                             try {
-                              await _showPasswordDialog(active, lastUsername, _canUseBiometrics);
+                              await _showPasswordDialog(
+                                active,
+                                lastUsername,
+                                _canUseBiometrics,
+                              );
                             } finally {
                               _authPromptInFlight = false;
                               if (mounted) setState(() {});
@@ -1394,7 +1395,9 @@ class _MainScreenState extends State<MainScreen> {
                           constraints: const BoxConstraints(maxWidth: 260),
                           child: OutlinedButton.icon(
                             onPressed: () async {
-                              final authed = await _authenticateWithBiometrics(active);
+                              final authed = await _authenticateWithBiometrics(
+                                active,
+                              );
                               if (authed && mounted) {
                                 setState(() {
                                   _authPromptDismissed = false;
@@ -1421,7 +1424,10 @@ class _MainScreenState extends State<MainScreen> {
                           icon: Icon(Icons.swap_horiz, color: appAccent),
                           label: Text(
                             'Switch Server',
-                            style: TextStyle(color: appAccent, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: appAccent,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
@@ -1627,11 +1633,7 @@ class _MainScreenState extends State<MainScreen> {
                           _searchController.clear();
                           await _resetSearchFilterForCurrentMode();
                         },
-                        child: Icon(
-                          Icons.close,
-                          color: appSubtext,
-                          size: 20,
-                        ),
+                        child: Icon(Icons.close, color: appSubtext, size: 20),
                       ),
                   ],
                 ),
@@ -1672,9 +1674,7 @@ class _MainScreenState extends State<MainScreen> {
                           vertical: 2,
                         ),
                         child: Material(
-                          color: isActive
-                              ? appBackground
-                              : Colors.transparent,
+                          color: isActive ? appBackground : Colors.transparent,
                           borderRadius: BorderRadius.circular(10),
                           clipBehavior: Clip.antiAlias,
                           child: ListTile(
@@ -1696,9 +1696,7 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                             subtitle: Text(
                               server.baseUrl,
-                              style: TextStyle(
-                                color: appSubtext,
-                              ),
+                              style: TextStyle(color: appSubtext),
                             ),
                             selected: isActive,
                             onTap: isActive
@@ -1716,10 +1714,7 @@ class _MainScreenState extends State<MainScreen> {
                                     Navigator.pop(context);
                                   },
                             trailing: IconButton(
-                              icon: Icon(
-                                Icons.delete,
-                                color: appSubtext,
-                              ),
+                              icon: Icon(Icons.delete, color: appSubtext),
                               onPressed: () async {
                                 await _serverManager.removeServer(server.id);
                                 if (!context.mounted) return;
@@ -1744,10 +1739,7 @@ class _MainScreenState extends State<MainScreen> {
                     Divider(color: appBorder),
                     ListTile(
                       leading: Icon(Icons.folder, color: appSubtext),
-                      title: Text(
-                        'Local',
-                        style: TextStyle(color: appText),
-                      ),
+                      title: Text('Local', style: TextStyle(color: appText)),
                       selected: _selectedModeIndex == 0,
                       onTap: () {
                         setState(() {
@@ -1759,10 +1751,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                     ListTile(
                       leading: Icon(Icons.cloud, color: appSubtext),
-                      title: Text(
-                        'Server',
-                        style: TextStyle(color: appText),
-                      ),
+                      title: Text('Server', style: TextStyle(color: appText)),
                       selected: _selectedModeIndex == 1,
                       onTap: () {
                         setState(() {
@@ -1775,14 +1764,8 @@ class _MainScreenState extends State<MainScreen> {
                     if (_serverManager.activeServer != null &&
                         _trashRetentionDays > 0)
                       ListTile(
-                        leading: Icon(
-                          Icons.delete_outline,
-                          color: appSubtext,
-                        ),
-                        title: Text(
-                          'Trash',
-                          style: TextStyle(color: appText),
-                        ),
+                        leading: Icon(Icons.delete_outline, color: appSubtext),
+                        title: Text('Trash', style: TextStyle(color: appText)),
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.push(
@@ -1812,14 +1795,8 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                     Divider(color: appBorder),
                     ListTile(
-                      leading: Icon(
-                        Icons.settings,
-                        color: appSubtext,
-                      ),
-                      title: Text(
-                        'Settings',
-                        style: TextStyle(color: appText),
-                      ),
+                      leading: Icon(Icons.settings, color: appSubtext),
+                      title: Text('Settings', style: TextStyle(color: appText)),
                       onTap: () async {
                         Navigator.pop(context);
                         await _openSettingsPage();

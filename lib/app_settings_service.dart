@@ -117,7 +117,9 @@ class AppSettingsService {
     final font = store.getString('settings.themeFontFamily') ?? 'System';
     final scale = store.getDouble('settings.themeFontSizeScale') ?? 1.0;
     final customAccentInt = store.getInt('settings.themeCustomAccent');
-    final customAccent = customAccentInt != null ? Color(customAccentInt) : null;
+    final customAccent = customAccentInt != null
+        ? Color(customAccentInt)
+        : null;
 
     if (mode == AppThemeMode.light) {
       return AppThemeData.light.copyWith(
@@ -164,10 +166,19 @@ class AppSettingsService {
     await store.setDouble('settings.themeFontSizeScale', theme.fontSizeScale);
 
     if (theme.mode == AppThemeMode.custom) {
-      await store.setInt('settings.themeCustomBackground', theme.background.toARGB32());
-      await store.setInt('settings.themeCustomSurface', theme.surface.toARGB32());
+      await store.setInt(
+        'settings.themeCustomBackground',
+        theme.background.toARGB32(),
+      );
+      await store.setInt(
+        'settings.themeCustomSurface',
+        theme.surface.toARGB32(),
+      );
       await store.setInt('settings.themeCustomText', theme.text.toARGB32());
-      await store.setInt('settings.themeCustomSubtext', theme.subtext.toARGB32());
+      await store.setInt(
+        'settings.themeCustomSubtext',
+        theme.subtext.toARGB32(),
+      );
       await store.setInt('settings.themeCustomBorder', theme.border.toARGB32());
     }
   }

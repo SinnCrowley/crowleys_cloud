@@ -344,7 +344,10 @@ class CacheService {
   Future<int> cacheSizeBytes() async {
     if (!_isReady) return 0;
     final entries = await _manifestEntries();
-    final manifestTotal = entries.fold<int>(0, (sum, entry) => sum + entry.size);
+    final manifestTotal = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.size,
+    );
     final localEntries = await _localThumbnailEntries();
     return manifestTotal +
         localEntries.fold<int>(0, (sum, entry) => sum + entry.size);
@@ -439,7 +442,11 @@ class CacheService {
           if (decoded is Map<String, Object?> && decoded['entries'] is List) {
             _cachedManifestEntries = (decoded['entries'] as List)
                 .whereType<Map>()
-                .map((e) => _CacheManifestEntry.fromJson(Map<String, Object?>.from(e)))
+                .map(
+                  (e) => _CacheManifestEntry.fromJson(
+                    Map<String, Object?>.from(e),
+                  ),
+                )
                 .toList(growable: true);
           } else {
             _cachedManifestEntries = <_CacheManifestEntry>[];
@@ -456,7 +463,12 @@ class CacheService {
     return entries.where((e) => e.kind == kind).toList(growable: true);
   }
 
-  Future<void> _touch(File file, CacheKind kind, String serverId, {bool isRead = false}) async {
+  Future<void> _touch(
+    File file,
+    CacheKind kind,
+    String serverId, {
+    bool isRead = false,
+  }) async {
     final now = DateTime.now().toUtc();
     final entries = await _manifestEntries();
     final path = file.path;
@@ -464,17 +476,12 @@ class CacheService {
     if (index >= 0) {
       final existing = entries[index];
       // For read hits, if the last access was less than 1 hour ago, update in memory only.
-      if (isRead && now.difference(existing.lastAccess) < const Duration(hours: 1)) {
-        entries[index] = existing.copyWith(
-          lastAccess: now,
-          updatedAt: now,
-        );
+      if (isRead &&
+          now.difference(existing.lastAccess) < const Duration(hours: 1)) {
+        entries[index] = existing.copyWith(lastAccess: now, updatedAt: now);
         return;
       }
-      entries[index] = existing.copyWith(
-        lastAccess: now,
-        updatedAt: now,
-      );
+      entries[index] = existing.copyWith(lastAccess: now, updatedAt: now);
     } else {
       final stat = await file.stat();
       entries.add(

@@ -199,10 +199,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
           ),
           ListTile(
             leading: Icon(Icons.delete_forever, color: appAccent),
-            title: Text(
-              'Delete permanently',
-              style: TextStyle(color: appText),
-            ),
+            title: Text('Delete permanently', style: TextStyle(color: appText)),
             onTap: () async {
               Navigator.pop(context);
               setState(() {
@@ -222,10 +219,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text(
-          'Restore items',
-          style: TextStyle(color: appText),
-        ),
+        title: Text('Restore items', style: TextStyle(color: appText)),
         content: Text(
           'Are you sure you want to restore ${controller.selectedFiles.length} item(s)?',
           style: TextStyle(color: appSubtext),
@@ -233,15 +227,10 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: appSubtext),
-            ),
+            child: Text('Cancel', style: TextStyle(color: appSubtext)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: appAccent,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: appAccent),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Restore', style: TextStyle(color: appText)),
           ),
@@ -262,10 +251,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text(
-          'Permanently delete',
-          style: TextStyle(color: appText),
-        ),
+        title: Text('Permanently delete', style: TextStyle(color: appText)),
         content: Text(
           'Are you sure you want to permanently delete ${controller.selectedFiles.length} item(s)? This action cannot be undone.',
           style: TextStyle(color: appSubtext),
@@ -273,18 +259,12 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: appSubtext),
-            ),
+            child: Text('Cancel', style: TextStyle(color: appSubtext)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: appAccent),
             onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              'Delete permanently',
-              style: TextStyle(color: appText),
-            ),
+            child: Text('Delete permanently', style: TextStyle(color: appText)),
           ),
         ],
       ),
@@ -366,11 +346,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
                       });
                       controller.updateSearchQuery('');
                     },
-                    child: Icon(
-                      Icons.close,
-                      color: appSubtext,
-                      size: 20,
-                    ),
+                    child: Icon(Icons.close, color: appSubtext, size: 20),
                   ),
               ],
             ),
@@ -390,7 +366,8 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
               children: [
                 ListenableBuilder(
                   listenable: controller,
-                  builder: (context, _) => _TrashHeaderControls(controller: controller),
+                  builder: (context, _) =>
+                      _TrashHeaderControls(controller: controller),
                 ),
                 Expanded(
                   child: ListenableBuilder(
@@ -403,7 +380,8 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
             ListenableBuilder(
               listenable: controller,
               builder: (context, _) {
-                if (controller.selectedFiles.isEmpty) return const SizedBox.shrink();
+                if (controller.selectedFiles.isEmpty)
+                  return const SizedBox.shrink();
                 return _TrashSelectionActionBar(
                   onRestore: _restoreSelected,
                   onDelete: _deleteSelected,
@@ -705,10 +683,7 @@ class _TrashHeaderControls extends StatelessWidget {
                     value: controller.sortBy,
                     dropdownColor: appSurface,
                     style: TextStyle(color: appText),
-                    icon: Icon(
-                      Icons.arrow_drop_down,
-                      color: appSubtext,
-                    ),
+                    icon: Icon(Icons.arrow_drop_down, color: appSubtext),
                     items: TrashSortBy.values
                         .map(
                           (v) => DropdownMenuItem(

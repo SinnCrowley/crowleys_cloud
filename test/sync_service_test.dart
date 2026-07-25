@@ -398,25 +398,30 @@ void main() {
     expect(record?.remotePath, 'manual_uploads/archived_photo.jpg');
   });
 
-  test('aborts early and returns serverUnreachable status if ping fails', () async {
-    final file = await writeTestFile(tempDir, 'photo.jpg', 'some content');
-    final stateFile = File('${tempDir.path}/state.json');
-    final stateStore = FileSyncStateStore(fileProvider: () async => stateFile);
-    final api = _FakeApiClient()..isServerUnreachable = true;
+  test(
+    'aborts early and returns serverUnreachable status if ping fails',
+    () async {
+      final file = await writeTestFile(tempDir, 'photo.jpg', 'some content');
+      final stateFile = File('${tempDir.path}/state.json');
+      final stateStore = FileSyncStateStore(
+        fileProvider: () async => stateFile,
+      );
+      final api = _FakeApiClient()..isServerUnreachable = true;
 
-    final service = SyncService(
-      scanner: _FakeScanner([
-        SyncCandidate(file: file, remotePath: 'backup/photos/photo.jpg'),
-      ]),
-      apiClient: api,
-      stateStore: stateStore,
-    );
+      final service = SyncService(
+        scanner: _FakeScanner([
+          SyncCandidate(file: file, remotePath: 'backup/photos/photo.jpg'),
+        ]),
+        apiClient: api,
+        stateStore: stateStore,
+      );
 
-    final result = await service.syncServer(server);
+      final result = await service.syncServer(server);
 
-    expect(result.status, SyncRunStatus.serverUnreachable);
-    expect(result.uploadedFiles, 0);
-    expect(api.uploadedPaths, isEmpty);
-    expect(result.message, contains('Could not connect'));
-  });
+      expect(result.status, SyncRunStatus.serverUnreachable);
+      expect(result.uploadedFiles, 0);
+      expect(api.uploadedPaths, isEmpty);
+      expect(result.message, contains('Could not connect'));
+    },
+  );
 }

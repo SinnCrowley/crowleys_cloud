@@ -37,10 +37,8 @@ class ColorPickerDialog extends StatefulWidget {
   }) {
     return showDialog<Color>(
       context: context,
-      builder: (_) => ColorPickerDialog(
-        initialColor: initialColor,
-        title: title,
-      ),
+      builder: (_) =>
+          ColorPickerDialog(initialColor: initialColor, title: title),
     );
   }
 
@@ -106,142 +104,147 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-            // Presets Header
-            Text(
-              'Presets',
-              style: TextStyle(
-                color: appSubtext,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+              // Presets Header
+              Text(
+                'Presets',
+                style: TextStyle(
+                  color: appSubtext,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: presetThemeColors.map((color) {
-                final isSelected = currentColor.toARGB32() == color.toARGB32();
-                return GestureDetector(
-                  onTap: () {
-                    _onColorChanged(HSVColor.fromColor(color));
-                  },
-                  child: Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected ? Colors.white : Colors.black26,
-                        width: isSelected ? 3.0 : 1.0,
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: presetThemeColors.map((color) {
+                  final isSelected =
+                      currentColor.toARGB32() == color.toARGB32();
+                  return GestureDetector(
+                    onTap: () {
+                      _onColorChanged(HSVColor.fromColor(color));
+                    },
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected ? Colors.white : Colors.black26,
+                          width: isSelected ? 3.0 : 1.0,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: color.withValues(alpha: 0.5),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
                       ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: color.withValues(alpha: 0.5),
-                                blurRadius: 6,
-                                spreadRadius: 1,
-                              )
-                            ]
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 18,
+                            )
                           : null,
                     ),
-                    child: isSelected
-                        ? const Icon(Icons.check, color: Colors.white, size: 18)
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-
-            // Saturation / Value Box
-            Text(
-              'Custom Palette',
-              style: TextStyle(
-                color: appSubtext,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                  );
+                }).toList(),
               ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 160,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: _SatValPicker(
-                  hsvColor: _hsvColor,
-                  onChanged: _onColorChanged,
+              const SizedBox(height: 20),
+
+              // Saturation / Value Box
+              Text(
+                'Custom Palette',
+                style: TextStyle(
+                  color: appSubtext,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-            const SizedBox(height: 14),
-
-            // Hue Slider Bar
-            SizedBox(
-              height: 32,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: _HuePicker(
-                  hsvColor: _hsvColor,
-                  onChanged: _onColorChanged,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Color Preview & Hex Input Field
-            Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: currentColor,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: appBorder),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 160,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: _SatValPicker(
+                    hsvColor: _hsvColor,
+                    onChanged: _onColorChanged,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _hexController,
-                    style: TextStyle(
-                      color: appText,
-                      fontFamily: 'monospace',
-                      fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(height: 14),
+
+              // Hue Slider Bar
+              SizedBox(
+                height: 32,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: _HuePicker(
+                    hsvColor: _hsvColor,
+                    onChanged: _onColorChanged,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Color Preview & Hex Input Field
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: currentColor,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: appBorder),
                     ),
-                    decoration: InputDecoration(
-                      labelText: 'HEX RGB Code',
-                      labelStyle: TextStyle(color: appSubtext),
-                      hintText: '#FA5252',
-                      hintStyle: TextStyle(color: appSubtext),
-                      filled: true,
-                      fillColor: appBackground,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: appBorder),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: appBorder),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: appAccent),
-                      ),
-                    ),
-                    onChanged: _onHexSubmitted,
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _hexController,
+                      style: TextStyle(
+                        color: appText,
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.bold,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'HEX RGB Code',
+                        labelStyle: TextStyle(color: appSubtext),
+                        hintText: '#FA5252',
+                        hintStyle: TextStyle(color: appSubtext),
+                        filled: true,
+                        fillColor: appBackground,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: appBorder),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: appBorder),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: appAccent),
+                        ),
+                      ),
+                      onChanged: _onHexSubmitted,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
       ),
       actions: [
         TextButton(
@@ -265,10 +268,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
 }
 
 class _SatValPicker extends StatelessWidget {
-  const _SatValPicker({
-    required this.hsvColor,
-    required this.onChanged,
-  });
+  const _SatValPicker({required this.hsvColor, required this.onChanged});
 
   final HSVColor hsvColor;
   final ValueChanged<HSVColor> onChanged;
@@ -319,9 +319,7 @@ class _SatValPainter extends CustomPainter {
     final hueColor = HSVColor.fromAHSV(1.0, hsvColor.hue, 1.0, 1.0).toColor();
 
     // Saturation gradient (horizontal white to hue color)
-    final satGradient = LinearGradient(
-      colors: [Colors.white, hueColor],
-    );
+    final satGradient = LinearGradient(colors: [Colors.white, hueColor]);
     final satPaint = Paint()..shader = satGradient.createShader(rect);
     canvas.drawRect(rect, satPaint);
 
@@ -363,10 +361,7 @@ class _SatValPainter extends CustomPainter {
 }
 
 class _HuePicker extends StatelessWidget {
-  const _HuePicker({
-    required this.hsvColor,
-    required this.onChanged,
-  });
+  const _HuePicker({required this.hsvColor, required this.onChanged});
 
   final HSVColor hsvColor;
   final ValueChanged<HSVColor> onChanged;

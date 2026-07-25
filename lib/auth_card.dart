@@ -510,10 +510,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
       ),
       title: Text(
         _step == 1 ? 'Reset Password' : 'Enter Reset Code',
-        style: TextStyle(
-          color: appText,
-          fontWeight: FontWeight.w700,
-        ),
+        style: TextStyle(color: appText, fontWeight: FontWeight.w700),
       ),
       content: _success.isNotEmpty
           ? Column(
@@ -599,10 +596,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                 onPressed: _isLoading
                     ? null
                     : () => Navigator.of(context).pop(),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(color: appSubtext),
-                ),
+                child: Text('Cancel', style: TextStyle(color: appSubtext)),
               ),
               FilledButton(
                 onPressed: _isLoading

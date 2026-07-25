@@ -16,7 +16,13 @@ abstract final class FileIconUtils {
       'zip' || 'tar' || 'gz' || '7z' || 'rar' => Icons.folder_zip,
       'mp3' || 'wav' || 'ogg' || 'flac' || 'm4a' || 'aac' => Icons.audiotrack,
       'mp4' || 'mkv' || 'avi' || 'mov' || 'webm' || 'flv' => Icons.movie,
-      'jpg' || 'jpeg' || 'png' || 'webp' || 'gif' || 'bmp' || 'heic' => Icons.image,
+      'jpg' ||
+      'jpeg' ||
+      'png' ||
+      'webp' ||
+      'gif' ||
+      'bmp' ||
+      'heic' => Icons.image,
       'txt' || 'md' || 'json' || 'yaml' || 'xml' => Icons.article,
       _ => Icons.insert_drive_file,
     };
