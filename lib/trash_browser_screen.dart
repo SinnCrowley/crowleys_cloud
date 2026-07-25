@@ -380,8 +380,9 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
             ListenableBuilder(
               listenable: controller,
               builder: (context, _) {
-                if (controller.selectedFiles.isEmpty)
+                if (controller.selectedFiles.isEmpty) {
                   return const SizedBox.shrink();
+                }
                 return _TrashSelectionActionBar(
                   onRestore: _restoreSelected,
                   onDelete: _deleteSelected,

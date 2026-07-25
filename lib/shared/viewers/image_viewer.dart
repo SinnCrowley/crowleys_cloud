@@ -187,15 +187,21 @@ class _ImageViewerState extends State<ImageViewer>
 
   Future<void> _uploadCurrentFile() async {
     final callback = widget.onUploadItem;
-    if (callback == null || _currentIndex < 0 || _currentIndex >= _items.length)
+    if (callback == null ||
+        _currentIndex < 0 ||
+        _currentIndex >= _items.length) {
       return;
+    }
     await callback(_items[_currentIndex]);
   }
 
   Future<void> _addCurrentFileToFolder() async {
     final callback = widget.onAddToFolderItem;
-    if (callback == null || _currentIndex < 0 || _currentIndex >= _items.length)
+    if (callback == null ||
+        _currentIndex < 0 ||
+        _currentIndex >= _items.length) {
       return;
+    }
     await callback(_items[_currentIndex]);
   }
 
