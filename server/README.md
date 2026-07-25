@@ -26,11 +26,13 @@ To build and run the server, ensure your Linux system has the following installe
   - ZLIB (development headers)
   - Protocol Buffers (v3 compiler `protoc` and libraries)
   - PkgConfig (required to link Protobuf & Abseil dependencies)
+  - JsonCpp (development headers for Drogon JSON routing)
+  - UUID (development headers for Drogon session UUIDs)
 
 ### On Ubuntu/Debian:
 ```bash
 sudo apt-get update
-sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config ffmpeg
+sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev ffmpeg
 ```
 
 ---

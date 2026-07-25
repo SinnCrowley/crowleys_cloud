@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     uuid-dev \
     libbrotli-dev \
+    libjsoncpp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -46,6 +47,7 @@ RUN apt-get update && apt-get install -y \
     libprotobuf-dev \
     uuid \
     libbrotli1 \
+    libjsoncpp-dev \
     ffmpeg \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
