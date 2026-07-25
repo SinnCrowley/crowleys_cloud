@@ -1671,13 +1671,12 @@ class _MainScreenState extends State<MainScreen> {
                           horizontal: 8,
                           vertical: 2,
                         ),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? appBackground
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                        child: Material(
+                          color: isActive
+                              ? appBackground
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                          clipBehavior: Clip.antiAlias,
                           child: ListTile(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),

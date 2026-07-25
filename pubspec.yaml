@@ -26,7 +26,8 @@ dependencies:
   # Media & Thumbnail Processing
   photo_manager: ^3.10.0                 # Gallery and photo library asset enumeration
   photo_manager_image_provider: ^2.2.0 # ImageProvider wrapper for photo_manager AssetEntity
-  video_thumbnail: ^0.5.3               # Frame extraction thumbnail generation for local video files
+  #video_thumbnail: ^0.5.3               # Frame extraction thumbnail generation for local video files
+  video_thumbnail_plus: ^0.0.2
 
   # Networking & Cryptography
   http: ^1.2.2       # HTTP client for REST backend communication
@@ -38,7 +39,7 @@ dependencies:
 
   # System Interop & Notifications
   share_plus: ^13.3.0                   # Native OS content / file sharing dialogs
-  open_file: ^3.5.11                    # Opening files in external system handler apps
+  open_file: ^4.0.0                    # Opening files in external system handler apps
   flutter_local_notifications: ^22.1.0  # System local notifications for background operations
 
 dev_dependencies:

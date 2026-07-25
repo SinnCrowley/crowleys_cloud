@@ -28,7 +28,7 @@ class BiometricAuthService {
   Future<bool> _authenticate(String reason) async {
     if (!await canAuthenticate()) return false;
     try {
-      return _auth.authenticate(
+      return await _auth.authenticate(
         localizedReason: reason,
         biometricOnly: true,
         persistAcrossBackgrounding: true,

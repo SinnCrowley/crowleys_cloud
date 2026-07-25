@@ -1445,11 +1445,10 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: appSurface,
-        borderRadius: BorderRadius.circular(8),
-      ),
+    return Material(
+      color: appSurface,
+      borderRadius: BorderRadius.circular(8),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

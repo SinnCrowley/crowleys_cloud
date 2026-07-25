@@ -6,7 +6,7 @@ import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:video_thumbnail_plus/video_thumbnail_plus.dart';
 import 'file_item.dart';
 
 class ThumbnailService {
@@ -107,7 +107,7 @@ class ThumbnailService {
             ThumbnailSize.square(size),
             quality: 88,
           );
-          data ??= await VideoThumbnail.thumbnailData(
+          data ??= await VideoThumbnailPlus.thumbnailData(
             video: path,
             imageFormat: ImageFormat.PNG,
             maxWidth: size,

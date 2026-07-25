@@ -85,7 +85,7 @@ abstract final class UrlUtils {
         (queryParameters != null && queryParameters.isNotEmpty)) {
       mergedQuery = {
         ...base.queryParameters,
-        if (queryParameters != null) ...queryParameters,
+        ...?queryParameters,
       };
     }
 
