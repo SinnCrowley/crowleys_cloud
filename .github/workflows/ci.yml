@@ -66,6 +66,11 @@ jobs:
       - name: Setup Dart SDK (to activate protoc_plugin)
         uses: dart-lang/setup-dart@v1
 
+      - name: Install Protobuf Compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
       - name: Generate Protobuf Files
         run: |
           dart pub global activate protoc_plugin
