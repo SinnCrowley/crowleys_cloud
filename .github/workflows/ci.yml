@@ -42,10 +42,50 @@ jobs:
         run: cmake --build server/build --parallel $(nproc)
 
   # ------------------------------------------------------------------------------
-  # 2. Flutter Mobile Application build and test check
+  # 2. Flutter Mobile Application Verification & Compilation
   # ------------------------------------------------------------------------------
-  build-client:
-    name: Build & Test Flutter Client
+  test-client:
+    name: Test & Analyze Client
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Setup Dart SDK (to activate protoc_plugin)
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install Protobuf Compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: Generate Protobuf Files
+        run: |
+          dart pub global activate protoc_plugin
+          chmod +x scripts/generate_proto.sh
+          ./scripts/generate_proto.sh
+
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: Verify Code Formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Run Static Analysis
+        run: flutter analyze
+
+      - name: Run Unit & Widget Tests
+        run: flutter test
+
+  build-android:
+    name: Build Android APK
+    needs: test-client
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -80,17 +120,37 @@ jobs:
       - name: Install Flutter Dependencies
         run: flutter pub get
 
-      - name: Verify Code Formatting
-        run: dart format --output=none --set-exit-if-changed lib test
-
-      - name: Run Static Analysis
-        run: flutter analyze
-
-      - name: Run Unit & Widget Tests
-        run: flutter test
-
       - name: Build Android Release APK
         run: flutter build apk --release
+
+  build-ios:
+    name: Build iOS App
+    needs: test-client
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Setup Dart SDK (to activate protoc_plugin)
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install Protobuf Compiler
+        run: brew install protobuf
+
+      - name: Generate Protobuf Files
+        run: |
+          dart pub global activate protoc_plugin
+          chmod +x scripts/generate_proto.sh
+          ./scripts/generate_proto.sh
+
+      - name: Install Flutter Dependencies
+        run: flutter pub get
 
       - name: Prepare iOS Workspace (No Code Sign)
         run: flutter build ios --no-codesign
@@ -100,7 +160,7 @@ jobs:
   # ------------------------------------------------------------------------------
   publish-server-image:
     name: Build & Push Docker Image
-    needs: [build-server, build-client]
+    needs: [build-server, build-android, build-ios]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     steps:
