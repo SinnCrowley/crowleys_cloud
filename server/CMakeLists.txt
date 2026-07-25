@@ -93,13 +93,13 @@ add_executable(crowleys_cloud_server
 # ------------------------------------------------------------------------------
 # 4. Include Directories & Linked Libraries
 # ------------------------------------------------------------------------------
-target_include_directories(crowleys_cloud_server PRIVATE include "${PROTO_GEN_DIR}" ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(crowleys_cloud_server PRIVATE include "${PROTO_GEN_DIR}" ${PROTOBUF_INCLUDE_DIRS} ${SQLite3_INCLUDE_DIRS})
 target_link_directories(crowleys_cloud_server PRIVATE ${PROTOBUF_LIBRARY_DIRS})
 
 target_link_libraries(crowleys_cloud_server PRIVATE
   drogon
   OpenSSL::Crypto
-  SQLite3::SQLite3
+  ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
   ${PROTOBUF_LIBRARIES}
