@@ -1,0 +1,24 @@
+# Set global deployment target for iOS
+platform :ios, '14.0'
+
+# CocoaPods parallel code signing
+COCOAPODS_PARALLEL_CODE_SIGN_ENABLED = true
+
+# Flutter build integration
+flutter_install_all_ios_pods File.dirname(File.expand_path(__FILE__))
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.expand_path(__FILE__))
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+    end
+  end
+end
