@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ../
+      dockerfile: server/Dockerfile
+    container_name: crowleys_cloud_server
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./storage:/app/storage
+      - ./logs:/app/logs
+      - ./config:/app/config
+    restart: always
