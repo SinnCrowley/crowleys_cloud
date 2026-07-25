@@ -1,11 +1,12 @@
+# The path to the Flutter tooling podhelper script
+flutter_ios_podfile_setup = File.join(File.dirname(File.expand_path(__FILE__)), 'Flutter', 'podhelper.rb')
+require flutter_ios_podfile_setup
+
 # Set global deployment target for iOS
 platform :ios, '14.0'
 
 # CocoaPods parallel code signing
 COCOAPODS_PARALLEL_CODE_SIGN_ENABLED = true
-
-# Flutter build integration
-flutter_install_all_ios_pods File.dirname(File.expand_path(__FILE__))
 
 target 'Runner' do
   use_frameworks!
