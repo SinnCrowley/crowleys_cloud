@@ -36,6 +36,8 @@ dependencies:
   # Authentication & Background Work
   local_auth: ^3.0.1        # Device biometric authentication (Fingerprint / FaceID)
   workmanager: ^0.9.0+3     # Background job scheduling on Android / iOS
+  protobuf: ^6.0.0          # Google Protocol Buffers implementation for Dart
+  fixnum: ^1.1.0            # Fixnum package for generated protobuf code
 
   # System Interop & Notifications
   share_plus: ^13.3.0                   # Native OS content / file sharing dialogs

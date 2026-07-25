@@ -10,6 +10,7 @@ import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
 import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
+import 'package:crowleys_cloud/shared/proto/dir_entry.pb.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -650,9 +651,27 @@ class ServerBrowserController extends ChangeNotifier {
     final uri = _apiUri(
       '/dir',
     ).replace(queryParameters: {'scope': scope, 'path': relativePath});
-    final response = await _authorizedGet(uri);
+    final response = await _authorizedGet(uri, headers: {'Accept': 'application/x-protobuf'});
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return const [];
+    }
+    final contentType = response.headers['content-type'] ?? '';
+    if (contentType.contains('application/x-protobuf')) {
+      final protoResponse = DirResponse.fromBuffer(response.bodyBytes);
+      return protoResponse.entries
+          .map(
+            (e) => ServerFileItem(
+              name: e.name,
+              size: e.size.toInt(),
+              modifiedAt: DateTime.fromMillisecondsSinceEpoch(e.modifiedAt.toInt(), isUtc: true),
+              type: e.type,
+              mimeType: e.mimeType,
+              thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,
+              isDir: e.isDir,
+              path: e.path,
+            ),
+          )
+          .toList();
     }
     final payload = jsonDecode(response.body) as Map<String, Object?>;
     final entries = (payload['entries'] as List?) ?? const [];
@@ -669,9 +688,27 @@ class ServerBrowserController extends ChangeNotifier {
     final uri = _apiUri(
       '/dir',
     ).replace(queryParameters: {'scope': requestedScope, 'path': relativePath});
-    final response = await _authorizedGet(uri);
+    final response = await _authorizedGet(uri, headers: {'Accept': 'application/x-protobuf'});
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return const [];
+    }
+    final contentType = response.headers['content-type'] ?? '';
+    if (contentType.contains('application/x-protobuf')) {
+      final protoResponse = DirResponse.fromBuffer(response.bodyBytes);
+      return protoResponse.entries
+          .map(
+            (e) => ServerFileItem(
+              name: e.name,
+              size: e.size.toInt(),
+              modifiedAt: DateTime.fromMillisecondsSinceEpoch(e.modifiedAt.toInt(), isUtc: true),
+              type: e.type,
+              mimeType: e.mimeType,
+              thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,
+              isDir: e.isDir,
+              path: e.path,
+            ),
+          )
+          .toList();
     }
     final payload = jsonDecode(response.body) as Map<String, Object?>;
     final entries = (payload['entries'] as List?) ?? const [];
@@ -888,7 +925,8 @@ class ServerBrowserController extends ChangeNotifier {
     onConnectionLost: onConnectionLost,
   );
 
-  Future<http.Response> _authorizedGet(Uri uri) => _httpClient.get(uri);
+  Future<http.Response> _authorizedGet(Uri uri, {Map<String, String>? headers}) =>
+      _httpClient.get(uri, headers: headers);
 
   Future<http.StreamedResponse> _authorizedStreamedGet(Uri uri) =>
       _httpClient.streamedGet(uri);

@@ -9,6 +9,8 @@ import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
 import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 
+import 'package:crowleys_cloud/shared/proto/dir_entry.pb.dart';
+
 class TrashBrowserController extends ChangeNotifier {
   TrashBrowserController({
     required this.serverId,
@@ -32,14 +34,14 @@ class TrashBrowserController extends ChangeNotifier {
     client: _client,
   );
 
-  List<ServerFileItem> files = [];
-  final Set<ServerFileItem> selectedFiles = {};
   bool isLoading = false;
   String? error;
+  List<ServerFileItem> files = [];
+  final List<ServerFileItem> selectedFiles = [];
+  String searchQuery = '';
   String? operationMessage;
   TrashSortBy sortBy = TrashSortBy.date;
   bool sortAscending = false;
-  String searchQuery = '';
 
   final Map<String, Future<File?>> _downloadsInFlight = {};
 
@@ -47,7 +49,8 @@ class TrashBrowserController extends ChangeNotifier {
 
   Uri _apiUri(String endpointPath) => UrlUtils.buildApiEndpoint(baseUrl, endpointPath);
 
-  Future<http.Response> _authorizedGet(Uri uri) => _httpClient.get(uri);
+  Future<http.Response> _authorizedGet(Uri uri, {Map<String, String>? headers}) =>
+      _httpClient.get(uri, headers: headers);
 
   Future<http.Response> _authorizedPostJson(
     Uri uri,
@@ -72,17 +75,37 @@ class TrashBrowserController extends ChangeNotifier {
         queryParams['q'] = searchQuery;
       }
       final uri = _apiUri('/trash').replace(queryParameters: queryParams);
-      final response = await _authorizedGet(uri);
+      final response = await _authorizedGet(uri, headers: {'Accept': 'application/x-protobuf'});
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception('Server error ${response.statusCode}');
       }
 
-      final payload = jsonDecode(response.body) as Map<String, Object?>;
-      final entries = (payload['entries'] as List?) ?? const [];
-      files = entries
-          .whereType<Map>()
-          .map((e) => ServerFileItem.fromJson(Map<String, Object?>.from(e)))
-          .toList();
+      final contentType = response.headers['content-type'] ?? '';
+      if (contentType.contains('application/x-protobuf')) {
+        final protoResponse = DirResponse.fromBuffer(response.bodyBytes);
+        files = protoResponse.entries
+            .map(
+              (e) => ServerFileItem(
+                name: e.name,
+                size: e.size.toInt(),
+                modifiedAt: DateTime.fromMillisecondsSinceEpoch(e.modifiedAt.toInt(), isUtc: true),
+                type: e.type,
+                mimeType: e.mimeType,
+                thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,
+                isDir: e.isDir,
+                path: e.path,
+                id: e.id != 0 ? e.id.toInt() : null,
+              ),
+            )
+            .toList();
+      } else {
+        final payload = jsonDecode(response.body) as Map<String, Object?>;
+        final entries = (payload['entries'] as List?) ?? const [];
+        files = entries
+            .whereType<Map>()
+            .map((e) => ServerFileItem.fromJson(Map<String, Object?>.from(e)))
+            .toList();
+      }
       sortFilesInternal();
       operationMessage = null;
     } catch (e) {

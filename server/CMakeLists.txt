@@ -33,9 +33,30 @@ find_package(OpenSSL REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(Protobuf REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PROTOBUF REQUIRED protobuf)
 
 # ------------------------------------------------------------------------------
-# 2. Executable Target Definition
+# 2. Protobuf Code Generation Configuration
+# ------------------------------------------------------------------------------
+set(PROTO_SRC_DIR "${PROJECT_SOURCE_DIR}/../proto")
+set(PROTO_GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/proto_gen")
+file(MAKE_DIRECTORY "${PROTO_GEN_DIR}")
+
+add_custom_command(
+  OUTPUT "${PROTO_GEN_DIR}/dir_entry.pb.cc" "${PROTO_GEN_DIR}/dir_entry.pb.h"
+  COMMAND ${Protobuf_PROTOC_EXECUTABLE}
+          --cpp_out=${PROTO_GEN_DIR}
+          -I=${PROTO_SRC_DIR}
+          ${PROTO_SRC_DIR}/dir_entry.proto
+  DEPENDS "${PROTO_SRC_DIR}/dir_entry.proto"
+  COMMENT "Generating C++ files from dir_entry.proto"
+  VERBATIM
+)
+
+# ------------------------------------------------------------------------------
+# 3. Executable Target Definition
 # ------------------------------------------------------------------------------
 add_executable(crowleys_cloud_server
   # Core Entry Point
@@ -64,12 +85,16 @@ add_executable(crowleys_cloud_server
   src/utils/Config.cpp
   src/utils/Crypto.cpp
   src/utils/ZipWriter.cpp
+
+  # Generated Protobuf Files
+  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
 )
 
 # ------------------------------------------------------------------------------
-# 3. Include Directories & Linked Libraries
+# 4. Include Directories & Linked Libraries
 # ------------------------------------------------------------------------------
-target_include_directories(crowleys_cloud_server PRIVATE include)
+target_include_directories(crowleys_cloud_server PRIVATE include "${PROTO_GEN_DIR}" ${PROTOBUF_INCLUDE_DIRS})
+target_link_directories(crowleys_cloud_server PRIVATE ${PROTOBUF_LIBRARY_DIRS})
 
 target_link_libraries(crowleys_cloud_server PRIVATE
   drogon
@@ -77,4 +102,5 @@ target_link_libraries(crowleys_cloud_server PRIVATE
   SQLite3::SQLite3
   Threads::Threads
   ZLIB::ZLIB
+  ${PROTOBUF_LIBRARIES}
 )

@@ -9,6 +9,7 @@
 #include "server/AppContext.hpp"
 #include "server/utils/Crypto.hpp"
 #include "server/utils/HttpHelpers.hpp"
+#include "dir_entry.pb.h"
 
 #include <algorithm>
 #include <cctype>
@@ -301,12 +302,35 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
       return lessByName();
     });
 
-    Json::Value body;
-    body["entries"] = Json::arrayValue;
-    for (const auto &entry : mergedEntries) {
-      body["entries"].append(formatDirEntryJson(entry, scopeRaw));
+    const auto acceptHeader = req->getHeader("Accept");
+    if (acceptHeader.find("application/x-protobuf") != std::string::npos) {
+      server::proto::DirResponse protoResponse;
+      for (const auto &entry : mergedEntries) {
+        auto *protoEntry = protoResponse.add_entries();
+        protoEntry->set_name(entry.name);
+        protoEntry->set_path(entry.path);
+        protoEntry->set_is_dir(entry.isDir);
+        protoEntry->set_size(entry.size);
+        protoEntry->set_modified_at(entry.modifiedAt);
+        protoEntry->set_type(entry.type);
+        protoEntry->set_mime_type(entry.mimeType);
+        if (!entry.isDir) {
+          protoEntry->set_thumbnail_url("/api/thumb?scope=" + scopeRaw + "&path=" + drogon::utils::urlEncode(entry.path) + "&s=256");
+        }
+      }
+      auto resp = drogon::HttpResponse::newHttpResponse();
+      resp->setBody(protoResponse.SerializeAsString());
+      resp->setContentTypeCode(drogon::ContentType::CT_CUSTOM);
+      resp->setContentTypeString("application/x-protobuf");
+      callback(resp);
+    } else {
+      Json::Value body;
+      body["entries"] = Json::arrayValue;
+      for (const auto &entry : mergedEntries) {
+        body["entries"].append(formatDirEntryJson(entry, scopeRaw));
+      }
+      callback(drogon::HttpResponse::newHttpJsonResponse(body));
     }
-    callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));
   }
@@ -1054,12 +1078,33 @@ void FileController::getTrash(const drogon::HttpRequestPtr &req,
 
   try {
     auto entries = server::ctx().trashService->listTrash(userId, scope, query);
-    Json::Value body;
-    body["entries"] = Json::arrayValue;
-    for (const auto &entry : entries) {
-      body["entries"].append(formatTrashEntryJson(entry));
+    const auto acceptHeader = req->getHeader("Accept");
+    if (acceptHeader.find("application/x-protobuf") != std::string::npos) {
+      server::proto::DirResponse protoResponse;
+      for (const auto &entry : entries) {
+        auto *protoEntry = protoResponse.add_entries();
+        protoEntry->set_id(entry.id);
+        protoEntry->set_name(entry.name);
+        protoEntry->set_path(entry.originalPath);
+        protoEntry->set_is_dir(entry.isDir);
+        protoEntry->set_size(entry.size);
+        protoEntry->set_modified_at(entry.deletedAt);
+        protoEntry->set_type(entry.isDir ? "directory" : "file");
+        protoEntry->set_mime_type(entry.isDir ? "inode/directory" : "application/octet-stream");
+      }
+      auto resp = drogon::HttpResponse::newHttpResponse();
+      resp->setBody(protoResponse.SerializeAsString());
+      resp->setContentTypeCode(drogon::ContentType::CT_CUSTOM);
+      resp->setContentTypeString("application/x-protobuf");
+      callback(resp);
+    } else {
+      Json::Value body;
+      body["entries"] = Json::arrayValue;
+      for (const auto &entry : entries) {
+        body["entries"].append(formatTrashEntryJson(entry));
+      }
+      callback(drogon::HttpResponse::newHttpJsonResponse(body));
     }
-    callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));
   }
