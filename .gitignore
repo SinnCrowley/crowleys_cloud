@@ -47,9 +47,20 @@ app.*.map.json
 # Agents instructions
 AGENTS.md
 
-# server instructions
-/server/*.md
+# server data
 /server/data/
 /server/build/
 /server/storage/
 /server/uploads/
+/server/logs/
+
+# Local configuration overrides & secrets
+.env
+*.env
+server/config/config.local.json
+
+# Operating System Metadata
+.directory
+Thumbs.db
+*~
+*.lock
