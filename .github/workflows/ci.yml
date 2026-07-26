@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   # ------------------------------------------------------------------------------
-  # 1. C++ Backend Server build and test check
+  # 1. C++ Backend Server build & test check (runs on every push/PR)
   # ------------------------------------------------------------------------------
   build-server:
     name: Build & Test Server
@@ -43,7 +43,7 @@ jobs:
         run: cmake --build server/build --parallel $(nproc)
 
   # ------------------------------------------------------------------------------
-  # 2. Flutter Mobile Application Verification & Compilation
+  # 2. Flutter Mobile Application Verification (runs on every push/PR)
   # ------------------------------------------------------------------------------
   test-client:
     name: Test & Analyze Client
@@ -84,9 +84,13 @@ jobs:
       - name: Run Unit & Widget Tests
         run: flutter test
 
+  # ------------------------------------------------------------------------------
+  # 3. Android APK Release Build (runs ONLY on version tag push)
+  # ------------------------------------------------------------------------------
   build-android:
     name: Build Android APK
     needs: test-client
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -131,9 +135,13 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
 
+  # ------------------------------------------------------------------------------
+  # 4. iOS App Release Build (runs ONLY on version tag push)
+  # ------------------------------------------------------------------------------
   build-ios:
     name: Build iOS App
     needs: test-client
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-latest
     steps:
       - name: Checkout Code
@@ -167,12 +175,12 @@ jobs:
         run: flutter build ios --no-codesign
 
   # ------------------------------------------------------------------------------
-  # 3. Build Server Docker Images natively per architecture (parallel)
+  # 5. Build Server Docker Images natively per architecture (runs ONLY on version tag push)
   # ------------------------------------------------------------------------------
   build-docker-image:
     name: Docker (${{ matrix.arch }})
-    needs: [build-server, build-android, build-ios]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
+    needs: build-server
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -226,11 +234,12 @@ jobs:
           retention-days: 1
 
   # ------------------------------------------------------------------------------
-  # 4. Merge per-arch images into a single multi-arch manifest
+  # 6. Merge per-arch images into a single multi-arch manifest
   # ------------------------------------------------------------------------------
   merge-docker-manifest:
     name: Publish Multi-Arch Manifest
     needs: build-docker-image
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Set up Docker Buildx
@@ -258,33 +267,28 @@ jobs:
         id: tags
         run: |
           IMAGE="ghcr.io/${{ env.REPO_LOWER }}/crowleys-cloud-server"
-          TAGS="${IMAGE}:latest,${IMAGE}:${{ github.sha }}"
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/}"
-            TAGS="${TAGS},${IMAGE}:${VERSION}"
-          fi
+          VERSION="${GITHUB_REF#refs/tags/}"
+          TAGS="${IMAGE}:latest,${IMAGE}:${VERSION},${IMAGE}:${{ github.sha }}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
 
       - name: Create and Push Multi-Arch Manifest
         working-directory: /tmp/digests
         run: |
           IMAGE="ghcr.io/${{ env.REPO_LOWER }}/crowleys-cloud-server"
-          # Build the tag arguments
           TAG_ARGS=""
           IFS=',' read -ra TAG_LIST <<< "${{ steps.tags.outputs.tags }}"
           for tag in "${TAG_LIST[@]}"; do
             TAG_ARGS="${TAG_ARGS} -t ${tag}"
           done
-          # Create manifest from all digests
           docker buildx imagetools create ${TAG_ARGS} \
             $(printf "${IMAGE}@sha256:%s " *)
 
   # ------------------------------------------------------------------------------
-  # 5. Create GitHub Release with APK (triggers only on version tags)
+  # 7. Create GitHub Release with APK (triggers only on version tags)
   # ------------------------------------------------------------------------------
   create-release:
     name: Publish GitHub Release
-    needs: [build-server, build-android, build-ios]
+    needs: [build-server, build-android, build-ios, merge-docker-manifest]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -306,7 +310,6 @@ jobs:
 
       - name: Generate Release Notes
         run: |
-          # Get the previous tag for changelog generation
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           echo "## What's Changed" > release_notes.md
           echo "" >> release_notes.md
