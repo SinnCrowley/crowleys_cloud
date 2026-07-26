@@ -1,4 +1,5 @@
 #include "server/services/FileService.hpp"
+#include <server/utils/PlatformUtils.hpp>
 
 #include <chrono>
 #include <algorithm>
@@ -24,9 +25,11 @@ std::filesystem::path FileService::resolvePath(std::int64_t userId,
                                                const std::string &role,
                                                StorageScope scope,
                                                const std::string &rawPath,
-                                               bool writeIntent) const {
-  (void)role;
-  (void)writeIntent;
+                                               bool allowNonExistent) const {
+  if (scope == StorageScope::Shared && role != "admin") {
+    throw std::runtime_error("Only administrator can access shared storage");
+  }
+
   const auto root = scope == StorageScope::Private ? rootForUser(userId) : sharedRoot();
 
   std::error_code ec;
@@ -39,24 +42,13 @@ std::filesystem::path FileService::resolvePath(std::int64_t userId,
   while (!cleanRel.empty() && cleanRel.front() == '/') cleanRel.erase(cleanRel.begin());
   if (cleanRel == ".") cleanRel.clear();
 
-  // 2. Canonicalize root and candidate target path safely (weakly_canonical works for existing & non-existing files)
+  // 2. Canonicalize root and candidate target path safely
   const auto normalizedRoot = fs::weakly_canonical(root, ec);
   const auto candidate = fs::weakly_canonical(normalizedRoot / cleanRel, ec);
 
-  // 3. Strict Boundary Verification:
-  // Prevent prefix-spoofing vulnerabilities where a root path (e.g. `/users/1`)
-  // falsely matches a target path (e.g. `/users/10/file.txt`).
-  // Enforce exact match or requiring a trailing directory separator on the root prefix.
-  const auto candidateStr = candidate.generic_string();
-  auto rootStr = normalizedRoot.generic_string();
-
-  if (candidateStr != rootStr) {
-    if (rootStr.empty() || rootStr.back() != '/') {
-      rootStr.push_back('/');
-    }
-    if (candidateStr.size() < rootStr.size() || candidateStr.compare(0, rootStr.size(), rootStr) != 0) {
-      throw std::runtime_error("Path escapes allowed root");
-    }
+  // 3. Portable Boundary Verification
+  if (!utils::isSubpath(candidate, normalizedRoot)) {
+    throw std::runtime_error("Path escapes allowed root");
   }
 
   return candidate;
@@ -68,9 +60,7 @@ std::vector<DirEntry> FileService::listDirectory(const std::filesystem::path &pa
   for (const auto &entry : fs::directory_iterator(path, ec)) {
     const auto isDir = entry.is_directory(ec);
     const auto size = isDir ? 0 : entry.file_size(ec);
-    const auto mtime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                           entry.last_write_time(ec).time_since_epoch())
-                           .count();
+    const auto mtime = utils::fileTimeToMillis(entry.last_write_time(ec));
     const auto fileName = entry.path().filename().string();
     const auto type = isDir ? "directory" : classifyType(entry.path());
     const auto mimeType = isDir ? "inode/directory" : mimeTypeFor(entry.path());

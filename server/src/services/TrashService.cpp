@@ -2,6 +2,7 @@
 #include "server/services/FileIndexService.hpp"
 #include "server/AppContext.hpp"
 #include "server/utils/TimeUtils.hpp"
+#include <server/utils/PlatformUtils.hpp>
 
 #include <iostream>
 #include <sqlite3.h>
@@ -227,7 +228,7 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
     const auto target = fileService_.resolvePath(userId, role, scope, relPath, true);
     const auto trashPath = getTrashPath(userId, trashId);
     std::filesystem::create_directories(trashPath.parent_path());
-    std::filesystem::rename(target, trashPath);
+    utils::portableRename(target, trashPath);
   }
 
   if (isDir) {
@@ -289,7 +290,7 @@ void TrashService::restoreFromTrash(std::int64_t userId, const std::vector<std::
 
       const auto trashPath = getTrashPath(userId, id);
       std::filesystem::create_directories(target.parent_path());
-      std::filesystem::rename(trashPath, target);
+      utils::portableRename(trashPath, target);
     } else {
       // In hashFiles, check virtual name conflict in DB
       bool conflict = false;

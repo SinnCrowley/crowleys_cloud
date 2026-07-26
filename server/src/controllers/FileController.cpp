@@ -21,13 +21,10 @@
 #include <unordered_set>
 #include <queue>
 #include <condition_variable>
+#include <fstream>
 
-#include <spawn.h>
-#include <sys/wait.h>
+#include <server/utils/PlatformUtils.hpp>
 #include <trantor/utils/Logger.h>
-#include <unistd.h>
-
-extern "C" char **environ;
 
 namespace server::controllers {
 using server::utils::jsonError;
@@ -68,27 +65,7 @@ Json::Value formatTrashEntryJson(const services::TrashEntry &entry) {
   return v;
 }
 
-bool runProcess(const std::vector<std::string> &args) {
-  if (args.empty()) return false;
-  std::vector<char *> argv;
-  argv.reserve(args.size() + 1);
-  for (const auto &arg : args) {
-    argv.push_back(const_cast<char *>(arg.c_str()));
-  }
-  argv.push_back(nullptr);
-
-  pid_t pid;
-  int status = posix_spawnp(&pid, argv[0], nullptr, nullptr, argv.data(), environ);
-  if (status != 0) {
-    return false;
-  }
-  while (waitpid(pid, &status, 0) == -1) {
-    if (errno != EINTR) {
-      return false;
-    }
-  }
-  return WIFEXITED(status) && (WEXITSTATUS(status) == 0);
-}
+using server::utils::runProcess;
 }  // namespace
 
 namespace {
@@ -778,7 +755,7 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
           }
 
           const auto physicalPath = dataDir / plainSha256;
-          std::filesystem::rename(tempEncPath, physicalPath);
+          utils::portableRename(tempEncPath, physicalPath);
 
           const auto fileName = std::filesystem::path(relPath).filename().string();
           const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -794,7 +771,7 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
         } else {
           const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
           std::filesystem::create_directories(target.parent_path());
-          std::filesystem::rename(tmpPath, target);
+          utils::portableRename(tmpPath, target);
 
           const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
           const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
@@ -860,13 +837,13 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
     } else {
       const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
       std::filesystem::create_directories(target.parent_path());
-      const auto tmp = target.string() + ".tmp";
+      const auto tmp = target.parent_path() / (target.filename().string() + ".tmp");
 
       std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
       out.write(req->bodyData(), static_cast<std::streamsize>(req->bodyLength()));
       out.close();
 
-      std::filesystem::rename(tmp, target);
+      utils::portableRename(tmp, target);
       const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
       const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
       const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;

@@ -34,8 +34,16 @@ find_package(SQLite3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Protobuf REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(PROTOBUF REQUIRED protobuf)
+
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(PROTOBUF protobuf)
+endif()
+
+if(NOT PROTOBUF_FOUND)
+  set(PROTOBUF_LIBRARIES ${Protobuf_LIBRARIES})
+  set(PROTOBUF_INCLUDE_DIRS ${Protobuf_INCLUDE_DIRS})
+endif()
 
 # ------------------------------------------------------------------------------
 # 2. Protobuf Code Generation Configuration
@@ -104,3 +112,11 @@ target_link_libraries(crowleys_cloud_server PRIVATE
   ZLIB::ZLIB
   ${PROTOBUF_LIBRARIES}
 )
+
+# ------------------------------------------------------------------------------
+# 5. Installation Rules (for .deb, .rpm, PKGBUILD, Homebrew)
+# ------------------------------------------------------------------------------
+include(GNUInstallDirs)
+install(TARGETS crowleys_cloud_server DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(DIRECTORY config/ DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/crowleys_cloud)
+

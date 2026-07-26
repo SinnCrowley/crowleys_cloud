@@ -8,6 +8,7 @@
 #include "server/services/FileIndexService.hpp"
 #include "server/utils/Crypto.hpp"
 #include "server/utils/TimeUtils.hpp"
+#include <server/utils/PlatformUtils.hpp>
 
 #include <sqlite3.h>
 
@@ -56,9 +57,7 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
 
   const auto fileName = absolutePath.filename().string();
   const auto size = static_cast<std::int64_t>(std::filesystem::file_size(absolutePath));
-  const auto mtime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                         std::filesystem::last_write_time(absolutePath).time_since_epoch())
-                         .count();
+  const auto mtime = utils::fileTimeToMillis(std::filesystem::last_write_time(absolutePath));
   const auto type = fileService_.classifyType(absolutePath);
   const auto mimeType = fileService_.mimeTypeFor(absolutePath);
 
@@ -433,9 +432,7 @@ std::int64_t FileIndexService::rebuildIndex(std::int64_t ownerUserId,
       diskFiles.insert(rel);
 
       auto it = dbFiles.find(rel);
-      const auto mtime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                             entry.last_write_time(ec).time_since_epoch())
-                             .count();
+      const auto mtime = utils::fileTimeToMillis(entry.last_write_time(ec));
       const auto size = static_cast<std::int64_t>(entry.file_size(ec));
 
       if (it != dbFiles.end() && it->second.modifiedAt == mtime && it->second.size == size && !it->second.sha256.empty()) {
