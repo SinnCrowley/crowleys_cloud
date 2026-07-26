@@ -85,16 +85,10 @@ inline void portableRename(const std::filesystem::path &from, const std::filesys
  */
 inline int64_t fileTimeToMillis(const std::filesystem::file_time_type &ftime) {
   using namespace std::chrono;
-  try {
-    auto s_time = clock_cast<system_clock>(ftime);
-    return duration_cast<milliseconds>(s_time.time_since_epoch()).count();
-  } catch (...) {
-    // Fallback calculation if clock_cast throws
-    auto sys_now = system_clock::now();
-    auto file_now = std::filesystem::file_time_type::clock::now();
-    auto s_time = sys_now + duration_cast<milliseconds>(ftime - file_now);
-    return duration_cast<milliseconds>(s_time.time_since_epoch()).count();
-  }
+  auto sys_now = system_clock::now();
+  auto file_now = std::filesystem::file_time_type::clock::now();
+  auto s_time = sys_now + duration_cast<milliseconds>(ftime - file_now);
+  return duration_cast<milliseconds>(s_time.time_since_epoch()).count();
 }
 
 /**
