@@ -5,7 +5,7 @@ FROM ubuntu:22.04 AS builder
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install build dependencies
+# Install build dependencies (cached layer — changes rarely)
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -24,11 +24,21 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy the server source code and the proto directory (needed by CMake)
+# Copy CMake configuration first to cache the Drogon fetch step.
+# This layer is invalidated only when CMakeLists.txt changes.
+COPY server/CMakeLists.txt ./server/CMakeLists.txt
+
+# Run CMake configure to download and build Drogon (most expensive step).
+# This is cached as long as CMakeLists.txt hasn't changed.
+WORKDIR /app/server
+RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release || true
+
+# Now copy the actual source code and proto definitions
+WORKDIR /app
 COPY server/ ./server/
 COPY proto/ ./proto/
 
-# Build the server
+# Re-run configure (picks up new source files) and build
 WORKDIR /app/server
 RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 RUN cmake --build build -j$(nproc)
@@ -39,15 +49,15 @@ FROM ubuntu:22.04
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
+# Install only runtime libraries (not -dev packages)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3 \
     libsqlite3-0 \
     zlib1g \
-    libprotobuf-dev \
-    uuid \
+    libprotobuf23 \
+    libuuid1 \
     libbrotli1 \
-    libjsoncpp-dev \
+    libjsoncpp25 \
     ffmpeg \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
