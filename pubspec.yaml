@@ -42,6 +42,7 @@ dependencies:
   # System Interop & Notifications
   share_plus: ^13.3.0                   # Native OS content / file sharing dialogs
   open_file: ^4.0.0                    # Opening files in external system handler apps
+  url_launcher: ^6.3.0                 # Opening external URLs and release download links
   flutter_local_notifications: ^22.1.0  # System local notifications for background operations
 
 dev_dependencies:

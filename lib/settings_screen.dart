@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/app_settings_service.dart';
+import 'package:crowleys_cloud/app_update_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/biometric_auth_service.dart';
 import 'package:crowleys_cloud/cache_service.dart';
@@ -82,6 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _defaultTargetDir = '/backup/device';
   int _trashRetentionDays = 7;
   bool _trashLoading = false;
+  bool _isCheckingUpdate = false;
 
   SyncService get _syncService {
     return widget.syncService ??
@@ -789,6 +791,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _cacheSection(),
                 const SizedBox(height: 14),
                 _securitySection(),
+                const SizedBox(height: 14),
+                _aboutSection(),
               ],
             ),
     );
@@ -972,34 +976,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 : Icon(Icons.chevron_right, color: appSubtext),
             onTap: hasSelectedServer && !_isSyncing
                 ? _syncSelectedServerNow
-                : null,
-          ),
-          ListTile(
-            enabled: hasSelectedServer && !_isSyncing,
-            leading: Icon(Icons.bug_report_outlined, color: appAccent),
-            title: Text(
-              'Trigger Background Sync (Debug)',
-              style: TextStyle(color: appText),
-            ),
-            subtitle: Text(
-              'Forces a WorkManager one-off background task run.',
-              style: TextStyle(color: appSubtext),
-            ),
-            onTap: hasSelectedServer
-                ? () async {
-                    final scheduler = widget.syncScheduler;
-                    if (scheduler != null) {
-                      await scheduler.debugTriggerOneOffSync(selectedServer.id);
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'One-off background sync task scheduled! Check logs.',
-                          ),
-                        ),
-                      );
-                    }
-                  }
                 : null,
           ),
           ListTile(
@@ -1217,6 +1193,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           trailing: Icon(Icons.chevron_right, color: appSubtext),
           onTap: hasActiveServer ? _deleteActiveServerAccount : null,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _checkForUpdatesManually() async {
+    if (_isCheckingUpdate) return;
+    setState(() => _isCheckingUpdate = true);
+    try {
+      final service = AppUpdateService();
+      final info = await service.checkForUpdates();
+      if (!mounted) return;
+      if (info != null && info.hasUpdate) {
+        await AppUpdateDialog.show(context, info);
+      } else if (info != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Crowley\'s Cloud is up to date (v${info.currentVersion}).',
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Failed to check for updates. Please try again later.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isCheckingUpdate = false);
+      }
+    }
+  }
+
+  Widget _aboutSection() {
+    return _SettingsSection(
+      title: 'About & Updates',
+      children: [
+        ListTile(
+          leading: _isCheckingUpdate
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(Icons.system_update_outlined, color: appAccent),
+          title: Text('Check for updates', style: TextStyle(color: appText)),
+          subtitle: Text(
+            _isCheckingUpdate
+                ? 'Checking GitHub Releases...'
+                : 'Version $appVersion',
+            style: TextStyle(color: appSubtext),
+          ),
+          trailing: _isCheckingUpdate
+              ? null
+              : Icon(Icons.chevron_right, color: appSubtext),
+          onTap: _isCheckingUpdate ? null : _checkForUpdatesManually,
         ),
       ],
     );

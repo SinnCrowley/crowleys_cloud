@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/app_settings_service.dart';
+import 'package:crowleys_cloud/app_update_service.dart';
 import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/biometric_auth_service.dart';
@@ -362,6 +363,16 @@ class _MainScreenState extends State<MainScreen> {
     await _loadTrashRetention();
     if (!mounted) return;
     setState(() {});
+    unawaited(_checkForAutoUpdates());
+  }
+
+  Future<void> _checkForAutoUpdates() async {
+    try {
+      final info = await AppUpdateService().checkForUpdates();
+      if (mounted && info != null && info.hasUpdate) {
+        await AppUpdateDialog.show(context, info);
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadTrashRetention() async {
