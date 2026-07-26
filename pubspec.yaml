@@ -24,7 +24,7 @@ dependencies:
   flutter_secure_storage: ^10.3.1 # Encrypted credential & token storage (KeyStore / Keychain)
 
   # Media & Thumbnail Processing
-  photo_manager: ^3.10.0                 # Gallery and photo library asset enumeration
+  photo_manager: 3.10.0                 # Gallery and photo library asset enumeration
   photo_manager_image_provider: ^2.2.0 # ImageProvider wrapper for photo_manager AssetEntity
   #video_thumbnail: ^0.5.3               # Frame extraction thumbnail generation for local video files
   video_thumbnail_plus: ^0.0.2
