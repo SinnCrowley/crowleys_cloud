@@ -88,6 +88,16 @@ class AppUpdateService {
         },
       );
 
+      if (response.statusCode == 404) {
+        return AppUpdateInfo(
+          hasUpdate: false,
+          currentVersion: currentVersion,
+          latestVersion: currentVersion,
+          releaseNotes: 'No releases published yet.',
+          htmlUrl: 'https://github.com/$owner/$repo/releases',
+        );
+      }
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         final tagName = (json['tag_name'] as String?) ?? '';

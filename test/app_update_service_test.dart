@@ -78,5 +78,29 @@ void main() {
       expect(result!.hasUpdate, isFalse);
       expect(result.latestVersion, equals('1.0.0'));
     });
+
+    test(
+      'returns hasUpdate false when no releases published yet (404)',
+      () async {
+        final mockClient = MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'message': 'Not Found',
+              'documentation_url':
+                  'https://docs.github.com/rest/releases/releases#get-the-latest-release',
+            }),
+            404,
+          );
+        });
+
+        final service = AppUpdateService(currentVersion: '1.0.0');
+        final result = await service.checkForUpdates(client: mockClient);
+
+        expect(result, isNotNull);
+        expect(result!.hasUpdate, isFalse);
+        expect(result.currentVersion, equals('1.0.0'));
+        expect(result.latestVersion, equals('1.0.0'));
+      },
+    );
   });
 }
