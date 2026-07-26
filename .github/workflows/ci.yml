@@ -3,11 +3,12 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main, master ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -123,6 +124,13 @@ jobs:
       - name: Build Android Release APK
         run: flutter build apk --release
 
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
   build-ios:
     name: Build iOS App
     needs: test-client
@@ -159,12 +167,12 @@ jobs:
         run: flutter build ios --no-codesign
 
   # ------------------------------------------------------------------------------
-  # 3. Publish Server Docker Container (triggers only on push/merge to main)
+  # 3. Publish Server Docker Container (on push to main/master or version tag)
   # ------------------------------------------------------------------------------
   publish-server-image:
     name: Build & Push Docker Image
     needs: [build-server, build-android, build-ios]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -187,6 +195,11 @@ jobs:
         run: |
           echo "REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+      - name: Extract Version Tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          echo "VERSION_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
       - name: Build and Push Multi-Arch Docker Image
         uses: docker/build-push-action@v6
         with:
@@ -197,5 +210,63 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO_LOWER }}/crowleys-cloud-server:latest
             ghcr.io/${{ env.REPO_LOWER }}/crowleys-cloud-server:${{ github.sha }}
+            ${{ env.VERSION_TAG && format('ghcr.io/{0}/crowleys-cloud-server:{1}', env.REPO_LOWER, env.VERSION_TAG) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
+
+  # ------------------------------------------------------------------------------
+  # 4. Create GitHub Release with APK (triggers only on version tags)
+  # ------------------------------------------------------------------------------
+  create-release:
+    name: Publish GitHub Release
+    needs: [build-server, build-android, build-ios]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+
+      - name: Rename APK with Version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          mv app-release.apk "crowleys-cloud-${VERSION}.apk"
+          echo "APK_NAME=crowleys-cloud-${VERSION}.apk" >> $GITHUB_ENV
+
+      - name: Generate Release Notes
+        run: |
+          # Get the previous tag for changelog generation
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "## What's Changed" > release_notes.md
+          echo "" >> release_notes.md
+          if [ -n "$PREV_TAG" ]; then
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges >> release_notes.md
+          else
+            git log --pretty=format:"- %s" --no-merges -20 >> release_notes.md
+          fi
+          echo "" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "---" >> release_notes.md
+          echo "### Installation" >> release_notes.md
+          echo "Download the APK file below and install it on your Android device." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Server Docker Image" >> release_notes.md
+          echo '```bash' >> release_notes.md
+          echo "docker pull ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/crowleys-cloud-server:${GITHUB_REF#refs/tags/}" >> release_notes.md
+          echo '```' >> release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          files: ${{ env.APK_NAME }}
+          draft: false
+          prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-rc') || contains(github.ref, '-alpha') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
