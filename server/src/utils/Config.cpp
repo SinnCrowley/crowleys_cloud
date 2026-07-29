@@ -20,6 +20,7 @@ Config loadConfig(const std::string &path) {
   cfg.host = json.get("host", cfg.host).asString();
   cfg.port = static_cast<uint16_t>(json.get("port", cfg.port).asUInt());
   cfg.storageRoot = json.get("storage_root", cfg.storageRoot).asString();
+  cfg.dbPath = json.get("db_path", cfg.dbPath).asString();
   cfg.jwtSecret = json.get("jwt_secret", cfg.jwtSecret).asString();
   cfg.uploadLimitBytes = json.get("upload_limit_bytes", Json::Int64(cfg.uploadLimitBytes)).asInt64();
   cfg.rateLimitPerMinute = json.get("rate_limit_per_minute", cfg.rateLimitPerMinute).asInt();
@@ -36,6 +37,9 @@ Config loadConfig(const std::string &path) {
 
   try {
     cfg.storageRoot = std::filesystem::weakly_canonical(cfg.storageRoot).generic_string();
+  } catch (...) {}
+  try {
+    cfg.dbPath = std::filesystem::weakly_canonical(cfg.dbPath).generic_string();
   } catch (...) {}
 
   return cfg;

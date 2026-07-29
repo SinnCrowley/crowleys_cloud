@@ -66,6 +66,7 @@ Configuration settings are loaded from `server/config/config.json`. Below is a b
 | `host` | String | `"0.0.0.0"` | IP address the HTTP server binds to (`0.0.0.0` listens on all interfaces). |
 | `port` | Number | `8080` | TCP port for incoming HTTP traffic. |
 | `storage_root` | String | `"./storage"` | Local directory where physical user files are saved. |
+| `db_path` | String | `"./data/server.sqlite3"` | File path to the SQLite3 database. |
 | `jwt_secret` | String | `"your-jwt-secret"` | Signature secret key used to issue and verify JWT access tokens. |
 | `upload_limit_bytes` | Number | `10737418240` | Maximum allowed size of an uploaded file in bytes (e.g., 10 GB). |
 | `rate_limit_per_minute` | Number | `10` | IP-based request threshold per minute for critical auth endpoints. |

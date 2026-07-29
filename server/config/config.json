@@ -2,6 +2,7 @@
   "host": "0.0.0.0",
   "port": 8080,
   "storage_root": "./storage",
+  "db_path": "./data/server.sqlite3",
   "jwt_secret": "change-this-secret",
   "upload_limit_bytes": 10737418240,
   "rate_limit_per_minute": 10,

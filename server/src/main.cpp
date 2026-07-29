@@ -24,10 +24,13 @@ int main(int argc, char *argv[]) {
 
   std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "users");
   std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "shared");
-  std::filesystem::create_directories("./data");
+  auto dbParent = std::filesystem::path(appCtx.config.dbPath).parent_path();
+  if (!dbParent.empty()) {
+    std::filesystem::create_directories(dbParent);
+  }
   std::filesystem::create_directories(appCtx.config.logDir);
 
-  appCtx.database = std::make_unique<server::db::Database>("./data/server.sqlite3");
+  appCtx.database = std::make_unique<server::db::Database>(appCtx.config.dbPath);
   appCtx.database->migrate();
 
   appCtx.userService = std::make_unique<server::services::UserService>(*appCtx.database, appCtx.config);
