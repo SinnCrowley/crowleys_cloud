@@ -22,8 +22,10 @@ int main(int argc, char *argv[]) {
   auto &appCtx = server::ctx();
   appCtx.config = server::utils::loadConfig(configPath);
 
+  drogon::app().setUploadPath(appCtx.config.tempUploadDir);
   std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "users");
   std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "shared");
+  std::filesystem::create_directories(appCtx.config.tempUploadDir);
   auto dbParent = std::filesystem::path(appCtx.config.dbPath).parent_path();
   if (!dbParent.empty()) {
     std::filesystem::create_directories(dbParent);

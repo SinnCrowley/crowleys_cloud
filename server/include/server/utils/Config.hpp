@@ -10,6 +10,7 @@ struct Config {
   uint16_t port{8080};
   std::string storageRoot{"./storage"};
   std::string dbPath{"./data/server.sqlite3"};
+  std::string tempUploadDir{"./uploads"};
   std::string jwtSecret{"change-this-secret"};
   std::int64_t uploadLimitBytes{10LL * 1024 * 1024 * 1024};
   int rateLimitPerMinute{10};
