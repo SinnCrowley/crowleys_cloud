@@ -35,15 +35,8 @@ find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Protobuf REQUIRED)
 
-find_package(PkgConfig QUIET)
-if(PKG_CONFIG_FOUND)
-  pkg_check_modules(PROTOBUF protobuf)
-endif()
-
-if(NOT PROTOBUF_FOUND)
-  set(PROTOBUF_LIBRARIES ${Protobuf_LIBRARIES})
-  set(PROTOBUF_INCLUDE_DIRS ${Protobuf_INCLUDE_DIRS})
-endif()
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PROTOBUF REQUIRED IMPORTED_TARGET protobuf)
 
 # ------------------------------------------------------------------------------
 # 2. Protobuf Code Generation Configuration
@@ -110,7 +103,7 @@ target_link_libraries(crowleys_cloud_server PRIVATE
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  ${PROTOBUF_LIBRARIES}
+  PkgConfig::PROTOBUF
 )
 
 # ------------------------------------------------------------------------------

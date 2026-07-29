@@ -16,9 +16,11 @@ AppContext &ctx() {
 }
 }  // namespace server
 
-int main() {
+int main(int argc, char *argv[]) {
+  const std::string configPath = (argc > 1) ? argv[1] : "./config/config.json";
+
   auto &appCtx = server::ctx();
-  appCtx.config = server::utils::loadConfig("./config/config.json");
+  appCtx.config = server::utils::loadConfig(configPath);
 
   std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "users");
   std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "shared");
