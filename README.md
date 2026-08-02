@@ -135,3 +135,32 @@ This updates the serialization files under `lib/shared/proto/`. The HTTP client 
 - **OS Secure Storage**: API tokens and login passwords are encrypted and persisted using the Android KeyStore and iOS Keychain. No plaintext credentials touch the filesystem.
 - **Biometric Lock**: When enabled, the app locks token generation interfaces until fingerprint/face scans are completed successfully.
 - **Token Rotation**: The client automatically requests new JWT access tokens using its refresh tokens without interrupting user actions.
+
+---
+
+## License
+
+**Crowley's Cloud** is open-source software licensed under the [GNU Affero General Public License v3.0 (AGPLv3)](file:///home/crowley/Projects/crowleys_cloud/LICENSE).
+
+---
+
+## Third-Party Software & Licenses
+
+This project relies on open-source frameworks and libraries:
+
+### C++ Backend Server
+- **Drogon Web Framework** (MIT)
+- **OpenSSL** (Apache License 2.0)
+- **SQLite3** (Public Domain)
+- **ZLIB** (zlib License)
+- **Google Protocol Buffers** (BSD-3-Clause)
+
+### Flutter Mobile Client
+- **Flutter SDK** (`flutter`, `flutter_test`, `flutter_lints`) (BSD-3-Clause)
+- **permission_handler**, **video_thumbnail_plus**, **workmanager**, **open_file**, **flutter_launcher_icons**, **flutter_native_splash** (MIT)
+- **path_provider**, **path**, **shared_preferences**, **flutter_secure_storage**, **http**, **crypto**, **local_auth**, **protobuf**, **fixnum**, **share_plus**, **url_launcher**, **flutter_local_notifications** (BSD-3-Clause)
+- **photo_manager_image_provider**, **photo_manager** (Apache 2.0)
+
+For full copyright notices and complete license texts for each dependency, see [THIRD_PARTY_LICENSES.md](file:///home/crowley/Projects/crowleys_cloud/THIRD_PARTY_LICENSES.md).
+
+
