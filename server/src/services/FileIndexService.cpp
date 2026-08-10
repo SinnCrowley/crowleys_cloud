@@ -269,11 +269,15 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
     if (isEntryDir) {
       if (query.includeDirs) {
         auto it = dirs.find(remaining);
+        std::string dirName = (nameRaw != nullptr && nameRaw[0] != '\0')
+                                  ? std::string(nameRaw)
+                                  : std::filesystem::path(relPath).filename().string();
+        if (dirName.empty()) dirName = remaining;
         if (it == dirs.end()) {
           dirs.emplace(
               remaining,
               IndexedDirEntry{
-                  .name = remaining,
+                  .name = dirName,
                   .path = relPath,
                   .isDir = true,
                   .size = 0,
@@ -285,6 +289,39 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
         }
       }
       continue;
+    }
+
+    if (query.includeDirs && recursiveFiles) {
+      auto slashPos = remaining.find_last_of('/');
+      if (slashPos != std::string::npos) {
+        std::string parentDirsPath = remaining.substr(0, slashPos);
+        std::size_t startPos = 0;
+        while (startPos < parentDirsPath.size()) {
+          auto nextSlash = parentDirsPath.find('/', startPos);
+          std::string sub = (nextSlash == std::string::npos)
+                                ? parentDirsPath
+                                : parentDirsPath.substr(0, nextSlash);
+          if (!sub.empty()) {
+            if (dirs.find(sub) == dirs.end()) {
+              std::string subName = std::filesystem::path(sub).filename().string();
+              dirs.emplace(
+                  sub,
+                  IndexedDirEntry{
+                      .name = subName,
+                      .path = joinRelPath(currentPath, sub),
+                      .isDir = true,
+                      .size = 0,
+                      .modifiedAt = sqlite3_column_int64(stmt, 5),
+                      .type = "directory",
+                      .mimeType = "inode/directory",
+                      .thumbnailUrl = "",
+                  });
+            }
+          }
+          if (nextSlash == std::string::npos) break;
+          startPos = nextSlash + 1;
+        }
+      }
     }
 
     files.push_back(IndexedDirEntry{

@@ -188,7 +188,7 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
         .query = query,
         .sortBy = sortBy,
         .sortAscending = order != "desc",
-        .includeDirs = !typedView && !recursiveSearch,
+        .includeDirs = !typedView,
         .recursiveFiles = typedView || recursiveSearch,
     });
 
@@ -216,7 +216,7 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
           .query = query,
           .sortBy = sortBy,
           .sortAscending = order != "desc",
-          .includeDirs = !typedView && !recursiveSearch,
+          .includeDirs = !typedView,
           .recursiveFiles = typedView || recursiveSearch,
       });
     }
@@ -257,7 +257,7 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
       mergedEntries.push_back(dirEntry);
     }
     for (const auto &entry : entries) {
-      if (!entry.isDir) mergedEntries.push_back(entry);
+      if (!entry.isDir || recursiveSearch) mergedEntries.push_back(entry);
     }
 
     std::sort(mergedEntries.begin(), mergedEntries.end(), [&](const auto &a, const auto &b) {

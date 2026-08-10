@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onDestroy } from 'svelte';
   import { authStore } from '../stores/auth.js';
   import CustomSelect from './CustomSelect.svelte';
 
@@ -13,6 +13,27 @@
 
   const dispatch = createEventDispatcher();
   const { user } = authStore;
+
+  let searchTimeout = null;
+
+  function handleSearchInput(e) {
+    const val = e.target.value;
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      dispatch('search', val);
+    }, 800);
+  }
+
+  function handleSearchKeydown(e) {
+    if (e.key === 'Enter') {
+      if (searchTimeout) clearTimeout(searchTimeout);
+      dispatch('search', e.target.value);
+    }
+  }
+
+  onDestroy(() => {
+    if (searchTimeout) clearTimeout(searchTimeout);
+  });
 
   const sortOptions = [
     { value: 'name', label: 'Name' },
@@ -51,7 +72,8 @@
         class="search-pill text-body"
         placeholder="Search files, folders, extensions..."
         value={searchQuery}
-        on:input={(e) => dispatch('search', e.target.value)}
+        on:input={handleSearchInput}
+        on:keydown={handleSearchKeydown}
       />
     </div>
   </div>
