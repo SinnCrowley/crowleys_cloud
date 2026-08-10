@@ -46,6 +46,8 @@ app.*.map.json
 
 # Agents instructions
 AGENTS.md
+PROJECT.md
+.agents/
 
 # server data
 /server/data/
@@ -59,8 +61,22 @@ AGENTS.md
 *.env
 server/config/config.local.json
 
+# Web client (Svelte / Vite / Node)
+node_modules/
+/server/web/node_modules/
+/server/web/dist/
+/server/web/.vite/
+/server/public/assets/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
 # Operating System Metadata
 .directory
 Thumbs.db
 *~
 *.lock
+
+# Release automation scripts
+/scripts/bump_version.sh

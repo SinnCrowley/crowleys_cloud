@@ -75,6 +75,14 @@ int main(int argc, char *argv[]) {
     drogon::app().setClientMaxMemoryBodySize(limit);
   }
 
+  // Configure static web interface hosting from ./public (Svelte SPA build)
+  const std::string publicDir = "./public";
+  if (std::filesystem::exists(publicDir)) {
+    drogon::app().setDocumentRoot(publicDir);
+    drogon::app().setHomePage("index.html");
+    LOG_INFO << "Web interface enabled from: " << publicDir;
+  }
+
   // Periodic cleanup of expired trash and logs (every hour) using Drogon native event loop timer.
   // Must register via beginningAdvice since the event loop isn't running until app().run().
   drogon::app().registerBeginningAdvice([]() {

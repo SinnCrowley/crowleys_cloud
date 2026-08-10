@@ -15,6 +15,7 @@ class FileController : public drogon::HttpController<FileController> {
   ADD_METHOD_TO(FileController::shareFile, "/api/files/share", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::checkHashes, "/api/files/check-hashes", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::createFolder, "/api/folders", drogon::Post, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(FileController::moveFile, "/api/files/move", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::deleteFile, "/api/files", drogon::Delete, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::rebuildIndex, "/api/index/rebuild", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::getTrash, "/api/trash", drogon::Get, "server::middleware::JwtMiddleware");
@@ -39,6 +40,8 @@ class FileController : public drogon::HttpController<FileController> {
                    std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void createFolder(const drogon::HttpRequestPtr &req,
                     std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+  void moveFile(const drogon::HttpRequestPtr &req,
+                std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void deleteFile(const drogon::HttpRequestPtr &req,
                   std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void rebuildIndex(const drogon::HttpRequestPtr &req,

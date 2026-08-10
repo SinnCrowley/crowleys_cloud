@@ -49,11 +49,36 @@ The project utilizes CMake to configure and build. Protobuf code generation is h
    ```bash
    cmake --build build -j$(nproc)
    ```
-3. **Run the server:**
-   The server expects a configuration file path as an argument. By default, it will search for `config/config.json`.
+3. **Build the Web Client (Svelte SPA):**
+   ```bash
+   cd web
+   npm install
+   npm run build
+   cd ..
+   ```
+   This compiles the lightweight web interface into `./public/` (`index.html`, CSS, and JS bundle).
+
+4. **Run the server:**
+   The server expects a configuration file path as an argument. By default, it will search for `config/config.json` and serve both API routes and static web assets on `http://localhost:8080`.
    ```bash
    ./build/crowleys_cloud_server
    ```
+
+---
+
+## Web Client Architecture (`server/web`)
+
+The web interface is built with **Svelte 4 + Vite** and uses pure Vanilla CSS and CSS custom variables to achieve a lightweight footprint (~28 KB gzipped) and visual parity with the Flutter mobile application.
+
+### Key Features:
+- **Zero-Dependency API Client:** Direct native `fetch` requests with transparent JWT refresh token rotation (`/api/refresh`).
+- **Responsive Theme Engine:** Identical dark mode (`#1E1E1E`/`#2C2C2C`), light mode (`#F4F5F8`/`#FFFFFF`), and accent color presets (`#FA5252`).
+- **Desktop UX & Drag-and-Drop Uploader:** Dragging external OS files/folders into the browser triggers background batch uploads with live progress.
+- **Drag-and-Drop File Moving:** Drag files or multi-selected batches into subfolder targets or parent directory `..` with floating cursor badge (`📁 Moving N items`) and confirmation dialog.
+- **Embedded Media & Document Previews:** Native HTML5 `<iframe>` preview for PDF files, photo gallery viewer, audio playback, video streaming, and source code viewer.
+- **Icon & Visual Parity:** Extension icon resolution (`picture_as_pdf`, `description`, `table_chart`, `slideshow`, `folder_zip`, `article`) matching the Flutter client.
+- **Context Menus & Actions:** Right-click actions for download, shared link creation, rename, folder creation, and moving to trash.
+- **Trash Manager:** Deleted file browser with item restore and permanent purge functions.
 
 ---
 

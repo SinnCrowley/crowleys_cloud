@@ -38,6 +38,8 @@ abstract final class FileTypeUtils {
       'gif',
       'bmp',
       'heic',
+      'avif',
+      'heif',
     }.contains(ext);
   }
 
@@ -51,5 +53,43 @@ abstract final class FileTypeUtils {
   static bool isAudio(String extensionOrFilename) {
     final ext = _cleanExtension(extensionOrFilename);
     return const {'mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'}.contains(ext);
+  }
+
+  /// Checks if an extension or filename belongs to a PDF file.
+  static bool isPdf(String extensionOrFilename) {
+    final ext = _cleanExtension(extensionOrFilename);
+    return ext == 'pdf';
+  }
+
+  /// Checks if an extension or filename belongs to a text file.
+  static bool isText(String extensionOrFilename) {
+    final ext = _cleanExtension(extensionOrFilename);
+    return const {
+      'txt',
+      'md',
+      'json',
+      'yaml',
+      'yml',
+      'xml',
+      'log',
+      'csv',
+      'js',
+      'ts',
+      'html',
+      'css',
+      'dart',
+      'cpp',
+      'c',
+      'h',
+      'hpp',
+      'py',
+      'sh',
+    }.contains(ext);
+  }
+
+  /// Checks if an extension or filename belongs to an archive file.
+  static bool isArchive(String extensionOrFilename) {
+    final ext = _cleanExtension(extensionOrFilename);
+    return const {'zip', 'tar', 'gz', '7z', 'rar', 'bz2', 'xz'}.contains(ext);
   }
 }

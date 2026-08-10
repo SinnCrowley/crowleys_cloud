@@ -16,8 +16,17 @@ void JwtMiddleware::doFilter(const drogon::HttpRequestPtr &req,
                              drogon::FilterCallback &&fcb,
                              drogon::FilterChainCallback &&fccb) {
   // Step 1: Extract and validate Authorization HTTP header format
-  const auto auth = req->getHeader("authorization");
+  auto auth = req->getHeader("authorization");
   const auto prefix = std::string("Bearer ");
+  if (auth.size() <= prefix.size() || auth.rfind(prefix, 0) != 0) {
+    const auto tokenParam = req->getParameter("token");
+    const auto accessTokenParam = req->getParameter("access_token");
+    const auto queryToken = !tokenParam.empty() ? tokenParam : accessTokenParam;
+    if (!queryToken.empty()) {
+      auth = prefix + queryToken;
+    }
+  }
+
   if (auth.size() <= prefix.size() || auth.rfind(prefix, 0) != 0) {
     fcb(utils::jsonError(drogon::k401Unauthorized, "Missing or invalid authorization header"));
     return;

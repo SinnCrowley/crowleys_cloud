@@ -13,7 +13,7 @@ abstract final class FileIconUtils {
       'doc' || 'docx' => Icons.description,
       'xls' || 'xlsx' => Icons.table_chart,
       'ppt' || 'pptx' => Icons.slideshow,
-      'zip' || 'tar' || 'gz' || '7z' || 'rar' => Icons.folder_zip,
+      'zip' || 'tar' || 'gz' || '7z' || 'rar' || 'bz2' || 'xz' => Icons.folder_zip,
       'mp3' || 'wav' || 'ogg' || 'flac' || 'm4a' || 'aac' => Icons.audiotrack,
       'mp4' || 'mkv' || 'avi' || 'mov' || 'webm' || 'flv' => Icons.movie,
       'jpg' ||
@@ -22,8 +22,28 @@ abstract final class FileIconUtils {
       'webp' ||
       'gif' ||
       'bmp' ||
-      'heic' => Icons.image,
-      'txt' || 'md' || 'json' || 'yaml' || 'xml' => Icons.article,
+      'heic' ||
+      'avif' ||
+      'heif' => Icons.image,
+      'txt' ||
+      'md' ||
+      'json' ||
+      'yaml' ||
+      'yml' ||
+      'xml' ||
+      'log' ||
+      'csv' ||
+      'js' ||
+      'ts' ||
+      'html' ||
+      'css' ||
+      'dart' ||
+      'cpp' ||
+      'c' ||
+      'h' ||
+      'hpp' ||
+      'py' ||
+      'sh' => Icons.article,
       _ => Icons.insert_drive_file,
     };
   }

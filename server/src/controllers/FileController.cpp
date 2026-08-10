@@ -970,6 +970,107 @@ void FileController::createFolder(const drogon::HttpRequestPtr &req,
   }
 }
 
+void FileController::moveFile(const drogon::HttpRequestPtr &req,
+                             std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  const auto scope = services::parseScope(req->getParameter("scope"));
+  if (!scope.has_value()) {
+    callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+    return;
+  }
+
+  const auto src = services::FileIndexService::normalizeRelPath(req->getParameter("src"));
+  const auto dest = services::FileIndexService::normalizeRelPath(req->getParameter("dest"));
+
+  if (src.empty() || dest.empty()) {
+    callback(jsonError(drogon::k400BadRequest, "src and dest must be specified"));
+    return;
+  }
+
+  const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+  const auto scopeStr = services::FileIndexService::scopeToString(*scope);
+
+  try {
+    const bool hashFiles = server::ctx().config.hashFiles;
+    if (hashFiles) {
+      // 1. Check if source exists in index
+      bool exists = false;
+      {
+        auto stmtGuard = server::ctx().database->getStatement(
+            "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0");
+        sqlite3_bind_int64(stmtGuard.get(), 1, ownerUserId);
+        sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmtGuard.get(), 3, src.c_str(), -1, SQLITE_TRANSIENT);
+        exists = (sqlite3_step(stmtGuard.get()) == SQLITE_ROW);
+      }
+      if (!exists) {
+        callback(jsonError(drogon::k404NotFound, "Source file/folder not found"));
+        return;
+      }
+
+      // 2. Perform database update for renaming/moving the index entry and its descendants
+      const auto newName = std::filesystem::path(dest).filename().string();
+      const auto destParent = services::FileIndexService::normalizeRelPath(std::filesystem::path(dest).parent_path().generic_string());
+      const int srcLen = static_cast<int>(src.length());
+      
+      auto stmtGuard = server::ctx().database->getStatement(
+          "UPDATE file_index SET "
+          "  rel_path = ?1 || substr(rel_path, ?2), "
+          "  parent_path = CASE WHEN rel_path = ?3 THEN ?4 ELSE ?1 || substr(parent_path, ?2) END, "
+          "  name = CASE WHEN rel_path = ?3 THEN ?5 ELSE name END "
+          "WHERE owner_user_id = ?6 AND scope = ?7 AND (rel_path = ?8 OR rel_path LIKE ?9) AND is_deleted = 0");
+          
+      sqlite3_bind_text(stmtGuard.get(), 1, dest.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_int(stmtGuard.get(), 2, srcLen + 1);
+      sqlite3_bind_text(stmtGuard.get(), 3, src.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(stmtGuard.get(), 4, destParent.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(stmtGuard.get(), 5, newName.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_int64(stmtGuard.get(), 6, ownerUserId);
+      sqlite3_bind_text(stmtGuard.get(), 7, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(stmtGuard.get(), 8, src.c_str(), -1, SQLITE_TRANSIENT);
+      std::string prefixPattern = src + "/%";
+      sqlite3_bind_text(stmtGuard.get(), 9, prefixPattern.c_str(), -1, SQLITE_TRANSIENT);
+      
+      if (sqlite3_step(stmtGuard.get()) != SQLITE_DONE) {
+        callback(jsonError(drogon::k500InternalServerError, "Failed to update file index"));
+        return;
+      }
+    } else {
+      // Direct filesystem mode
+      const auto srcPath = server::ctx().fileService->resolvePath(userId, role, *scope, src, false);
+      const auto destPath = server::ctx().fileService->resolvePath(userId, role, *scope, dest, false);
+      
+      if (!std::filesystem::exists(srcPath)) {
+        callback(jsonError(drogon::k404NotFound, "Source path does not exist"));
+        return;
+      }
+      
+      std::filesystem::create_directories(destPath.parent_path());
+      std::filesystem::rename(srcPath, destPath);
+      
+      // Update DB indexes for filesystem rename
+      // Rebuild index for dest path (and children)
+      server::ctx().fileIndexService->rebuildIndex(ownerUserId, *scope, destPath);
+      // Mark old src index paths as deleted
+      server::ctx().fileIndexService->markDeleted(ownerUserId, *scope, src);
+      server::ctx().fileIndexService->markDeletedPrefix(ownerUserId, *scope, src);
+    }
+    
+    Json::Value body;
+    body["ok"] = true;
+    body["message"] = "File/folder moved successfully";
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
 void FileController::deleteFile(const drogon::HttpRequestPtr &req,
                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
   std::int64_t userId;

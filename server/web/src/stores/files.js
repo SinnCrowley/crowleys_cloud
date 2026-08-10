@@ -1,0 +1,126 @@
+import { writable, get } from 'svelte/store';
+import { filesApi } from '../api/files.js';
+
+const scope = writable(typeof localStorage !== 'undefined' ? localStorage.getItem('cc_current_scope') || 'private' : 'private');
+const currentPath = writable(typeof localStorage !== 'undefined' ? localStorage.getItem('cc_current_path') || '' : '');
+const entries = writable([]);
+const searchQuery = writable('');
+const sortOption = writable({ field: 'name', order: 'asc' });
+const filterType = writable(typeof localStorage !== 'undefined' ? localStorage.getItem('cc_current_filter') || 'all' : 'all');
+const selectedPaths = writable(new Set());
+const isLoading = writable(false);
+const error = writable(null);
+
+export const filesStore = {
+  scope,
+  currentPath,
+  entries,
+  searchQuery,
+  sortOption,
+  filterType,
+  selectedPaths,
+  isLoading,
+  error,
+
+  async loadDirectory() {
+    isLoading.set(true);
+    error.set(null);
+    try {
+      const currentScope = get(scope);
+      const path = get(currentPath);
+      const q = get(searchQuery);
+      const sort = get(sortOption);
+      const type = get(filterType);
+
+      const res = await filesApi.listDir({
+        scope: currentScope,
+        path,
+        type,
+        q,
+        sort: sort.field,
+        order: sort.order
+      });
+
+      entries.set(res.entries || []);
+    } catch (err) {
+      error.set(err.message || 'Failed to load directory');
+    } finally {
+      isLoading.set(false);
+    }
+  },
+
+  navigateTo(path) {
+    selectedPaths.set(new Set());
+    currentPath.set(path);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('cc_current_path', path);
+    }
+    return this.loadDirectory();
+  },
+
+  setScope(newScope) {
+    selectedPaths.set(new Set());
+    scope.set(newScope);
+    currentPath.set('');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('cc_current_scope', newScope);
+      localStorage.setItem('cc_current_path', '');
+    }
+    return this.loadDirectory();
+  },
+
+  toggleSelection(path, multi = false) {
+    selectedPaths.update((set) => {
+      const next = multi ? new Set(set) : new Set();
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  },
+
+  selectAll() {
+    const all = get(entries).map((e) => e.path);
+    selectedPaths.set(new Set(all));
+  },
+
+  clearSelection() {
+    selectedPaths.set(new Set());
+  },
+
+  async deleteSelected() {
+    const selected = Array.from(get(selectedPaths));
+    if (selected.length === 0) return;
+    const currentScope = get(scope);
+    isLoading.set(true);
+    try {
+      await Promise.all(selected.map((path) => filesApi.deleteFile({ scope: currentScope, path })));
+      this.clearSelection();
+      await this.loadDirectory();
+    } catch (err) {
+      error.set(err.message || 'Failed to delete selected items');
+    } finally {
+      isLoading.set(false);
+    }
+  },
+
+  async moveSelected(destFolder) {
+    const selected = Array.from(get(selectedPaths));
+    if (selected.length === 0) return;
+    const currentScope = get(scope);
+    isLoading.set(true);
+    try {
+      for (const srcPath of selected) {
+        await filesApi.moveFile({ scope: currentScope, srcPath, destFolder });
+      }
+      this.clearSelection();
+      await this.loadDirectory();
+    } catch (err) {
+      error.set(err.message || 'Failed to move selected items');
+    } finally {
+      isLoading.set(false);
+    }
+  }
+};

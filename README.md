@@ -34,10 +34,13 @@ A feature-rich, high-performance Flutter mobile application for **Crowley's Clou
    - Local on-the-fly thumbnail generation for video files, and remote thumbnail previews for images and videos.
    - Custom thematic text viewer (`TextViewer`) supporting dark, light, and custom settings themes.
 
-6. **System Interoperability**:
-   - Standard sharing sheet integration (`share_plus`) to send links or files.
-   - Background transfer notifications via `flutter_local_notifications`.
-   - Native document opening via `open_file`.
+6. **Web Client (Svelte + Vite SPA)**:
+   - Ultra-lightweight and fast desktop web interface located in `server/web/`.
+   - Compiles to ~28 KB gzipped bundle served directly by the Drogon C++ backend from `server/public/`.
+   - **Drag-and-Drop Batch Upload & Item Move**: Drag files/folders into directory views for batch uploading, or drag files into subfolders / parent `..` directory with visual cursor badge (`📁 Moving N items`) and confirmation dialog.
+   - **Media & Document Previews**: Native HTML5 `<iframe>` preview for PDF files, image gallery viewer, video stream player, audio player, and code/text syntax viewer.
+   - **Visual & Icon Parity**: 1:1 identical theme matching (dark mode `#1E1E1E`, light mode `#F4F5F8`, accent `#FA5252`) and extension icon parity matching the Flutter client (`picture_as_pdf`, `description`, `table_chart`, `slideshow`, `folder_zip`, `article`).
+   - **Full Feature Set**: Right-click context menus, public share link creation, folder management, interactive selection action bar, and trash browser with item restore/purge.
 
 ---
 
@@ -154,6 +157,11 @@ This project relies on open-source frameworks and libraries:
 - **SQLite3** (Public Domain)
 - **ZLIB** (zlib License)
 - **Google Protocol Buffers** (BSD-3-Clause)
+
+### Svelte Web Interface (`server/web/`)
+- **Svelte Framework** (MIT)
+- **Vite Build Tool** (MIT)
+- **Google Material Symbols & Icons** (Apache License 2.0)
 
 ### Flutter Mobile Client
 - **Flutter SDK** (`flutter`, `flutter_test`, `flutter_lints`) (BSD-3-Clause)
