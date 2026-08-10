@@ -16,6 +16,8 @@ export const filesApi = {
 
   getDownloadUrl({ scope = 'private', path }) {
     const params = new URLSearchParams({ scope, path });
+    const token = get(authStore.accessToken);
+    if (token) params.append('token', token);
     return `/api/files?${params.toString()}`;
   },
 
@@ -153,6 +155,8 @@ export const filesApi = {
       params.append('scope', scope);
       if (path) params.append('path', path);
     }
+    const token = get(authStore.accessToken);
+    if (token) params.append('token', token);
     return `/api/thumb?${params.toString()}`;
   },
 

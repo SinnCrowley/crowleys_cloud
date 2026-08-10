@@ -442,7 +442,7 @@
           title={item.name}
         >
           <div class="grid-item-thumbnail">
-            {#if item.type === 'photo' && !thumbnailErrors.has(item.path)}
+            {#if (item.type === 'photo' || item.type === 'video') && !thumbnailErrors.has(item.path)}
               <img
                 src={filesApi.getThumbnailUrl({ scope, path: item.path })}
                 alt={item.name}
@@ -532,11 +532,12 @@
 
   .grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
     padding: 16px;
     overflow-y: auto;
     flex: 1;
+    align-content: start;
   }
 
   .grid-item {
@@ -548,7 +549,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    aspect-ratio: 0.85;
+    aspect-ratio: 1 / 1.12;
     cursor: pointer;
     user-select: none;
     transition: background-color 0.1s ease, border-color 0.1s ease;
@@ -576,6 +577,7 @@
   .grid-item-thumbnail {
     width: 100%;
     flex: 1;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -592,7 +594,7 @@
   }
 
   .grid-item-icon {
-    font-size: 40px;
+    font-size: 52px;
     color: var(--text-sub);
   }
 
@@ -605,7 +607,7 @@
   }
 
   .grid-item-name {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-main);
     white-space: nowrap;

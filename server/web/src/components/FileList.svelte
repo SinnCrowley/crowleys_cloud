@@ -1,17 +1,25 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { filesApi } from '../api/files.js';
 
   export let items = [];
   export let selectedItems = new Set();
   export let filterType = 'all';
   export let currentPath = '';
   export let searchQuery = '';
+  export let scope = 'private';
 
   const dispatch = createEventDispatcher();
 
   let isDragOver = false;
   let dragCounter = 0;
   let hoveredFolderTarget = null;
+  let thumbnailErrors = new Set();
+
+  function handleThumbnailError(path) {
+    thumbnailErrors.add(path);
+    thumbnailErrors = thumbnailErrors;
+  }
 
   $: parentPath = currentPath && currentPath.includes('/')
     ? currentPath.substring(0, currentPath.lastIndexOf('/'))
@@ -430,12 +438,22 @@
           </div>
 
           <div class="col-name cell-content">
-            <span
-              class="material-symbols-outlined file-type-icon {item.is_dir ? 'icon-folder' : ''}"
-              style={item.is_dir ? "font-variation-settings: 'FILL' 1;" : ''}
-            >
-              {getMaterialIcon(item)}
-            </span>
+            <div class="list-item-thumbnail">
+              {#if (item.type === 'photo' || item.type === 'video') && !thumbnailErrors.has(item.path)}
+                <img
+                  src={filesApi.getThumbnailUrl({ scope, path: item.path })}
+                  alt={item.name}
+                  on:error={() => handleThumbnailError(item.path)}
+                />
+              {:else}
+                <span
+                  class="material-symbols-outlined file-type-icon {item.is_dir ? 'icon-folder' : ''}"
+                  style={item.is_dir ? "font-variation-settings: 'FILL' 1;" : ''}
+                >
+                  {getMaterialIcon(item)}
+                </span>
+              {/if}
+            </div>
             <span class="file-name-text">{item.name}</span>
           </div>
 
@@ -546,7 +564,7 @@
     display: grid;
     grid-template-columns: 48px 5fr 3fr 2fr 48px;
     gap: var(--spacing-md);
-    padding: 8px 12px;
+    padding: 10px 14px;
     border-radius: var(--radius-md);
     cursor: pointer;
     user-select: none;
@@ -585,6 +603,25 @@
     justify-content: center;
   }
 
+  .list-item-thumbnail {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 12px;
+    background-color: var(--bg-background);
+  }
+
+  .list-item-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
   /* Custom styled checkboxes in the application theme style */
   .custom-checkbox {
     display: inline-flex;
@@ -619,8 +656,7 @@
   }
 
   .file-type-icon {
-    font-size: 20px;
-    margin-right: 12px;
+    font-size: 24px;
     color: var(--text-sub);
     flex-shrink: 0;
   }
@@ -631,7 +667,7 @@
 
   .file-name-text {
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;

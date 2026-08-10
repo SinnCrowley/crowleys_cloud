@@ -470,6 +470,7 @@
             items={$entries}
             selectedItems={$selectedPaths}
             filterType={$filterType}
+            scope={$scope}
             currentPath={$currentPath}
             searchQuery={$searchQuery}
             on:select={(e) => handleSelect(e.detail)}

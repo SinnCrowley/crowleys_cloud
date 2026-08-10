@@ -350,11 +350,12 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
       virtualPath = origPath;
 
       if (hashFiles) {
+        const auto normalizedOrig = services::FileIndexService::normalizeRelPath(origPath);
         const char *idxSql = "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND rel_path = ? AND is_deleted = 1 LIMIT 1";
         auto idxGuard = server::ctx().database->getStatement(idxSql);
         auto *idxStmt = idxGuard.get();
         sqlite3_bind_int64(idxStmt, 1, userId);
-        sqlite3_bind_text(idxStmt, 2, origPath.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(idxStmt, 2, normalizedOrig.c_str(), -1, SQLITE_TRANSIENT);
         if (sqlite3_step(idxStmt) == SQLITE_ROW) {
           const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
           if (shaValRaw) sha256Val = shaValRaw;
@@ -371,11 +372,12 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         return;
       }
       const auto rawPath = req->getParameter("path");
-      virtualPath = rawPath;
+      const auto normalizedPath = services::FileIndexService::normalizeRelPath(rawPath);
+      virtualPath = normalizedPath;
 
       std::int64_t fileOwnerId = userId;
       if (*scope == services::StorageScope::Shared) {
-        auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(rawPath);
+        auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(normalizedPath);
         if (!ownerId.has_value()) {
           callback(jsonError(drogon::k404NotFound, "File not found"));
           return;
@@ -390,7 +392,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         sqlite3_bind_int64(idxStmt, 1, fileOwnerId);
         const auto scopeStr = services::FileIndexService::scopeToString(*scope);
         sqlite3_bind_text(idxStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(idxStmt, 3, rawPath.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(idxStmt, 3, normalizedPath.c_str(), -1, SQLITE_TRANSIENT);
         if (sqlite3_step(idxStmt) == SQLITE_ROW) {
           const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
           if (shaValRaw) sha256Val = shaValRaw;
@@ -398,9 +400,9 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         source = std::filesystem::path(server::ctx().config.storageRoot) / "data" / sha256Val;
       } else {
         if (*scope == services::StorageScope::Shared) {
-          source = server::ctx().fileService->resolvePath(fileOwnerId, role, services::StorageScope::Private, rawPath, false);
+          source = server::ctx().fileService->resolvePath(fileOwnerId, role, services::StorageScope::Private, normalizedPath, false);
         } else {
-          source = server::ctx().fileService->resolvePath(userId, role, *scope, rawPath, false);
+          source = server::ctx().fileService->resolvePath(userId, role, *scope, normalizedPath, false);
         }
       }
       cacheUserId = fileOwnerId;
@@ -420,9 +422,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     const auto thumbRoot = std::filesystem::path(server::ctx().config.storageRoot) / ".thumbs" / std::to_string(cacheUserId);
     std::filesystem::create_directories(thumbRoot);
     const auto thumbPathBase = thumbRoot / std::to_string(std::hash<std::string>{}(key));
-    const auto thumbPath = fileType == "video"
-        ? std::filesystem::path(thumbPathBase.string() + ".jpg")
-        : thumbPathBase;
+    const auto thumbPath = std::filesystem::path(thumbPathBase.string() + ".jpg");
 
     std::error_code ecThumb, ecSrcTime;
     const auto thumbMtime = std::filesystem::last_write_time(thumbPath, ecThumb);
@@ -563,10 +563,11 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
           return;
         }
         const auto pathParam = req->getParameter("path");
+        const auto normalizedPath = services::FileIndexService::normalizeRelPath(pathParam);
 
         std::int64_t fileOwnerId = userId;
         if (*scope == services::StorageScope::Shared) {
-          auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(pathParam);
+          auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(normalizedPath);
           if (!ownerId.has_value()) {
             callback(jsonError(drogon::k404NotFound, "File not found"));
             return;
@@ -580,7 +581,7 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
         sqlite3_bind_int64(stmt, 1, fileOwnerId);
         const auto scopeStr = services::FileIndexService::scopeToString(*scope);
         sqlite3_bind_text(stmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt, 3, pathParam.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 3, normalizedPath.c_str(), -1, SQLITE_TRANSIENT);
 
         if (sqlite3_step(stmt) == SQLITE_ROW) {
           const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
@@ -617,8 +618,15 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
           stream->close();
         }).detach();
       });
-      resp->setContentTypeCode(drogon::CT_APPLICATION_OCTET_STREAM);
-      resp->addHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+
+      if (!mimeType.empty()) {
+        resp->setContentTypeString(mimeType);
+      } else {
+        resp->setContentTypeCode(drogon::CT_APPLICATION_OCTET_STREAM);
+      }
+      const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
+      const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
+      resp->addHeader("Content-Disposition", std::string(dispositionType) + "; filename=\"" + fileName + "\"");
       callback(resp);
       return;
     }
