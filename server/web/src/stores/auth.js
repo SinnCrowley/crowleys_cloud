@@ -1,4 +1,5 @@
 import { writable, derived } from 'svelte/store';
+import { resetClientAuthState } from '../api/client.js';
 
 const initialAccessToken = typeof localStorage !== 'undefined' ? localStorage.getItem('cc_access_token') || null : null;
 const initialRefreshToken = typeof localStorage !== 'undefined' ? localStorage.getItem('cc_refresh_token') || null : null;
@@ -41,15 +42,28 @@ export const authStore = {
   user: userStore,
   isAuthenticated,
 
-  setSession({ accessToken, refreshToken, user = null }) {
-    accessTokenStore.set(accessToken);
-    refreshTokenStore.set(refreshToken);
-    if (user) userStore.set(user);
+  setSession(data = {}) {
+    if (!data) return;
+    const token = data.accessToken || data.access_token || null;
+    const refresh = data.refreshToken || data.refresh_token || null;
+    const usr = data.user || null;
+
+    if (token) accessTokenStore.set(token);
+    if (refresh) refreshTokenStore.set(refresh);
+    if (usr) userStore.set(usr);
   },
 
   clearSession() {
     accessTokenStore.set(null);
     refreshTokenStore.set(null);
     userStore.set(null);
+    resetClientAuthState();
+
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('cc_access_token');
+      localStorage.removeItem('cc_refresh_token');
+      localStorage.removeItem('cc_user');
+      localStorage.removeItem('cc_user_stats');
+    }
   }
 };

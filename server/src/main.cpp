@@ -83,6 +83,44 @@ int main(int argc, char *argv[]) {
     const std::string indexHtmlPath = publicDir + "/index.html";
     if (std::filesystem::exists(indexHtmlPath)) {
       drogon::app().setCustom404Page(drogon::HttpResponse::newFileResponse(indexHtmlPath));
+
+      const std::vector<std::string> spaRoutes = {
+        "/dashboard", "/files", "/photos", "/videos", "/audio",
+        "/documents", "/other", "/shared", "/trash", "/settings"
+      };
+
+      for (const auto &routePath : spaRoutes) {
+        drogon::app().registerHandler(
+          routePath,
+          [indexHtmlPath](const drogon::HttpRequestPtr &req,
+                          std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+            auto resp = drogon::HttpResponse::newFileResponse(indexHtmlPath);
+            if (resp) {
+              resp->setStatusCode(drogon::k200OK);
+              resp->setContentTypeCode(drogon::CT_TEXT_HTML);
+            } else {
+              resp = drogon::HttpResponse::newNotFoundResponse();
+            }
+            callback(resp);
+          },
+          {drogon::Get});
+      }
+
+      const auto handleBrowseSpa = [indexHtmlPath](const drogon::HttpRequestPtr &req,
+                                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback,
+                                                   const std::string &subpath) {
+        auto resp = drogon::HttpResponse::newFileResponse(indexHtmlPath);
+        if (resp) {
+          resp->setStatusCode(drogon::k200OK);
+          resp->setContentTypeCode(drogon::CT_TEXT_HTML);
+        } else {
+          resp = drogon::HttpResponse::newNotFoundResponse();
+        }
+        callback(resp);
+      };
+
+      drogon::app().registerHandler("/files/browse/{subpath}", handleBrowseSpa, {drogon::Get});
+      drogon::app().registerHandler("/shared/browse/{subpath}", handleBrowseSpa, {drogon::Get});
     }
     LOG_INFO << "Web interface enabled from: " << publicDir;
   }

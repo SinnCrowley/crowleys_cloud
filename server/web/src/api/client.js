@@ -16,6 +16,16 @@ export class ApiError extends Error {
 let isRefreshing = false;
 let failedQueue = [];
 
+export function resetClientAuthState() {
+  isRefreshing = false;
+  failedQueue.forEach((prom) => {
+    try {
+      prom.reject(new ApiError(401, 'Session reset'));
+    } catch (e) {}
+  });
+  failedQueue = [];
+}
+
 function processQueue(error, token = null) {
   failedQueue.forEach((prom) => {
     if (error) {

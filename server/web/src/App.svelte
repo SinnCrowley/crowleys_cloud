@@ -30,52 +30,6 @@
   const { theme: appTheme, fontScale, accent } = themeState;
   const { queue: transfersQueue } = transfersStore;
 
-  // App-level state
-  let layoutMode = typeof localStorage !== 'undefined' ? localStorage.getItem('cc_layout_mode') || 'grid' : 'grid';
-  let currentRoute = typeof localStorage !== 'undefined' ? localStorage.getItem('cc_current_route') || 'dashboard' : 'dashboard';
-  let isAuthOpen = false;
-
-  // Global File Input for Sidebar trigger
-  let globalFileInput;
-
-  // Context Menu State
-  let contextMenu = null; // { x, y, item }
-
-  // Modal States
-  let activePreviewFile = null; // file item object or null
-  let isFolderPickerOpen = false;
-  let folderPickerTargetItems = []; // Array of items to move
-  let confirmMoveModal = null; // { validPaths, destFolder, targetName }
-
-  // Share Link Modal State
-  let shareModal = null; // { file, url }
-  let renameModal = null; // { file, newName }
-
-  // New folder dialog state
-  let newFolderModal = false;
-  let newFolderName = '';
-
-  // Custom Toast System
-  let toastMessage = '';
-  let toastType = 'success'; // 'success' | 'error' | 'info'
-  let toastTimeout;
-
-  function showToast(message, type = 'success') {
-    toastMessage = message;
-    toastType = type;
-    clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => {
-      toastMessage = '';
-    }, 4000);
-  }
-
-  function handleToastEvent(e) {
-    const { message, type } = e.detail || {};
-    if (message) {
-      showToast(message, type);
-    }
-  }
-
   // URL Routing Helpers
   function encodeSubpath(path) {
     if (!path) return '';
@@ -158,6 +112,63 @@
     return { route: 'dashboard', scope: 'private', filterType: 'all', currentPath: '' };
   }
 
+  // Parse initial route synchronously on script load to prevent render flicker / state reset on page refresh
+  const initialUrlState = typeof window !== 'undefined'
+    ? parseUrlToState(window.location.pathname)
+    : { route: 'dashboard', scope: 'private', filterType: 'all', currentPath: '' };
+
+  // App-level state
+  let layoutMode = typeof localStorage !== 'undefined' ? localStorage.getItem('cc_layout_mode') || 'grid' : 'grid';
+  let currentRoute = initialUrlState.route;
+  let isAuthOpen = false;
+
+  // Global File Input for Sidebar trigger
+  let globalFileInput;
+
+  // Context Menu State
+  let contextMenu = null; // { x, y, item }
+
+  // Modal States
+  let activePreviewFile = null; // file item object or null
+  let isFolderPickerOpen = false;
+  let folderPickerTargetItems = []; // Array of items to move
+  let confirmMoveModal = null; // { validPaths, destFolder, targetName }
+
+  // Share Link Modal State
+  let shareModal = null; // { file, url }
+  let renameModal = null; // { file, newName }
+
+  // New folder dialog state
+  let newFolderModal = false;
+  let newFolderName = '';
+
+  // Custom Toast System
+  let toastMessage = '';
+  let toastType = 'success'; // 'success' | 'error' | 'info'
+  let toastTimeout;
+
+  function showToast(message, type = 'success') {
+    toastMessage = message;
+    toastType = type;
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toastMessage = '';
+    }, 4000);
+  }
+
+  function handleToastEvent(e) {
+    const { message, type } = e.detail || {};
+    if (message) {
+      showToast(message, type);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    filesStore.scope.set(initialUrlState.scope);
+    filesStore.filterType.set(initialUrlState.filterType);
+    filesStore.currentPath.set(initialUrlState.currentPath);
+  }
+
   function applyStateFromPath(pathname, pushToHistory = false) {
     const newState = parseUrlToState(pathname);
     currentRoute = newState.route;
@@ -202,6 +213,10 @@
 
   onMount(() => {
     applyStateFromPath(window.location.pathname, false);
+
+    if (get(authStore.isAuthenticated)) {
+      refreshStats();
+    }
 
     const handlePopState = (e) => {
       const targetPath = (e && e.state && e.state.url)

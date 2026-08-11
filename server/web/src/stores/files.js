@@ -22,6 +22,13 @@ export const filesStore = {
   isLoading,
   error,
 
+  clear() {
+    entries.set([]);
+    selectedPaths.set(new Set());
+    error.set(null);
+    isLoading.set(false);
+  },
+
   async loadDirectory() {
     isLoading.set(true);
     error.set(null);

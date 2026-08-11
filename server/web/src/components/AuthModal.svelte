@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { authApi } from '../api/auth.js';
   import { authStore } from '../stores/auth.js';
+  import { filesStore } from '../stores/files.js';
 
   const dispatch = createEventDispatcher();
   const { isAuthenticated, user, refreshToken } = authStore;
@@ -34,11 +35,17 @@
         res = await authApi.register({ username, password });
       }
 
-      dispatch('success', {
+      const payload = {
         accessToken: res.access_token,
         refreshToken: res.refresh_token,
+        access_token: res.access_token,
+        refresh_token: res.refresh_token,
         user: { username }
-      });
+      };
+
+      authStore.setSession(payload);
+      dispatch('success', payload);
+      dispatch('authenticated', payload);
     } catch (err) {
       errorMessage = err.message || 'Authentication failed. Please check your credentials.';
     } finally {
@@ -56,6 +63,7 @@
       console.warn('Logout API call failed:', err);
     } finally {
       authStore.clearSession();
+      filesStore.clear();
       isLoading = false;
       dispatch('close');
     }
