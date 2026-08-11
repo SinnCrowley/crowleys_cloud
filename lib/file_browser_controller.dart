@@ -281,6 +281,7 @@ class FileBrowserController extends ChangeNotifier {
 
   bool isLoading = true;
   String? error;
+  String? operationMessage;
   final List<FileItem> files = [];
   final Set<FileItem> selectedFiles = {};
   final List<Directory> directoryHistory = [];
@@ -743,5 +744,42 @@ class FileBrowserController extends ChangeNotifier {
       return 'No files were moved.';
     }
     return null;
+  }
+
+  Future<bool> renameItem(FileItem item, String newName) async {
+    final trimmed = newName.trim();
+    if (trimmed.isEmpty || trimmed == item.name) return false;
+
+    final itemPath = await item.path;
+    if (itemPath.isEmpty) return false;
+
+    final dirPath = p.dirname(itemPath);
+    final targetPath = p.join(dirPath, trimmed);
+
+    if (await File(targetPath).exists() ||
+        await Directory(targetPath).exists()) {
+      operationMessage =
+          'Failed to rename: A file or folder with that name already exists.';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      if (item.fsEntity != null) {
+        await item.fsEntity!.rename(targetPath);
+      } else if (item.isDirectory) {
+        await Directory(itemPath).rename(targetPath);
+      } else {
+        await File(itemPath).rename(targetPath);
+      }
+      operationMessage = 'Renamed "${item.name}" to "$trimmed".';
+      selectedFiles.clear();
+      await reload();
+      return true;
+    } catch (e) {
+      operationMessage = 'Failed to rename "${item.name}": $e';
+      notifyListeners();
+      return false;
+    }
   }
 }

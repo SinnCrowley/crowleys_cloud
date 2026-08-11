@@ -15,16 +15,16 @@ dependencies:
     sdk: flutter
 
   # System Permissions & Filesystem Access
-  permission_handler: ^12.0.1      # OS permission management (storage, camera, notifications)
+  permission_handler: ^13.0.0      # OS permission management (storage, camera, notifications)
   path_provider: ^2.1.5           # Platform path resolution (app documents, temp/cache)
   path: ^1.9.0                    # Cross-platform file path manipulation (p.join, p.basename)
 
   # Storage, Preferences & Security
   shared_preferences: ^2.2.3     # Key-value persistent storage for settings & preferences
-  flutter_secure_storage: ^10.3.1 # Encrypted credential & token storage (KeyStore / Keychain)
+  flutter_secure_storage: ^11.0.0 # Encrypted credential & token storage (KeyStore / Keychain)
 
   # Media & Thumbnail Processing
-  photo_manager: 3.10.0                 # Gallery and photo library asset enumeration
+  photo_manager: ^3.12.0                 # Gallery and photo library asset enumeration
   photo_manager_image_provider: ^2.2.0 # ImageProvider wrapper for photo_manager AssetEntity
   #video_thumbnail: ^0.5.3               # Frame extraction thumbnail generation for local video files
   video_thumbnail_plus: ^0.0.2
@@ -35,7 +35,7 @@ dependencies:
 
   # Authentication & Background Work
   local_auth: ^3.0.1        # Device biometric authentication (Fingerprint / FaceID)
-  workmanager: ^0.9.0+3     # Background job scheduling on Android / iOS
+  workmanager: ^0.10.7     # Background job scheduling on Android / iOS
   protobuf: ^6.0.0          # Google Protocol Buffers implementation for Dart
   fixnum: ^1.1.0            # Fixnum package for generated protobuf code
 
@@ -43,7 +43,7 @@ dependencies:
   share_plus: ^13.3.0                   # Native OS content / file sharing dialogs
   open_file: ^4.0.0                    # Opening files in external system handler apps
   url_launcher: ^6.3.0                 # Opening external URLs and release download links
-  flutter_local_notifications: ^22.1.0  # System local notifications for background operations
+  flutter_local_notifications: ^22.3.0  # System local notifications for background operations
 
 dev_dependencies:
   flutter_test:

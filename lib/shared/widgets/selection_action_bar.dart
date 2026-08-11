@@ -36,19 +36,39 @@ class SelectionActionBar extends StatelessWidget {
     required Color defaultText,
     required Color defaultIcon,
   }) {
-    return TextButton.icon(
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        minimumSize: const Size.fromHeight(48),
+    final textColor = action.color ?? defaultText;
+    final iconColor = action.color ?? defaultIcon;
+
+    return InkWell(
+      onTap: action.onPressed,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              action.icon,
+              color: iconColor,
+              size: 22,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              action.label,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                height: 1.1,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
-      icon: Icon(action.icon, color: action.color ?? defaultIcon),
-      label: Text(
-        action.label,
-        style: TextStyle(color: defaultText),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      onPressed: action.onPressed,
     );
   }
 
@@ -64,18 +84,19 @@ class SelectionActionBar extends StatelessWidget {
       left: 0,
       right: 0,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color: bg,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 10,
               offset: const Offset(0, -2),
             ),
           ],
         ),
         child: SafeArea(
+          top: false,
           child: Row(
             children: actions
                 .map(

@@ -16,6 +16,7 @@ class FileController : public drogon::HttpController<FileController> {
   ADD_METHOD_TO(FileController::checkHashes, "/api/files/check-hashes", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::createFolder, "/api/folders", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::moveFile, "/api/files/move", drogon::Post, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(FileController::moveFile, "/api/files/rename", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::deleteFile, "/api/files", drogon::Delete, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::rebuildIndex, "/api/index/rebuild", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::getTrash, "/api/trash", drogon::Get, "server::middleware::JwtMiddleware");

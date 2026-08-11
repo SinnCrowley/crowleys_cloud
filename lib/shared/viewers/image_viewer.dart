@@ -13,6 +13,7 @@ class ImageViewer extends StatefulWidget {
   final int initialIndex;
   final Future<void> Function(FileItem item)? onUploadItem;
   final Future<void> Function(FileItem item)? onDeleteItem;
+  final Future<void> Function(FileItem item)? onRenameItem;
   final Future<void> Function(FileItem item)? onAddToFolderItem;
   final Future<void> Function(FileItem item)? onShareItem;
   final Future<File?> Function(FileItem item)? onFetchRemoteFile;
@@ -24,6 +25,7 @@ class ImageViewer extends StatefulWidget {
     required this.initialIndex,
     this.onUploadItem,
     this.onDeleteItem,
+    this.onRenameItem,
     this.onAddToFolderItem,
     this.onShareItem,
     this.onFetchRemoteFile,
@@ -205,6 +207,17 @@ class _ImageViewerState extends State<ImageViewer>
     await callback(_items[_currentIndex]);
   }
 
+  Future<void> _renameCurrentFile() async {
+    final callback = widget.onRenameItem;
+    if (callback == null ||
+        _currentIndex < 0 ||
+        _currentIndex >= _items.length) {
+      return;
+    }
+    await callback(_items[_currentIndex]);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -329,6 +342,12 @@ class _ImageViewerState extends State<ImageViewer>
                         icon: Icons.upload,
                         label: 'Upload',
                         onPressed: _uploadCurrentFile,
+                      ),
+                      _ActionButton(
+                        icon: Icons.edit,
+                        label: 'Rename',
+                        onPressed: _renameCurrentFile,
+                        enabled: widget.onRenameItem != null,
                       ),
                       _ActionButton(
                         icon: Icons.delete,

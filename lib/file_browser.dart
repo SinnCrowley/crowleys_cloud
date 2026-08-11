@@ -84,6 +84,9 @@ class _FileBrowserScreenState extends State<FileBrowser> {
             imageItems: imageItems,
             initialIndex: initialIndex >= 0 ? initialIndex : 0,
             onUploadItem: (uploadItem) => _uploadItems([uploadItem]),
+            onRenameItem: (renameItem) async {
+              await _renameItem(renameItem);
+            },
             onDeleteItem: (deleteItem) async {
               _controller.clearSelection();
               _controller.toggleSelection(deleteItem);
@@ -199,12 +202,60 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     ).showSnackBar(SnackBar(content: Text(error ?? 'Moved to folder.')));
   }
 
+  Future<void> _renameItem(FileItem item) async {
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController(text: item.name);
+        return AlertDialog(
+          backgroundColor: appSurface,
+          title: Text('Rename', style: TextStyle(color: appText)),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            style: TextStyle(color: appText),
+            decoration: InputDecoration(
+              hintText: 'Enter new name',
+              hintStyle: TextStyle(color: appSubtext),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('Rename'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newName == null || newName.isEmpty || newName == item.name) return;
+    final ok = await _controller.renameItem(item, newName);
+    if (!mounted) return;
+    final msg =
+        _controller.operationMessage ?? (ok ? 'Renamed' : 'Failed to rename');
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
   void _showContextMenu(BuildContext context, FileItem item) {
     showModalBottomSheet(
       context: context,
       backgroundColor: appSurface,
       builder: (_) => Wrap(
         children: [
+          ListTile(
+            leading: Icon(Icons.edit, color: appSubtext),
+            title: Text('Rename', style: TextStyle(color: appText)),
+            onTap: () async {
+              Navigator.pop(context);
+              await _renameItem(item);
+            },
+          ),
           ListTile(
             leading: Icon(Icons.upload, color: appSubtext),
             title: Text('Upload', style: TextStyle(color: appText)),
@@ -340,6 +391,9 @@ class _FileBrowserScreenState extends State<FileBrowser> {
               onDelete: _deleteSelectedFiles,
               onShare: _controller.shareSelectedFiles,
               onAddToFolder: _addSelectedToFolder,
+              onRename: _controller.selectedFiles.length == 1
+                  ? () => _renameItem(_controller.selectedFiles.first)
+                  : null,
             );
           },
         ),
@@ -1051,12 +1105,14 @@ class _SelectionActionBar extends StatelessWidget {
   final Future<void> Function() onDelete;
   final Future<void> Function() onShare;
   final Future<void> Function() onAddToFolder;
+  final Future<void> Function()? onRename;
 
   const _SelectionActionBar({
     required this.onUpload,
     required this.onDelete,
     required this.onShare,
     required this.onAddToFolder,
+    this.onRename,
   });
 
   @override
@@ -1066,6 +1122,12 @@ class _SelectionActionBar extends StatelessWidget {
       textColor: appText,
       iconColor: appSubtext,
       actions: [
+        if (onRename != null)
+          SelectionAction(
+            icon: Icons.edit,
+            label: 'Rename',
+            onPressed: onRename!,
+          ),
         SelectionAction(
           icon: Icons.upload,
           label: 'Upload',

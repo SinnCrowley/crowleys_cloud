@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.sinncrowley.crowleys_cloud"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

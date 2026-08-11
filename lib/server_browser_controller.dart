@@ -571,6 +571,33 @@ class ServerBrowserController extends ChangeNotifier {
     await reload();
   }
 
+  Future<bool> renameItem(ServerFileItem item, String newName) async {
+    final trimmed = newName.trim();
+    if (trimmed.isEmpty || trimmed == item.name) return false;
+
+    final dirPath = _parentPath(item.path);
+    final targetPath = dirPath.isEmpty ? trimmed : p.join(dirPath, trimmed);
+
+    final uri = _apiUri(
+      '/files/move',
+    ).replace(queryParameters: {
+      'scope': scope,
+      'src': item.path,
+      'dest': targetPath,
+    });
+
+    final response = await _authorizedPostBytes(uri, const []);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      operationMessage = 'Renamed "${item.name}" to "$trimmed".';
+      await _invalidateDirectory(scope: scope, path: dirPath);
+      await reload();
+      return true;
+    }
+    operationMessage = 'Failed to rename "${item.name}" (${response.statusCode}).';
+    notifyListeners();
+    return false;
+  }
+
   Future<Uint8List?> loadThumbnailWithRetry(
     ServerFileItem item, {
     int size = 256,

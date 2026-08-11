@@ -114,6 +114,11 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
             await controller.deleteSelectedFiles();
             _showOperationMessage();
           },
+          onRenameItem: (selectedImageItem) async {
+            final selectedServerItem = selectedImageItem.serverFile;
+            if (selectedServerItem == null) return;
+            await _renameItem(selectedServerItem);
+          },
           onAddToFolderItem: (selectedImageItem) async {
             final selectedServerItem = selectedImageItem.serverFile;
             if (selectedServerItem == null) return;
@@ -269,12 +274,58 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  Future<void> _renameItem(ServerFileItem item) async {
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController(text: item.name);
+        return AlertDialog(
+          backgroundColor: appSurface,
+          title: Text('Rename', style: TextStyle(color: appText)),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            style: TextStyle(color: appText),
+            decoration: InputDecoration(
+              hintText: 'Enter new name',
+              hintStyle: TextStyle(color: appSubtext),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('Rename'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newName == null || newName.isEmpty || newName == item.name) return;
+    await controller.renameItem(item, newName);
+    _showOperationMessage();
+  }
+
   void _showContextMenu(BuildContext context, ServerFileItem item) {
     showModalBottomSheet(
       context: context,
       backgroundColor: appSurface,
       builder: (_) => Wrap(
         children: [
+          if (controller.scope != 'shared')
+            ListTile(
+              leading: Icon(Icons.edit, color: appSubtext),
+              title: Text('Rename', style: TextStyle(color: appText)),
+              onTap: () async {
+                Navigator.pop(context);
+                await _renameItem(item);
+              },
+            ),
           ListTile(
             leading: Icon(Icons.download, color: appSubtext),
             title: Text('Download', style: TextStyle(color: appText)),
@@ -395,6 +446,9 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
                   ? _shareSelectedFiles
                   : _showShareOptions,
               onAddToFolder: _addSelectedToFolder,
+              onRename: controller.selectedFiles.length == 1
+                  ? () => _renameItem(controller.selectedFiles.first)
+                  : null,
               scope: controller.scope,
             );
           },
@@ -1075,6 +1129,7 @@ class _SelectionActionBar extends StatelessWidget {
     required this.onDelete,
     required this.onShare,
     required this.onAddToFolder,
+    this.onRename,
     this.scope = 'private',
   });
 
@@ -1082,6 +1137,7 @@ class _SelectionActionBar extends StatelessWidget {
   final Future<void> Function() onDelete;
   final Future<void> Function() onShare;
   final Future<void> Function() onAddToFolder;
+  final Future<void> Function()? onRename;
   final String scope;
 
   @override
@@ -1091,6 +1147,12 @@ class _SelectionActionBar extends StatelessWidget {
       textColor: appText,
       iconColor: appSubtext,
       actions: [
+        if (onRename != null && scope != 'shared')
+          SelectionAction(
+            icon: Icons.edit,
+            label: 'Rename',
+            onPressed: onRename!,
+          ),
         SelectionAction(
           icon: Icons.download,
           label: 'Download',

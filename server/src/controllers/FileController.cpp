@@ -1001,6 +1001,14 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
     return;
   }
 
+  if (src == dest) {
+    Json::Value body;
+    body["ok"] = true;
+    body["message"] = "File/folder already has this name";
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+    return;
+  }
+
   const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
   const auto scopeStr = services::FileIndexService::scopeToString(*scope);
 
@@ -1010,15 +1018,34 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
       // 1. Check if source exists in index
       bool exists = false;
       {
+        const std::string prefixPattern = src + "/%";
         auto stmtGuard = server::ctx().database->getStatement(
-            "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0");
+            "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND is_deleted = 0 LIMIT 1");
         sqlite3_bind_int64(stmtGuard.get(), 1, ownerUserId);
         sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmtGuard.get(), 3, src.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmtGuard.get(), 4, prefixPattern.c_str(), -1, SQLITE_TRANSIENT);
         exists = (sqlite3_step(stmtGuard.get()) == SQLITE_ROW);
       }
       if (!exists) {
         callback(jsonError(drogon::k404NotFound, "Source file/folder not found"));
+        return;
+      }
+
+      // Check if destination path already exists
+      bool destExists = false;
+      {
+        const std::string prefixPattern = dest + "/%";
+        auto stmtGuard = server::ctx().database->getStatement(
+            "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND is_deleted = 0 LIMIT 1");
+        sqlite3_bind_int64(stmtGuard.get(), 1, ownerUserId);
+        sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmtGuard.get(), 3, dest.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmtGuard.get(), 4, prefixPattern.c_str(), -1, SQLITE_TRANSIENT);
+        destExists = (sqlite3_step(stmtGuard.get()) == SQLITE_ROW);
+      }
+      if (destExists) {
+        callback(jsonError(drogon::k409Conflict, "A file or folder with that name already exists"));
         return;
       }
 
@@ -1058,9 +1085,19 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
         callback(jsonError(drogon::k404NotFound, "Source path does not exist"));
         return;
       }
+
+      if (std::filesystem::exists(destPath)) {
+        callback(jsonError(drogon::k409Conflict, "A file or folder with that name already exists"));
+        return;
+      }
       
       std::filesystem::create_directories(destPath.parent_path());
-      std::filesystem::rename(srcPath, destPath);
+      std::error_code ec;
+      utils::portableRename(srcPath, destPath, ec);
+      if (ec) {
+        callback(jsonError(drogon::k500InternalServerError, "Failed to rename file/folder on disk: " + ec.message()));
+        return;
+      }
       
       // Update DB indexes for filesystem rename
       // Rebuild index for dest path (and children)

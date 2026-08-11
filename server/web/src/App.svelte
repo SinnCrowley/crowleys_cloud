@@ -327,12 +327,14 @@
 
     let successCount = 0;
     let failCount = 0;
+    let lastError = '';
     for (const srcPath of validPaths) {
       try {
         await filesApi.moveFile({ scope: $scope, srcPath, destFolder });
         successCount++;
       } catch (err) {
         console.error(`Failed to move ${srcPath}:`, err);
+        lastError = err.message || '';
         failCount++;
       }
     }
@@ -341,9 +343,9 @@
     if (failCount === 0) {
       showToast(`Moved ${successCount} item${successCount > 1 ? 's' : ''} to "${targetName}"`, 'success');
     } else if (successCount > 0) {
-      showToast(`Moved ${successCount} items, ${failCount} failed.`, 'info');
+      showToast(`Moved ${successCount} items, ${failCount} failed: ${lastError}`, 'info');
     } else {
-      showToast('Failed to move items.', 'error');
+      showToast(lastError ? `Failed to move items: ${lastError}` : 'Failed to move items.', 'error');
     }
     await filesStore.loadDirectory();
   }
@@ -574,7 +576,7 @@
   {#if renameModal}
     <div class="modal-backdrop" on:click|self={() => (renameModal = null)}>
       <div class="dialog-card">
-        <h3 class="text-title">Rename File</h3>
+        <h3 class="text-title">Rename Item</h3>
         <input
           type="text"
           class="form-input text-body"
