@@ -36,6 +36,23 @@ struct ListIndexQuery {
   bool recursiveFiles{false};
 };
 
+struct UserStats {
+  std::uintmax_t totalSize{0};
+  std::int64_t totalCount{0};
+  std::int64_t photoCount{0};
+  std::uintmax_t photoSize{0};
+  std::int64_t videoCount{0};
+  std::uintmax_t videoSize{0};
+  std::int64_t audioCount{0};
+  std::uintmax_t audioSize{0};
+  std::int64_t documentCount{0};
+  std::uintmax_t documentSize{0};
+  std::int64_t otherCount{0};
+  std::uintmax_t otherSize{0};
+  std::int64_t sharedCount{0};
+  std::uintmax_t sharedSize{0};
+};
+
 /**
  * Service managing SQLite-backed index operations for files and directories.
  * Implements prepared statement reuse via Database statement caching, transaction-batched
@@ -44,6 +61,8 @@ struct ListIndexQuery {
 class FileIndexService {
  public:
   FileIndexService(db::Database &db, const FileService &fileService);
+
+  UserStats getUserStats(std::int64_t userId) const;
 
   /**
    * Upserts file index entry from physical disk properties.

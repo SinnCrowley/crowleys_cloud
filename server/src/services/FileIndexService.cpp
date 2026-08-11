@@ -730,4 +730,66 @@ bool FileIndexService::isAncestorShared(std::int64_t ownerUserId, const std::str
   return false;
 }
 
+UserStats FileIndexService::getUserStats(std::int64_t userId) const {
+  UserStats stats;
+
+  // 1. Private files aggregated by type
+  {
+    auto stmtGuard = db_.getStatement(
+        "SELECT type, COUNT(*), COALESCE(SUM(size_bytes), 0) "
+        "FROM file_index "
+        "WHERE owner_user_id = ? AND scope = 'private' AND is_deleted = 0 "
+        "GROUP BY type");
+    auto *stmt = stmtGuard.get();
+    sqlite3_bind_int64(stmt, 1, userId);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+      const auto *typeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+      const auto count = sqlite3_column_int64(stmt, 1);
+      const auto size = static_cast<std::uintmax_t>(sqlite3_column_int64(stmt, 2));
+      const std::string typeStr = typeRaw ? typeRaw : "other";
+
+      stats.totalCount += count;
+      if (typeStr == "photo" || typeStr == "image") {
+        stats.photoCount += count;
+        stats.photoSize += size;
+        stats.totalSize += size;
+      } else if (typeStr == "video") {
+        stats.videoCount += count;
+        stats.videoSize += size;
+        stats.totalSize += size;
+      } else if (typeStr == "audio") {
+        stats.audioCount += count;
+        stats.audioSize += size;
+        stats.totalSize += size;
+      } else if (typeStr == "document") {
+        stats.documentCount += count;
+        stats.documentSize += size;
+        stats.totalSize += size;
+      } else if (typeStr == "directory") {
+        // Directories increment file/folder count, size is 0
+      } else {
+        stats.otherCount += count;
+        stats.otherSize += size;
+        stats.totalSize += size;
+      }
+    }
+  }
+
+  // 2. Shared files
+  {
+    auto stmtGuard = db_.getStatement(
+        "SELECT COUNT(*), COALESCE(SUM(size_bytes), 0) "
+        "FROM file_index "
+        "WHERE is_shared = 1 AND is_deleted = 0 AND type != 'directory'");
+    auto *stmt = stmtGuard.get();
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+      stats.sharedCount = sqlite3_column_int64(stmt, 0);
+      stats.sharedSize = static_cast<std::uintmax_t>(sqlite3_column_int64(stmt, 1));
+    }
+  }
+
+  return stats;
+}
+
 }  // namespace server::services

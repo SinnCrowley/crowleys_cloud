@@ -218,5 +218,9 @@ export const filesApi = {
   async toggleServerShared({ path, isShared }) {
     const params = new URLSearchParams({ path, shared: isShared ? '1' : '0' });
     return apiPost(`/api/files/share?${params.toString()}`);
+  },
+
+  async getAccountStats() {
+    return apiGet('/api/account/stats');
   }
 };

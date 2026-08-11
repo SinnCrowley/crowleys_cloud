@@ -21,6 +21,7 @@
   import { authStore } from './stores/auth.js';
   import { themeState } from './stores/theme.js';
   import { filesApi } from './api/files.js';
+  import { refreshStats } from './stores/stats.js';
   import { shareApi } from './api/share.js';
 
   // Destructure stores for template binding
@@ -202,12 +203,14 @@
           await filesApi.deleteFile({ scope: $scope, path: item.path });
           showToast(`Moved ${item.name} to trash.`, 'success');
           filesStore.loadDirectory();
+          refreshStats();
         } catch (err) {
           showToast(err.message || 'Failed to delete item', 'error');
         }
       }
     } else if (type === 'refresh') {
       filesStore.loadDirectory();
+      refreshStats();
     } else if (type === 'newFolder') {
       openNewFolderModal();
     }
@@ -428,6 +431,7 @@
     if (successCount > 0) {
       showToast(`Shared ${successCount} items in server.`, 'success');
       filesStore.loadDirectory();
+      refreshStats();
     }
   }
 
@@ -453,6 +457,7 @@
     if (successCount > 0) {
       showToast(`Unshared ${successCount} items from server.`, 'success');
       filesStore.loadDirectory();
+      refreshStats();
     }
   }
 

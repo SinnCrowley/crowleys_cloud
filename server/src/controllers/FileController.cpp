@@ -1480,4 +1480,39 @@ void FileController::setTrashSettings(const drogon::HttpRequestPtr &req,
   }
 }
 
+void FileController::getAccountStats(const drogon::HttpRequestPtr &req,
+                                     std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  try {
+    const auto stats = server::ctx().fileIndexService->getUserStats(userId);
+    Json::Value body;
+    body["total_size"] = static_cast<Json::UInt64>(stats.totalSize);
+    body["total_count"] = static_cast<Json::Int64>(stats.totalCount);
+    body["used_bytes"] = static_cast<Json::UInt64>(stats.totalSize);
+    body["limit_bytes"] = Json::nullValue;
+    body["photo_count"] = static_cast<Json::Int64>(stats.photoCount);
+    body["photo_size"] = static_cast<Json::UInt64>(stats.photoSize);
+    body["video_count"] = static_cast<Json::Int64>(stats.videoCount);
+    body["video_size"] = static_cast<Json::UInt64>(stats.videoSize);
+    body["audio_count"] = static_cast<Json::Int64>(stats.audioCount);
+    body["audio_size"] = static_cast<Json::UInt64>(stats.audioSize);
+    body["document_count"] = static_cast<Json::Int64>(stats.documentCount);
+    body["document_size"] = static_cast<Json::UInt64>(stats.documentSize);
+    body["other_count"] = static_cast<Json::Int64>(stats.otherCount);
+    body["other_size"] = static_cast<Json::UInt64>(stats.otherSize);
+    body["shared_count"] = static_cast<Json::Int64>(stats.sharedCount);
+    body["shared_size"] = static_cast<Json::UInt64>(stats.sharedSize);
+
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
 }  // namespace server::controllers
