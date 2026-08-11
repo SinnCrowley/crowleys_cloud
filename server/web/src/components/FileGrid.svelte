@@ -207,7 +207,7 @@
   }
 
   function handleItemDragStart(e, item) {
-    if (filterType !== 'all') return;
+    if (filterType !== 'all' || scope === 'shared') return;
     let pathsToMove = [];
     if (selectedItems.has(item.path) && selectedItems.size > 0) {
       pathsToMove = Array.from(selectedItems);

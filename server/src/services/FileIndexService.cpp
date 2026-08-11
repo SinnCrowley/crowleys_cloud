@@ -184,13 +184,13 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
   db::Database::StatementGuard stmtGuard;
   if (query.scope == StorageScope::Shared) {
     stmtGuard = db_.getStatement(
-        "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path "
+        "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path, is_shared, uploader_user_id "
         "FROM file_index "
         "WHERE is_shared = 1 AND is_deleted = 0 AND rel_path LIKE ?");
     sqlite3_bind_text(stmtGuard.get(), 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
   } else {
     stmtGuard = db_.getStatement(
-        "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path "
+        "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path, is_shared, uploader_user_id "
         "FROM file_index "
         "WHERE owner_user_id = ? AND scope = ? AND is_deleted = 0 AND rel_path LIKE ?");
     sqlite3_bind_int64(stmtGuard.get(), 1, query.ownerUserId);
@@ -285,6 +285,8 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
                   .type = "directory",
                   .mimeType = "inode/directory",
                   .thumbnailUrl = "",
+                  .isShared = sqlite3_column_int(stmt, 7) == 1,
+                  .uploaderUserId = sqlite3_column_int64(stmt, 8),
               });
         }
       }
@@ -315,6 +317,8 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
                       .type = "directory",
                       .mimeType = "inode/directory",
                       .thumbnailUrl = "",
+                      .isShared = sqlite3_column_int(stmt, 7) == 1,
+                      .uploaderUserId = sqlite3_column_int64(stmt, 8),
                   });
             }
           }
@@ -333,6 +337,8 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
         .type = std::string(typeRaw == nullptr ? "other" : typeRaw),
         .mimeType = std::string(mimeRaw == nullptr ? "application/octet-stream" : mimeRaw),
         .thumbnailUrl = std::string(thumbRaw == nullptr ? "" : thumbRaw),
+        .isShared = sqlite3_column_int(stmt, 7) == 1,
+        .uploaderUserId = sqlite3_column_int64(stmt, 8),
     });
   }
 

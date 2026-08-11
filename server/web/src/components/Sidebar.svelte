@@ -96,7 +96,7 @@
       on:click={() => selectRoute('files', 'all', 'shared')}
     >
       <span class="material-symbols-outlined">group</span>
-      <span>Shared with me</span>
+      <span>Shared</span>
     </button>
   </nav>
 

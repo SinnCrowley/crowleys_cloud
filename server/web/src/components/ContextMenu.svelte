@@ -5,6 +5,7 @@
   export let y = 0;
   export let item = null;
   export let selectedCount = 0;
+  export let currentScope = 'private';
 
   const dispatch = createEventDispatcher();
 
@@ -87,38 +88,59 @@
       <button class="menu-item text-body" on:click={() => handleAction('download')}>
         <span class="material-symbols-outlined item-icon">download</span> Download
       </button>
-      <button class="menu-item text-body" on:click={() => handleAction('share')}>
-        <span class="material-symbols-outlined item-icon">share</span> Share Link
-      </button>
     {:else}
       <button class="menu-item text-body" on:click={() => handleAction('preview')}>
         <span class="material-symbols-outlined item-icon">folder_open</span> Open Folder
       </button>
+      <button class="menu-item text-body" on:click={() => handleAction('downloadZip')}>
+        <span class="material-symbols-outlined item-icon">folder_zip</span> Download ZIP
+      </button>
     {/if}
 
-    <button class="menu-item text-body" on:click={() => handleAction('rename')}>
-      <span class="material-symbols-outlined item-icon">edit</span> Rename
-    </button>
-    <button class="menu-item text-body" on:click={() => handleAction('move')}>
-      <span class="material-symbols-outlined item-icon">drive_file_move</span> Move To...
-    </button>
-    <div class="menu-divider" />
-    <button class="menu-item text-body danger" on:click={() => handleAction('delete')}>
-      <span class="material-symbols-outlined item-icon">delete</span> Move to Trash
-    </button>
+    {#if currentScope !== 'shared'}
+      <button class="menu-item text-body" on:click={() => handleAction('share')}>
+        <span class="material-symbols-outlined item-icon">share</span> Share Link
+      </button>
+      <button class="menu-item text-body" on:click={() => handleAction('toggleServerShared')}>
+        <span class="material-symbols-outlined item-icon">
+          {item.is_shared ? 'folder_off' : 'folder_shared'}
+        </span>
+        {item.is_shared ? 'Unshare in Server' : 'Share in Server'}
+      </button>
+
+      <button class="menu-item text-body" on:click={() => handleAction('rename')}>
+        <span class="material-symbols-outlined item-icon">edit</span> Rename
+      </button>
+      <button class="menu-item text-body" on:click={() => handleAction('move')}>
+        <span class="material-symbols-outlined item-icon">drive_file_move</span> Move To...
+      </button>
+      <div class="menu-divider" />
+      <button class="menu-item text-body danger" on:click={() => handleAction('delete')}>
+        <span class="material-symbols-outlined item-icon">delete</span> Move to Trash
+      </button>
+    {:else}
+      {#if item.is_owner !== false}
+        <div class="menu-divider" />
+        <button class="menu-item text-body danger" on:click={() => handleAction('toggleServerShared')}>
+          <span class="material-symbols-outlined item-icon">folder_off</span> Unshare in Server
+        </button>
+      {/if}
+    {/if}
   {:else if selectedCount > 0}
     <div class="menu-header text-caption">{selectedCount} items selected</div>
     <div class="menu-divider" />
     <button class="menu-item text-body" on:click={() => handleAction('download')}>
       <span class="material-symbols-outlined item-icon">download</span> Download Selected
     </button>
-    <button class="menu-item text-body" on:click={() => handleAction('move')}>
-      <span class="material-symbols-outlined item-icon">drive_file_move</span> Move Selected...
-    </button>
-    <div class="menu-divider" />
-    <button class="menu-item text-body danger" on:click={() => handleAction('delete')}>
-      <span class="material-symbols-outlined item-icon">delete</span> Delete Selected to Trash
-    </button>
+    {#if currentScope !== 'shared'}
+      <button class="menu-item text-body" on:click={() => handleAction('move')}>
+        <span class="material-symbols-outlined item-icon">drive_file_move</span> Move Selected...
+      </button>
+      <div class="menu-divider" />
+      <button class="menu-item text-body danger" on:click={() => handleAction('delete')}>
+        <span class="material-symbols-outlined item-icon">delete</span> Delete Selected to Trash
+      </button>
+    {/if}
   {:else}
     <button class="menu-item text-body" on:click={() => handleAction('refresh')}>
       <span class="material-symbols-outlined item-icon">refresh</span> Refresh Directory

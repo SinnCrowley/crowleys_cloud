@@ -21,6 +21,14 @@ export const filesApi = {
     return `/api/files?${params.toString()}`;
   },
 
+  getZipDownloadUrl({ scope = 'private', path = '' }) {
+    const params = new URLSearchParams({ scope });
+    if (path) params.append('path', path);
+    const token = get(authStore.accessToken);
+    if (token) params.append('token', token);
+    return `/api/files/zip?${params.toString()}`;
+  },
+
   async downloadFile({ scope = 'private', path, filename }) {
     const url = this.getDownloadUrl({ scope, path });
     const blob = await apiGet(url);
@@ -29,6 +37,20 @@ export const filesApi = {
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = filename || path.split('/').pop() || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  },
+
+  async downloadZip({ scope = 'private', path = '', filename }) {
+    const url = this.getZipDownloadUrl({ scope, path });
+    const blob = await apiGet(url);
+
+    const defaultName = path ? `${path.split('/').pop()}.zip` : 'files.zip';
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename || defaultName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -191,5 +213,10 @@ export const filesApi = {
 
   async setTrashSettings(days) {
     return apiPost('/api/account/settings/trash', { trash_retention_days: days });
+  },
+
+  async toggleServerShared({ path, isShared }) {
+    const params = new URLSearchParams({ path, shared: isShared ? '1' : '0' });
+    return apiPost(`/api/files/share?${params.toString()}`);
   }
 };

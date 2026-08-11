@@ -9,6 +9,7 @@
 #include "server/AppContext.hpp"
 #include "server/utils/Crypto.hpp"
 #include "server/utils/HttpHelpers.hpp"
+#include "server/utils/ZipWriter.hpp"
 #include "dir_entry.pb.h"
 
 #include <algorithm>
@@ -33,7 +34,22 @@ using server::utils::getAuth;
 
 namespace {
 
-Json::Value formatDirEntryJson(const services::IndexedDirEntry &entry, const std::string &scopeRaw) {
+struct FileZipCleanupHelper {
+  std::filesystem::path tmpZipPath;
+  drogon::HttpResponsePtr response;
+
+  FileZipCleanupHelper(std::filesystem::path p, drogon::HttpResponsePtr resp)
+      : tmpZipPath(std::move(p)), response(std::move(resp)) {}
+
+  ~FileZipCleanupHelper() {
+    std::error_code ec;
+    if (!tmpZipPath.empty() && std::filesystem::exists(tmpZipPath, ec)) {
+      std::filesystem::remove(tmpZipPath, ec);
+    }
+  }
+};
+
+Json::Value formatDirEntryJson(const services::IndexedDirEntry &entry, const std::string &scopeRaw, std::int64_t currentUserId = 0) {
   Json::Value v;
   v["name"] = entry.name;
   v["size"] = static_cast<Json::UInt64>(entry.size);
@@ -42,6 +58,9 @@ Json::Value formatDirEntryJson(const services::IndexedDirEntry &entry, const std
   v["type"] = entry.type;
   v["mime_type"] = entry.mimeType;
   v["path"] = entry.path;
+  v["is_shared"] = entry.isShared;
+  v["uploader_user_id"] = static_cast<Json::Int64>(entry.uploaderUserId);
+  v["is_owner"] = (currentUserId == 0 || entry.uploaderUserId == 0 || entry.uploaderUserId == currentUserId);
   if (!entry.isDir) {
     v["thumbnail_url"] = "/api/thumb?scope=" + scopeRaw + "&path=" + drogon::utils::urlEncode(entry.path) + "&s=256";
   }
@@ -304,7 +323,7 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
       Json::Value body;
       body["entries"] = Json::arrayValue;
       for (const auto &entry : mergedEntries) {
-        body["entries"].append(formatDirEntryJson(entry, scopeRaw));
+        body["entries"].append(formatDirEntryJson(entry, scopeRaw, userId));
       }
       callback(drogon::HttpResponse::newHttpJsonResponse(body));
     }
@@ -675,6 +694,127 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
 
     auto resp = drogon::HttpResponse::newFileResponse(fullPath.string());
     callback(resp);
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
+void FileController::downloadZip(const drogon::HttpRequestPtr &req,
+                                std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  try {
+    const auto scopeOpt = services::parseScope(req->getParameter("scope"));
+    if (!scopeOpt.has_value()) {
+      callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+      return;
+    }
+
+    const auto rawPath = req->getParameter("path");
+    const auto targetRelPath = services::FileIndexService::normalizeRelPath(rawPath);
+    const auto scopeStr = services::FileIndexService::scopeToString(*scopeOpt);
+    const auto queryOwnerUserId = (*scopeOpt == services::StorageScope::Shared) ? 0 : userId;
+
+    std::string zipFilename = "Files.zip";
+    if (!targetRelPath.empty()) {
+      const auto folderName = std::filesystem::path(targetRelPath).filename().string();
+      zipFilename = (folderName.empty() ? "Folder" : folderName) + ".zip";
+    } else if (*scopeOpt == services::StorageScope::Shared) {
+      zipFilename = "SharedFiles.zip";
+    }
+
+    const auto tmpZipPath = std::filesystem::temp_directory_path() /
+                            ("crowley_user_zip_" + std::to_string(userId) + "_" +
+                             std::to_string(std::chrono::system_clock::now().time_since_epoch().count()) + ".zip");
+
+    utils::ZipWriter zipWriter;
+    bool hasEntries = false;
+
+    const bool hashFiles = server::ctx().config.hashFiles;
+    if (hashFiles) {
+      db::Database::StatementGuard stmtGuard;
+      if (targetRelPath.empty()) {
+        const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND type != 'directory' AND is_deleted = 0";
+        stmtGuard = server::ctx().database->getStatement(sql);
+        sqlite3_bind_int64(stmtGuard.get(), 1, queryOwnerUserId);
+        sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+      } else {
+        const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND type != 'directory' AND is_deleted = 0";
+        stmtGuard = server::ctx().database->getStatement(sql);
+        sqlite3_bind_int64(stmtGuard.get(), 1, queryOwnerUserId);
+        sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmtGuard.get(), 3, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmtGuard.get(), 4, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+        const auto pattern = targetRelPath + "/%";
+        sqlite3_bind_text(stmtGuard.get(), 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
+      }
+
+      auto *stmt = stmtGuard.get();
+      if (stmt != nullptr) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+          const auto relPathRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+          const auto shaRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+          if (!relPathRaw || !shaRaw) continue;
+
+          std::string relPath = relPathRaw;
+          std::string sha256 = shaRaw;
+
+          std::string fileSubRel = relPath;
+          if (!targetRelPath.empty() && fileSubRel.size() >= targetRelPath.size()) {
+            fileSubRel = fileSubRel.substr(targetRelPath.size());
+            if (!fileSubRel.empty() && fileSubRel[0] == '/') fileSubRel.erase(0, 1);
+          }
+
+          const auto physicalPath = std::filesystem::path(server::ctx().config.storageRoot) / "data" / sha256;
+          if (!std::filesystem::exists(physicalPath)) continue;
+
+          std::ifstream in(physicalPath, std::ios::binary);
+          if (!in) continue;
+          std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+          in.close();
+
+          if (!server::ctx().config.encryptionKey.empty()) {
+            try {
+              content = utils::decryptAes256(content, server::ctx().config.encryptionKey);
+            } catch (...) {
+              continue;
+            }
+          }
+
+          if (zipWriter.addFile(fileSubRel, content)) {
+            hasEntries = true;
+          }
+        }
+      }
+    } else {
+      const auto physicalPath = server::ctx().fileService->resolvePath(userId, role, *scopeOpt, targetRelPath, false);
+      if (std::filesystem::exists(physicalPath) && std::filesystem::is_directory(physicalPath)) {
+        for (const auto &entry : std::filesystem::recursive_directory_iterator(physicalPath)) {
+          if (!entry.is_regular_file()) continue;
+          auto rel = std::filesystem::relative(entry.path(), physicalPath).generic_string();
+          if (zipWriter.addFileFromDisk(rel, entry.path())) {
+            hasEntries = true;
+          }
+        }
+      }
+    }
+
+    if (!zipWriter.writeToFile(tmpZipPath) || !std::filesystem::exists(tmpZipPath)) {
+      callback(jsonError(drogon::k500InternalServerError, "Failed to create ZIP archive"));
+      return;
+    }
+
+    auto resp = drogon::HttpResponse::newFileResponse(tmpZipPath.string());
+    resp->addHeader("Content-Disposition", "attachment; filename=\"" + zipFilename + "\"");
+
+    auto helper = std::make_shared<FileZipCleanupHelper>(tmpZipPath, resp);
+    drogon::HttpResponsePtr aliasedResp(helper, resp.get());
+    callback(aliasedResp);
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));
   }

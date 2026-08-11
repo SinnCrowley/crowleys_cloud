@@ -20,6 +20,8 @@ struct IndexedDirEntry {
   std::string type;
   std::string mimeType;
   std::string thumbnailUrl;
+  bool isShared{false};
+  std::int64_t uploaderUserId{0};
 };
 
 struct ListIndexQuery {

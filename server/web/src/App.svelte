@@ -170,13 +170,21 @@
       if (item) handleOpenItem(item);
     } else if (type === 'download') {
       if (item) {
-        try {
-          await filesApi.downloadFile({ scope: $scope, path: item.path, filename: item.name });
-          showToast(`Started downloading ${item.name}`, 'success');
-        } catch (err) {
-          showToast(err.message || 'Failed to download file', 'error');
+        if (item.is_dir) {
+          handleDownloadZip(item);
+        } else {
+          try {
+            await filesApi.downloadFile({ scope: $scope, path: item.path, filename: item.name });
+            showToast(`Started downloading ${item.name}`, 'success');
+          } catch (err) {
+            showToast(err.message || 'Failed to download file', 'error');
+          }
         }
       }
+    } else if (type === 'downloadZip') {
+      if (item) handleDownloadZip(item);
+    } else if (type === 'toggleServerShared') {
+      if (item) handleToggleServerShared(item);
     } else if (type === 'share') {
       if (item) handleShareItem(item);
     } else if (type === 'rename') {
@@ -221,6 +229,31 @@
       filesStore.loadDirectory();
     } catch (err) {
       showToast(err.message || 'Failed to create folder', 'error');
+    }
+  }
+
+  async function handleDownloadZip(item) {
+    try {
+      showToast(`Preparing ZIP archive for ${item ? item.name : 'folder'}...`, 'info');
+      await filesApi.downloadZip({
+        scope: $scope,
+        path: item ? item.path : '',
+        filename: item ? `${item.name}.zip` : 'folder.zip'
+      });
+      showToast('ZIP archive downloaded successfully', 'success');
+    } catch (err) {
+      showToast(err.message || 'Failed to download ZIP archive', 'error');
+    }
+  }
+
+  async function handleToggleServerShared(item) {
+    try {
+      const nextState = !item.is_shared;
+      await filesApi.toggleServerShared({ path: item.path, isShared: nextState });
+      showToast(nextState ? `Shared "${item.name}" in server` : `Unshared "${item.name}" in server`, 'success');
+      filesStore.loadDirectory();
+    } catch (err) {
+      showToast(err.message || 'Failed to update server share status', 'error');
     }
   }
 
@@ -352,20 +385,74 @@
 
   async function handleBatchDownload() {
     const selectedPathsArray = Array.from($selectedPaths);
-    const targets = $entries.filter((item) => selectedPathsArray.includes(item.path) && !item.is_dir);
-    if (targets.length === 0) {
-      showToast('Only files can be batch downloaded. Folders are not supported.', 'info');
+    const selectedEntries = $entries.filter((item) => selectedPathsArray.includes(item.path));
+    if (selectedEntries.length === 0) return;
+
+    filesStore.clearSelection();
+
+    const filesToDownload = selectedEntries.filter((item) => !item.is_dir);
+    const foldersToDownload = selectedEntries.filter((item) => item.is_dir);
+
+    if (filesToDownload.length > 0) {
+      showToast(`Starting batch download of ${filesToDownload.length} files...`, 'success');
+      for (const item of filesToDownload) {
+        try {
+          await filesApi.downloadFile({ scope: $scope, path: item.path, filename: item.name });
+        } catch (err) {
+          console.error(`Failed to download ${item.name}:`, err);
+        }
+      }
+    }
+
+    for (const folder of foldersToDownload) {
+      await handleDownloadZip(folder);
+    }
+  }
+
+  async function handleBatchShare() {
+    const selectedPathsArray = Array.from($selectedPaths);
+    const selectedEntries = $entries.filter((item) => selectedPathsArray.includes(item.path));
+    if (selectedEntries.length === 0) return;
+
+    filesStore.clearSelection();
+    showToast(`Sharing ${selectedEntries.length} items in server...`, 'info');
+    let successCount = 0;
+    for (const item of selectedEntries) {
+      try {
+        await filesApi.toggleServerShared({ path: item.path, isShared: true });
+        successCount++;
+      } catch (err) {
+        console.error(`Failed to share ${item.name}:`, err);
+      }
+    }
+    if (successCount > 0) {
+      showToast(`Shared ${successCount} items in server.`, 'success');
+      filesStore.loadDirectory();
+    }
+  }
+
+  async function handleBatchUnshare() {
+    const selectedPathsArray = Array.from($selectedPaths);
+    const selectedEntries = $entries.filter((item) => selectedPathsArray.includes(item.path) && item.is_owner !== false);
+    if (selectedEntries.length === 0) {
+      showToast('You can only unshare items that you own.', 'info');
       return;
     }
-    
+
     filesStore.clearSelection();
-    showToast(`Starting batch download of ${targets.length} files...`, 'success');
-    for (const item of targets) {
+    showToast(`Unsharing ${selectedEntries.length} items...`, 'info');
+    let successCount = 0;
+    for (const item of selectedEntries) {
       try {
-        await filesApi.downloadFile({ scope: $scope, path: item.path, filename: item.name });
+        await filesApi.toggleServerShared({ path: item.path, isShared: false });
+        successCount++;
       } catch (err) {
-        console.error(`Failed to download ${item.name}:`, err);
+        console.error(`Failed to unshare ${item.name}:`, err);
       }
+    }
+    if (successCount > 0) {
+      showToast(`Unshared ${successCount} items from server.`, 'success');
+      filesStore.loadDirectory();
     }
   }
 
@@ -494,11 +581,14 @@
       <SelectionActionBar
         selectedCount={$selectedPaths.size}
         selectedPaths={$selectedPaths}
+        currentScope={$scope}
         shiftUp={$transfersQueue.length > 0}
         on:clear={() => filesStore.clearSelection()}
         on:downloadSelected={handleBatchDownload}
+        on:shareSelected={handleBatchShare}
         on:moveSelected={handleOpenMoveSelected}
         on:deleteSelected={() => filesStore.deleteSelected()}
+        on:unshareSelected={handleBatchUnshare}
       />
     {:else if currentRoute === 'trash'}
       <TrashBrowser
@@ -524,6 +614,7 @@
       y={contextMenu.y}
       item={contextMenu.item}
       selectedCount={$selectedPaths.size}
+      currentScope={$scope}
       on:close={() => (contextMenu = null)}
       on:action={handleContextMenuAction}
     />
