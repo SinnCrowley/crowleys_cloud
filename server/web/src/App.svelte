@@ -408,7 +408,12 @@
       on:toggleRoute={(e) => (currentRoute = e.detail)}
       on:openAuth={() => (isAuthOpen = true)}
       on:search={(e) => {
-        searchQuery.set(e.detail);
+        const val = e.detail;
+        searchQuery.set(val);
+        if (val && currentRoute !== 'files') {
+          currentRoute = 'files';
+          filterType.set('all');
+        }
         filesStore.loadDirectory();
       }}
       on:changeSort={(e) => {

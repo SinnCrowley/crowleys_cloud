@@ -31,6 +31,11 @@
     }
   }
 
+  function clearSearch() {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    dispatch('search', '');
+  }
+
   onDestroy(() => {
     if (searchTimeout) clearTimeout(searchTimeout);
   });
@@ -75,6 +80,16 @@
         on:input={handleSearchInput}
         on:keydown={handleSearchKeydown}
       />
+      {#if searchQuery}
+        <button
+          type="button"
+          class="btn-icon clear-search-btn"
+          on:click={clearSearch}
+          title="Clear search"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      {/if}
     </div>
   </div>
 
@@ -198,7 +213,7 @@
     border-radius: var(--radius-full);
     background-color: var(--bg-input);
     border: 1px solid var(--border-color);
-    padding: 0 16px 0 44px;
+    padding: 0 36px 0 44px;
     color: var(--text-main);
     outline: none;
     font-size: 13px;
@@ -209,6 +224,33 @@
   .search-pill:focus {
     border-color: var(--accent-color);
     box-shadow: 0 0 0 2px rgba(250, 82, 82, 0.15);
+  }
+
+  .clear-search-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .clear-search-btn:hover {
+    color: var(--text-main);
+    background-color: var(--bg-surface-hover);
+  }
+
+  .clear-search-btn .material-symbols-outlined {
+    font-size: 16px;
   }
 
   .actions-section {

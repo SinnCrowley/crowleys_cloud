@@ -718,9 +718,44 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onSearchChanged(String query) {
+    unawaited(_handleSearchChanged(query));
+  }
+
+  Future<void> _handleSearchChanged(String query) async {
+    final trimmed = query.trim();
     if (_selectedModeIndex == 0) {
+      if (_selectedLocalCategory == null && trimmed.isNotEmpty) {
+        final category = _allCategories[0];
+        final permissionGranted = await _requestPermission(category);
+        if (permissionGranted) {
+          _disposeLocalController();
+          final controller = FileBrowserController(
+            category: category,
+            settingsService: _appSettingsService,
+          );
+          if (mounted) {
+            setState(() {
+              _selectedLocalCategory = category;
+              _localController = controller;
+            });
+          }
+          await controller.setSearchQuery(query);
+          return;
+        }
+      }
       _localController?.setSearchQueryDebounced(query);
     } else {
+      if (_selectedServerCategory == null && trimmed.isNotEmpty) {
+        _ensureServerController();
+        final category = _serverCategories[0];
+        await _serverController?.setScope('private');
+        _serverController?.setCategory('all');
+        if (mounted) {
+          setState(() {
+            _selectedServerCategory = category;
+          });
+        }
+      }
       _serverController?.setSearchQueryDebounced(query);
     }
   }
