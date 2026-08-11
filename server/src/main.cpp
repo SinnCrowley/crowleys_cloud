@@ -80,6 +80,10 @@ int main(int argc, char *argv[]) {
   if (std::filesystem::exists(publicDir)) {
     drogon::app().setDocumentRoot(publicDir);
     drogon::app().setHomePage("index.html");
+    const std::string indexHtmlPath = publicDir + "/index.html";
+    if (std::filesystem::exists(indexHtmlPath)) {
+      drogon::app().setCustom404Page(drogon::HttpResponse::newFileResponse(indexHtmlPath));
+    }
     LOG_INFO << "Web interface enabled from: " << publicDir;
   }
 

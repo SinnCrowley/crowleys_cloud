@@ -34,7 +34,7 @@
         res = await authApi.register({ username, password });
       }
 
-      dispatch('authenticated', {
+      dispatch('success', {
         accessToken: res.access_token,
         refreshToken: res.refresh_token,
         user: { username }

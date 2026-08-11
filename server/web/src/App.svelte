@@ -76,9 +76,144 @@
     }
   }
 
+  // URL Routing Helpers
+  function encodeSubpath(path) {
+    if (!path) return '';
+    return path.split('/').map(encodeURIComponent).join('/');
+  }
+
+  function decodeSubpath(sub) {
+    if (!sub) return '';
+    return sub.split('/').map(decodeURIComponent).join('/');
+  }
+
+  function getUrlForState(route, scopeVal, filterVal, pathVal) {
+    const r = (route === 'trash' || route === 'settings' || (route === 'dashboard' && filterVal === 'all' && scopeVal === 'private' && !pathVal))
+      ? route
+      : 'files';
+
+    if (r === 'dashboard') return '/dashboard';
+    if (r === 'trash') return '/trash';
+    if (r === 'settings') return '/settings';
+
+    if (r === 'files') {
+      if (scopeVal === 'shared') {
+        return pathVal ? `/shared/browse/${encodeSubpath(pathVal)}` : '/shared';
+      }
+      if (pathVal) {
+        return `/files/browse/${encodeSubpath(pathVal)}`;
+      }
+      if (filterVal === 'photo') return '/photos';
+      if (filterVal === 'video') return '/videos';
+      if (filterVal === 'audio') return '/audio';
+      if (filterVal === 'document') return '/documents';
+      if (filterVal === 'other') return '/other';
+      return '/files';
+    }
+    return '/dashboard';
+  }
+
+  function parseUrlToState(pathname) {
+    const cleanPath = pathname.replace(/\/+$/, '') || '/';
+
+    if (cleanPath === '/' || cleanPath === '/dashboard') {
+      return { route: 'dashboard', scope: 'private', filterType: 'all', currentPath: '' };
+    }
+    if (cleanPath === '/trash') {
+      return { route: 'trash', scope: 'private', filterType: 'all', currentPath: '' };
+    }
+    if (cleanPath === '/settings') {
+      return { route: 'settings', scope: 'private', filterType: 'all', currentPath: '' };
+    }
+    if (cleanPath === '/shared' || cleanPath === '/shared/browse') {
+      return { route: 'files', scope: 'shared', filterType: 'all', currentPath: '' };
+    }
+    if (cleanPath.startsWith('/shared/browse/')) {
+      const rawSub = cleanPath.substring('/shared/browse/'.length);
+      return { route: 'files', scope: 'shared', filterType: 'all', currentPath: decodeSubpath(rawSub) };
+    }
+    if (cleanPath === '/files' || cleanPath === '/files/all' || cleanPath === '/files/browse') {
+      return { route: 'files', scope: 'private', filterType: 'all', currentPath: '' };
+    }
+    if (cleanPath === '/photos' || cleanPath === '/files/photos') {
+      return { route: 'files', scope: 'private', filterType: 'photo', currentPath: '' };
+    }
+    if (cleanPath === '/videos' || cleanPath === '/files/videos') {
+      return { route: 'files', scope: 'private', filterType: 'video', currentPath: '' };
+    }
+    if (cleanPath === '/audio' || cleanPath === '/files/audio') {
+      return { route: 'files', scope: 'private', filterType: 'audio', currentPath: '' };
+    }
+    if (cleanPath === '/documents' || cleanPath === '/files/documents') {
+      return { route: 'files', scope: 'private', filterType: 'document', currentPath: '' };
+    }
+    if (cleanPath === '/other' || cleanPath === '/files/other') {
+      return { route: 'files', scope: 'private', filterType: 'other', currentPath: '' };
+    }
+    if (cleanPath.startsWith('/files/browse/')) {
+      const rawSub = cleanPath.substring('/files/browse/'.length);
+      return { route: 'files', scope: 'private', filterType: 'all', currentPath: decodeSubpath(rawSub) };
+    }
+
+    return { route: 'dashboard', scope: 'private', filterType: 'all', currentPath: '' };
+  }
+
+  function applyStateFromPath(pathname, pushToHistory = false) {
+    const newState = parseUrlToState(pathname);
+    currentRoute = newState.route;
+
+    filesStore.selectedPaths.set(new Set());
+    filesStore.scope.set(newState.scope);
+    filesStore.filterType.set(newState.filterType);
+    filesStore.currentPath.set(newState.currentPath);
+
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('cc_current_route', newState.route);
+      localStorage.setItem('cc_current_scope', newState.scope);
+      localStorage.setItem('cc_current_filter', newState.filterType);
+      localStorage.setItem('cc_current_path', newState.currentPath);
+    }
+
+    if (newState.route === 'files') {
+      filesStore.loadDirectory();
+    }
+
+    if (typeof window !== 'undefined') {
+      const targetUrl = getUrlForState(newState.route, newState.scope, newState.filterType, newState.currentPath);
+      const stateObj = {
+        url: targetUrl,
+        route: newState.route,
+        scope: newState.scope,
+        filterType: newState.filterType,
+        currentPath: newState.currentPath
+      };
+
+      if (pushToHistory) {
+        if (window.location.pathname !== targetUrl) {
+          window.history.pushState(stateObj, '', targetUrl);
+        }
+      } else {
+        if (window.location.pathname !== targetUrl) {
+          window.history.replaceState(stateObj, '', targetUrl);
+        }
+      }
+    }
+  }
+
   onMount(() => {
-    // Attempt initial directory load
-    filesStore.loadDirectory();
+    applyStateFromPath(window.location.pathname, false);
+
+    const handlePopState = (e) => {
+      const targetPath = (e && e.state && e.state.url)
+        ? e.state.url
+        : window.location.pathname;
+      applyStateFromPath(targetPath, false);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   });
 
   // Automatically refresh directories when uploads/downloads complete
@@ -103,11 +238,6 @@
     prevActiveCount = count;
   });
 
-  // Reactive Persistence of routing
-  $: if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('cc_current_route', currentRoute);
-  }
-
   // Reactive sync of body class for theme
   $: if (typeof document !== 'undefined' && $appTheme) {
     document.body.className = `theme-${$appTheme}`;
@@ -126,18 +256,15 @@
 
   function handleSidebarNavigate(event) {
     const { route, filterType: newFilter, scope: newScope } = event.detail;
-    currentRoute = route;
-    if (route === 'files') {
-      filterType.set(newFilter);
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('cc_current_filter', newFilter);
-      }
-      filesStore.setScope(newScope);
-    }
+    const targetUrl = getUrlForState(route, newScope || 'private', newFilter || 'all', '');
+    applyStateFromPath(targetUrl, true);
   }
 
   function handleNavigate(path) {
-    filesStore.navigateTo(path);
+    const targetUrl = $scope === 'shared'
+      ? (path ? `/shared/browse/${encodeSubpath(path)}` : '/shared')
+      : (path ? `/files/browse/${encodeSubpath(path)}` : '/files');
+    applyStateFromPath(targetUrl, true);
   }
 
   function handleSelect(item) {
@@ -150,6 +277,17 @@
     } else {
       activePreviewFile = item;
     }
+  }
+
+  function handleGlobalFileSelection(e) {
+    if (!e.target || !e.target.files || e.target.files.length === 0) return;
+    const fileList = Array.from(e.target.files);
+    const filesToUpload = fileList.map((file) => ({
+      file,
+      path: file.name
+    }));
+    transfersStore.enqueueBatch(filesToUpload, $scope, $currentPath);
+    e.target.value = '';
   }
 
   function handleUploadFiles(event) {
@@ -497,16 +635,16 @@
       {currentRoute}
       on:toggleTheme={toggleTheme}
       on:toggleLayout={handleToggleLayout}
-      on:toggleRoute={(e) => (currentRoute = e.detail)}
+      on:toggleRoute={(e) => applyStateFromPath(getUrlForState(e.detail, 'private', 'all', ''), true)}
       on:openAuth={() => (isAuthOpen = true)}
       on:search={(e) => {
         const val = e.detail;
         searchQuery.set(val);
         if (val && currentRoute !== 'files') {
-          currentRoute = 'files';
-          filterType.set('all');
+          applyStateFromPath('/files', true);
+        } else {
+          filesStore.loadDirectory();
         }
-        filesStore.loadDirectory();
       }}
       on:changeSort={(e) => {
         sortOption.update((s) => ({ ...s, field: e.detail }));
@@ -598,7 +736,7 @@
     {:else if currentRoute === 'trash'}
       <TrashBrowser
         scope={$scope}
-        on:back={() => (currentRoute = 'files')}
+        on:back={() => applyStateFromPath('/files', true)}
         on:toast={handleToastEvent}
       />
     {:else if currentRoute === 'settings'}
@@ -650,6 +788,12 @@
     <AuthModal
       on:close={() => (isAuthOpen = false)}
       on:success={(e) => {
+        authStore.setSession(e.detail);
+        isAuthOpen = false;
+        filesStore.loadDirectory();
+        showToast('Logged in successfully!', 'success');
+      }}
+      on:authenticated={(e) => {
         authStore.setSession(e.detail);
         isAuthOpen = false;
         filesStore.loadDirectory();

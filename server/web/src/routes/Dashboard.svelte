@@ -20,7 +20,7 @@
   }
 
   function handleNavigate(filterType = 'all', scope = 'private') {
-    dispatch('navigate', { filterType, scope });
+    dispatch('navigate', { route: 'files', filterType, scope });
   }
 
   function handleDragEnter(e) {
