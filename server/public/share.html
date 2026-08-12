@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,102 +8,90 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <style>
     :root {
-      /* Dark Theme (Default) */
-      --bg-color: #121316;
-      --bg-surface: #1a1c23;
-      --card-bg: #222530;
-      --card-hover: #2b2f3d;
-      --border-color: #2e3342;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #ff4d4d;
-      --accent-hover: #ff6666;
-      --accent-glow: rgba(255, 77, 77, 0.35);
-      --accent-alpha: rgba(255, 77, 77, 0.12);
-      --header-bg: rgba(26, 28, 35, 0.88);
-      --modal-backdrop: rgba(10, 11, 14, 0.88);
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-      --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.45);
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 20px;
-      --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Fira Code', 'Roboto Mono', Consolas, monospace;
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 18px;
+      --radius-full: 9999px;
+
+      --shadow-card: 0 10px 18px rgba(0, 0, 0, 0.28);
+      --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
-    [data-theme="light"] {
-      --bg-color: #f3f4f8;
-      --bg-surface: #ffffff;
-      --card-bg: #f8f9fc;
-      --card-hover: #edf0f7;
-      --border-color: #e2e5ec;
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --accent: #fa5252;
-      --accent-hover: #e03131;
-      --accent-glow: rgba(250, 82, 82, 0.25);
-      --accent-alpha: rgba(250, 82, 82, 0.08);
-      --header-bg: rgba(255, 255, 255, 0.88);
-      --modal-backdrop: rgba(0, 0, 0, 0.75);
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.1);
+    /* Dark Theme (Default) */
+    :root[data-theme="dark"], body.theme-dark {
+      --bg-background: #1E1E1E;
+      --bg-surface: #2C2C2C;
+      --bg-surface-hover: #353535;
+      --bg-input: #1E1E1E;
+      --accent-color: #FA5252;
+      --accent-hover: #FF6B6B;
+      --text-main: #FFFFFF;
+      --text-sub: #A0A0A0;
+      --border-color: #3D3D3D;
+      --selection-bg: rgba(250, 82, 82, 0.15);
+      --selection-border: #FA5252;
+      --color-danger: #FF5252;
     }
 
-    @media (prefers-color-scheme: light) {
-      [data-theme="auto"] {
-        --bg-color: #f3f4f8;
-        --bg-surface: #ffffff;
-        --card-bg: #f8f9fc;
-        --card-hover: #edf0f7;
-        --border-color: #e2e5ec;
-        --text-main: #111827;
-        --text-muted: #6b7280;
-        --accent: #fa5252;
-        --accent-hover: #e03131;
-        --accent-glow: rgba(250, 82, 82, 0.25);
-        --accent-alpha: rgba(250, 82, 82, 0.08);
-        --header-bg: rgba(255, 255, 255, 0.88);
-        --modal-backdrop: rgba(0, 0, 0, 0.75);
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-        --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.1);
-      }
+    /* Light Theme */
+    :root[data-theme="light"], body.theme-light {
+      --bg-background: #F4F5F8;
+      --bg-surface: #FFFFFF;
+      --bg-surface-hover: #F8F9FA;
+      --bg-input: #F4F5F8;
+      --accent-color: #FA5252;
+      --accent-hover: #FF6B6B;
+      --text-main: #1F2937;
+      --text-sub: #6B7280;
+      --border-color: #E5E7EB;
+      --selection-bg: rgba(250, 82, 82, 0.12);
+      --selection-border: #FA5252;
+      --color-danger: #FF5252;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    html, body {
+      overflow-x: hidden;
     }
 
     body {
-      font-family: var(--font-family);
-      background-color: var(--bg-color);
+      font-family: var(--font-sans);
+      background-color: var(--bg-background);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      word-break: break-word;
-      overflow-wrap: anywhere;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.15s ease, color 0.15s ease;
     }
 
-    /* Header */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background-color: var(--header-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+    /* Top Header Bar matching HeaderBar.svelte */
+    header.header-bar {
+      height: 64px;
+      background-color: var(--bg-surface);
       border-bottom: 1px solid var(--border-color);
-      padding: 12px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: var(--shadow-sm);
+      padding: 0 24px;
+      gap: 16px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     .brand {
@@ -112,346 +100,374 @@
       gap: 12px;
       text-decoration: none;
       color: var(--text-main);
-      min-width: 0;
-      flex-shrink: 1;
     }
 
     .brand-logo {
-      width: 36px;
       height: 36px;
+      width: auto;
       object-fit: contain;
-      border-radius: var(--radius-sm);
-      filter: drop-shadow(0 2px 6px var(--accent-glow));
-      flex-shrink: 0;
     }
 
     .brand-title {
-      font-size: 1.15rem;
+      font-size: 18px;
       font-weight: 700;
-      letter-spacing: -0.3px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      color: var(--accent-color);
     }
 
-    .header-actions {
+    .search-section {
+      flex: 1;
+      max-width: 440px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-sub);
+      pointer-events: none;
+      font-size: 20px;
+    }
+
+    .search-pill {
+      width: 100%;
+      height: 40px;
+      border-radius: var(--radius-full);
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      padding: 0 36px 0 44px;
+      color: var(--text-main);
+      outline: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .search-pill:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(250, 82, 82, 0.15);
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-sub);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
     }
 
+    .clear-search-btn:hover {
+      color: var(--text-main);
+      background-color: var(--bg-surface-hover);
+    }
+
+    .actions-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Buttons matching system .btn and .btn-icon */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       padding: 8px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 14px;
       font-weight: 600;
-      font-family: inherit;
       cursor: pointer;
-      border: 1px solid transparent;
+      border: none;
       text-decoration: none;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      user-select: none;
+      transition: background-color 0.15s ease, transform 0.1s ease;
       white-space: nowrap;
     }
 
-    .btn-icon {
-      padding: 8px;
-      border-radius: 50%;
-      width: 38px;
-      height: 38px;
+    .btn-primary {
+      background-color: var(--accent-color);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
     }
 
     .btn-secondary {
       background-color: var(--bg-surface);
       color: var(--text-main);
-      border-color: var(--border-color);
+      border: 1px solid var(--border-color);
     }
 
     .btn-secondary:hover {
-      background-color: var(--card-hover);
-      border-color: var(--text-muted);
+      background-color: var(--bg-surface-hover);
     }
 
-    .btn-primary {
-      background-color: var(--accent);
-      color: #ffffff;
-      box-shadow: 0 3px 12px var(--accent-glow);
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: var(--radius-full);
+      background: transparent;
+      color: var(--text-sub);
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
     }
 
-    .btn-primary:hover {
-      background-color: var(--accent-hover);
-      transform: translateY(-1px);
-      box-shadow: 0 5px 16px var(--accent-glow);
+    .btn-icon:hover {
+      background-color: var(--bg-surface-hover);
+      color: var(--text-main);
     }
 
-    .btn-primary:active {
-      transform: translateY(0);
+    .header-divider {
+      width: 1px;
+      height: 20px;
+      background-color: var(--border-color);
+      margin: 0 4px;
     }
 
     /* Main Container */
-    main {
+    main.main-content {
       flex: 1;
-      max-width: 1280px;
       width: 100%;
-      margin: 0 auto;
       padding: 24px;
+      box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: 20px;
     }
 
-    /* Controls Bar */
-    .controls-bar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 14px 20px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .breadcrumbs {
+    /* Breadcrumbs matching BreadcrumbBar.svelte */
+    .breadcrumb-bar {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
       gap: 6px;
-      font-size: 0.95rem;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .crumb-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 14px;
       font-weight: 500;
-    }
-
-    .crumb-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
       cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 6px;
-      text-decoration: none;
+      transition: background-color 0.15s ease, color 0.15s ease;
     }
 
-    .crumb-item:hover {
-      color: var(--accent);
-      background-color: var(--accent-alpha);
-    }
-
-    .crumb-item.active {
+    .crumb-btn:hover {
+      background-color: var(--bg-surface-hover);
       color: var(--text-main);
-      font-weight: 600;
-      cursor: default;
     }
 
-    .crumb-item.active:hover {
-      background-color: transparent;
+    .crumb-btn.active {
+      color: var(--accent-color);
+      font-weight: 700;
+      background-color: var(--selection-bg);
     }
 
     .crumb-separator {
-      color: var(--text-muted);
+      color: var(--text-sub);
+      font-size: 16px;
       opacity: 0.5;
     }
 
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .search-box {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .search-box input {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 8px 14px 8px 36px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      font-family: inherit;
-      outline: none;
-      width: 200px;
-      transition: width 0.25s ease, border-color 0.2s ease;
-    }
-
-    .search-box input:focus {
-      width: 260px;
-      border-color: var(--accent);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 10px;
-      color: var(--text-muted);
-      pointer-events: none;
-    }
-
-    .view-toggle {
-      display: flex;
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 3px;
-    }
-
-    .view-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      padding: 6px;
-      border-radius: 4px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .view-btn.active {
-      background-color: var(--bg-surface);
-      color: var(--accent);
-      box-shadow: var(--shadow-sm);
-    }
-
-    /* Grid Layout */
-    .file-grid {
+    /* File Grid Layout matching FileGrid.svelte */
+    .grid-container {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 16px;
+      overflow-y: auto;
+      flex: 1;
+      align-content: start;
+      padding-bottom: 32px;
     }
 
-    .card {
+    .grid-item {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      overflow: hidden;
+      border-radius: var(--radius-lg);
+      padding: 12px;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      aspect-ratio: 1 / 1.12;
       cursor: pointer;
+      user-select: none;
+      transition: background-color 0.1s ease, border-color 0.1s ease;
+      min-width: 0;
       position: relative;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--accent);
+    .grid-item:hover {
+      background-color: var(--bg-surface-hover);
+      border-color: rgba(250, 82, 82, 0.15);
     }
 
-    .card-preview {
-      height: 150px;
-      background-color: var(--card-bg);
+    .grid-item-thumbnail {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      position: relative;
+      border-radius: var(--radius-md);
+      background-color: var(--bg-background);
+      margin-bottom: 8px;
     }
 
-    .card-preview img {
+    .grid-item-thumbnail img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    .card-icon {
-      color: var(--text-muted);
+    .grid-item-icon {
+      font-size: 52px;
+      color: var(--text-sub);
     }
 
-    .card-info {
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .grid-item-icon.icon-folder {
+      color: var(--accent-color);
     }
 
-    .card-title {
-      font-size: 0.92rem;
+    .grid-item-info {
+      width: 100%;
+    }
+
+    .grid-item-name {
+      font-size: 14px;
       font-weight: 600;
+      color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      width: 100%;
+      text-align: left;
     }
 
-    .card-meta {
-      font-size: 0.78rem;
-      color: var(--text-muted);
+    .grid-item-meta-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 4px;
+      height: 24px;
     }
 
-    /* List Layout */
-    .file-list {
+    .grid-item-meta {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .grid-item-action-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-sub);
+      transition: background-color 0.15s ease, color 0.15s ease;
+      text-decoration: none;
+    }
+
+    .grid-item-action-btn:hover {
+      background-color: var(--bg-background);
+      color: var(--accent-color);
+    }
+
+    /* File List Layout matching FileList.svelte */
+    .list-container {
       display: flex;
       flex-direction: column;
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
+      gap: 6px;
+      overflow-y: auto;
+      flex: 1;
+      padding-bottom: 32px;
     }
 
     .list-header {
       display: grid;
-      grid-template-columns: 48px 1fr 120px 140px 60px;
+      grid-template-columns: 48px 4.5fr 2fr 2fr 60px;
+      gap: 12px;
       padding: 12px 16px;
-      font-size: 0.82rem;
-      font-weight: 600;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: var(--text-muted);
       border-bottom: 1px solid var(--border-color);
-      background-color: var(--card-bg);
+      margin-bottom: 8px;
     }
 
     .list-row {
       display: grid;
-      grid-template-columns: 48px 1fr 120px 140px 60px;
+      grid-template-columns: 48px 4.5fr 2fr 2fr 60px;
+      gap: 12px;
       padding: 12px 16px;
       align-items: center;
-      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
       cursor: pointer;
-    }
-
-    .list-row:last-child {
-      border-bottom: none;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
     }
 
     .list-row:hover {
-      background-color: var(--card-hover);
+      background-color: var(--bg-surface-hover);
     }
 
     .list-icon {
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--text-muted);
+    }
+
+    .file-type-icon {
+      font-size: 20px;
+      color: var(--accent-color);
     }
 
     .list-name {
-      font-size: 0.92rem;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-right: 12px;
     }
 
     .list-size, .list-date {
-      font-size: 0.85rem;
-      color: var(--text-muted);
+      font-size: 13px;
+      color: var(--text-sub);
+      text-align: right;
     }
 
     .list-action {
@@ -459,78 +475,56 @@
       justify-content: flex-end;
     }
 
-    .action-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      padding: 6px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .action-btn:hover {
-      color: var(--accent);
-      background-color: var(--accent-alpha);
-    }
-
-    /* Single File Showcase View */
+    /* Single File Showcase Card */
     .file-showcase {
-      max-width: 900px;
+      max-width: 860px;
       width: 100%;
-      margin: 0 auto;
+      margin: 20px auto;
       background-color: var(--bg-surface);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 28px;
+      border-radius: var(--radius-xl);
+      padding: 32px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 24px;
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow-card);
     }
 
     .showcase-title {
-      font-size: 1.35rem;
+      font-size: 22px;
       font-weight: 700;
       text-align: center;
+      color: var(--text-main);
       word-break: break-word;
-      overflow-wrap: anywhere;
-      max-width: 100%;
-      letter-spacing: -0.3px;
     }
 
     .preview-stage {
       width: 100%;
-      max-height: 65vh;
+      max-height: 60vh;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      border-radius: var(--radius-md);
-      background-color: #0d0e11;
-      background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
-      background-size: 16px 16px;
-      position: relative;
+      border-radius: var(--radius-lg);
+      background-color: var(--bg-background);
       border: 1px solid var(--border-color);
       cursor: pointer;
+      position: relative;
     }
 
     .preview-stage img {
       max-width: 100%;
-      max-height: 65vh;
+      max-height: 60vh;
       object-fit: contain;
-      border-radius: 6px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      border-radius: var(--radius-md);
     }
 
     .preview-stage video {
       max-width: 100%;
-      max-height: 65vh;
+      max-height: 60vh;
       outline: none;
-      border-radius: 6px;
+      border-radius: var(--radius-md);
     }
 
     .audio-stage {
@@ -540,26 +534,26 @@
       flex-direction: column;
       align-items: center;
       gap: 20px;
-      background-color: var(--card-bg);
-      border-radius: var(--radius-md);
+      background-color: var(--bg-background);
+      border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
     }
 
     .audio-stage audio {
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
     }
 
     .code-container {
       width: 100%;
-      max-height: 60vh;
+      max-height: 55vh;
       overflow: auto;
-      background-color: #0f1013;
-      color: #e2e8f0;
+      background-color: #121316;
+      color: #E2E8F0;
       padding: 20px;
-      border-radius: var(--radius-md);
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      font-size: 0.9rem;
+      border-radius: var(--radius-lg);
+      font-family: var(--font-mono);
+      font-size: 13px;
       line-height: 1.6;
       white-space: pre-wrap;
       word-break: break-all;
@@ -571,32 +565,28 @@
       flex-direction: column;
       align-items: center;
       gap: 16px;
-      padding: 36px 20px;
+      padding: 48px 20px;
       text-align: center;
-      background-color: var(--card-bg);
-      border-radius: var(--radius-md);
+      background-color: var(--bg-background);
+      border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
       width: 100%;
     }
 
     .generic-icon {
-      width: 72px;
-      height: 72px;
-      color: var(--accent);
-      filter: drop-shadow(0 4px 12px var(--accent-glow));
+      font-size: 64px;
+      color: var(--accent-color);
     }
 
     .file-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      background-color: var(--accent-alpha);
-      color: var(--accent);
-      border-radius: 20px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      text-transform: uppercase;
+      padding: 4px 14px;
+      background-color: var(--selection-bg);
+      color: var(--accent-color);
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 700;
       letter-spacing: 0.5px;
     }
 
@@ -608,19 +598,18 @@
       width: 100%;
     }
 
-    /* Lightbox Modal */
+    /* Lightbox Modal matching MediaPreviewModal.svelte */
     .lightbox {
       position: fixed;
       inset: 0;
       z-index: 1000;
-      background-color: var(--modal-backdrop);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background-color: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
       display: flex;
       flex-direction: column;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.25s ease;
+      transition: opacity 0.2s ease;
     }
 
     .lightbox.active {
@@ -634,11 +623,11 @@
       align-items: center;
       justify-content: space-between;
       color: #ffffff;
-      background: rgba(0,0,0,0.3);
+      background: rgba(0, 0, 0, 0.4);
     }
 
     .lightbox-title {
-      font-size: 1.05rem;
+      font-size: 16px;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
@@ -665,51 +654,115 @@
     }
 
     .lightbox-content img, .lightbox-content video {
-      max-width: 92vw;
-      max-height: 82vh;
+      max-width: 90vw;
+      max-height: 80vh;
       object-fit: contain;
-      border-radius: var(--radius-sm);
-      box-shadow: 0 12px 48px rgba(0,0,0,0.85);
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.8);
     }
 
     .lightbox-nav {
       background: rgba(255, 255, 255, 0.12);
       border: 1px solid rgba(255, 255, 255, 0.2);
       color: #ffffff;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-full);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
+      transition: background 0.15s ease, transform 0.15s ease;
       z-index: 10;
       flex-shrink: 0;
     }
 
     .lightbox-nav:hover {
-      background: rgba(255, 255, 255, 0.28);
-      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.25);
     }
 
-    /* Toast */
+    /* Text Preview Modal */
+    .text-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background-color: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      padding: 24px;
+    }
+
+    .text-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .text-modal-header {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      border: 1px solid var(--border-color);
+      border-bottom: none;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .text-modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .text-modal-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      min-height: 0;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .text-modal-body .code-container {
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+    }
+
+    /* Toast Notification */
     .toast {
       position: fixed;
       bottom: 24px;
       right: 24px;
       z-index: 2000;
-      background-color: var(--card-bg);
+      background-color: var(--bg-surface);
       color: var(--text-main);
-      border: 1px solid var(--accent);
+      border: 1px solid var(--border-color);
       padding: 12px 20px;
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-md);
-      font-size: 0.9rem;
-      font-weight: 500;
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-card);
+      font-size: 13px;
+      font-weight: 600;
       opacity: 0;
       transform: translateY(10px);
-      transition: all 0.25s ease;
+      transition: all 0.2s ease;
       pointer-events: none;
     }
 
@@ -718,7 +771,7 @@
       transform: translateY(0);
     }
 
-    /* Loading Spinner */
+    /* Loading Spinner & Empty state */
     .spinner-container {
       display: flex;
       flex-direction: column;
@@ -726,14 +779,14 @@
       justify-content: center;
       min-height: 300px;
       gap: 16px;
-      color: var(--text-muted);
+      color: var(--text-sub);
     }
 
     .spinner {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border: 3px solid var(--border-color);
-      border-top-color: var(--accent);
+      border-top-color: var(--accent-color);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -743,133 +796,234 @@
     }
 
     .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 20px;
       text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
+      width: 100%;
     }
 
-    /* Mobile Responsive Optimizations */
+    .empty-icon {
+      font-size: 56px;
+      color: var(--text-sub);
+      opacity: 0.5;
+      margin-bottom: 12px;
+    }
+
+    .empty-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .empty-sub {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
     @media (max-width: 768px) {
-      header {
-        padding: 10px 14px;
+      header.header-bar {
+        padding: 0 16px;
       }
-      .brand-title {
-        font-size: 1rem;
-      }
-      .btn-text {
+      .search-section {
         display: none;
-      }
-      .btn-primary {
-        padding: 8px 12px;
-      }
-      main {
-        padding: 14px;
-      }
-      .controls-bar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .toolbar {
-        justify-content: space-between;
-      }
-      .search-box input, .search-box input:focus {
-        width: 100%;
       }
       .list-header {
         display: none;
       }
       .list-row {
-        grid-template-columns: 40px 1fr 50px;
+        grid-template-columns: 40px 1fr 40px;
       }
       .list-size, .list-date {
         display: none;
       }
+    }
+
+    @media (max-width: 640px) {
+      header.header-bar {
+        padding: 0 10px;
+        gap: 8px;
+      }
+      .brand {
+        gap: 6px;
+      }
+      .brand-logo {
+        display: none;
+      }
+      .brand-title {
+        font-size: 15px;
+      }
+      .actions-section {
+        gap: 6px;
+      }
+      .header-divider {
+        display: none;
+      }
+      .btn-primary {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
       .file-showcase {
-        padding: 16px;
-        border-radius: var(--radius-md);
+        padding: 20px;
+        gap: 16px;
       }
       .showcase-title {
-        font-size: 1.15rem;
+        font-size: 18px;
+      }
+      .showcase-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
       }
       .showcase-actions .btn {
         width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .brand-title {
+        font-size: 13px;
+      }
+      .download-text {
+        display: none;
+      }
+      .btn-primary {
+        padding: 8px;
+        border-radius: var(--radius-full);
+        width: 36px;
+        height: 36px;
+      }
+      .text-modal {
+        padding: 12px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <header>
+  <!-- Top Header Bar -->
+  <header class="header-bar">
     <a href="#" class="brand">
       <img src="/public/logo.png" class="brand-logo" alt="Crowley's Cloud Logo">
       <span class="brand-title">Crowley's Cloud</span>
     </a>
-    <div class="header-actions">
-      <!-- Theme Switcher -->
-      <button class="btn btn-secondary btn-icon" id="themeToggle" title="Toggle Theme">
-        <svg id="themeIconSun" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-        </svg>
-        <svg id="themeIconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-        </svg>
+
+    <!-- Live Search Pill Input -->
+    <div class="search-section">
+      <div class="search-wrapper">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input
+          type="text"
+          class="search-pill"
+          id="searchInput"
+          placeholder="Filter files..."
+          oninput="onFilterChange(this.value)"
+        />
+        <button
+          type="button"
+          class="clear-search-btn"
+          id="clearSearchBtn"
+          style="display:none;"
+          onclick="clearSearch()"
+        >
+          <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Actions & Toolbar -->
+    <div class="actions-section">
+      <!-- Layout View Toggle Button -->
+      <button
+        class="btn-icon"
+        id="layoutToggleBtn"
+        onclick="toggleLayout()"
+        title="Toggle Grid / List View"
+      >
+        <span class="material-symbols-outlined" id="layoutIcon">grid_view</span>
       </button>
 
-      <!-- Download Button -->
+      <div class="header-divider"></div>
+
+      <!-- Theme Switcher Button -->
+      <button
+        class="btn-icon"
+        id="themeToggleBtn"
+        onclick="toggleTheme()"
+        title="Toggle Light / Dark Mode"
+      >
+        <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
+      </button>
+
+      <!-- Main Download Button -->
       <a href="#" class="btn btn-primary" id="mainDownloadBtn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        <span id="downloadBtnText" class="btn-text">Download</span>
+        <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+        <span id="downloadBtnText" class="download-text">Download</span>
       </a>
     </div>
   </header>
 
   <!-- Main Content Area -->
-  <main id="appMain">
+  <main class="main-content" id="appMain">
     <div class="spinner-container">
       <div class="spinner"></div>
-      <p>Loading shared resource...</p>
+      <p class="text-sub">Loading shared resource...</p>
     </div>
   </main>
 
-  <!-- Lightbox Modal -->
+  <!-- Fullscreen Lightbox Modal for Photos/Videos -->
   <div class="lightbox" id="lightboxModal">
     <div class="lightbox-header">
       <span class="lightbox-title" id="lightboxTitle">Preview</span>
       <div style="display:flex; gap:10px;">
-        <a href="#" class="btn btn-secondary btn-icon" id="lightboxDownloadBtn" title="Download">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
+        <a href="#" class="btn-icon" id="lightboxDownloadBtn" title="Download" style="color:#fff;">
+          <span class="material-symbols-outlined">download</span>
         </a>
-        <button class="btn btn-secondary btn-icon" id="lightboxCloseBtn" title="Close (Esc)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
+        <button class="btn-icon" id="lightboxCloseBtn" title="Close (Esc)" style="color:#fff;">
+          <span class="material-symbols-outlined">close</span>
         </button>
       </div>
     </div>
     <div class="lightbox-body">
       <button class="lightbox-nav" id="lightboxPrevBtn" title="Previous">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
+        <span class="material-symbols-outlined">chevron_left</span>
       </button>
       <div class="lightbox-content" id="lightboxContent"></div>
       <button class="lightbox-nav" id="lightboxNextBtn" title="Next">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
+        <span class="material-symbols-outlined">chevron_right</span>
       </button>
     </div>
   </div>
 
+  <!-- Text Viewer Modal for Code / Text Files -->
+  <div class="text-modal" id="textModal">
+    <div class="text-modal-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--accent-color);">article</span>
+        <span class="text-modal-title" id="textModalTitle">Text Preview</span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <a href="#" class="btn-icon" id="textModalDownloadBtn" title="Download" style="color:#fff;">
+          <span class="material-symbols-outlined">download</span>
+        </a>
+        <button class="btn-icon" id="textModalCloseBtn" onclick="closeTextModal()" title="Close (Esc)" style="color:#fff;">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </div>
+    <div class="text-modal-body">
+      <div class="code-container" id="textModalContent">Loading content...</div>
+    </div>
+  </div>
+
+  <!-- Toast Message -->
   <div class="toast" id="toast">Copied to clipboard!</div>
 
   <script>
-    // State management
     const token = window.location.pathname.split('/')[2];
     let shareData = null;
     let currentRelPath = '';
@@ -878,79 +1032,68 @@
     let mediaList = [];
     let currentLightboxIdx = -1;
 
-    // File type classification helper (handles backend "photo" / "image" / mimeType / extensions)
-    function getFileType(file) {
-      if (!file) return 'other';
-      if (file.isDir) return 'directory';
-      const t = (file.type || '').toLowerCase();
-      const m = (file.mimeType || '').toLowerCase();
+    // Material Icon mapping helper matching FileGrid & FileList
+    function getMaterialIcon(file) {
+      if (!file) return 'insert_drive_file';
+      if (file.isDir) return 'folder';
       const name = (file.name || '').toLowerCase();
       const ext = name.includes('.') ? name.split('.').pop() : '';
+      const type = (file.type || '').toLowerCase();
 
-      if (t === 'photo' || t === 'image' || m.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(ext)) {
-        return 'image';
+      switch (ext) {
+        case 'pdf': return 'picture_as_pdf';
+        case 'doc': case 'docx': return 'description';
+        case 'xls': case 'xlsx': return 'table_chart';
+        case 'ppt': case 'pptx': return 'slideshow';
+        case 'zip': case 'tar': case 'gz': case '7z': case 'rar': case 'bz2': case 'xz': return 'folder_zip';
+        case 'mp3': case 'wav': case 'ogg': case 'flac': case 'm4a': case 'aac': return 'audiotrack';
+        case 'mp4': case 'mkv': case 'avi': case 'mov': case 'webm': case 'flv': return 'movie';
+        case 'jpg': case 'jpeg': case 'png': case 'webp': case 'gif': case 'bmp': case 'heic': case 'avif': case 'heif': return 'image';
+        case 'txt': case 'md': case 'json': case 'yaml': case 'yml': case 'xml': case 'log': case 'csv': case 'js': case 'ts': case 'html': case 'css': case 'dart': case 'cpp': case 'c': case 'h': case 'hpp': case 'py': case 'sh': return 'article';
+        default:
+          if (type === 'photo' || type === 'image') return 'image';
+          if (type === 'video') return 'movie';
+          if (type === 'audio') return 'audiotrack';
+          if (type === 'archive') return 'folder_zip';
+          return 'insert_drive_file';
       }
-      if (t === 'video' || m.startsWith('video/') || ['mp4', 'mkv', 'mov', 'webm', 'avi', 'flv'].includes(ext)) {
-        return 'video';
-      }
-      if (t === 'audio' || m.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'].includes(ext)) {
-        return 'audio';
-      }
-      if (m.startsWith('text/') || ['txt', 'md', 'json', 'js', 'ts', 'html', 'css', 'cpp', 'h', 'hpp', 'c', 'py', 'dart', 'sh', 'yaml', 'yml', 'xml', 'log'].includes(ext)) {
-        return 'text';
-      }
-      if (t === 'document' || m.includes('pdf') || m.includes('word') || m.includes('excel') || m.includes('presentation') || ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)) {
-        return 'document';
-      }
+    }
+
+    function getFileTypeCategory(file) {
+      if (!file) return 'other';
+      if (file.isDir) return 'directory';
+      const icon = getMaterialIcon(file);
+      if (icon === 'image') return 'image';
+      if (icon === 'movie') return 'video';
+      if (icon === 'audiotrack') return 'audio';
+      if (icon === 'article') return 'text';
+      if (icon === 'picture_as_pdf' || icon === 'description' || icon === 'table_chart' || icon === 'slideshow') return 'document';
       return 'other';
     }
 
     // Theme Management
     function initTheme() {
-      const savedTheme = localStorage.getItem('theme');
-      const htmlEl = document.documentElement;
-      
-      if (savedTheme) {
-        htmlEl.setAttribute('data-theme', savedTheme);
-      } else {
-        htmlEl.setAttribute('data-theme', 'auto');
-      }
-      updateThemeIcons();
+      const savedTheme = localStorage.getItem('cc_web_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon();
     }
 
     function toggleTheme() {
-      const htmlEl = document.documentElement;
-      const currentTheme = htmlEl.getAttribute('data-theme');
-      let newTheme = 'dark';
-      
-      if (currentTheme === 'dark') {
-        newTheme = 'light';
-      } else if (currentTheme === 'light') {
-        newTheme = 'dark';
-      } else {
-        const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        newTheme = isSystemDark ? 'light' : 'dark';
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('cc_web_theme', next);
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const iconEl = document.getElementById('themeIcon');
+      if (iconEl) {
+        iconEl.textContent = current === 'dark' ? 'light_mode' : 'dark_mode';
       }
-
-      htmlEl.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      updateThemeIcons();
     }
 
-    function updateThemeIcons() {
-      const htmlEl = document.documentElement;
-      const theme = htmlEl.getAttribute('data-theme');
-      let effectiveDark = true;
-      if (theme === 'light') effectiveDark = false;
-      else if (theme === 'dark') effectiveDark = true;
-      else effectiveDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-      document.getElementById('themeIconSun').style.display = effectiveDark ? 'inline-block' : 'none';
-      document.getElementById('themeIconMoon').style.display = effectiveDark ? 'none' : 'inline-block';
-    }
-
-    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeIcons);
     initTheme();
 
     function showToast(msg) {
@@ -960,14 +1103,6 @@
       setTimeout(() => t.classList.remove('show'), 2500);
     }
 
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('Direct link copied to clipboard!');
-      }).catch(() => {
-        showToast('Failed to copy link.');
-      });
-    }
-
     // Data Fetching
     async function loadShareInfo(relPath = '') {
       currentRelPath = relPath;
@@ -975,7 +1110,7 @@
       appMain.innerHTML = `
         <div class="spinner-container">
           <div class="spinner"></div>
-          <p>Loading files...</p>
+          <p class="text-sub">Loading files...</p>
         </div>
       `;
 
@@ -997,12 +1132,46 @@
     function showError(msg) {
       document.getElementById('appMain').innerHTML = `
         <div class="empty-state">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" style="margin-bottom:16px;">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <h2>${escapeHtml(msg)}</h2>
+          <span class="material-symbols-outlined empty-icon" style="color:var(--color-danger); opacity:1;">error_outline</span>
+          <h3 class="empty-title">${escapeHtml(msg)}</h3>
         </div>
       `;
+    }
+
+    function toggleLayout() {
+      currentLayout = currentLayout === 'grid' ? 'list' : 'grid';
+      localStorage.setItem('viewLayout', currentLayout);
+      updateLayoutIcon();
+      renderView();
+    }
+
+    function updateLayoutIcon() {
+      const iconEl = document.getElementById('layoutIcon');
+      if (iconEl) {
+        iconEl.textContent = currentLayout === 'grid' ? 'list' : 'grid_view';
+      }
+    }
+
+    function onFilterChange(query) {
+      const q = query.toLowerCase().trim();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+      const files = shareData.files || [];
+      if (!q) {
+        filteredFiles = files;
+      } else {
+        filteredFiles = files.filter(f => f.name.toLowerCase().includes(q));
+      }
+      renderFileContainer();
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('searchInput');
+      if (input) {
+        input.value = '';
+        onFilterChange('');
+      }
     }
 
     function renderView() {
@@ -1010,8 +1179,9 @@
       const mainDownloadBtn = document.getElementById('mainDownloadBtn');
       const downloadBtnText = document.getElementById('downloadBtnText');
 
+      updateLayoutIcon();
+
       if (!shareData.isFolder && currentRelPath === '') {
-        // Single File Showcase
         mainDownloadBtn.href = `/s/${token}/raw?download=1`;
         downloadBtnText.textContent = 'Download';
 
@@ -1025,47 +1195,22 @@
         return;
       }
 
-      // Folder Mode
       mainDownloadBtn.href = `/s/${token}/zip?p=${encodeURIComponent(currentRelPath)}`;
       downloadBtnText.textContent = 'Download All (.zip)';
 
       filteredFiles = shareData.files || [];
       mediaList = filteredFiles.filter(f => {
-        const category = getFileType(f);
-        return category === 'image' || category === 'video';
+        const cat = getFileTypeCategory(f);
+        return cat === 'image' || cat === 'video';
       });
 
       let html = `
-        <div class="controls-bar">
-          <div class="breadcrumbs">
-            <span class="crumb-item ${currentRelPath === '' ? 'active' : ''}" onclick="loadShareInfo('')">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              </svg>
-              ${escapeHtml(shareData.rootName)}
-            </span>
-            ${renderBreadcrumbsHTML(currentRelPath)}
-          </div>
-          <div class="toolbar">
-            <div class="search-box">
-              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-              </svg>
-              <input type="text" id="searchInput" placeholder="Filter files..." oninput="onFilterChange(this.value)">
-            </div>
-            <div class="view-toggle">
-              <button class="view-btn ${currentLayout === 'grid' ? 'active' : ''}" onclick="setLayout('grid')" title="Grid View">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>
-                </svg>
-              </button>
-              <button class="view-btn ${currentLayout === 'list' ? 'active' : ''}" onclick="setLayout('list')" title="List View">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-                </svg>
-              </button>
-            </div>
-          </div>
+        <div class="breadcrumb-bar">
+          <button class="crumb-btn ${currentRelPath === '' ? 'active' : ''}" onclick="loadShareInfo('')">
+            <span class="material-symbols-outlined" style="font-size:18px;">folder_open</span>
+            <span>${escapeHtml(shareData.rootName)}</span>
+          </button>
+          ${renderBreadcrumbsHTML(currentRelPath)}
         </div>
         <div id="fileContainer"></div>
       `;
@@ -1085,30 +1230,12 @@
         const curAcc = accumulated;
         res += `
           <span class="crumb-separator">/</span>
-          <span class="crumb-item ${isLast ? 'active' : ''}" ${isLast ? '' : `onclick="loadShareInfo('${escapeJs(curAcc)}')"`}>
-            ${escapeHtml(part)}
-          </span>
+          <button class="crumb-btn ${isLast ? 'active' : ''}" ${isLast ? '' : `onclick="loadShareInfo('${escapeJs(curAcc)}')"`}>
+            <span>${escapeHtml(part)}</span>
+          </button>
         `;
       });
       return res;
-    }
-
-    function setLayout(layout) {
-      currentLayout = layout;
-      localStorage.setItem('viewLayout', layout);
-      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-      renderView();
-    }
-
-    function onFilterChange(query) {
-      const q = query.toLowerCase().trim();
-      const files = shareData.files || [];
-      if (!q) {
-        filteredFiles = files;
-      } else {
-        filteredFiles = files.filter(f => f.name.toLowerCase().includes(q));
-      }
-      renderFileContainer();
     }
 
     function renderFileContainer() {
@@ -1118,17 +1245,16 @@
       if (filteredFiles.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-            </svg>
-            <p style="margin-top:12px;">This directory is empty</p>
+            <span class="material-symbols-outlined empty-icon">folder_open</span>
+            <h3 class="empty-title">This directory is empty</h3>
+            <p class="empty-sub">No files found matching your criteria</p>
           </div>
         `;
         return;
       }
 
       if (currentLayout === 'grid') {
-        let gridHtml = '<div class="file-grid">';
+        let gridHtml = '<div class="grid-container">';
         filteredFiles.forEach(file => {
           gridHtml += renderGridCard(file);
         });
@@ -1136,12 +1262,12 @@
         container.innerHTML = gridHtml;
       } else {
         let listHtml = `
-          <div class="file-list">
+          <div class="list-container">
             <div class="list-header">
               <span>Type</span>
               <span>Name</span>
-              <span>Size</span>
-              <span>Modified</span>
+              <span style="text-align:right;">Size</span>
+              <span style="text-align:right;">Modified</span>
               <span style="text-align:right;">Action</span>
             </div>
         `;
@@ -1156,36 +1282,15 @@
     function renderGridCard(file) {
       const rawUrl = `/s/${token}/raw?p=${encodeURIComponent(file.relPath)}`;
       const downloadUrl = `/s/${token}/raw?download=1&p=${encodeURIComponent(file.relPath)}`;
-      const fileType = getFileType(file);
+      const category = getFileTypeCategory(file);
       
-      let previewContent = '';
+      let thumbnailContent = '';
       if (file.isDir) {
-        previewContent = `
-          <svg class="card-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-          </svg>`;
-      } else if (fileType === 'image') {
-        previewContent = `<img src="${rawUrl}" loading="lazy" alt="${escapeHtml(file.name)}">`;
-      } else if (fileType === 'video') {
-        previewContent = `
-          <svg class="card-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect width="18" height="18" x="3" y="3" rx="2"/><polygon points="10 8 16 12 10 16 10 8"/>
-          </svg>`;
-      } else if (fileType === 'audio') {
-        previewContent = `
-          <svg class="card-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-          </svg>`;
-      } else if (fileType === 'text') {
-        previewContent = `
-          <svg class="card-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-          </svg>`;
+        thumbnailContent = `<span class="material-symbols-outlined grid-item-icon icon-folder">folder</span>`;
+      } else if (category === 'image') {
+        thumbnailContent = `<img src="${rawUrl}" loading="lazy" alt="${escapeHtml(file.name)}">`;
       } else {
-        previewContent = `
-          <svg class="card-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>
-          </svg>`;
+        thumbnailContent = `<span class="material-symbols-outlined grid-item-icon">${getMaterialIcon(file)}</span>`;
       }
 
       const clickHandler = file.isDir
@@ -1193,19 +1298,17 @@
         : `onFileClick('${escapeJs(file.relPath)}')`;
 
       return `
-        <div class="card" onclick="${clickHandler}">
-          <div class="card-preview">
-            ${previewContent}
+        <div class="grid-item" onclick="${clickHandler}">
+          <div class="grid-item-thumbnail">
+            ${thumbnailContent}
           </div>
-          <div class="card-info">
-            <div class="card-title" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</div>
-            <div class="card-meta">
-              <span>${file.isDir ? 'Folder' : formatSize(file.size)}</span>
+          <div class="grid-item-info">
+            <div class="grid-item-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</div>
+            <div class="grid-item-meta-row">
+              <span class="grid-item-meta">${file.isDir ? 'Folder' : formatSize(file.size)}</span>
               ${!file.isDir ? `
-                <a href="${downloadUrl}" onclick="event.stopPropagation()" style="color:var(--text-muted); text-decoration:none;" title="Download">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
+                <a href="${downloadUrl}" onclick="event.stopPropagation()" class="grid-item-action-btn" title="Download">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
                 </a>
               ` : ''}
             </div>
@@ -1220,22 +1323,20 @@
         ? `loadShareInfo('${escapeJs(file.relPath)}')`
         : `onFileClick('${escapeJs(file.relPath)}')`;
 
-      const iconSvg = file.isDir
-        ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`
-        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+      const iconName = getMaterialIcon(file);
 
       return `
         <div class="list-row" onclick="${clickHandler}">
-          <div class="list-icon">${iconSvg}</div>
+          <div class="list-icon">
+            <span class="material-symbols-outlined file-type-icon">${iconName}</span>
+          </div>
           <div class="list-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</div>
           <div class="list-size">${file.isDir ? '--' : formatSize(file.size)}</div>
           <div class="list-date">${formatDate(file.modifiedAt)}</div>
           <div class="list-action">
             ${!file.isDir ? `
-              <a href="${downloadUrl}" onclick="event.stopPropagation()" class="action-btn" title="Download">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
+              <a href="${downloadUrl}" onclick="event.stopPropagation()" class="grid-item-action-btn" title="Download">
+                <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
               </a>
             ` : ''}
           </div>
@@ -1247,44 +1348,39 @@
       const appMain = document.getElementById('appMain');
       const rawUrl = `/s/${token}/raw`;
       const downloadUrl = `/s/${token}/raw?download=1`;
-      const fileType = getFileType(file);
-      const fullDirectUrl = window.location.origin + rawUrl;
+      const category = getFileTypeCategory(file);
 
       let mediaStageHtml = '';
       let isMedia = false;
 
-      if (fileType === 'image') {
+      if (category === 'image') {
         isMedia = true;
         mediaList = [file];
         mediaStageHtml = `
           <div class="preview-stage" onclick="openLightbox(0)" title="Click to view fullscreen">
             <img src="${rawUrl}" alt="${escapeHtml(file.name)}">
           </div>`;
-      } else if (fileType === 'video') {
+      } else if (category === 'video') {
         isMedia = true;
         mediaList = [file];
         mediaStageHtml = `
           <div class="preview-stage">
             <video src="${rawUrl}" controls autoplay></video>
           </div>`;
-      } else if (fileType === 'audio') {
+      } else if (category === 'audio') {
         mediaStageHtml = `
           <div class="audio-stage">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
-              <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-            </svg>
+            <span class="material-symbols-outlined" style="font-size:64px; color:var(--accent-color);">audiotrack</span>
             <audio src="${rawUrl}" controls></audio>
           </div>`;
-      } else if (fileType === 'text') {
+      } else if (category === 'text') {
         fetchTextPreview(rawUrl);
         mediaStageHtml = `<div class="code-container" id="codePreview">Loading preview content...</div>`;
       } else {
         const ext = file.name.includes('.') ? file.name.split('.').pop().toUpperCase() : 'FILE';
         mediaStageHtml = `
           <div class="generic-file-box">
-            <svg class="generic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>
-            </svg>
+            <span class="material-symbols-outlined generic-icon">${getMaterialIcon(file)}</span>
             <div class="file-badge">${escapeHtml(ext)} DOCUMENT</div>
           </div>`;
       }
@@ -1295,22 +1391,12 @@
           ${mediaStageHtml}
           <div class="showcase-actions">
             <a href="${downloadUrl}" class="btn btn-primary">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
+              <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
               Download (${formatSize(file.size)})
             </a>
-            <button class="btn btn-secondary" onclick="copyToClipboard('${escapeJs(fullDirectUrl)}')">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-              </svg>
-              Copy Link
-            </button>
             ${isMedia ? `
               <button class="btn btn-secondary" onclick="openLightbox(0)">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-                </svg>
+                <span class="material-symbols-outlined" style="font-size: 18px;">fullscreen</span>
                 Fullscreen
               </button>
             ` : ''}
@@ -1331,13 +1417,46 @@
       }
     }
 
-    // Lightbox & File Interaction
+    async function openTextModal(file) {
+      const modal = document.getElementById('textModal');
+      const title = document.getElementById('textModalTitle');
+      const content = document.getElementById('textModalContent');
+      const downloadBtn = document.getElementById('textModalDownloadBtn');
+
+      title.textContent = file.name;
+      downloadBtn.href = `/s/${token}/raw?download=1${file.relPath ? '&p=' + encodeURIComponent(file.relPath) : ''}`;
+      content.textContent = 'Loading content...';
+      modal.classList.add('active');
+
+      const rawUrl = `/s/${token}/raw${file.relPath ? '?p=' + encodeURIComponent(file.relPath) : ''}`;
+      try {
+        const resp = await fetch(rawUrl);
+        const text = await resp.text();
+        content.textContent = text;
+      } catch (e) {
+        content.textContent = 'Error loading text preview.';
+      }
+    }
+
+    function closeTextModal() {
+      const modal = document.getElementById('textModal');
+      modal.classList.remove('active');
+    }
+
     function onFileClick(relPath) {
+      const file = (filteredFiles || []).find(f => f.relPath === relPath);
+      if (file) {
+        const category = getFileTypeCategory(file);
+        if (category === 'text') {
+          openTextModal(file);
+          return;
+        }
+      }
+
       const idx = mediaList.findIndex(m => m.relPath === relPath);
       if (idx !== -1) {
         openLightbox(idx);
       } else {
-        // Direct download for non-media files
         window.location.href = `/s/${token}/raw?download=1&p=${encodeURIComponent(relPath)}`;
       }
     }
@@ -1361,7 +1480,7 @@
       nextBtn.style.display = mediaList.length > 1 ? 'flex' : 'none';
 
       const rawUrl = `/s/${token}/raw${file.relPath ? '?p=' + encodeURIComponent(file.relPath) : ''}`;
-      const category = getFileType(file);
+      const category = getFileTypeCategory(file);
       if (category === 'image') {
         content.innerHTML = `<img src="${rawUrl}" alt="${escapeHtml(file.name)}">`;
       } else if (category === 'video') {
@@ -1392,14 +1511,16 @@
     document.getElementById('lightboxNextBtn').addEventListener('click', lightboxNext);
 
     document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (currentLightboxIdx !== -1) closeLightbox();
+        closeTextModal();
+      }
       if (currentLightboxIdx !== -1) {
-        if (e.key === 'Escape') closeLightbox();
         if (e.key === 'ArrowLeft') lightboxPrev();
         if (e.key === 'ArrowRight') lightboxNext();
       }
     });
 
-    // Helper functions
     function formatSize(bytes) {
       if (!bytes || bytes === 0) return '0 B';
       const k = 1024;
@@ -1409,9 +1530,9 @@
     }
 
     function formatDate(ts) {
-      if (!ts) return '';
+      if (!ts) return '--';
       const d = new Date(ts * 1000);
-      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      return isNaN(d.getTime()) ? '--' : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
     function escapeHtml(str) {
@@ -1429,7 +1550,6 @@
       return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
 
-    // Initial boot
     loadShareInfo();
   </script>
 </body>

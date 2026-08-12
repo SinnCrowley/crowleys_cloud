@@ -361,5 +361,15 @@
     .search-section {
       display: none;
     }
+    .header-bar {
+      padding: 0 10px;
+      gap: 6px;
+    }
+    .actions-section {
+      gap: 4px;
+    }
+    .username-text {
+      max-width: 70px;
+    }
   }
 </style>

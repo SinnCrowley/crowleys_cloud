@@ -109,6 +109,12 @@
       const rawSub = cleanPath.substring('/files/browse/'.length);
       return { route: 'files', scope: 'private', filterType: 'all', currentPath: decodeSubpath(rawSub) };
     }
+    if (cleanPath.startsWith('/s/')) {
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
+      return { route: 'dashboard', scope: 'private', filterType: 'all', currentPath: '' };
+    }
 
     return { route: 'dashboard', scope: 'private', filterType: 'all', currentPath: '' };
   }
@@ -434,7 +440,7 @@
     try {
       const res = await shareApi.createShare({ scope: $scope, path: item.path });
       const host = window.location.origin;
-      const shareUrl = `${host}/api/share/download?token=${res.token}`;
+      const shareUrl = `${host}/s/${res.token}`;
       shareModal = { file: item, url: shareUrl };
     } catch (err) {
       showToast(err.message || 'Failed to generate share link', 'error');
