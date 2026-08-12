@@ -62,6 +62,7 @@ class ServerBrowserController extends ChangeNotifier {
   String? error;
   String? operationMessage;
   bool _showHiddenFiles = false;
+  Map<String, Object?>? accountStats;
 
   Timer? _searchDebounce;
   int _opId = 0;
@@ -71,9 +72,36 @@ class ServerBrowserController extends ChangeNotifier {
   bool get canNavigateBack => selectedType == 'all' && pathStack.length > 1;
   bool get isSelectionMode => selectedFiles.isNotEmpty;
 
+  Future<void> fetchAccountStats() async {
+    try {
+      final uri = _apiUri('/account/stats');
+      final response = await _authorizedGet(uri);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        accountStats = jsonDecode(response.body) as Map<String, Object?>?;
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
   Future<void> initialize() async {
     await _loadSortPreferences();
+    unawaited(fetchAccountStats());
     await reload();
+  }
+
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
   }
 
   void disposeController() {

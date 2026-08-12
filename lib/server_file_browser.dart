@@ -10,6 +10,7 @@ import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 
+import 'package:crowleys_cloud/shared/utils/byte_formatter.dart';
 import 'package:crowleys_cloud/shared/utils/file_icon_utils.dart';
 import 'package:crowleys_cloud/shared/widgets/breadcrumb_bar.dart';
 import 'package:crowleys_cloud/shared/widgets/create_folder_dialog.dart';
@@ -598,6 +599,29 @@ class _GridItem extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
+              if (controller.scope == 'shared' && (item.ownerName != null || item.uploaderUserId != null)) ...[
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.person, size: 11, color: appAccent),
+                    const SizedBox(width: 2),
+                    Flexible(
+                      child: Text(
+                        item.ownerName ?? 'User #${item.uploaderUserId}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: appAccent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
           if (isSelected)
@@ -659,6 +683,30 @@ class _ListItem extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(color: appText),
         ),
+        subtitle: (controller.scope == 'shared' && (item.ownerName != null || item.uploaderUserId != null))
+            ? Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.person, size: 13, color: appAccent),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        item.ownerName ?? 'User #${item.uploaderUserId}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: appAccent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : null,
         trailing: controller.isSelectionMode
             ? Checkbox(
                 value: isSelected,
@@ -775,10 +823,238 @@ class _ServerHeaderControls extends StatelessWidget {
               onPressed: () => unawaited(controller.toggleSortDirection()),
             ),
           ),
+          const SizedBox(width: 8),
+          Container(
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+              color: appSurface,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: IconButton(
+              splashRadius: 20,
+              icon: Icon(
+                Icons.bar_chart_rounded,
+                color: appSubtext,
+              ),
+              tooltip: 'Storage Statistics',
+              onPressed: () => _showStatsBottomSheet(context, controller),
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+void _showStatsBottomSheet(
+  BuildContext context,
+  ServerBrowserController controller,
+) {
+  if (controller.accountStats == null) {
+    unawaited(controller.fetchAccountStats());
+  }
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: appSurface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+      return ListenableBuilder(
+        listenable: controller,
+        builder: (context, _) {
+          final stats = controller.accountStats;
+          if (stats == null) {
+            return const SizedBox(
+              height: 200,
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final totalSize = (stats['total_size'] as num?)?.toInt() ?? 0;
+          final totalCount = (stats['total_count'] as num?)?.toInt() ?? 0;
+
+          final categories = [
+            (
+              label: 'Photos',
+              icon: Icons.image,
+              count: (stats['photo_count'] as num?)?.toInt() ?? 0,
+              size: (stats['photo_size'] as num?)?.toInt() ?? 0,
+            ),
+            (
+              label: 'Videos',
+              icon: Icons.movie,
+              count: (stats['video_count'] as num?)?.toInt() ?? 0,
+              size: (stats['video_size'] as num?)?.toInt() ?? 0,
+            ),
+            (
+              label: 'Audio',
+              icon: Icons.audiotrack,
+              count: (stats['audio_count'] as num?)?.toInt() ?? 0,
+              size: (stats['audio_size'] as num?)?.toInt() ?? 0,
+            ),
+            (
+              label: 'Documents',
+              icon: Icons.description,
+              count: (stats['document_count'] as num?)?.toInt() ?? 0,
+              size: (stats['document_size'] as num?)?.toInt() ?? 0,
+            ),
+            (
+              label: 'Shared',
+              icon: Icons.group,
+              count: (stats['shared_count'] as num?)?.toInt() ?? 0,
+              size: (stats['shared_size'] as num?)?.toInt() ?? 0,
+            ),
+            (
+              label: 'Other',
+              icon: Icons.category,
+              count: (stats['other_count'] as num?)?.toInt() ?? 0,
+              size: (stats['other_size'] as num?)?.toInt() ?? 0,
+            ),
+          ];
+
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.cloud_queue, color: appAccent, size: 24),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Storage Statistics',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: appText,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: Icon(Icons.close, color: appSubtext),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: appAccent.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Used Space',
+                              style: TextStyle(fontSize: 12, color: appSubtext),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              ByteFormatter.format(totalSize),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: appAccent,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Total Files',
+                              style: TextStyle(fontSize: 12, color: appSubtext),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '$totalCount items',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: appText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: categories.length,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 2.2,
+                        ),
+                        itemBuilder: (context, i) {
+                          final c = categories[i];
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(c.icon, size: 20, color: appAccent),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        c.label,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: appText,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${c.count} • ${ByteFormatter.format(c.size)}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: appSubtext,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 class _ServerFolderPickerScreen extends StatefulWidget {

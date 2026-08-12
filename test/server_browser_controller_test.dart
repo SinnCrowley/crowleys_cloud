@@ -265,6 +265,9 @@ void main() {
         if (request.url.path == '/api/dir') {
           return http.Response(jsonEncode({'entries': []}), 200);
         }
+        if (request.url.path == '/api/account/stats') {
+          return http.Response(jsonEncode({}), 200);
+        }
         thumbRequests++;
         return http.Response.bytes(utf8.encode('thumb'), 200);
       }),
@@ -343,6 +346,59 @@ void main() {
     );
 
     expect((await controller.downloadRootForTest()).path, tempRoot.path);
+    controller.disposeController();
+    controller.dispose();
+  });
+
+  test('parses ownerName and uploaderUserId in ServerFileItem', () {
+    final item = ServerFileItem.fromJson({
+      'name': 'shared_doc.pdf',
+      'size': 100,
+      'modified_at': 0,
+      'type': 'document',
+      'mime_type': 'application/pdf',
+      'thumbnail_url': null,
+      'is_dir': false,
+      'path': 'shared_doc.pdf',
+      'owner_name': 'crowley',
+      'uploader_user_id': 42,
+    });
+
+    expect(item.ownerName, 'crowley');
+    expect(item.uploaderUserId, 42);
+    expect(item.toJson()['owner_name'], 'crowley');
+    expect(item.toJson()['uploader_user_id'], 42);
+  });
+
+  test('fetches account stats from /api/account/stats endpoint', () async {
+    final store = InMemorySecretStore();
+    await store.saveTokens(
+      serverId: 'srv',
+      accessToken: 'token',
+      refreshToken: 'refresh',
+    );
+
+    final client = MockClient((request) async {
+      if (request.url.path == '/api/account/stats') {
+        return http.Response(
+          jsonEncode({
+            'total_size': 1024,
+            'total_count': 5,
+            'photo_count': 2,
+            'photo_size': 500,
+          }),
+          200,
+        );
+      }
+      return http.Response(jsonEncode({'entries': []}), 200);
+    });
+
+    final controller = _controller(store: store, client: client);
+    await controller.fetchAccountStats();
+
+    expect(controller.accountStats, isNotNull);
+    expect(controller.accountStats!['total_size'], 1024);
+    expect(controller.accountStats!['total_count'], 5);
     controller.disposeController();
     controller.dispose();
   });

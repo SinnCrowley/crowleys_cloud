@@ -462,6 +462,12 @@
             <div class="grid-item-name">{item.name}</div>
             <div class="grid-item-meta-row">
               <span class="grid-item-meta">{item.is_dir ? 'Folder' : formatSize(item.size)}</span>
+              {#if scope === 'shared' && (item.owner_name || item.uploader_user_id)}
+                <span class="grid-owner-tag" title="Owner: {item.owner_name || `User #${item.uploader_user_id}`}">
+                  <span class="material-symbols-outlined" style="font-size: 11px; margin-right: 2px;">person</span>
+                  {item.owner_name || `User #${item.uploader_user_id}`}
+                </span>
+              {/if}
               
               <!-- More Options Menu Button in Bottom Right Corner -->
               <button
@@ -633,6 +639,22 @@
   .grid-item-meta {
     font-size: 11px;
     color: var(--text-sub);
+  }
+
+  .grid-owner-tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent-color);
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    max-width: 90px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .grid-item-more-btn {

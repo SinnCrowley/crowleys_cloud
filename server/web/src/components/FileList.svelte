@@ -370,7 +370,7 @@
     </div>
   {:else}
     <!-- Table Header matching Reference 2 -->
-    <div class="table-header-row">
+    <div class="table-header-row {scope === 'shared' ? 'is-shared-view' : ''}">
       <div class="header-col col-check">
         <label class="custom-checkbox">
           <input
@@ -382,6 +382,9 @@
         </label>
       </div>
       <div class="header-col col-name">Name</div>
+      {#if scope === 'shared'}
+        <div class="header-col col-owner">Owner</div>
+      {/if}
       <div class="header-col col-date">Date Modified</div>
       <div class="header-col col-size">Size</div>
       <div class="header-col col-more"></div>
@@ -390,7 +393,7 @@
     <div class="list-container">
       {#if showParentItem}
         <div
-          class="list-item parent-item {hoveredFolderTarget === parentPath ? 'folder-drop-target' : ''}"
+          class="list-item parent-item {scope === 'shared' ? 'is-shared-view' : ''} {hoveredFolderTarget === parentPath ? 'folder-drop-target' : ''}"
           on:click={() => handleRowClick({ name: '..', path: parentPath, is_dir: true, is_parent: true })}
           on:dragover={(e) => handleFolderDragOver(e, parentPath)}
           on:dragleave={(e) => handleFolderDragLeave(e, parentPath)}
@@ -407,6 +410,9 @@
             </span>
             <span class="file-name-text">..</span>
           </div>
+          {#if scope === 'shared'}
+            <div class="col-owner cell-content text-sub">--</div>
+          {/if}
           <div class="col-date cell-content text-sub">--</div>
           <div class="col-size cell-content text-sub">Folder</div>
           <div class="col-more cell-content"></div>
@@ -415,7 +421,7 @@
 
       {#each items as item}
         <div
-          class="list-item {selectedItems.has(item.path) ? 'selected' : ''} {hoveredFolderTarget === item.path ? 'folder-drop-target' : ''}"
+          class="list-item {scope === 'shared' ? 'is-shared-view' : ''} {selectedItems.has(item.path) ? 'selected' : ''} {hoveredFolderTarget === item.path ? 'folder-drop-target' : ''}"
           draggable={filterType === 'all'}
           on:dragstart={(e) => handleItemDragStart(e, item)}
           on:dragover={(e) => item.is_dir ? handleFolderDragOver(e, item.path) : null}
@@ -456,6 +462,15 @@
             </div>
             <span class="file-name-text">{item.name}</span>
           </div>
+
+          {#if scope === 'shared'}
+            <div class="col-owner cell-content text-sub">
+              <span class="owner-pill">
+                <span class="material-symbols-outlined owner-icon">person</span>
+                <span class="owner-text">{item.owner_name || (item.uploader_user_id ? `User #${item.uploader_user_id}` : 'Shared')}</span>
+              </span>
+            </div>
+          {/if}
 
           <div class="col-date cell-content text-sub">{formatDate(item.modified_at)}</div>
           
@@ -541,9 +556,17 @@
     letter-spacing: 0.5px;
   }
 
+  .table-header-row.is-shared-view {
+    grid-template-columns: 48px 4fr 2fr 2.5fr 1.5fr 48px;
+  }
+
   .header-col {
     display: flex;
     align-items: center;
+  }
+
+  .col-owner {
+    justify-content: flex-start;
   }
 
   .col-date, .col-size {
@@ -571,6 +594,36 @@
     transition: background-color 0.1s ease, border-color 0.1s ease;
     border: 1px solid transparent;
     align-items: center;
+  }
+
+  .list-item.is-shared-view {
+    grid-template-columns: 48px 4fr 2fr 2.5fr 1.5fr 48px;
+  }
+
+  .owner-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-main);
+    max-width: 140px;
+  }
+
+  .owner-icon {
+    font-size: 14px;
+    color: var(--accent-color);
+    flex-shrink: 0;
+  }
+
+  .owner-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .list-item:hover {

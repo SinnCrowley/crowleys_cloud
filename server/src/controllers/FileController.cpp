@@ -49,7 +49,10 @@ struct FileZipCleanupHelper {
   }
 };
 
-Json::Value formatDirEntryJson(const services::IndexedDirEntry &entry, const std::string &scopeRaw, std::int64_t currentUserId = 0) {
+Json::Value formatDirEntryJson(const services::IndexedDirEntry &entry,
+                               const std::string &scopeRaw,
+                               std::int64_t currentUserId = 0,
+                               std::unordered_map<std::int64_t, std::string> *userCache = nullptr) {
   Json::Value v;
   v["name"] = entry.name;
   v["size"] = static_cast<Json::UInt64>(entry.size);
@@ -61,6 +64,25 @@ Json::Value formatDirEntryJson(const services::IndexedDirEntry &entry, const std
   v["is_shared"] = entry.isShared;
   v["uploader_user_id"] = static_cast<Json::Int64>(entry.uploaderUserId);
   v["is_owner"] = (currentUserId == 0 || entry.uploaderUserId == 0 || entry.uploaderUserId == currentUserId);
+
+  std::string ownerName = "Shared";
+  if (entry.uploaderUserId > 0) {
+    if (userCache && userCache->count(entry.uploaderUserId)) {
+      ownerName = (*userCache)[entry.uploaderUserId];
+    } else {
+      const auto userRec = server::ctx().userService->getUserById(entry.uploaderUserId);
+      if (userRec.has_value() && !userRec->username.empty()) {
+        ownerName = userRec->username;
+      } else {
+        ownerName = "User #" + std::to_string(entry.uploaderUserId);
+      }
+      if (userCache) {
+        (*userCache)[entry.uploaderUserId] = ownerName;
+      }
+    }
+  }
+  v["owner_name"] = ownerName;
+
   if (!entry.isDir) {
     v["thumbnail_url"] = "/api/thumb?scope=" + scopeRaw + "&path=" + drogon::utils::urlEncode(entry.path) + "&s=256";
   }
@@ -322,8 +344,9 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
     } else {
       Json::Value body;
       body["entries"] = Json::arrayValue;
+      std::unordered_map<std::int64_t, std::string> userCache;
       for (const auto &entry : mergedEntries) {
-        body["entries"].append(formatDirEntryJson(entry, scopeRaw, userId));
+        body["entries"].append(formatDirEntryJson(entry, scopeRaw, userId, &userCache));
       }
       callback(drogon::HttpResponse::newHttpJsonResponse(body));
     }

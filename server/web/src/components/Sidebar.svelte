@@ -7,24 +7,35 @@
 
   const dispatch = createEventDispatcher();
 
+  function closeMobileSidebar() {
+    if (typeof document !== 'undefined') {
+      const sidebar = document.querySelector('.sidebar-nav');
+      if (sidebar) sidebar.classList.remove('open');
+      const backdrop = document.querySelector('.sidebar-mobile-backdrop');
+      if (backdrop) backdrop.classList.remove('open');
+    }
+  }
+
   function selectRoute(route, newFilterType = 'all', newScope = 'private') {
+    closeMobileSidebar();
     dispatch('navigate', { route, filterType: newFilterType, scope: newScope });
+  }
+
+  function handleUploadTrigger() {
+    closeMobileSidebar();
+    dispatch('uploadTrigger');
   }
 </script>
 
 <aside class="sidebar-nav">
   <div class="sidebar-brand">
-    <div class="sidebar-brand-logo" style="background: transparent; padding: 0;">
-      <img src="/logo.png" alt="Crowley's Cloud Logo" style="width: 100%; height: 100%; object-fit: contain;" />
-    </div>
-    <div class="sidebar-brand-info">
-      <span class="sidebar-brand-title">Crowley's Cloud</span>
-      <span class="sidebar-brand-subtitle">Web Client v1.0</span>
+    <div class="sidebar-brand-logo">
+      <img src="/logo.png" alt="Crowley's Cloud Logo" />
     </div>
   </div>
 
   <div class="sidebar-add-btn-container">
-    <button class="sidebar-add-btn" on:click={() => dispatch('uploadTrigger')}>
+    <button class="sidebar-add-btn" on:click={handleUploadTrigger}>
       <span class="material-symbols-outlined">upload</span>
       Upload File
     </button>

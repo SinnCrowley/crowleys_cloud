@@ -9,6 +9,8 @@ class ServerFileItem {
     required this.isDir,
     required this.path,
     this.id,
+    this.ownerName,
+    this.uploaderUserId,
   });
 
   final String name;
@@ -20,6 +22,8 @@ class ServerFileItem {
   final bool isDir;
   final String path;
   final int? id;
+  final String? ownerName;
+  final int? uploaderUserId;
 
   factory ServerFileItem.fromJson(Map<String, Object?> json) {
     return ServerFileItem(
@@ -35,6 +39,8 @@ class ServerFileItem {
       isDir: json['is_dir'] == true,
       path: (json['path'] ?? '') as String,
       id: (json['id'] as num?)?.toInt(),
+      ownerName: json['owner_name'] as String?,
+      uploaderUserId: (json['uploader_user_id'] as num?)?.toInt(),
     );
   }
 
@@ -49,6 +55,8 @@ class ServerFileItem {
       'is_dir': isDir,
       'path': path,
       if (id != null) 'id': id,
+      if (ownerName != null) 'owner_name': ownerName,
+      if (uploaderUserId != null) 'uploader_user_id': uploaderUserId,
     };
   }
 

@@ -122,6 +122,20 @@
   let layoutMode = typeof localStorage !== 'undefined' ? localStorage.getItem('cc_layout_mode') || 'grid' : 'grid';
   let currentRoute = initialUrlState.route;
   let isAuthOpen = false;
+  $: if (!$isAuthenticated) {
+    isAuthOpen = true;
+  } else {
+    refreshStats();
+  }
+
+  function closeMobileSidebar() {
+    if (typeof document !== 'undefined') {
+      const sidebar = document.querySelector('.sidebar-nav');
+      if (sidebar) sidebar.classList.remove('open');
+      const backdrop = document.querySelector('.sidebar-mobile-backdrop');
+      if (backdrop) backdrop.classList.remove('open');
+    }
+  }
 
   // Global File Input for Sidebar trigger
   let globalFileInput;
@@ -171,6 +185,7 @@
   }
 
   function applyStateFromPath(pathname, pushToHistory = false) {
+    closeMobileSidebar();
     const newState = parseUrlToState(pathname);
     currentRoute = newState.route;
 
@@ -641,6 +656,11 @@
     on:uploadTrigger={triggerGlobalUpload}
   />
 
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <div class="sidebar-mobile-backdrop" on:click={closeMobileSidebar}></div>
+
   <div class="main-canvas">
     <HeaderBar
       searchQuery={$searchQuery}
@@ -657,9 +677,9 @@
       on:search={(e) => {
         const val = e.detail;
         searchQuery.set(val);
-        if (val && currentRoute !== 'files') {
+        if (val && currentRoute !== 'files' && currentRoute !== 'trash') {
           applyStateFromPath('/files', true);
-        } else {
+        } else if (currentRoute === 'files') {
           filesStore.loadDirectory();
         }
       }}
@@ -751,11 +771,17 @@
         on:unshareSelected={handleBatchUnshare}
       />
     {:else if currentRoute === 'trash'}
-      <TrashBrowser
-        scope={$scope}
-        on:back={() => applyStateFromPath('/files', true)}
-        on:toast={handleToastEvent}
-      />
+      <main class="main-content">
+        <TrashBrowser
+          scope={$scope}
+          searchQuery={$searchQuery}
+          layoutMode={layoutMode}
+          sortBy={$sortOption.field}
+          sortOrder={$sortOption.order}
+          on:back={() => applyStateFromPath('/files', true)}
+          on:toast={handleToastEvent}
+        />
+      </main>
     {:else if currentRoute === 'settings'}
       <main class="main-content">
         <Settings on:toast={handleToastEvent} />

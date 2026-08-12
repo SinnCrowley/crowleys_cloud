@@ -72,7 +72,7 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="modal-backdrop" on:click|self={() => dispatch('close')}>
+<div class="modal-backdrop" on:click|self={() => { if ($isAuthenticated) dispatch('close'); }}>
   <div class="card-auth">
     <div class="auth-header">
       <h2 class="text-display">Crowley's Cloud</h2>

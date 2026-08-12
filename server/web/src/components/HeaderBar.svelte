@@ -53,8 +53,12 @@
 
   function toggleSidebarMobile() {
     const sidebar = document.querySelector('.sidebar-nav');
+    const backdrop = document.querySelector('.sidebar-mobile-backdrop');
     if (sidebar) {
       sidebar.classList.toggle('open');
+    }
+    if (backdrop) {
+      backdrop.classList.toggle('open');
     }
   }
 </script>
@@ -96,7 +100,7 @@
   <!-- Actions & Utility Bar -->
   <div class="actions-section">
     <!-- View Mode Selector -->
-    {#if currentRoute === 'files'}
+    {#if currentRoute === 'files' || currentRoute === 'trash'}
       <button
         class="btn-icon header-action-btn"
         title="Toggle Grid / List View"
