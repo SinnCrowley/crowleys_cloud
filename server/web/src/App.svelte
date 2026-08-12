@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import HeaderBar from './components/HeaderBar.svelte';
   import Sidebar from './components/Sidebar.svelte';
   import BreadcrumbBar from './components/BreadcrumbBar.svelte';
@@ -202,21 +203,17 @@
       if (pushToHistory) {
         if (window.location.pathname !== targetUrl) {
           window.history.pushState(stateObj, '', targetUrl);
-        }
-      } else {
-        if (window.location.pathname !== targetUrl) {
+        } else {
           window.history.replaceState(stateObj, '', targetUrl);
         }
+      } else {
+        window.history.replaceState(stateObj, '', targetUrl);
       }
     }
   }
 
   onMount(() => {
     applyStateFromPath(window.location.pathname, false);
-
-    if (get(authStore.isAuthenticated)) {
-      refreshStats();
-    }
 
     const handlePopState = (e) => {
       const targetPath = (e && e.state && e.state.url)
@@ -226,6 +223,11 @@
     };
 
     window.addEventListener('popstate', handlePopState);
+
+    if (get(authStore.isAuthenticated)) {
+      refreshStats();
+    }
+
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
