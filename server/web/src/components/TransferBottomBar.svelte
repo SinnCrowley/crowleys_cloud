@@ -5,6 +5,9 @@
 
   $: totalItemsCount = $queue.length;
   $: activeItemsCount = $activeCount;
+  $: pausedItemsCount = $queue.filter((t) => t.status === 'paused').length;
+  $: cancelledItemsCount = $queue.filter((t) => t.status === 'cancelled').length;
+  $: completedItemsCount = $queue.filter((t) => t.status === 'completed').length;
   $: speedBytes = $totalSpeed;
 
   $: overallProgress = calculateOverallProgress($queue);
@@ -24,32 +27,55 @@
     }
     return (bytesPerSec / (1024 * 1024)).toFixed(1) + ' MB/s';
   }
+  $: hasRunningOrQueued = $queue.some((t) => t.status === 'running' || t.status === 'queued');
+  $: hasActiveTransfers = $queue.some((t) => t.status === 'running' || t.status === 'queued' || t.status === 'paused');
 </script>
 
 {#if totalItemsCount > 0}
   <div class="transfer-bottom-bar text-body">
     <div class="transfer-summary" on:click={() => transfersStore.toggleDrawer()}>
-      <span class="active-badge">{activeItemsCount} active</span>
-
       {#if activeItemsCount > 0}
+        <span class="active-badge">{activeItemsCount} active</span>
         <span class="speed-indicator">{formatSpeed(speedBytes)}</span>
         <div class="mini-progress-bar">
           <div class="mini-progress-fill" style="width: {overallProgress}%;" />
         </div>
         <span class="progress-percent">{overallProgress}%</span>
+      {:else if pausedItemsCount > 0}
+        <span class="active-badge badge-paused">{pausedItemsCount} paused</span>
+        <div class="mini-progress-bar">
+          <div class="mini-progress-fill paused-fill" style="width: {overallProgress}%;" />
+        </div>
+        <span class="idle-text text-sub">Transfers paused ({overallProgress}%)</span>
+      {:else if cancelledItemsCount > 0 && completedItemsCount < totalItemsCount}
+        <span class="active-badge badge-cancelled">{cancelledItemsCount} cancelled</span>
+        <span class="idle-text text-sub">Transfers cancelled</span>
       {:else}
+        <span class="active-badge badge-completed">Completed</span>
         <span class="idle-text text-sub">Transfers finished</span>
       {/if}
     </div>
 
     <div class="bar-actions">
-      <button
-        class="btn-icon mini-action"
-        title="Clear completed"
-        on:click={() => transfersStore.clearCompleted()}
-      >
-        <span class="material-symbols-outlined" style="font-size: 18px;">delete_sweep</span>
-      </button>
+      {#if hasActiveTransfers}
+        <button
+          class="btn-icon mini-action"
+          title={hasRunningOrQueued ? "Pause transfers" : "Resume transfers"}
+          on:click={() => transfersStore.togglePauseAll()}
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px;">
+            {hasRunningOrQueued ? 'pause' : 'play_arrow'}
+          </span>
+        </button>
+
+        <button
+          class="btn-icon mini-action action-danger"
+          title="Cancel transfers"
+          on:click={() => transfersStore.cancelAll()}
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+        </button>
+      {/if}
 
       <button
         class="btn-icon mini-action"
@@ -100,6 +126,25 @@
     padding: 2px 8px;
     font-size: calc(12px * var(--font-scale));
     font-weight: 700;
+  }
+
+  .active-badge.badge-paused {
+    background-color: #fcc419;
+    color: #000000;
+  }
+
+  .active-badge.badge-cancelled {
+    background-color: #868e96;
+    color: #ffffff;
+  }
+
+  .active-badge.badge-completed {
+    background-color: #51cf66;
+    color: #ffffff;
+  }
+
+  .mini-progress-fill.paused-fill {
+    background-color: #fcc419;
   }
 
   .speed-indicator {
@@ -155,5 +200,10 @@
   .mini-action:hover {
     background-color: var(--bg-surface-hover);
     color: var(--accent-color);
+  }
+
+  .mini-action.action-danger:hover {
+    background-color: rgba(255, 82, 82, 0.15);
+    color: var(--color-danger);
   }
 </style>

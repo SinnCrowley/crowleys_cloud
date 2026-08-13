@@ -419,7 +419,7 @@
         </div>
       {/if}
 
-      {#each items as item}
+      {#each items as item (item.path)}
         <div
           class="list-item {scope === 'shared' ? 'is-shared-view' : ''} {selectedItems.has(item.path) ? 'selected' : ''} {hoveredFolderTarget === item.path ? 'folder-drop-target' : ''}"
           draggable={filterType === 'all'}

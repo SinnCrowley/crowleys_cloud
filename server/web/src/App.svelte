@@ -254,24 +254,53 @@
     };
   });
 
-  // Automatically refresh directories when uploads/downloads complete
+  // Automatically refresh directories silently while transfers are active
   let prevActiveCount = 0;
   let autoClearTransfersTimeout;
+  let activeRefreshInterval;
+
   activeCount.subscribe((count) => {
-    if (prevActiveCount > 0 && count === 0) {
-      if (currentRoute === 'files') {
-        filesStore.loadDirectory();
+    if (count > 0) {
+      clearTimeout(autoClearTransfersTimeout);
+      if (!activeRefreshInterval) {
+        activeRefreshInterval = setInterval(() => {
+          if (currentRoute === 'files') {
+            filesStore.loadDirectory(true);
+          }
+        }, 1500);
       }
-      showToast('All active file transfers completed successfully.', 'success');
-      
-      // Auto-clear completed items and close drawer after 4 seconds
-      clearTimeout(autoClearTransfersTimeout);
-      autoClearTransfersTimeout = setTimeout(() => {
-        transfersStore.clearCompleted();
-        transfersStore.isDrawerOpen.set(false);
-      }, 4000);
-    } else if (count > 0) {
-      clearTimeout(autoClearTransfersTimeout);
+    } else {
+      if (activeRefreshInterval) {
+        clearInterval(activeRefreshInterval);
+        activeRefreshInterval = null;
+      }
+      if (prevActiveCount > 0) {
+        if (currentRoute === 'files') {
+          filesStore.loadDirectory(true);
+        }
+
+        const q = get(transfersStore.queue) || [];
+        const hasPaused = q.some((t) => t.status === 'paused');
+        const hasCancelled = q.some((t) => t.status === 'cancelled');
+        const allCompleted = q.length > 0 && q.every((t) => t.status === 'completed');
+
+        if (hasPaused) {
+          showToast('File transfers paused.', 'info');
+        } else {
+          if (hasCancelled && !allCompleted) {
+            showToast('File transfers cancelled.', 'warning');
+          } else if (allCompleted) {
+            showToast('All active file transfers completed successfully.', 'success');
+          }
+
+          // Auto-clear finished/cancelled items and close drawer/island after 4 seconds
+          clearTimeout(autoClearTransfersTimeout);
+          autoClearTransfersTimeout = setTimeout(() => {
+            transfersStore.clearCompleted();
+            transfersStore.isDrawerOpen.set(false);
+          }, 4000);
+        }
+      }
     }
     prevActiveCount = count;
   });

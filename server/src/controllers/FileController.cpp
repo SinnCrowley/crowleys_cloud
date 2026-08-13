@@ -6,6 +6,8 @@
 
 #include "server/controllers/FileController.hpp"
 
+#include <drogon/MultiPart.h>
+
 #include "server/AppContext.hpp"
 #include "server/utils/Crypto.hpp"
 #include "server/utils/HttpHelpers.hpp"
@@ -882,6 +884,95 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
   const auto scope = services::parseScope(req->getParameter("scope"));
   if (!scope.has_value()) {
     callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+    return;
+  }
+
+  if (req->contentType() == drogon::CT_MULTIPART_FORM_DATA) {
+    drogon::MultiPartParser parser;
+    if (parser.parse(req) != 0) {
+      callback(jsonError(drogon::k400BadRequest, "Failed to parse multipart request"));
+      return;
+    }
+
+    const auto &files = parser.getFiles();
+    if (files.empty()) {
+      callback(jsonError(drogon::k400BadRequest, "No files found in multipart payload"));
+      return;
+    }
+
+    const auto targetPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
+    const bool hashFiles = server::ctx().config.hashFiles;
+    Json::Value body;
+    body["ok"] = true;
+    body["uploaded"] = Json::arrayValue;
+
+    for (const auto &file : files) {
+      std::string fileName = file.getFileName();
+      if (fileName.empty()) continue;
+
+      std::string relPath = targetPath.empty() ? fileName : (targetPath + "/" + fileName);
+      relPath = services::FileIndexService::normalizeRelPath(relPath);
+
+      std::string_view fileData = file.fileData();
+      std::size_t fileLength = file.fileLength();
+
+      try {
+        if (hashFiles) {
+          std::string plainData(fileData.data(), fileLength);
+          std::string plainSha256 = utils::sha256Hex(plainData);
+          std::string cipherText = utils::encryptAes256(plainData, server::ctx().config.encryptionKey);
+
+          const auto dataDir = std::filesystem::path(server::ctx().config.storageRoot) / "data";
+          std::filesystem::create_directories(dataDir);
+          const auto physicalPath = dataDir / plainSha256;
+
+          std::ofstream out(physicalPath, std::ios::binary | std::ios::trunc);
+          out.write(cipherText.data(), cipherText.size());
+          out.close();
+
+          const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                               std::chrono::system_clock::now().time_since_epoch())
+                               .count();
+          const auto type = server::ctx().fileService->classifyType(fileName);
+          const auto mimeType = server::ctx().fileService->mimeTypeFor(fileName);
+          const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+          const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+
+          server::ctx().fileIndexService->upsertFileExplicit(
+              ownerUserId, *scope, relPath, fileName, fileLength, now, type, mimeType, uploaderUserId, plainSha256);
+        } else {
+          const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, relPath, true);
+          std::filesystem::create_directories(target.parent_path());
+          const auto tmp = target.parent_path() / (target.filename().string() + ".tmp");
+
+          std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
+          out.write(fileData.data(), static_cast<std::streamsize>(fileLength));
+          out.close();
+
+          utils::portableRename(tmp, target);
+          const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+          const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+          server::ctx().fileIndexService->upsertFile(
+              ownerUserId, *scope, relPath, target, uploaderUserId);
+        }
+
+        Json::Value fileObj;
+        fileObj["name"] = fileName;
+        fileObj["path"] = relPath;
+        fileObj["size"] = static_cast<Json::UInt64>(fileLength);
+        fileObj["ok"] = true;
+        body["uploaded"].append(fileObj);
+      } catch (const std::exception &e) {
+        Json::Value fileObj;
+        fileObj["name"] = fileName;
+        fileObj["path"] = relPath;
+        fileObj["ok"] = false;
+        fileObj["error"] = e.what();
+        body["uploaded"].append(fileObj);
+      }
+    }
+
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
     return;
   }
 

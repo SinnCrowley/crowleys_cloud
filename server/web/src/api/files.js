@@ -126,6 +126,57 @@ export const filesApi = {
     });
   },
 
+  uploadFilesBatch({ scope = 'private', path = '', files, onProgress }) {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      const filesArr = Array.from(files || []);
+      filesArr.forEach((file) => {
+        const itemFile = file.file || file;
+        formData.append('files', itemFile, itemFile.name);
+      });
+
+      const params = new URLSearchParams({ scope });
+      if (path) params.append('path', path);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `/api/files/upload?${params.toString()}`);
+
+      const token = localStorage.getItem('cc_access_token');
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+
+      if (onProgress && xhr.upload) {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            onProgress(event.loaded, event.total);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data);
+          } catch (e) {
+            resolve({ ok: true });
+          }
+        } else {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            reject(new Error(data.error || `Batch upload failed (${xhr.status})`));
+          } catch (e) {
+            reject(new Error(`Batch upload failed (${xhr.status})`));
+          }
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network batch upload error'));
+      xhr.send(formData);
+    });
+  },
+
   async uploadFileChunked({ scope = 'private', path, file, chunkSize = 5 * 1024 * 1024, onProgress }) {
     const totalSize = file.size;
     let offset = 0;

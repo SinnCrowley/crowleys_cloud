@@ -829,15 +829,54 @@ class _MainScreenState extends State<MainScreen> {
     final failDetails = <String>[];
     final client = http.Client();
     try {
+      final drafts = <TransferItemDraft>[];
+      final itemPaths = <String>[];
       for (final item in items) {
         final localPath = await item.path;
+        itemPaths.add(localPath);
+        if (localPath.isNotEmpty && !item.isDirectory) {
+          final file = File(localPath);
+          final length = file.existsSync() ? await file.length() : 0;
+          drafts.add(TransferItemDraft(
+            name: item.name,
+            direction: TransferDirection.upload,
+            totalBytes: length,
+          ));
+        } else if (localPath.isNotEmpty && item.isDirectory) {
+          drafts.add(TransferItemDraft(
+            name: item.name,
+            direction: TransferDirection.upload,
+            totalBytes: 0,
+          ));
+        }
+      }
+
+      final transferItems = _transferManager.addItems(drafts);
+      var draftIndex = 0;
+
+      for (var i = 0; i < items.length; i++) {
+        final item = items[i];
+        final localPath = itemPaths[i];
         if (localPath.isEmpty) {
           failed.add(item.name);
           failDetails.add('${item.name}: local path is empty');
           continue;
         }
 
+        final TransferItem transferItem = draftIndex < transferItems.length
+            ? transferItems[draftIndex++]
+            : _transferManager.addItem(
+                name: item.name,
+                direction: TransferDirection.upload,
+                totalBytes: item.isDirectory
+                    ? 0
+                    : (File(localPath).existsSync()
+                        ? File(localPath).lengthSync()
+                        : 0),
+              );
+
         if (item.isDirectory) {
+          _transferManager.startItem(transferItem);
           final directoryResult = await _uploadDirectoryWithProgress(
             client: client,
             base: base,
@@ -848,8 +887,17 @@ class _MainScreenState extends State<MainScreen> {
             rootRemotePrefix: item.name,
           );
           token = directoryResult.token;
-          if (directoryResult.ok) uploaded.add(item.name);
+          if (directoryResult.ok) {
+            uploaded.add(item.name);
+            _transferManager.completeItem(transferItem);
+          }
           if (!directoryResult.ok) {
+            _transferManager.failItem(
+              transferItem,
+              directoryResult.error.isEmpty
+                  ? 'Directory upload failed'
+                  : directoryResult.error,
+            );
             if (_isDisconnectedOperationError(directoryResult.error)) {
               _reportActiveServerConnectionError('Server is unreachable.');
               return;
@@ -861,11 +909,6 @@ class _MainScreenState extends State<MainScreen> {
         }
 
         final file = File(localPath);
-        final transferItem = _transferManager.addItem(
-          name: item.name,
-          direction: TransferDirection.upload,
-          totalBytes: await file.length(),
-        );
         try {
           final result = await _uploadFileToServer(
             client: client,

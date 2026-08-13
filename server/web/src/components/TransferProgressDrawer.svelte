@@ -29,6 +29,10 @@
       default: return 'badge-queued';
     }
   }
+
+  $: hasRunningOrQueued = $queue.some((t) => t.status === 'running' || t.status === 'queued');
+  $: hasActiveTransfers = $queue.some((t) => t.status === 'running' || t.status === 'queued' || t.status === 'paused');
+  $: hasCompletedOrFailed = $queue.some((t) => t.status === 'completed' || t.status === 'failed' || t.status === 'cancelled');
 </script>
 
 {#if $isDrawerOpen && $queue.length > 0}
@@ -38,12 +42,39 @@
         Transfers Queue ({$queue.length})
       </div>
       <div class="drawer-controls">
-        <button
-          class="btn-text text-caption"
-          on:click={() => transfersStore.clearCompleted()}
-        >
-          Clear Completed
-        </button>
+        {#if hasActiveTransfers}
+          <button
+            class="btn-action text-caption"
+            on:click={() => transfersStore.togglePauseAll()}
+            title={hasRunningOrQueued ? "Pause all transfers" : "Resume all transfers"}
+          >
+            <span class="material-symbols-outlined" style="font-size: 16px;">
+              {hasRunningOrQueued ? 'pause' : 'play_arrow'}
+            </span>
+            <span>{hasRunningOrQueued ? 'Pause' : 'Resume'}</span>
+          </button>
+
+          <button
+            class="btn-action btn-danger text-caption"
+            on:click={() => transfersStore.cancelAll()}
+            title="Cancel all active transfers"
+          >
+            <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+            <span>Cancel</span>
+          </button>
+        {/if}
+
+        {#if hasCompletedOrFailed}
+          <button
+            class="btn-action text-caption"
+            on:click={() => transfersStore.clearCompleted()}
+            title="Clear finished transfers"
+          >
+            <span class="material-symbols-outlined" style="font-size: 16px;">delete_sweep</span>
+            <span>Clear Completed</span>
+          </button>
+        {/if}
+
         <button
           class="btn-icon close-btn"
           on:click={() => transfersStore.toggleDrawer()}
@@ -129,9 +160,9 @@
     bottom: 76px;
     left: 50%;
     transform: translateX(-50%);
-    width: 440px;
+    width: 850px;
     max-width: calc(100vw - 32px);
-    max-height: 480px;
+    max-height: 720px;
     z-index: 900;
     background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
@@ -162,6 +193,34 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+  }
+
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-action:hover {
+    background-color: var(--bg-surface-hover);
+    color: var(--accent-color);
+  }
+
+  .btn-action.btn-danger {
+    color: var(--color-danger);
+  }
+
+  .btn-action.btn-danger:hover {
+    background-color: rgba(255, 82, 82, 0.12);
   }
 
   .btn-text {

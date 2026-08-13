@@ -189,7 +189,48 @@ export const transfersStore = {
 
   cancelTransfer(id) {
     queue.update((q) =>
-      q.map((t) => (t.id === id ? { ...t, status: 'cancelled', speed: 0 } : t))
+      q.map((t) => (t.id === id && t.status !== 'completed' && t.status !== 'failed' && t.status !== 'cancelled' ? { ...t, status: 'cancelled', speed: 0 } : t))
+    );
+    this.processQueue();
+  },
+
+  pauseAll() {
+    queue.update((q) =>
+      q.map((t) =>
+        t.status === 'running' || t.status === 'queued'
+          ? { ...t, status: 'paused', speed: 0 }
+          : t
+      )
+    );
+  },
+
+  resumeAll() {
+    queue.update((q) =>
+      q.map((t) => (t.status === 'paused' ? { ...t, status: 'queued' } : t))
+    );
+    this.processQueue();
+  },
+
+  togglePauseAll() {
+    let hasActive = false;
+    queue.subscribe((q) => {
+      hasActive = q.some((t) => t.status === 'running' || t.status === 'queued');
+    })();
+
+    if (hasActive) {
+      this.pauseAll();
+    } else {
+      this.resumeAll();
+    }
+  },
+
+  cancelAll() {
+    queue.update((q) =>
+      q.map((t) =>
+        t.status === 'running' || t.status === 'queued' || t.status === 'paused'
+          ? { ...t, status: 'cancelled', speed: 0 }
+          : t
+      )
     );
     this.processQueue();
   },

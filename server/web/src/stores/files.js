@@ -29,9 +29,11 @@ export const filesStore = {
     isLoading.set(false);
   },
 
-  async loadDirectory() {
-    isLoading.set(true);
-    error.set(null);
+  async loadDirectory(silent = false) {
+    if (!silent) {
+      isLoading.set(true);
+      error.set(null);
+    }
     try {
       const currentScope = get(scope);
       const path = get(currentPath);
@@ -50,9 +52,13 @@ export const filesStore = {
 
       entries.set(res.entries || []);
     } catch (err) {
-      error.set(err.message || 'Failed to load directory');
+      if (!silent) {
+        error.set(err.message || 'Failed to load directory');
+      }
     } finally {
-      isLoading.set(false);
+      if (!silent) {
+        isLoading.set(false);
+      }
     }
   },
 
