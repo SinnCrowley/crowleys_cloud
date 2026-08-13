@@ -44,10 +44,17 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   final FocusNode _searchFocusNode = FocusNode();
   late bool _isGridView;
 
+  void _onControllerChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _isGridView = widget.isGridView;
+    controller.addListener(_onControllerChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.reload();
     });
@@ -56,6 +63,10 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   @override
   void didUpdateWidget(TrashBrowserScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onControllerChanged);
+      widget.controller.addListener(_onControllerChanged);
+    }
     if (oldWidget.isGridView != widget.isGridView) {
       _isGridView = widget.isGridView;
     }
@@ -63,6 +74,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
 
   @override
   void dispose() {
+    controller.removeListener(_onControllerChanged);
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -318,7 +330,9 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
               ? IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () {
-                    controller.clearSelection();
+                    setState(() {
+                      controller.clearSelection();
+                    });
                   },
                 )
               : null,
