@@ -13,5 +13,9 @@ export const trashApi = {
 
   async deleteTrash(ids) {
     return apiDelete('/api/trash', { ids });
+  },
+
+  async getTrashSettings() {
+    return apiGet('/api/trash/settings');
   }
 };

@@ -192,7 +192,7 @@ class _ActiveServerAuthDialogState extends State<_ActiveServerAuthDialog> {
               email: email,
             );
           },
-          getBaseUrl: () => widget.active.baseUrl,
+          getBaseUrl: () => widget.active.connectionUrl,
           onBiometricLogin: () async {
             return widget.onBiometricAuth(widget.active);
           },
@@ -257,7 +257,6 @@ class _MainScreenState extends State<MainScreen> {
   bool _authPromptInFlight = false;
   bool _authPromptDismissed = false;
   bool _canUseBiometrics = false;
-  int _trashRetentionDays = 7;
   double _dragStartX = 0.0;
   bool _isValidDrag = false;
   bool _isDrawerOpen = false;
@@ -286,7 +285,6 @@ class _MainScreenState extends State<MainScreen> {
     _searchController.addListener(_searchTextListener);
     _serverManagerListener = () {
       if (!mounted) return;
-      unawaited(_loadTrashRetention());
       setState(() {});
     };
     _serverManager.addListener(_serverManagerListener);
@@ -360,7 +358,6 @@ class _MainScreenState extends State<MainScreen> {
       final prefs = await SharedPreferences.getInstance();
       _isGridView = prefs.getBool('is_grid_view') ?? true;
     } catch (_) {}
-    await _loadTrashRetention();
     if (!mounted) return;
     setState(() {});
     unawaited(_checkForAutoUpdates());
@@ -371,20 +368,6 @@ class _MainScreenState extends State<MainScreen> {
       final info = await AppUpdateService().checkForUpdates();
       if (mounted && info != null && info.hasUpdate) {
         await AppUpdateDialog.show(context, info);
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _loadTrashRetention() async {
-    final activeServer = _serverManager.activeServer;
-    if (activeServer == null) return;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final days = prefs.getInt('trash.retention_days.${activeServer.id}') ?? 7;
-      if (mounted) {
-        setState(() {
-          _trashRetentionDays = days;
-        });
       }
     } catch (_) {}
   }
@@ -448,7 +431,6 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _switchServer(String serverId) async {
     if (_serverManager.activeServer?.id == serverId) return;
     await _serverManager.switchActive(serverId);
-    await _loadTrashRetention();
     _searchController.clear();
     _disposeLocalController();
     _selectedLocalCategory = null;
@@ -572,7 +554,7 @@ class _MainScreenState extends State<MainScreen> {
               ({required username, required password, required mode, email}) {
                 return _authenticateWithPassword(
                   activeId: active.id,
-                  baseUrl: active.baseUrl,
+                  baseUrl: active.connectionUrl,
                   username: username,
                   password: password,
                   mode: mode,
@@ -647,7 +629,7 @@ class _MainScreenState extends State<MainScreen> {
 
       await _serverManager.authService.authenticateWithSavedCredentials(
         serverId: active.id,
-        baseUrl: active.baseUrl,
+        baseUrl: active.connectionUrl,
       );
       await _serverManager.markAuthed(active.id);
     } on AuthException catch (e) {
@@ -839,9 +821,9 @@ class _MainScreenState extends State<MainScreen> {
       return;
     }
 
-    final base = activeServer.baseUrl.contains('://')
-        ? activeServer.baseUrl
-        : 'http://${activeServer.baseUrl}';
+    final base = activeServer.connectionUrl.contains('://')
+        ? activeServer.connectionUrl
+        : 'http://${activeServer.connectionUrl}';
     final uploaded = <String>[];
     final failed = <String>[];
     final failDetails = <String>[];
@@ -860,7 +842,7 @@ class _MainScreenState extends State<MainScreen> {
             client: client,
             base: base,
             activeServerId: activeServer.id,
-            activeServerBaseUrl: activeServer.baseUrl,
+            activeServerBaseUrl: activeServer.connectionUrl,
             initialToken: token,
             rootDirectory: Directory(localPath),
             rootRemotePrefix: item.name,
@@ -889,7 +871,7 @@ class _MainScreenState extends State<MainScreen> {
             client: client,
             base: base,
             activeServerId: activeServer.id,
-            activeServerBaseUrl: activeServer.baseUrl,
+            activeServerBaseUrl: activeServer.connectionUrl,
             initialToken: token,
             localFile: file,
             remotePath: p.basename(localPath),
@@ -1712,7 +1694,7 @@ class _MainScreenState extends State<MainScreen> {
                             borderRadius: BorderRadius.circular(16),
                             child: Image.asset(
                               'assets/icon/crowleys_cloud_transparent_horizontal.png',
-                              width: 200,
+                              width: 210,
                               height: 70,
                               fit: BoxFit.contain,
                               errorBuilder: (context, error, stackTrace) => Icon(
@@ -1756,7 +1738,7 @@ class _MainScreenState extends State<MainScreen> {
                               ),
                             ),
                             subtitle: Text(
-                              server.baseUrl,
+                              server.connectionUrl,
                               style: TextStyle(color: appSubtext),
                             ),
                             selected: isActive,
@@ -1822,8 +1804,7 @@ class _MainScreenState extends State<MainScreen> {
                         Navigator.pop(context);
                       },
                     ),
-                    if (_serverManager.activeServer != null &&
-                        _trashRetentionDays > 0)
+                    if (_serverManager.activeServer != null)
                       ListTile(
                         leading: Icon(Icons.delete_outline, color: appSubtext),
                         title: Text('Trash', style: TextStyle(color: appText)),
@@ -1835,7 +1816,7 @@ class _MainScreenState extends State<MainScreen> {
                               builder: (context) => TrashBrowserScreen(
                                 controller: TrashBrowserController(
                                   serverId: _serverManager.activeServer!.id,
-                                  baseUrl: _serverManager.activeServer!.baseUrl,
+                                  baseUrl: _serverManager.activeServer!.connectionUrl,
                                   authService: _serverManager.authService,
                                 ),
                                 isGridView: _isGridView,

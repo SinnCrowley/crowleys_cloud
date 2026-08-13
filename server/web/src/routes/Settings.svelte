@@ -16,7 +16,6 @@
   let biometricLogin = true; // mapped to Automatic Sign In
   let tokenLifetime = '30days'; // mapped to Require login duration
   let cacheMaxBytes = 500 * 1024 * 1024; // 500 MB default
-  let trashRetentionDays = 30; // default server policy
 
   const cacheOptions = [
     { value: 50 * 1024 * 1024, label: '50 MB' },
@@ -33,14 +32,6 @@
     { value: '1day', label: '1 day' },
     { value: '30days', label: '30 days (default)' },
     { value: 'never', label: 'Never' }
-  ];
-
-  const trashOptions = [
-    { value: 7, label: '7 days' },
-    { value: 14, label: '14 days' },
-    { value: 30, label: '30 days (default)' },
-    { value: 90, label: '90 days' },
-    { value: -1, label: 'Never delete automatically' }
   ];
 
   let isRebuilding = false;
@@ -389,22 +380,7 @@
         </div>
       </div>
 
-      <!-- Server Trash retention -->
-      {#if $isAuthenticated}
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <span class="settings-row-title">Trash Retention Policy</span>
-            <span class="settings-row-desc">Server-side deletion period for trashed files.</span>
-          </div>
-          <div class="settings-row-control">
-            <CustomSelect
-              bind:value={trashRetentionDays}
-              options={trashOptions}
-              on:change={handleTrashRetentionChange}
-            />
-          </div>
-        </div>
-      {/if}
+
       
       {#if rebuildMessage}
         <div

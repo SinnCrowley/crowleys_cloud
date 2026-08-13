@@ -207,13 +207,6 @@ export const filesApi = {
     return apiDelete(`/api/files?${params.toString()}`);
   },
 
-  async getTrashSettings() {
-    return apiGet('/api/account/settings/trash');
-  },
-
-  async setTrashSettings(days) {
-    return apiPost('/api/account/settings/trash', { trash_retention_days: days });
-  },
 
   async toggleServerShared({ path, isShared }) {
     const params = new URLSearchParams({ path, shared: isShared ? '1' : '0' });

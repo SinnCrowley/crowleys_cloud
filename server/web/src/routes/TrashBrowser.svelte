@@ -1,7 +1,6 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import { trashApi } from '../api/trash.js';
-  import { filesApi } from '../api/files.js';
 
   const dispatch = createEventDispatcher();
 
@@ -52,7 +51,7 @@
 
   async function loadTrashSettings() {
     try {
-      const res = await filesApi.getTrashSettings();
+      const res = await trashApi.getTrashSettings();
       if (res && res.trash_retention_days !== undefined) {
         trashRetentionDays = res.trash_retention_days;
       }

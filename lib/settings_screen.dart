@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
@@ -15,13 +14,10 @@ import 'package:crowleys_cloud/server_setup_screen.dart';
 import 'package:crowleys_cloud/sync_scheduler.dart';
 import 'package:crowleys_cloud/sync_service.dart';
 import 'package:crowleys_cloud/shared/utils/byte_formatter.dart';
-import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:crowleys_cloud/theme_customizer_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 const _syncCategoryOptions = [
   _SyncCategoryOption('photos', 'Photos', Icons.photo_outlined),
@@ -81,8 +77,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isSyncing = false;
   double? _syncProgressPercent;
   String _defaultTargetDir = '/backup/device';
-  int _trashRetentionDays = 7;
-  bool _trashLoading = false;
   bool _isCheckingUpdate = false;
 
   SyncService get _syncService {
@@ -216,7 +210,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           widget.serverManager.servers.firstOrNull?.id;
       _isLoading = false;
     });
-    await _loadTrashRetention();
     await _loadLastSyncResult();
   }
 
@@ -251,84 +244,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     if (!mounted) return;
     setState(() => _tokenLifetime = value);
-  }
-
-  Uri _apiUri(String baseUrl, String endpointPath) =>
-      UrlUtils.buildApiEndpoint(baseUrl, endpointPath);
-
-  Future<void> _loadTrashRetention() async {
-    final activeServer = widget.serverManager.activeServer;
-    if (activeServer == null) return;
-    try {
-      final token = await widget.serverManager.authService.readAccessToken(
-        activeServer.id,
-      );
-      if (token == null || token.isEmpty) return;
-      final uri = _apiUri(
-        activeServer.connectionUrl,
-        '/account/settings/trash',
-      );
-      final response = await http.get(
-        uri,
-        headers: {'authorization': 'Bearer $token'},
-      );
-      if (response.statusCode == 200) {
-        final payload = jsonDecode(response.body) as Map<String, Object?>;
-        final days = (payload['trash_retention_days'] as num?)?.toInt() ?? 7;
-        setState(() {
-          _trashRetentionDays = days;
-        });
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setInt('trash.retention_days.${activeServer.id}', days);
-      }
-    } catch (_) {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final cached = prefs.getInt('trash.retention_days.${activeServer.id}');
-        if (cached != null) {
-          setState(() {
-            _trashRetentionDays = cached;
-          });
-        }
-      } catch (_) {}
-    }
-  }
-
-  Future<void> _setTrashRetention(int days) async {
-    final activeServer = widget.serverManager.activeServer;
-    if (activeServer == null) return;
-    setState(() {
-      _trashRetentionDays = days;
-      _trashLoading = true;
-    });
-    try {
-      final token = await widget.serverManager.authService.readAccessToken(
-        activeServer.id,
-      );
-      if (token == null || token.isEmpty) return;
-      final uri = _apiUri(
-        activeServer.connectionUrl,
-        '/account/settings/trash',
-      );
-      final response = await http.post(
-        uri,
-        headers: {
-          'authorization': 'Bearer $token',
-          'content-type': 'application/json',
-        },
-        body: jsonEncode({'trash_retention_days': days}),
-      );
-      if (response.statusCode == 200) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setInt('trash.retention_days.${activeServer.id}', days);
-      }
-    } catch (_) {
-    } finally {
-      if (mounted) {
-        setState(() => _trashLoading = false);
-      }
-      widget.serverManager.refresh();
-    }
   }
 
   Future<void> _changeActiveServerPassword() async {
@@ -1101,31 +1016,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _SettingsSection(
       title: 'Security & Behavior',
       children: [
-        if (hasActiveServer)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            child: DropdownButtonFormField<int>(
-              key: ValueKey(_trashRetentionDays),
-              initialValue: _trashRetentionDays,
-              decoration: const InputDecoration(
-                labelText: 'Trash retention period',
-                prefixIcon: Icon(Icons.delete_outline),
-              ),
-              items: TrashRetentionOption.values
-                  .map(
-                    (option) => DropdownMenuItem<int>(
-                      value: option.days,
-                      child: Text(option.label),
-                    ),
-                  )
-                  .toList(),
-              onChanged: _trashLoading
-                  ? null
-                  : (val) {
-                      if (val != null) _setTrashRetention(val);
-                    },
-            ),
-          ),
+
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
           child: DropdownButtonFormField<TokenLifetimeOption>(
@@ -1827,21 +1718,8 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
   }
 }
 
-extension<E> on Iterable<E> {
+extension IterableExtension<E> on Iterable<E> {
   E? get firstOrNull => isEmpty ? null : first;
 }
 
-class TrashRetentionOption {
-  const TrashRetentionOption(this.days, this.label);
-  final int days;
-  final String label;
 
-  static const values = [
-    TrashRetentionOption(0, 'Disabled'),
-    TrashRetentionOption(1, '1 day'),
-    TrashRetentionOption(3, '3 days'),
-    TrashRetentionOption(7, '1 week'),
-    TrashRetentionOption(30, '1 month'),
-    TrashRetentionOption(90, '3 months'),
-  ];
-}

@@ -24,6 +24,7 @@ struct Config {
   int logRetentionDays{0};
   bool hashFiles{false};
   std::string encryptionKey{""};
+  int trashRetentionDays{30};
 };
 
 Config loadConfig(const std::string &path);

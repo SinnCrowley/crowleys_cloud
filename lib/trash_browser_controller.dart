@@ -42,6 +42,7 @@ class TrashBrowserController extends ChangeNotifier {
   String? operationMessage;
   TrashSortBy sortBy = TrashSortBy.date;
   bool sortAscending = false;
+  int trashRetentionDays = 30;
 
   final Map<String, Future<File?>> _downloadsInFlight = {};
 
@@ -71,6 +72,18 @@ class TrashBrowserController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      try {
+        final settingsUri = _apiUri('/trash/settings');
+        final settingsResp = await _authorizedGet(settingsUri);
+        if (settingsResp.statusCode == 200) {
+          final payload = jsonDecode(settingsResp.body) as Map<String, Object?>;
+          if (payload.containsKey('trash_retention_days')) {
+            trashRetentionDays =
+                (payload['trash_retention_days'] as num).toInt();
+          }
+        }
+      } catch (_) {}
+
       final queryParams = {'scope': 'private'};
       if (searchQuery.isNotEmpty) {
         queryParams['q'] = searchQuery;

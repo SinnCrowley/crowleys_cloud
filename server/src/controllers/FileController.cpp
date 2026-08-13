@@ -1377,6 +1377,9 @@ void FileController::getTrash(const drogon::HttpRequestPtr &req,
         protoEntry->set_modified_at(entry.deletedAt);
         protoEntry->set_type(entry.isDir ? "directory" : "file");
         protoEntry->set_mime_type(entry.isDir ? "inode/directory" : "application/octet-stream");
+        if (!entry.isDir) {
+          protoEntry->set_thumbnail_url("/api/thumb?trash_id=" + std::to_string(entry.id) + "&s=256");
+        }
       }
       auto resp = drogon::HttpResponse::newHttpResponse();
       resp->setBody(protoResponse.SerializeAsString());
@@ -1468,34 +1471,6 @@ void FileController::getTrashSettings(const drogon::HttpRequestPtr &req,
   try {
     std::int64_t days = server::ctx().trashService->getTrashRetentionDays(userId);
     Json::Value body;
-    body["trash_retention_days"] = static_cast<Json::Int64>(days);
-    callback(drogon::HttpResponse::newHttpJsonResponse(body));
-  } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
-  }
-}
-
-void FileController::setTrashSettings(const drogon::HttpRequestPtr &req,
-                                      std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
-  std::int64_t userId;
-  std::string role;
-  if (!getAuth(req, userId, role)) {
-    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
-    return;
-  }
-
-  auto json = req->getJsonObject();
-  if (!json || !json->isMember("trash_retention_days")) {
-    callback(jsonError(drogon::k400BadRequest, "trash_retention_days is required"));
-    return;
-  }
-
-  std::int64_t days = (*json)["trash_retention_days"].asInt64();
-
-  try {
-    server::ctx().trashService->setTrashRetentionDays(userId, days);
-    Json::Value body;
-    body["ok"] = true;
     body["trash_retention_days"] = static_cast<Json::Int64>(days);
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {

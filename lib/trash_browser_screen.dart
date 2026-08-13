@@ -42,13 +42,23 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   TrashBrowserController get controller => widget.controller;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  late bool _isGridView;
 
   @override
   void initState() {
     super.initState();
+    _isGridView = widget.isGridView;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.reload();
     });
+  }
+
+  @override
+  void didUpdateWidget(TrashBrowserScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isGridView != widget.isGridView) {
+      _isGridView = widget.isGridView;
+    }
   }
 
   @override
@@ -353,9 +363,12 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
           ),
           actions: [
             IconButton(
-              icon: Icon(widget.isGridView ? Icons.view_list : Icons.grid_view),
+              icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
               onPressed: () {
-                widget.onToggleGridView(!widget.isGridView);
+                setState(() {
+                  _isGridView = !_isGridView;
+                });
+                widget.onToggleGridView(_isGridView);
               },
             ),
           ],
@@ -418,7 +431,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
       interactive: true,
       thickness: 8,
       radius: const Radius.circular(4),
-      child: widget.isGridView
+      child: _isGridView
           ? GridView.builder(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
               itemCount: controller.files.length,
@@ -663,9 +676,38 @@ class _TrashHeaderControls extends StatelessWidget {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-      child: Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: appSurface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: appSubtext.withValues(alpha: 0.15)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline, size: 18, color: appSubtext),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Items in trash are automatically deleted after ${controller.trashRetentionDays} days.',
+                  style: TextStyle(
+                    color: appSubtext,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 8),
+          child: Row(
         children: [
           const Spacer(),
           Container(
@@ -729,7 +771,9 @@ class _TrashHeaderControls extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),
+  ],
+);
   }
 }
 

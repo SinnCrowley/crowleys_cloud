@@ -21,15 +21,8 @@ std::filesystem::path TrashService::getTrashPath(std::int64_t userId, std::int64
   return std::filesystem::path(server::ctx().config.storageRoot) / "trash" / std::to_string(userId) / std::to_string(trashId);
 }
 
-std::int64_t TrashService::getTrashRetentionDays(std::int64_t userId) const {
-  std::int64_t days = 7; // Default 1 week
-  auto stmtGuard = db_.getStatement("SELECT trash_retention_days FROM users WHERE id = ?");
-  auto *stmt = stmtGuard.get();
-  sqlite3_bind_int64(stmt, 1, userId);
-  if (sqlite3_step(stmt) == SQLITE_ROW) {
-    days = sqlite3_column_int64(stmt, 0);
-  }
-  return days;
+std::int64_t TrashService::getTrashRetentionDays(std::int64_t /*userId*/) const {
+  return server::ctx().config.trashRetentionDays;
 }
 
 void TrashService::setTrashRetentionDays(std::int64_t userId, std::int64_t days) {
@@ -67,16 +60,22 @@ std::vector<TrashEntry> TrashService::listTrash(std::int64_t userId, StorageScop
   }
 
   while (sqlite3_step(stmt) == SQLITE_ROW) {
+    const char *scopePtr = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+    const char *pathPtr  = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
+    const char *namePtr  = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4));
+    const char *typePtr  = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 7));
+    const char *mimePtr  = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 8));
+
     entries.push_back(TrashEntry{
         .id = sqlite3_column_int64(stmt, 0),
         .ownerUserId = sqlite3_column_int64(stmt, 1),
-        .scope = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2)),
-        .originalPath = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3)),
-        .name = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4)),
+        .scope = scopePtr ? scopePtr : "",
+        .originalPath = pathPtr ? pathPtr : "",
+        .name = namePtr ? namePtr : "",
         .isDir = sqlite3_column_int(stmt, 5) != 0,
         .size = static_cast<std::uintmax_t>(sqlite3_column_int64(stmt, 6)),
-        .type = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 7)),
-        .mimeType = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 8)),
+        .type = typePtr ? typePtr : "",
+        .mimeType = mimePtr ? mimePtr : "",
         .deletedAt = sqlite3_column_int64(stmt, 9),
     });
   }
@@ -103,9 +102,12 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
     sqlite3_bind_text(stmt, 3, relPath.c_str(), -1, SQLITE_TRANSIENT);
 
     if (sqlite3_step(stmt) == SQLITE_ROW) {
-      name = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
-      type = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-      mimeType = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+      const char *nPtr = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+      const char *tPtr = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+      const char *mPtr = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+      name = nPtr ? nPtr : "";
+      type = tPtr ? tPtr : "file";
+      mimeType = mPtr ? mPtr : "application/octet-stream";
       size = sqlite3_column_int64(stmt, 3);
       isDir = (type == "directory");
     } else {
@@ -257,9 +259,11 @@ void TrashService::restoreFromTrash(std::int64_t userId, const std::vector<std::
       }
 
       const auto scopeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
-      scopeStr = std::string(scopeRaw ? scopeRaw : "private");
-      originalPath = std::string(reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1)));
-      name = std::string(reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2)));
+      const auto pathRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+      const auto nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+      scopeStr = scopeRaw ? scopeRaw : "private";
+      originalPath = pathRaw ? pathRaw : "";
+      name = nameRaw ? nameRaw : "";
       isDir = sqlite3_column_int(stmt, 3) != 0;
     }
 
@@ -389,8 +393,9 @@ void TrashService::deletePermanently(std::int64_t userId, const std::vector<std:
       }
 
       const auto scopeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
-      scopeStr = std::string(scopeRaw ? scopeRaw : "private");
-      originalPath = std::string(reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1)));
+      const auto pathRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+      scopeStr = scopeRaw ? scopeRaw : "private";
+      originalPath = pathRaw ? pathRaw : "";
       isDir = sqlite3_column_int(stmt, 2) != 0;
     }
 
@@ -463,16 +468,17 @@ void TrashService::purgeTrash(std::int64_t userId) {
 }
 
 void TrashService::cleanupExpiredTrash() {
+  const auto retentionDays = server::ctx().config.trashRetentionDays;
+  if (retentionDays <= 0) return;
+
   std::int64_t now = utils::nowMillis();
+  std::int64_t threshold = now - (static_cast<std::int64_t>(retentionDays) * 86400000LL);
 
   std::vector<std::pair<std::int64_t, std::int64_t>> expired;
   {
-    auto stmtGuard = db_.getStatement(
-        "SELECT t.id, t.owner_user_id FROM trash t "
-        "JOIN users u ON t.owner_user_id = u.id "
-        "WHERE u.trash_retention_days > 0 AND t.deleted_at < (? - u.trash_retention_days * 86400000)");
+    auto stmtGuard = db_.getStatement("SELECT id, owner_user_id FROM trash WHERE deleted_at < ?");
     auto *stmt = stmtGuard.get();
-    sqlite3_bind_int64(stmt, 1, now);
+    sqlite3_bind_int64(stmt, 1, threshold);
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
       expired.push_back({sqlite3_column_int64(stmt, 0), sqlite3_column_int64(stmt, 1)});
