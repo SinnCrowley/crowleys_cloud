@@ -1704,10 +1704,25 @@ class _MainScreenState extends State<MainScreen> {
               child: SafeArea(
                 child: ListView(
                   children: [
-                    ListTile(
-                      title: Text(
-                        'Crowley\'s Cloud',
-                        style: TextStyle(color: appText, fontSize: 18),
+                   Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.asset(
+                              'assets/icon/crowleys_cloud_transparent_horizontal.png',
+                              width: 200,
+                              height: 70,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => Icon(
+                                Icons.cloud,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 72,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Divider(color: appBorder),

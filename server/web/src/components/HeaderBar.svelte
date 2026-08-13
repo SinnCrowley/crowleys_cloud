@@ -69,7 +69,7 @@
     <button class="btn-icon mobile-menu-btn" on:click={toggleSidebarMobile} title="Toggle menu">
       <span class="material-symbols-outlined">menu</span>
     </button>
-    <span class="mobile-brand-title text-title">Crowley's Cloud</span>
+    <img src="/logo_horizontal.png" alt="Crowley's Cloud Logo" class="mobile-brand-logo" />
   </div>
 
   <!-- Search Input Area -->
@@ -186,9 +186,11 @@
     justify-content: center;
   }
 
-  .mobile-brand-title {
-    font-weight: 700;
-    color: var(--accent-color);
+  .mobile-brand-logo {
+    height: 40px;
+    max-height: 42px;
+    width: auto;
+    object-fit: contain;
   }
 
   .search-section {

@@ -1,5 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import { resetClientAuthState } from '../api/client.js';
+import { broadcastChannel } from './broadcast.js';
 
 const initialAccessToken = typeof localStorage !== 'undefined' ? localStorage.getItem('cc_access_token') || null : null;
 const initialRefreshToken = typeof localStorage !== 'undefined' ? localStorage.getItem('cc_refresh_token') || null : null;
@@ -17,6 +18,8 @@ const accessTokenStore = writable(initialAccessToken);
 const refreshTokenStore = writable(initialRefreshToken);
 const userStore = writable(initialUser);
 
+let isInternalSync = false;
+
 if (typeof localStorage !== 'undefined') {
   accessTokenStore.subscribe((val) => {
     if (val) localStorage.setItem('cc_access_token', val);
@@ -31,6 +34,23 @@ if (typeof localStorage !== 'undefined') {
   userStore.subscribe((val) => {
     if (val) localStorage.setItem('cc_user', JSON.stringify(val));
     else localStorage.removeItem('cc_user');
+  });
+}
+
+if (broadcastChannel) {
+  broadcastChannel.addEventListener('message', (event) => {
+    if (!event.data || !event.data.type) return;
+
+    isInternalSync = true;
+    try {
+      if (event.data.type === 'AUTH_LOGOUT') {
+        authStore.clearSession();
+      } else if (event.data.type === 'AUTH_LOGIN' && event.data.session) {
+        authStore.setSession(event.data.session);
+      }
+    } finally {
+      isInternalSync = false;
+    }
   });
 }
 
@@ -51,6 +71,10 @@ export const authStore = {
     if (token) accessTokenStore.set(token);
     if (refresh) refreshTokenStore.set(refresh);
     if (usr) userStore.set(usr);
+
+    if (broadcastChannel && !isInternalSync) {
+      broadcastChannel.postMessage({ type: 'AUTH_LOGIN', session: data });
+    }
   },
 
   clearSession() {
@@ -64,6 +88,10 @@ export const authStore = {
       localStorage.removeItem('cc_refresh_token');
       localStorage.removeItem('cc_user');
       localStorage.removeItem('cc_user_stats');
+    }
+
+    if (broadcastChannel && !isInternalSync) {
+      broadcastChannel.postMessage({ type: 'AUTH_LOGOUT' });
     }
   }
 };
