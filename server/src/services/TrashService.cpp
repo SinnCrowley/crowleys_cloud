@@ -85,6 +85,7 @@ std::vector<TrashEntry> TrashService::listTrash(std::int64_t userId, StorageScop
 void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const std::string &relPath) {
   const auto role = "user"; // Default role
   const auto configHashFiles = server::ctx().config.hashFiles;
+  const auto ownerUserId = (scope == StorageScope::Shared) ? 0 : userId;
 
   bool isDir = false;
   std::uintmax_t size = 0;
@@ -92,11 +93,12 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
   std::string type = "directory";
   std::string mimeType = "inode/directory";
 
+  std::string sha256Val;
   if (configHashFiles) {
     auto stmtGuard = db_.getStatement(
-        "SELECT name, type, mime_type, size_bytes FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? LIMIT 1");
+        "SELECT name, type, mime_type, size_bytes, sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? LIMIT 1");
     auto *stmt = stmtGuard.get();
-    sqlite3_bind_int64(stmt, 1, userId);
+    sqlite3_bind_int64(stmt, 1, ownerUserId);
     const auto scopeStr = FileIndexService::scopeToString(scope);
     sqlite3_bind_text(stmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 3, relPath.c_str(), -1, SQLITE_TRANSIENT);
@@ -105,10 +107,12 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
       const char *nPtr = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
       const char *tPtr = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
       const char *mPtr = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+      const char *sPtr = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4));
       name = nPtr ? nPtr : "";
       type = tPtr ? tPtr : "file";
       mimeType = mPtr ? mPtr : "application/octet-stream";
       size = sqlite3_column_int64(stmt, 3);
+      sha256Val = sPtr ? sPtr : "";
       isDir = (type == "directory");
     } else {
       throw std::runtime_error("File or directory not found");
@@ -134,7 +138,7 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
       if (!isDir) {
         auto sGuard = db_.getStatement("SELECT sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ?");
         auto *sStmt = sGuard.get();
-        sqlite3_bind_int64(sStmt, 1, userId);
+        sqlite3_bind_int64(sStmt, 1, ownerUserId);
         const auto scopeStr = FileIndexService::scopeToString(scope);
         sqlite3_bind_text(sStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(sStmt, 3, relPath.c_str(), -1, SQLITE_TRANSIENT);
@@ -157,7 +161,7 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
         auto sGuard = db_.getStatement(
             "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND type != 'directory'");
         auto *sStmt = sGuard.get();
-        sqlite3_bind_int64(sStmt, 1, userId);
+        sqlite3_bind_int64(sStmt, 1, ownerUserId);
         const auto scopeStr = FileIndexService::scopeToString(scope);
         sqlite3_bind_text(sStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(sStmt, 3, relPath.c_str(), -1, SQLITE_TRANSIENT);
@@ -181,19 +185,20 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
       }
     } else {
       const auto target = fileService_.resolvePath(userId, role, scope, relPath, true);
-      std::filesystem::remove_all(target);
+      std::error_code ec;
+      std::filesystem::remove_all(target, ec);
     }
 
     if (isDir) {
-      server::ctx().fileIndexService->markDeletedPrefix(userId, scope, relPath);
+      server::ctx().fileIndexService->markDeletedPrefix(ownerUserId, scope, relPath);
     } else {
-      server::ctx().fileIndexService->markDeleted(userId, scope, relPath);
+      server::ctx().fileIndexService->markDeleted(ownerUserId, scope, relPath);
     }
 
     auto delIndexGuard = db_.getStatement(
         "DELETE FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?)");
     auto *delIndexStmt = delIndexGuard.get();
-    sqlite3_bind_int64(delIndexStmt, 1, userId);
+    sqlite3_bind_int64(delIndexStmt, 1, ownerUserId);
     const auto scopeStr = FileIndexService::scopeToString(scope);
     sqlite3_bind_text(delIndexStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(delIndexStmt, 3, relPath.c_str(), -1, SQLITE_TRANSIENT);
@@ -206,8 +211,8 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
   std::int64_t now = utils::nowMillis();
 
   auto insertGuard = db_.getStatement(
-      "INSERT INTO trash(owner_user_id, scope, original_path, name, is_dir, size_bytes, type, mime_type, deleted_at) "
-      "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      "INSERT INTO trash(owner_user_id, scope, original_path, name, is_dir, size_bytes, type, mime_type, deleted_at, sha256) "
+      "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   auto *stmt = insertGuard.get();
   sqlite3_bind_int64(stmt, 1, userId);
   const auto scopeStr = FileIndexService::scopeToString(scope);
@@ -219,6 +224,7 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
   sqlite3_bind_text(stmt, 7, type.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_text(stmt, 8, mimeType.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_int64(stmt, 9, now);
+  sqlite3_bind_text(stmt, 10, sha256Val.c_str(), -1, SQLITE_TRANSIENT);
 
   if (sqlite3_step(stmt) != SQLITE_DONE) {
     throw std::runtime_error("Failed to insert trash entry");
@@ -234,22 +240,26 @@ void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const st
   }
 
   if (isDir) {
-    server::ctx().fileIndexService->markDeletedPrefix(userId, scope, relPath);
+    server::ctx().fileIndexService->markDeletedPrefix(ownerUserId, scope, relPath);
   } else {
-    server::ctx().fileIndexService->markDeleted(userId, scope, relPath);
+    server::ctx().fileIndexService->markDeleted(ownerUserId, scope, relPath);
   }
 }
 
-void TrashService::restoreFromTrash(std::int64_t userId, const std::vector<std::int64_t> &ids) {
+std::vector<TrashConflict> TrashService::checkRestoreConflicts(std::int64_t userId, const std::vector<std::int64_t> &ids) const {
+  std::vector<TrashConflict> conflicts;
   const auto configHashFiles = server::ctx().config.hashFiles;
+  const auto role = "user";
+
   for (const auto id : ids) {
     std::string scopeStr = "private";
     std::string originalPath;
     std::string name;
-    bool isDir = false;
+    std::uintmax_t trashSize = 0;
+    std::int64_t deletedAt = 0;
 
     {
-      auto queryGuard = db_.getStatement("SELECT scope, original_path, name, is_dir FROM trash WHERE id = ? AND owner_user_id = ?");
+      auto queryGuard = db_.getStatement("SELECT scope, original_path, name, size_bytes, deleted_at FROM trash WHERE id = ? AND owner_user_id = ?");
       auto *stmt = queryGuard.get();
       sqlite3_bind_int64(stmt, 1, id);
       sqlite3_bind_int64(stmt, 2, userId);
@@ -264,105 +274,235 @@ void TrashService::restoreFromTrash(std::int64_t userId, const std::vector<std::
       scopeStr = scopeRaw ? scopeRaw : "private";
       originalPath = pathRaw ? pathRaw : "";
       name = nameRaw ? nameRaw : "";
+      trashSize = static_cast<std::uintmax_t>(sqlite3_column_int64(stmt, 3));
+      deletedAt = sqlite3_column_int64(stmt, 4);
+    }
+
+    const auto scope = parseScope(scopeStr).value_or(StorageScope::Private);
+    const auto ownerUserId = (scope == StorageScope::Shared) ? 0 : userId;
+    bool conflict = false;
+    std::uintmax_t existingSize = 0;
+    std::int64_t existingModified = 0;
+
+    if (!configHashFiles) {
+      auto target = fileService_.resolvePath(userId, role, scope, originalPath, true);
+      if (std::filesystem::exists(target)) {
+        conflict = true;
+        std::error_code ec;
+        existingSize = std::filesystem::file_size(target, ec);
+      }
+    } else {
+      auto confGuard = db_.getStatement("SELECT size_bytes, modified_at FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1");
+      auto *confStmt = confGuard.get();
+      sqlite3_bind_int64(confStmt, 1, ownerUserId);
+      sqlite3_bind_text(confStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(confStmt, 3, originalPath.c_str(), -1, SQLITE_TRANSIENT);
+      if (sqlite3_step(confStmt) == SQLITE_ROW) {
+        conflict = true;
+        existingSize = static_cast<std::uintmax_t>(sqlite3_column_int64(confStmt, 0));
+        existingModified = sqlite3_column_int64(confStmt, 1);
+      }
+    }
+
+    if (conflict) {
+      conflicts.push_back(TrashConflict{
+        .id = id,
+        .name = name,
+        .originalPath = originalPath,
+        .existingSize = existingSize,
+        .existingModified = existingModified,
+        .trashSize = trashSize,
+        .trashDeletedAt = deletedAt,
+      });
+    }
+  }
+  return conflicts;
+}
+
+void TrashService::restoreFromTrash(std::int64_t userId, const std::vector<std::int64_t> &ids, bool overwrite) {
+  const auto configHashFiles = server::ctx().config.hashFiles;
+  for (const auto id : ids) {
+    std::string scopeStr = "private";
+    std::string originalPath;
+    std::string name;
+    bool isDir = false;
+    std::uintmax_t size = 0;
+    std::string type = "file";
+    std::string mimeType = "application/octet-stream";
+    std::string sha256Val;
+
+    {
+      auto queryGuard = db_.getStatement("SELECT scope, original_path, name, is_dir, size_bytes, type, mime_type, sha256 FROM trash WHERE id = ? AND owner_user_id = ?");
+      auto *stmt = queryGuard.get();
+      sqlite3_bind_int64(stmt, 1, id);
+      sqlite3_bind_int64(stmt, 2, userId);
+
+      if (sqlite3_step(stmt) != SQLITE_ROW) {
+        continue;
+      }
+
+      const auto scopeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+      const auto pathRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+      const auto nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+      const auto typeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 5));
+      const auto mimeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 6));
+      const auto shaRaw  = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 7));
+
+      scopeStr = scopeRaw ? scopeRaw : "private";
+      originalPath = pathRaw ? pathRaw : "";
+      name = nameRaw ? nameRaw : "";
       isDir = sqlite3_column_int(stmt, 3) != 0;
+      size = static_cast<std::uintmax_t>(sqlite3_column_int64(stmt, 4));
+      type = typeRaw ? typeRaw : (isDir ? "directory" : "file");
+      mimeType = mimeRaw ? mimeRaw : (isDir ? "inode/directory" : "application/octet-stream");
+      sha256Val = shaRaw ? shaRaw : "";
     }
 
     const auto scope = parseScope(scopeStr).value_or(StorageScope::Private);
     const auto role = "user";
+    const auto ownerUserId = (scope == StorageScope::Shared) ? 0 : userId;
+    const auto uploaderUserId = (scope == StorageScope::Shared) ? userId : ownerUserId;
     std::string finalRelPath = originalPath;
     std::string finalName = name;
 
     if (!configHashFiles) {
       auto target = fileService_.resolvePath(userId, role, scope, originalPath, true);
       if (std::filesystem::exists(target)) {
-        const auto parent = target.parent_path();
-        const auto stem = target.stem().string();
-        const auto ext = target.extension().string();
-        int counter = 1;
-        while (true) {
-          const auto candidate = parent / (stem + " (" + std::to_string(counter) + ")" + ext);
-          if (!std::filesystem::exists(candidate)) {
-            target = candidate;
-            finalName = stem + " (" + std::to_string(counter) + ")" + ext;
-            const auto origParentRel = std::filesystem::path(originalPath).parent_path().generic_string();
-            finalRelPath = origParentRel.empty() ? finalName : (origParentRel + "/" + finalName);
-            break;
+        if (overwrite) {
+          std::error_code ec;
+          std::filesystem::remove_all(target, ec);
+        } else {
+          const auto parent = target.parent_path();
+          const auto stem = target.stem().string();
+          const auto ext = target.extension().string();
+          int counter = 1;
+          while (true) {
+            const auto candidate = parent / (stem + " (" + std::to_string(counter) + ")" + ext);
+            if (!std::filesystem::exists(candidate)) {
+              target = candidate;
+              finalName = stem + " (" + std::to_string(counter) + ")" + ext;
+              const auto origParentRel = std::filesystem::path(originalPath).parent_path().generic_string();
+              finalRelPath = origParentRel.empty() ? finalName : (origParentRel + "/" + finalName);
+              break;
+            }
+            counter++;
           }
-          counter++;
         }
       }
 
       const auto trashPath = getTrashPath(userId, id);
       std::filesystem::create_directories(target.parent_path());
       utils::portableRename(trashPath, target);
+
+      server::ctx().fileIndexService->upsertFile(ownerUserId, scope, finalRelPath, target, uploaderUserId);
     } else {
       // In hashFiles, check virtual name conflict in DB
       bool conflict = false;
       {
         auto confGuard = db_.getStatement("SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1");
         auto *confStmt = confGuard.get();
-        sqlite3_bind_int64(confStmt, 1, userId);
+        sqlite3_bind_int64(confStmt, 1, ownerUserId);
         sqlite3_bind_text(confStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(confStmt, 3, originalPath.c_str(), -1, SQLITE_TRANSIENT);
         conflict = (sqlite3_step(confStmt) == SQLITE_ROW);
       }
 
       if (conflict) {
-        const auto stem = std::filesystem::path(originalPath).stem().string();
-        const auto ext = std::filesystem::path(originalPath).extension().string();
-        const auto parentRel = std::filesystem::path(originalPath).parent_path().generic_string();
-        int counter = 1;
-        while (true) {
-          finalName = stem + " (" + std::to_string(counter) + ")" + ext;
-          finalRelPath = parentRel.empty() ? finalName : (parentRel + "/" + finalName);
+        if (overwrite) {
+          auto delActiveGuard = db_.getStatement("DELETE FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0");
+          auto *delActiveStmt = delActiveGuard.get();
+          sqlite3_bind_int64(delActiveStmt, 1, ownerUserId);
+          sqlite3_bind_text(delActiveStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_text(delActiveStmt, 3, originalPath.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_step(delActiveStmt);
+          finalName = name;
+          finalRelPath = originalPath;
+        } else {
+          const auto stem = std::filesystem::path(originalPath).stem().string();
+          const auto ext = std::filesystem::path(originalPath).extension().string();
+          const auto parentRel = std::filesystem::path(originalPath).parent_path().generic_string();
+          int counter = 1;
+          while (true) {
+            finalName = stem + " (" + std::to_string(counter) + ")" + ext;
+            finalRelPath = parentRel.empty() ? finalName : (parentRel + "/" + finalName);
 
-          bool subConflict = false;
-          {
-            auto confGuard = db_.getStatement("SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1");
-            auto *confStmt = confGuard.get();
-            sqlite3_bind_int64(confStmt, 1, userId);
-            sqlite3_bind_text(confStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(confStmt, 3, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
-            subConflict = (sqlite3_step(confStmt) == SQLITE_ROW);
+            bool subConflict = false;
+            {
+              auto confGuard = db_.getStatement("SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1");
+              auto *confStmt = confGuard.get();
+              sqlite3_bind_int64(confStmt, 1, ownerUserId);
+              sqlite3_bind_text(confStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+              sqlite3_bind_text(confStmt, 3, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
+              subConflict = (sqlite3_step(confStmt) == SQLITE_ROW);
+            }
+
+            if (!subConflict) break;
+            counter++;
           }
-
-          if (!subConflict) break;
-          counter++;
         }
       }
-    }
 
-    // 4. Update file_index table
-    {
-      auto nameGuard = db_.getStatement("UPDATE file_index SET name = ?, rel_path = ?, is_deleted = 0, deleted_at = NULL WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 1");
-      auto *nameStmt = nameGuard.get();
-      sqlite3_bind_text(nameStmt, 1, finalName.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_text(nameStmt, 2, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_int64(nameStmt, 3, userId);
-      sqlite3_bind_text(nameStmt, 4, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_text(nameStmt, 5, originalPath.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_step(nameStmt);
-    }
+      if (sha256Val.empty() && !isDir) {
+        auto sGuard = db_.getStatement("SELECT sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? LIMIT 1");
+        auto *sStmt = sGuard.get();
+        sqlite3_bind_int64(sStmt, 1, ownerUserId);
+        sqlite3_bind_text(sStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(sStmt, 3, originalPath.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(sStmt) == SQLITE_ROW) {
+          const auto sRaw = reinterpret_cast<const char *>(sqlite3_column_text(sStmt, 0));
+          if (sRaw) sha256Val = sRaw;
+        }
+      }
 
-    // For children of directory (if isDir)
-    if (isDir) {
-      auto updGuard = db_.getStatement(
-          "UPDATE file_index SET rel_path = ? || SUBSTR(rel_path, ?), "
-          "parent_path = CASE WHEN parent_path = ? THEN ? ELSE ? || SUBSTR(parent_path, ?) END, "
-          "is_deleted = 0, deleted_at = NULL "
-          "WHERE owner_user_id = ? AND scope = ? AND rel_path LIKE ? AND is_deleted = 1");
-      auto *updStmt = updGuard.get();
-      sqlite3_bind_text(updStmt, 1, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_int(updStmt, 2, static_cast<int>(originalPath.length() + 1));
-      sqlite3_bind_text(updStmt, 3, originalPath.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_text(updStmt, 4, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_text(updStmt, 5, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_int(updStmt, 6, static_cast<int>(originalPath.length() + 1));
-      sqlite3_bind_int64(updStmt, 7, userId);
-      sqlite3_bind_text(updStmt, 8, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-      const auto pattern = originalPath + "/%";
-      sqlite3_bind_text(updStmt, 9, pattern.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_step(updStmt);
+      const auto now = utils::nowMillis();
+      if (isDir) {
+        server::ctx().fileIndexService->upsertFileExplicit(
+            ownerUserId, scope, finalRelPath, finalName, size, now, "directory", "inode/directory", uploaderUserId, "");
+
+        if (finalRelPath != originalPath) {
+          auto updGuard = db_.getStatement(
+              "UPDATE file_index SET rel_path = ? || SUBSTR(rel_path, ?), "
+              "parent_path = CASE WHEN parent_path = ? THEN ? ELSE ? || SUBSTR(parent_path, ?) END, "
+              "is_deleted = 0, deleted_at = NULL "
+              "WHERE owner_user_id = ? AND scope = ? AND rel_path LIKE ? AND is_deleted = 1");
+          auto *updStmt = updGuard.get();
+          sqlite3_bind_text(updStmt, 1, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_int(updStmt, 2, static_cast<int>(originalPath.length() + 1));
+          sqlite3_bind_text(updStmt, 3, originalPath.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_text(updStmt, 4, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_text(updStmt, 5, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_int(updStmt, 6, static_cast<int>(originalPath.length() + 1));
+          sqlite3_bind_int64(updStmt, 7, ownerUserId);
+          sqlite3_bind_text(updStmt, 8, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+          const auto pattern = originalPath + "/%";
+          sqlite3_bind_text(updStmt, 9, pattern.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_step(updStmt);
+        } else {
+          auto updGuard = db_.getStatement(
+              "UPDATE file_index SET is_deleted = 0, deleted_at = NULL "
+              "WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND is_deleted = 1");
+          auto *updStmt = updGuard.get();
+          sqlite3_bind_int64(updStmt, 1, ownerUserId);
+          sqlite3_bind_text(updStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_text(updStmt, 3, originalPath.c_str(), -1, SQLITE_TRANSIENT);
+          const auto pattern = originalPath + "/%";
+          sqlite3_bind_text(updStmt, 4, pattern.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_step(updStmt);
+        }
+      } else {
+        server::ctx().fileIndexService->upsertFileExplicit(
+            ownerUserId, scope, finalRelPath, finalName, size, now, type, mimeType, uploaderUserId, sha256Val);
+      }
+
+      if (finalRelPath != originalPath) {
+        auto cleanGuard = db_.getStatement(
+            "DELETE FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 1");
+        auto *cleanStmt = cleanGuard.get();
+        sqlite3_bind_int64(cleanStmt, 1, ownerUserId);
+        sqlite3_bind_text(cleanStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(cleanStmt, 3, originalPath.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_step(cleanStmt);
+      }
     }
 
     // 5. Delete row from trash table

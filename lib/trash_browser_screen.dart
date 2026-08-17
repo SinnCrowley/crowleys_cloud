@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/trash_browser_controller.dart';
+import 'package:crowleys_cloud/restore_conflict_dialog.dart';
 import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
 import 'package:crowleys_cloud/file_item.dart';
@@ -237,6 +238,31 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   }
 
   Future<void> _restoreSelected() async {
+    final ids = controller.selectedFiles
+        .map((f) => f.id)
+        .whereType<int>()
+        .toList();
+    if (ids.isEmpty) return;
+
+    final conflicts = await controller.checkRestoreConflicts(ids);
+    if (conflicts.isNotEmpty) {
+      if (!mounted) return;
+      final resolution = await showRestoreConflictDialog(
+        context,
+        conflicts: conflicts,
+        allIds: ids,
+      );
+      if (resolution == null) return;
+      await controller.restoreSelectedWithDecisions(
+        resolution.overwriteDecisions,
+      );
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+
+    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -720,74 +746,79 @@ class _TrashHeaderControls extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 8),
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 4,
+            bottom: 8,
+          ),
           child: Row(
-        children: [
-          const Spacer(),
-          Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: appSurface,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.sort, color: appSubtext, size: 20),
-                const SizedBox(width: 8),
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<TrashSortBy>(
-                    value: controller.sortBy,
-                    dropdownColor: appSurface,
-                    style: TextStyle(color: appText),
-                    icon: Icon(Icons.arrow_drop_down, color: appSubtext),
-                    items: TrashSortBy.values
-                        .map(
-                          (v) => DropdownMenuItem(
-                            value: v,
-                            child: Text(
-                              v.name == 'date'
-                                  ? 'Deletion Date'
-                                  : v.name[0].toUpperCase() +
-                                        v.name.substring(1),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) {
-                        controller.updateSortBy(v);
-                      }
-                    },
-                  ),
+            children: [
+              const Spacer(),
+              Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: appSurface,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-              color: appSurface,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: IconButton(
-              splashRadius: 20,
-              icon: Icon(
-                controller.sortAscending
-                    ? Icons.arrow_upward
-                    : Icons.arrow_downward,
-                color: appSubtext,
+                child: Row(
+                  children: [
+                    Icon(Icons.sort, color: appSubtext, size: 20),
+                    const SizedBox(width: 8),
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<TrashSortBy>(
+                        value: controller.sortBy,
+                        dropdownColor: appSurface,
+                        style: TextStyle(color: appText),
+                        icon: Icon(Icons.arrow_drop_down, color: appSubtext),
+                        items: TrashSortBy.values
+                            .map(
+                              (v) => DropdownMenuItem(
+                                value: v,
+                                child: Text(
+                                  v.name == 'date'
+                                      ? 'Deletion Date'
+                                      : v.name[0].toUpperCase() +
+                                            v.name.substring(1),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) {
+                          if (v != null) {
+                            controller.updateSortBy(v);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              onPressed: () => controller.toggleSortDirection(),
-            ),
+              const SizedBox(width: 8),
+              Container(
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: appSurface,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  splashRadius: 20,
+                  icon: Icon(
+                    controller.sortAscending
+                        ? Icons.arrow_upward
+                        : Icons.arrow_downward,
+                    color: appSubtext,
+                  ),
+                  onPressed: () => controller.toggleSortDirection(),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-  ],
-);
+        ),
+      ],
+    );
   }
 }
 

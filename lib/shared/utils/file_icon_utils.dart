@@ -13,7 +13,13 @@ abstract final class FileIconUtils {
       'doc' || 'docx' => Icons.description,
       'xls' || 'xlsx' => Icons.table_chart,
       'ppt' || 'pptx' => Icons.slideshow,
-      'zip' || 'tar' || 'gz' || '7z' || 'rar' || 'bz2' || 'xz' => Icons.folder_zip,
+      'zip' ||
+      'tar' ||
+      'gz' ||
+      '7z' ||
+      'rar' ||
+      'bz2' ||
+      'xz' => Icons.folder_zip,
       'mp3' || 'wav' || 'ogg' || 'flac' || 'm4a' || 'aac' => Icons.audiotrack,
       'mp4' || 'mkv' || 'avi' || 'mov' || 'webm' || 'flv' => Icons.movie,
       'jpg' ||

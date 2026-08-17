@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/cache_service.dart';
+import 'package:crowleys_cloud/restore_conflict_dialog.dart';
 import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
 import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 
@@ -78,8 +79,8 @@ class TrashBrowserController extends ChangeNotifier {
         if (settingsResp.statusCode == 200) {
           final payload = jsonDecode(settingsResp.body) as Map<String, Object?>;
           if (payload.containsKey('trash_retention_days')) {
-            trashRetentionDays =
-                (payload['trash_retention_days'] as num).toInt();
+            trashRetentionDays = (payload['trash_retention_days'] as num)
+                .toInt();
           }
         }
       } catch (_) {}
@@ -157,7 +158,23 @@ class TrashBrowserController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> restoreSelected() async {
+  Future<List<RestoreConflictItem>> checkRestoreConflicts(List<int> ids) async {
+    if (ids.isEmpty) return const [];
+    try {
+      final uri = _apiUri('/trash/restore-check');
+      final response = await _authorizedPostJson(uri, {'ids': ids});
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final list = (data['conflicts'] as List<dynamic>?) ?? [];
+        return list
+            .map((c) => RestoreConflictItem.fromJson(c as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (_) {}
+    return const [];
+  }
+
+  Future<void> restoreSelected({bool overwrite = false}) async {
     if (selectedFiles.isEmpty) return;
     isLoading = true;
     notifyListeners();
@@ -165,10 +182,63 @@ class TrashBrowserController extends ChangeNotifier {
     try {
       final ids = selectedFiles.map((f) => f.id).whereType<int>().toList();
       final uri = _apiUri('/trash/restore');
-      final response = await _authorizedPostJson(uri, {'ids': ids});
+      final response = await _authorizedPostJson(uri, {
+        'ids': ids,
+        'overwrite': overwrite,
+      });
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception('Server error ${response.statusCode}');
       }
+      selectedFiles.clear();
+    } catch (e) {
+      error = e.toString();
+    } finally {
+      isLoading = false;
+      await reload();
+    }
+  }
+
+  Future<void> restoreSelectedWithDecisions(
+    Map<int, bool> overwriteDecisions,
+  ) async {
+    if (selectedFiles.isEmpty) return;
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      final overwriteIds = <int>[];
+      final copyIds = <int>[];
+
+      for (final file in selectedFiles) {
+        final id = file.id;
+        if (id == null) continue;
+        if (overwriteDecisions[id] == true) {
+          overwriteIds.add(id);
+        } else {
+          copyIds.add(id);
+        }
+      }
+
+      final uri = _apiUri('/trash/restore');
+      if (overwriteIds.isNotEmpty) {
+        final resp = await _authorizedPostJson(uri, {
+          'ids': overwriteIds,
+          'overwrite': true,
+        });
+        if (resp.statusCode < 200 || resp.statusCode >= 300) {
+          throw Exception('Server error ${resp.statusCode}');
+        }
+      }
+      if (copyIds.isNotEmpty) {
+        final resp = await _authorizedPostJson(uri, {
+          'ids': copyIds,
+          'overwrite': false,
+        });
+        if (resp.statusCode < 200 || resp.statusCode >= 300) {
+          throw Exception('Server error ${resp.statusCode}');
+        }
+      }
+
       selectedFiles.clear();
     } catch (e) {
       error = e.toString();

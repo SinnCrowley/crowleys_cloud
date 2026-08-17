@@ -215,6 +215,7 @@ void Database::migrate() {
       type TEXT NOT NULL,
       mime_type TEXT NOT NULL,
       deleted_at INTEGER NOT NULL,
+      sha256 TEXT NOT NULL DEFAULT '',
       FOREIGN KEY(owner_user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
@@ -264,6 +265,19 @@ void Database::migrate() {
   }
   exec("CREATE INDEX IF NOT EXISTS idx_file_index_sha256 ON file_index(owner_user_id, scope, sha256, is_deleted);");
   exec("CREATE INDEX IF NOT EXISTS idx_file_index_is_shared ON file_index(is_shared, is_deleted);");
+
+  sqlite3_prepare_v2(db_, "PRAGMA table_info(trash)", -1, &stmt, nullptr);
+  bool hasTrashSha256 = false;
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+    const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+    if (nameRaw != nullptr && std::string(nameRaw) == "sha256") {
+      hasTrashSha256 = true;
+    }
+  }
+  sqlite3_finalize(stmt);
+  if (!hasTrashSha256) {
+    exec("ALTER TABLE trash ADD COLUMN sha256 TEXT NOT NULL DEFAULT '';");
+  }
 
   sqlite3_prepare_v2(db_, "PRAGMA table_info(users)", -1, &stmt, nullptr);
   bool hasEmailColumn = false;

@@ -1,6 +1,7 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import { trashApi } from '../api/trash.js';
+  import RestoreConflictModal from '../components/RestoreConflictModal.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -18,6 +19,7 @@
 
   // Custom modal dialog state
   let confirmDeleteModal = null; // null | { ids, title, message }
+  let restoreConflictModal = null; // null | { conflicts, allIds }
 
   $: filteredEntries = trashEntries
     .filter((item) => {
@@ -97,8 +99,53 @@
     if (ids.length === 0) return;
     isLoading = true;
     try {
-      await trashApi.restoreTrash(ids);
+      const checkRes = await trashApi.checkRestoreConflicts(ids);
+      if (checkRes.has_conflicts && checkRes.conflicts && checkRes.conflicts.length > 0) {
+        isLoading = false;
+        restoreConflictModal = {
+          conflicts: checkRes.conflicts,
+          allIds: ids
+        };
+        return;
+      }
+      await trashApi.restoreTrash(ids, false);
+      selectedIds.clear();
+      selectedIds = selectedIds;
       dispatch('toast', { message: `Successfully restored ${ids.length} item(s).`, type: 'success' });
+      await loadTrash();
+    } catch (err) {
+      dispatch('toast', { message: err.message || 'Failed to restore items', type: 'error' });
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  async function handleRestoreConflictResolved(e) {
+    const { decisions, allIds } = e.detail;
+    restoreConflictModal = null;
+    isLoading = true;
+    try {
+      const overwriteIds = [];
+      const copyIds = [];
+
+      for (const id of allIds) {
+        if (decisions[id] === true) {
+          overwriteIds.push(id);
+        } else {
+          copyIds.push(id);
+        }
+      }
+
+      if (overwriteIds.length > 0) {
+        await trashApi.restoreTrash(overwriteIds, true);
+      }
+      if (copyIds.length > 0) {
+        await trashApi.restoreTrash(copyIds, false);
+      }
+
+      selectedIds.clear();
+      selectedIds = selectedIds;
+      dispatch('toast', { message: `Successfully restored ${allIds.length} item(s).`, type: 'success' });
       await loadTrash();
     } catch (err) {
       dispatch('toast', { message: err.message || 'Failed to restore items', type: 'error' });
@@ -384,6 +431,16 @@
       </div>
     </div>
   </div>
+{/if}
+
+<!-- Custom restore conflict modal -->
+{#if restoreConflictModal}
+  <RestoreConflictModal
+    conflicts={restoreConflictModal.conflicts}
+    allIds={restoreConflictModal.allIds}
+    on:resolve={handleRestoreConflictResolved}
+    on:close={() => (restoreConflictModal = null)}
+  />
 {/if}
 
 <style>

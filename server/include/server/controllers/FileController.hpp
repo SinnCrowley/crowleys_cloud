@@ -21,6 +21,7 @@ class FileController : public drogon::HttpController<FileController> {
   ADD_METHOD_TO(FileController::deleteFile, "/api/files", drogon::Delete, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::rebuildIndex, "/api/index/rebuild", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::getTrash, "/api/trash", drogon::Get, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(FileController::checkRestoreConflicts, "/api/trash/restore-check", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::restoreTrash, "/api/trash/restore", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::deleteTrash, "/api/trash", drogon::Delete, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(FileController::getTrashSettings, "/api/trash/settings", drogon::Get, "server::middleware::JwtMiddleware");
@@ -52,6 +53,8 @@ class FileController : public drogon::HttpController<FileController> {
                     std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void getTrash(const drogon::HttpRequestPtr &req,
                 std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+  void checkRestoreConflicts(const drogon::HttpRequestPtr &req,
+                             std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void restoreTrash(const drogon::HttpRequestPtr &req,
                     std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void deleteTrash(const drogon::HttpRequestPtr &req,

@@ -8,6 +8,7 @@
   import FileList from './components/FileList.svelte';
   import AuthModal from './components/AuthModal.svelte';
   import FolderPickerModal from './components/FolderPickerModal.svelte';
+  import UploadConflictModal from './components/UploadConflictModal.svelte';
   import ContextMenu from './components/ContextMenu.svelte';
   import SelectionActionBar from './components/SelectionActionBar.svelte';
   import MediaPreviewModal from './components/MediaPreviewModal.svelte';
@@ -158,6 +159,7 @@
   // Share Link Modal State
   let shareModal = null; // { file, url }
   let renameModal = null; // { file, newName }
+  let uploadConflictModal = null; // { conflicts, nonConflicts }
 
   // New folder dialog state
   let newFolderModal = false;
@@ -346,6 +348,64 @@
     }
   }
 
+  function processUploadQueue(payload) {
+    let filesToUpload = [];
+    if (Array.isArray(payload)) {
+      filesToUpload = payload.map((item) => {
+        if (typeof File !== 'undefined' && item instanceof File) {
+          return { file: item, path: item.name };
+        }
+        return { file: item.file || item, path: item.path || (item.file ? item.file.name : item.name) };
+      });
+    } else if (payload && payload.files && Array.isArray(payload.files)) {
+      filesToUpload = payload.files.map((file) => ({
+        file,
+        path: file.name
+      }));
+    } else if (payload && (payload.file || payload.name)) {
+      filesToUpload = [{ file: payload.file || payload, path: payload.path || payload.name }];
+    }
+
+    if (filesToUpload.length === 0) return;
+
+    // Create lookup map of existing items in the current directory
+    const existingMap = new Map();
+    for (const item of ($entries || [])) {
+      if (item.name) {
+        existingMap.set(item.name, item);
+      }
+      if (item.path) {
+        existingMap.set(item.path, item);
+      }
+    }
+
+    const conflicts = [];
+    const nonConflicts = [];
+
+    for (const uploadItem of filesToUpload) {
+      const topSegment = uploadItem.path ? uploadItem.path.split('/')[0] : (uploadItem.file ? uploadItem.file.name : '');
+      const directMatch = existingMap.get(uploadItem.path) || (uploadItem.file && existingMap.get(uploadItem.file.name)) || existingMap.get(topSegment);
+
+      if (directMatch) {
+        conflicts.push({
+          file: uploadItem.file,
+          path: uploadItem.path,
+          name: (uploadItem.file && uploadItem.file.name) || topSegment,
+          size: uploadItem.file ? uploadItem.file.size : 0,
+          existing: directMatch
+        });
+      } else {
+        nonConflicts.push(uploadItem);
+      }
+    }
+
+    if (conflicts.length > 0) {
+      uploadConflictModal = { conflicts, nonConflicts };
+    } else {
+      transfersStore.enqueueBatch(filesToUpload, $scope, $currentPath);
+    }
+  }
+
   function handleGlobalFileSelection(e) {
     if (!e.target || !e.target.files || e.target.files.length === 0) return;
     const fileList = Array.from(e.target.files);
@@ -353,14 +413,14 @@
       file,
       path: file.name
     }));
-    transfersStore.enqueueBatch(filesToUpload, $scope, $currentPath);
+    processUploadQueue(filesToUpload);
     e.target.value = '';
   }
 
   function handleUploadFiles(event) {
-    const files = event.detail; // Array of { file, path }
-    if (!files || files.length === 0) return;
-    transfersStore.enqueueBatch(files, $scope, $currentPath);
+    const files = event.detail; // Array of { file, path } or { files: [...] }
+    if (!files) return;
+    processUploadQueue(files);
   }
 
   function handleContextMenu(event) {
@@ -948,6 +1008,22 @@
         </div>
       </div>
     </div>
+  {/if}
+
+  <!-- Upload Conflict Modal -->
+  {#if uploadConflictModal}
+    <UploadConflictModal
+      conflicts={uploadConflictModal.conflicts}
+      nonConflicts={uploadConflictModal.nonConflicts}
+      on:resolve={(e) => {
+        const { confirmed } = e.detail;
+        if (confirmed && confirmed.length > 0) {
+          transfersStore.enqueueBatch(confirmed, $scope, $currentPath);
+        }
+        uploadConflictModal = null;
+      }}
+      on:close={() => (uploadConflictModal = null)}
+    />
   {/if}
 
   <!-- Global Application Toast notification banner -->

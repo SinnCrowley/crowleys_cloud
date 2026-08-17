@@ -15,7 +15,7 @@ dependencies:
     sdk: flutter
 
   # System Permissions & Filesystem Access
-  permission_handler: ^13.0.0      # OS permission management (storage, camera, notifications)
+  permission_handler: ^13.0.1      # OS permission management (storage, camera, notifications)
   path_provider: ^2.1.5           # Platform path resolution (app documents, temp/cache)
   path: ^1.9.0                    # Cross-platform file path manipulation (p.join, p.basename)
 

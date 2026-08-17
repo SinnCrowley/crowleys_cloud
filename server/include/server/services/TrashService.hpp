@@ -24,6 +24,16 @@ struct TrashEntry {
   std::int64_t deletedAt;
 };
 
+struct TrashConflict {
+  std::int64_t id;
+  std::string name;
+  std::string originalPath;
+  std::uintmax_t existingSize{0};
+  std::int64_t existingModified{0};
+  std::uintmax_t trashSize{0};
+  std::int64_t trashDeletedAt{0};
+};
+
 class TrashService {
  public:
   TrashService(db::Database &db, const FileService &fileService);
@@ -34,7 +44,8 @@ class TrashService {
   std::vector<TrashEntry> listTrash(std::int64_t userId, StorageScope scope, const std::string &searchQuery = "") const;
   
   void moveToTrash(std::int64_t userId, StorageScope scope, const std::string &relPath);
-  void restoreFromTrash(std::int64_t userId, const std::vector<std::int64_t> &ids);
+  std::vector<TrashConflict> checkRestoreConflicts(std::int64_t userId, const std::vector<std::int64_t> &ids) const;
+  void restoreFromTrash(std::int64_t userId, const std::vector<std::int64_t> &ids, bool overwrite = false);
   void deletePermanently(std::int64_t userId, const std::vector<std::int64_t> &ids);
   
   void purgeTrash(std::int64_t userId);

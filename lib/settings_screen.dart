@@ -1016,7 +1016,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _SettingsSection(
       title: 'Security & Behavior',
       children: [
-
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
           child: DropdownButtonFormField<TokenLifetimeOption>(
@@ -1721,5 +1720,3 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
 extension IterableExtension<E> on Iterable<E> {
   E? get firstOrNull => isEmpty ? null : first;
 }
-
-

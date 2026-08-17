@@ -13,6 +13,7 @@ import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/file_browser.dart';
 import 'package:crowleys_cloud/file_browser_controller.dart';
 import 'package:crowleys_cloud/file_item.dart';
+import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_browser_controller.dart';
 import 'package:crowleys_cloud/server_file_browser.dart';
 import 'package:crowleys_cloud/secret_store.dart';
@@ -33,6 +34,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'thumbnail_service.dart';
 import 'package:crowleys_cloud/trash_browser_controller.dart';
 import 'package:crowleys_cloud/trash_browser_screen.dart';
+import 'package:crowleys_cloud/upload_conflict_dialog.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -824,6 +826,40 @@ class _MainScreenState extends State<MainScreen> {
     final base = activeServer.connectionUrl.contains('://')
         ? activeServer.connectionUrl
         : 'http://${activeServer.connectionUrl}';
+
+    final existingServerFiles =
+        _serverController?.files ?? const <ServerFileItem>[];
+    final existingMap = <String, ServerFileItem>{};
+    for (final serverFile in existingServerFiles) {
+      existingMap[serverFile.name] = serverFile;
+    }
+
+    final conflicts = <UploadConflictItem>[];
+    final nonConflicting = <FileItem>[];
+
+    for (final item in items) {
+      final match = existingMap[item.name];
+      if (match != null) {
+        conflicts.add(UploadConflictItem(item: item, existingItem: match));
+      } else {
+        nonConflicting.add(item);
+      }
+    }
+
+    List<FileItem> itemsToUpload = items;
+    if (conflicts.isNotEmpty) {
+      if (!mounted) return;
+      final resolution = await showUploadConflictDialog(
+        context,
+        conflicts: conflicts,
+        nonConflictingItems: nonConflicting,
+      );
+      if (resolution == null || resolution.confirmedItems.isEmpty) {
+        return;
+      }
+      itemsToUpload = resolution.confirmedItems;
+    }
+
     final uploaded = <String>[];
     final failed = <String>[];
     final failDetails = <String>[];
@@ -831,31 +867,35 @@ class _MainScreenState extends State<MainScreen> {
     try {
       final drafts = <TransferItemDraft>[];
       final itemPaths = <String>[];
-      for (final item in items) {
+      for (final item in itemsToUpload) {
         final localPath = await item.path;
         itemPaths.add(localPath);
         if (localPath.isNotEmpty && !item.isDirectory) {
           final file = File(localPath);
           final length = file.existsSync() ? await file.length() : 0;
-          drafts.add(TransferItemDraft(
-            name: item.name,
-            direction: TransferDirection.upload,
-            totalBytes: length,
-          ));
+          drafts.add(
+            TransferItemDraft(
+              name: item.name,
+              direction: TransferDirection.upload,
+              totalBytes: length,
+            ),
+          );
         } else if (localPath.isNotEmpty && item.isDirectory) {
-          drafts.add(TransferItemDraft(
-            name: item.name,
-            direction: TransferDirection.upload,
-            totalBytes: 0,
-          ));
+          drafts.add(
+            TransferItemDraft(
+              name: item.name,
+              direction: TransferDirection.upload,
+              totalBytes: 0,
+            ),
+          );
         }
       }
 
       final transferItems = _transferManager.addItems(drafts);
       var draftIndex = 0;
 
-      for (var i = 0; i < items.length; i++) {
-        final item = items[i];
+      for (var i = 0; i < itemsToUpload.length; i++) {
+        final item = itemsToUpload[i];
         final localPath = itemPaths[i];
         if (localPath.isEmpty) {
           failed.add(item.name);
@@ -871,8 +911,8 @@ class _MainScreenState extends State<MainScreen> {
                 totalBytes: item.isDirectory
                     ? 0
                     : (File(localPath).existsSync()
-                        ? File(localPath).lengthSync()
-                        : 0),
+                          ? File(localPath).lengthSync()
+                          : 0),
               );
 
         if (item.isDirectory) {
@@ -1729,7 +1769,7 @@ class _MainScreenState extends State<MainScreen> {
               child: SafeArea(
                 child: ListView(
                   children: [
-                   Padding(
+                    Padding(
                       padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
                       child: Row(
                         children: [
@@ -1740,11 +1780,14 @@ class _MainScreenState extends State<MainScreen> {
                               width: 210,
                               height: 70,
                               fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) => Icon(
-                                Icons.cloud,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: 72,
-                              ),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    Icons.cloud,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    size: 72,
+                                  ),
                             ),
                           ),
                         ],
@@ -1859,7 +1902,9 @@ class _MainScreenState extends State<MainScreen> {
                               builder: (context) => TrashBrowserScreen(
                                 controller: TrashBrowserController(
                                   serverId: _serverManager.activeServer!.id,
-                                  baseUrl: _serverManager.activeServer!.connectionUrl,
+                                  baseUrl: _serverManager
+                                      .activeServer!
+                                      .connectionUrl,
                                   authService: _serverManager.authService,
                                 ),
                                 isGridView: _isGridView,

@@ -1490,6 +1490,49 @@ void FileController::getTrash(const drogon::HttpRequestPtr &req,
   }
 }
 
+void FileController::checkRestoreConflicts(const drogon::HttpRequestPtr &req,
+                                           std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  auto json = req->getJsonObject();
+  if (!json || !json->isMember("ids") || !(*json)["ids"].isArray()) {
+    callback(jsonError(drogon::k400BadRequest, "ids array is required"));
+    return;
+  }
+
+  std::vector<std::int64_t> ids;
+  for (const auto &idVal : (*json)["ids"]) {
+    ids.push_back(idVal.asInt64());
+  }
+
+  try {
+    const auto conflicts = server::ctx().trashService->checkRestoreConflicts(userId, ids);
+    Json::Value body;
+    body["ok"] = true;
+    body["has_conflicts"] = !conflicts.empty();
+    body["conflicts"] = Json::arrayValue;
+    for (const auto &c : conflicts) {
+      Json::Value item;
+      item["id"] = static_cast<Json::Int64>(c.id);
+      item["name"] = c.name;
+      item["original_path"] = c.originalPath;
+      item["existing_size"] = static_cast<Json::UInt64>(c.existingSize);
+      item["existing_modified"] = static_cast<Json::Int64>(c.existingModified);
+      item["trash_size"] = static_cast<Json::UInt64>(c.trashSize);
+      item["trash_deleted_at"] = static_cast<Json::Int64>(c.trashDeletedAt);
+      body["conflicts"].append(item);
+    }
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
 void FileController::restoreTrash(const drogon::HttpRequestPtr &req,
                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
   std::int64_t userId;
@@ -1510,8 +1553,13 @@ void FileController::restoreTrash(const drogon::HttpRequestPtr &req,
     ids.push_back(idVal.asInt64());
   }
 
+  bool overwrite = false;
+  if (json->isMember("overwrite")) {
+    overwrite = (*json)["overwrite"].asBool();
+  }
+
   try {
-    server::ctx().trashService->restoreFromTrash(userId, ids);
+    server::ctx().trashService->restoreFromTrash(userId, ids, overwrite);
     Json::Value body;
     body["ok"] = true;
     callback(drogon::HttpResponse::newHttpJsonResponse(body));

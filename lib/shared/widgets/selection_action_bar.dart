@@ -48,11 +48,7 @@ class SelectionActionBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              action.icon,
-              color: iconColor,
-              size: 22,
-            ),
+            Icon(action.icon, color: iconColor, size: 22),
             const SizedBox(height: 4),
             Text(
               action.label,

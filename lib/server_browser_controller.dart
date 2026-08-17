@@ -606,13 +606,9 @@ class ServerBrowserController extends ChangeNotifier {
     final dirPath = _parentPath(item.path);
     final targetPath = dirPath.isEmpty ? trimmed : p.join(dirPath, trimmed);
 
-    final uri = _apiUri(
-      '/files/move',
-    ).replace(queryParameters: {
-      'scope': scope,
-      'src': item.path,
-      'dest': targetPath,
-    });
+    final uri = _apiUri('/files/move').replace(
+      queryParameters: {'scope': scope, 'src': item.path, 'dest': targetPath},
+    );
 
     final response = await _authorizedPostBytes(uri, const []);
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -621,7 +617,8 @@ class ServerBrowserController extends ChangeNotifier {
       await reload();
       return true;
     }
-    operationMessage = 'Failed to rename "${item.name}" (${response.statusCode}).';
+    operationMessage =
+        'Failed to rename "${item.name}" (${response.statusCode}).';
     notifyListeners();
     return false;
   }

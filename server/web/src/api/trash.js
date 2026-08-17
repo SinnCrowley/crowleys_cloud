@@ -7,8 +7,12 @@ export const trashApi = {
     return apiGet(`/api/trash?${params.toString()}`);
   },
 
-  async restoreTrash(ids) {
-    return apiPost('/api/trash/restore', { ids });
+  async checkRestoreConflicts(ids) {
+    return apiPost('/api/trash/restore-check', { ids });
+  },
+
+  async restoreTrash(ids, overwrite = false) {
+    return apiPost('/api/trash/restore', { ids, overwrite });
   },
 
   async deleteTrash(ids) {

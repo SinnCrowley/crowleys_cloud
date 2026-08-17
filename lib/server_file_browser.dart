@@ -599,7 +599,8 @@ class _GridItem extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (controller.scope == 'shared' && (item.ownerName != null || item.uploaderUserId != null)) ...[
+              if (controller.scope == 'shared' &&
+                  (item.ownerName != null || item.uploaderUserId != null)) ...[
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -683,7 +684,9 @@ class _ListItem extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(color: appText),
         ),
-        subtitle: (controller.scope == 'shared' && (item.ownerName != null || item.uploaderUserId != null))
+        subtitle:
+            (controller.scope == 'shared' &&
+                (item.ownerName != null || item.uploaderUserId != null))
             ? Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Row(
@@ -833,10 +836,7 @@ class _ServerHeaderControls extends StatelessWidget {
             ),
             child: IconButton(
               splashRadius: 20,
-              icon: Icon(
-                Icons.bar_chart_rounded,
-                color: appSubtext,
-              ),
+              icon: Icon(Icons.bar_chart_rounded, color: appSubtext),
               tooltip: 'Storage Statistics',
               onPressed: () => _showStatsBottomSheet(context, controller),
             ),
@@ -946,7 +946,9 @@ void _showStatsBottomSheet(
                     decoration: BoxDecoration(
                       color: Theme.of(context).scaffoldBackgroundColor,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: appAccent.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: appAccent.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -997,16 +999,20 @@ void _showStatsBottomSheet(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: categories.length,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 2.2,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 2.2,
+                            ),
                         itemBuilder: (context, i) {
                           final c = categories[i];
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: Theme.of(context).scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(10),
@@ -1017,7 +1023,8 @@ void _showStatsBottomSheet(
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
