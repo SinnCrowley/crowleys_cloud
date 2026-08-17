@@ -113,3 +113,8 @@ include(GNUInstallDirs)
 install(TARGETS crowleys_cloud_server DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY config/ DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/crowleys_cloud)
 
+# ------------------------------------------------------------------------------
+# 6. Licensing
+# ------------------------------------------------------------------------------
+set(PROJECT_LICENSE "AGPL-3.0-or-later")
+
