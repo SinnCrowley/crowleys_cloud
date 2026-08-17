@@ -6,6 +6,7 @@
   export let file = null;
   export let items = [];
   export let scope = 'private';
+  export let isTrash = false;
 
   const dispatch = createEventDispatcher();
 
@@ -19,8 +20,8 @@
   let pdfError = '';
 
   $: activeFileType = getFileType(file);
-  $: downloadUrl = file ? filesApi.getDownloadUrl({ scope, path: file.path }) : '';
-  $: galleryIndex = items.findIndex((i) => i.path === (file ? file.path : ''));
+  $: downloadUrl = file ? filesApi.getDownloadUrl({ scope, path: file.path, trashId: isTrash ? file.id : undefined }) : '';
+  $: galleryIndex = items.findIndex((i) => isTrash ? (i.id === file?.id) : (i.path === file?.path));
   $: textLines = textContent ? textContent.split('\n') : [];
 
   function getFileType(item) {
@@ -62,7 +63,7 @@
     textContent = '';
 
     try {
-      const url = filesApi.getDownloadUrl({ scope, path: file.path });
+      const url = filesApi.getDownloadUrl({ scope, path: file.path, trashId: isTrash ? file.id : undefined });
       const blob = await apiGet(url);
       if (blob && blob instanceof Blob) {
         textContent = await blob.text();
@@ -88,7 +89,7 @@
     }
 
     try {
-      const url = filesApi.getDownloadUrl({ scope, path: file.path });
+      const url = filesApi.getDownloadUrl({ scope, path: file.path, trashId: isTrash ? file.id : undefined });
       const blob = await apiGet(url);
       if (blob && blob instanceof Blob) {
         const pdfBlob = new Blob([blob], { type: 'application/pdf' });
@@ -146,7 +147,7 @@
 
   function handleDownload() {
     if (file) {
-      filesApi.downloadFile({ scope, path: file.path, filename: file.name });
+      filesApi.downloadFile({ scope, path: file.path, trashId: isTrash ? file.id : undefined, filename: file.name });
     }
   }
 
@@ -188,9 +189,20 @@
             </button>
           {/if}
 
-          <button class="btn btn-secondary text-body" on:click={handleDownload}>
-            ⬇️ Download
-          </button>
+          {#if isTrash}
+            <button class="btn btn-secondary text-body" on:click={() => dispatch('restore', file)}>
+              <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; color: var(--color-success);">restore</span>
+              Restore
+            </button>
+            <button class="btn btn-secondary text-body danger-btn" on:click={() => dispatch('delete', file)}>
+              <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; color: var(--color-danger);">delete_forever</span>
+              Delete Permanently
+            </button>
+          {:else}
+            <button class="btn btn-secondary text-body" on:click={handleDownload}>
+              ⬇️ Download
+            </button>
+          {/if}
 
           <button class="btn-icon close-btn" on:click={() => dispatch('close')} title="Close (Esc)">
             ✕
@@ -407,9 +419,15 @@
     flex: 1;
     overflow: auto;
     font-family: var(--font-mono);
+    position: relative;
+    width: 100%;
+    height: 100%;
   }
 
   .line-numbers {
+    position: sticky;
+    left: 0;
+    z-index: 2;
     padding: var(--spacing-md) var(--spacing-sm);
     background-color: var(--bg-input);
     border-right: 1px solid var(--border-color);
@@ -420,16 +438,23 @@
     user-select: none;
     font-size: calc(13px * var(--font-scale));
     line-height: 1.5;
+    flex-shrink: 0;
+    min-width: 44px;
+    height: fit-content;
+    min-height: 100%;
   }
 
   .code-body {
     margin: 0;
     padding: var(--spacing-md);
     flex: 1;
-    overflow-x: auto;
+    overflow: visible;
     color: var(--text-main);
     line-height: 1.5;
     font-size: calc(13px * var(--font-scale));
+    min-width: max-content;
+    height: fit-content;
+    min-height: 100%;
   }
 
   .unsupported-card {

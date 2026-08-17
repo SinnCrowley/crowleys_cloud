@@ -11,11 +11,14 @@ import 'package:share_plus/share_plus.dart';
 class ImageViewer extends StatefulWidget {
   final List<FileItem> imageItems;
   final int initialIndex;
+  final bool isTrash;
   final Future<void> Function(FileItem item)? onUploadItem;
   final Future<void> Function(FileItem item)? onDeleteItem;
   final Future<void> Function(FileItem item)? onRenameItem;
   final Future<void> Function(FileItem item)? onAddToFolderItem;
   final Future<void> Function(FileItem item)? onShareItem;
+  final Future<void> Function(FileItem item)? onRestoreItem;
+  final Future<void> Function(FileItem item)? onDeletePermanentlyItem;
   final Future<File?> Function(FileItem item)? onFetchRemoteFile;
   final Widget Function(FileItem item)? thumbnailPlaceholderBuilder;
 
@@ -23,11 +26,14 @@ class ImageViewer extends StatefulWidget {
     super.key,
     required this.imageItems,
     required this.initialIndex,
+    this.isTrash = false,
     this.onUploadItem,
     this.onDeleteItem,
     this.onRenameItem,
     this.onAddToFolderItem,
     this.onShareItem,
+    this.onRestoreItem,
+    this.onDeletePermanentlyItem,
     this.onFetchRemoteFile,
     this.thumbnailPlaceholderBuilder,
   });
@@ -218,6 +224,87 @@ class _ImageViewerState extends State<ImageViewer>
     setState(() {});
   }
 
+  Future<void> _restoreCurrentFile() async {
+    final callback = widget.onRestoreItem;
+    if (callback == null ||
+        _currentIndex < 0 ||
+        _currentIndex >= _items.length) {
+      return;
+    }
+    final item = _items[_currentIndex];
+    await callback(item);
+    _items.removeAt(_currentIndex);
+    if (_items.isEmpty) {
+      if (mounted) Navigator.of(context).pop(true);
+    } else {
+      if (_currentIndex >= _items.length) {
+        _currentIndex = _items.length - 1;
+      }
+      if (mounted) {
+        _pageController.jumpToPage(_currentIndex);
+        setState(() {});
+      }
+    }
+  }
+
+  Future<void> _deletePermanentlyCurrentFile() async {
+    final callback = widget.onDeletePermanentlyItem;
+    if (_currentIndex < 0 || _currentIndex >= _items.length) {
+      return;
+    }
+    final item = _items[_currentIndex];
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Permanently'),
+        content: Text(
+          'Are you sure you want to permanently delete "${item.name}"? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Delete Permanently',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        if (callback != null) {
+          await callback(item);
+        } else if (widget.onDeleteItem != null) {
+          await widget.onDeleteItem!(item);
+        }
+        _items.removeAt(_currentIndex);
+        if (_items.isEmpty) {
+          if (mounted) Navigator.of(context).pop(true);
+        } else {
+          if (_currentIndex >= _items.length) {
+            _currentIndex = _items.length - 1;
+          }
+          if (mounted) {
+            _pageController.jumpToPage(_currentIndex);
+            setState(() {});
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting ${item.name}: $e')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -335,38 +422,54 @@ class _ImageViewerState extends State<ImageViewer>
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.7),
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _ActionButton(
-                        icon: Icons.upload,
-                        label: 'Upload',
-                        onPressed: _uploadCurrentFile,
-                      ),
-                      _ActionButton(
-                        icon: Icons.edit,
-                        label: 'Rename',
-                        onPressed: _renameCurrentFile,
-                        enabled: widget.onRenameItem != null,
-                      ),
-                      _ActionButton(
-                        icon: Icons.delete,
-                        label: 'Delete',
-                        onPressed: _deleteCurrentFile,
-                      ),
-                      _ActionButton(
-                        icon: Icons.drive_file_move,
-                        label: 'Add to folder',
-                        onPressed: _addCurrentFileToFolder,
-                        enabled: widget.onAddToFolderItem != null,
-                      ),
-                      _ActionButton(
-                        icon: Icons.share,
-                        label: 'Share',
-                        onPressed: _shareCurrentFile,
-                      ),
-                    ],
-                  ),
+                  child: widget.isTrash
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _ActionButton(
+                              icon: Icons.restore,
+                              label: 'Restore',
+                              onPressed: _restoreCurrentFile,
+                            ),
+                            _ActionButton(
+                              icon: Icons.delete_forever,
+                              label: 'Delete Permanently',
+                              onPressed: _deletePermanentlyCurrentFile,
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _ActionButton(
+                              icon: Icons.upload,
+                              label: 'Upload',
+                              onPressed: _uploadCurrentFile,
+                            ),
+                            _ActionButton(
+                              icon: Icons.edit,
+                              label: 'Rename',
+                              onPressed: _renameCurrentFile,
+                              enabled: widget.onRenameItem != null,
+                            ),
+                            _ActionButton(
+                              icon: Icons.delete,
+                              label: 'Delete',
+                              onPressed: _deleteCurrentFile,
+                            ),
+                            _ActionButton(
+                              icon: Icons.drive_file_move,
+                              label: 'Add to folder',
+                              onPressed: _addCurrentFileToFolder,
+                              enabled: widget.onAddToFolderItem != null,
+                            ),
+                            _ActionButton(
+                              icon: Icons.share,
+                              label: 'Share',
+                              onPressed: _shareCurrentFile,
+                            ),
+                          ],
+                        ),
                 ),
               ),
               if (_isDraggingUp)

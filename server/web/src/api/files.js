@@ -14,8 +14,14 @@ export const filesApi = {
     return apiGet(`/api/dir?${params.toString()}`);
   },
 
-  getDownloadUrl({ scope = 'private', path }) {
-    const params = new URLSearchParams({ scope, path });
+  getDownloadUrl({ scope = 'private', path, trashId }) {
+    const params = new URLSearchParams();
+    if (trashId) {
+      params.append('trash_id', trashId.toString());
+    } else {
+      if (scope) params.append('scope', scope);
+      if (path) params.append('path', path);
+    }
     const token = get(authStore.accessToken);
     if (token) params.append('token', token);
     return `/api/files?${params.toString()}`;
@@ -29,14 +35,14 @@ export const filesApi = {
     return `/api/files/zip?${params.toString()}`;
   },
 
-  async downloadFile({ scope = 'private', path, filename }) {
-    const url = this.getDownloadUrl({ scope, path });
+  async downloadFile({ scope = 'private', path, trashId, filename }) {
+    const url = this.getDownloadUrl({ scope, path, trashId });
     const blob = await apiGet(url);
     
     // Create temporary download link
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = filename || path.split('/').pop() || 'download';
+    link.download = filename || (path ? path.split('/').pop() : 'download');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

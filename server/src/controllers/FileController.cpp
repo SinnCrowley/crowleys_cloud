@@ -376,7 +376,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     const auto trashIdStr = req->getParameter("trash_id");
     if (!trashIdStr.empty()) {
       std::int64_t trashId = std::stoll(trashIdStr);
-      const char *sql = "SELECT owner_user_id, original_path FROM trash WHERE id = ?";
+      const char *sql = "SELECT owner_user_id, original_path, sha256 FROM trash WHERE id = ?";
       auto stmtGuard = server::ctx().database->getStatement(sql);
       auto *stmt = stmtGuard.get();
       sqlite3_bind_int64(stmt, 1, trashId);
@@ -386,6 +386,10 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
       }
       std::int64_t ownerId = sqlite3_column_int64(stmt, 0);
       std::string origPath = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+      const auto shaDirectRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+      if (shaDirectRaw && std::string(shaDirectRaw).size() > 0) {
+        sha256Val = shaDirectRaw;
+      }
       if (ownerId != userId) {
         callback(jsonError(drogon::k403Forbidden, "Forbidden"));
         return;
@@ -394,15 +398,17 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
       virtualPath = origPath;
 
       if (hashFiles) {
-        const auto normalizedOrig = services::FileIndexService::normalizeRelPath(origPath);
-        const char *idxSql = "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND rel_path = ? AND is_deleted = 1 LIMIT 1";
-        auto idxGuard = server::ctx().database->getStatement(idxSql);
-        auto *idxStmt = idxGuard.get();
-        sqlite3_bind_int64(idxStmt, 1, userId);
-        sqlite3_bind_text(idxStmt, 2, normalizedOrig.c_str(), -1, SQLITE_TRANSIENT);
-        if (sqlite3_step(idxStmt) == SQLITE_ROW) {
-          const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
-          if (shaValRaw) sha256Val = shaValRaw;
+        if (sha256Val.empty()) {
+          const auto normalizedOrig = services::FileIndexService::normalizeRelPath(origPath);
+          const char *idxSql = "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND rel_path = ? AND is_deleted = 1 LIMIT 1";
+          auto idxGuard = server::ctx().database->getStatement(idxSql);
+          auto *idxStmt = idxGuard.get();
+          sqlite3_bind_int64(idxStmt, 1, userId);
+          sqlite3_bind_text(idxStmt, 2, normalizedOrig.c_str(), -1, SQLITE_TRANSIENT);
+          if (sqlite3_step(idxStmt) == SQLITE_ROW) {
+            const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
+            if (shaValRaw) sha256Val = shaValRaw;
+          }
         }
         source = std::filesystem::path(server::ctx().config.storageRoot) / "data" / sha256Val;
       } else {
@@ -573,7 +579,7 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
 
       if (!trashIdStr.empty()) {
         std::int64_t trashId = std::stoll(trashIdStr);
-        const char *sql = "SELECT owner_user_id, original_path, name, mime_type FROM trash WHERE id = ?";
+        const char *sql = "SELECT owner_user_id, original_path, name, mime_type, sha256 FROM trash WHERE id = ?";
         auto stmtGuard = server::ctx().database->getStatement(sql);
         auto *stmt = stmtGuard.get();
         sqlite3_bind_int64(stmt, 1, trashId);
@@ -585,20 +591,26 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
         std::string origPath = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
         fileName = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
         mimeType = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
+        const auto shaDirectRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4));
+        if (shaDirectRaw && std::string(shaDirectRaw).size() > 0) {
+          sha256Val = shaDirectRaw;
+        }
 
         if (ownerId != userId) {
           callback(jsonError(drogon::k403Forbidden, "Forbidden"));
           return;
         }
 
-        const char *idxSql = "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND rel_path = ? AND is_deleted = 1 LIMIT 1";
-        auto idxGuard = server::ctx().database->getStatement(idxSql);
-        auto *idxStmt = idxGuard.get();
-        sqlite3_bind_int64(idxStmt, 1, userId);
-        sqlite3_bind_text(idxStmt, 2, origPath.c_str(), -1, SQLITE_TRANSIENT);
-        if (sqlite3_step(idxStmt) == SQLITE_ROW) {
-          const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
-          if (shaValRaw) sha256Val = shaValRaw;
+        if (sha256Val.empty()) {
+          const char *idxSql = "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND rel_path = ? AND is_deleted = 1 LIMIT 1";
+          auto idxGuard = server::ctx().database->getStatement(idxSql);
+          auto *idxStmt = idxGuard.get();
+          sqlite3_bind_int64(idxStmt, 1, userId);
+          sqlite3_bind_text(idxStmt, 2, origPath.c_str(), -1, SQLITE_TRANSIENT);
+          if (sqlite3_step(idxStmt) == SQLITE_ROW) {
+            const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
+            if (shaValRaw) sha256Val = shaValRaw;
+          }
         }
       } else {
         const auto scope = services::parseScope(req->getParameter("scope"));

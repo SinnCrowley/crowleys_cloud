@@ -1,7 +1,9 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import { trashApi } from '../api/trash.js';
+  import { filesApi } from '../api/files.js';
   import RestoreConflictModal from '../components/RestoreConflictModal.svelte';
+  import MediaPreviewModal from '../components/MediaPreviewModal.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -16,6 +18,8 @@
   let errorMsg = '';
   let selectedIds = new Set();
   let trashRetentionDays = 30; // default fallback
+  let thumbnailErrors = new Set();
+  let activePreviewItem = null;
 
   // Custom modal dialog state
   let confirmDeleteModal = null; // null | { ids, title, message }
@@ -213,6 +217,33 @@
     }
   }
 
+  function handleThumbnailError(id) {
+    thumbnailErrors.add(id);
+    thumbnailErrors = thumbnailErrors;
+  }
+
+  function isMediaItem(item) {
+    if (!item || item.is_dir) return false;
+    const name = item.name || '';
+    return /\.(jpg|jpeg|png|webp|gif|bmp|heic|avif|heif|mp4|mkv|avi|mov|webm|flv|mp3|wav|ogg|flac|m4a|aac)$/i.test(name);
+  }
+
+  function handleItemClick(item) {
+    if (selectedIds.size > 0) {
+      toggleSelect(item.id);
+      return;
+    }
+    if (item && !item.is_dir) {
+      activePreviewItem = item;
+    }
+  }
+
+  function handleItemDblClick(item) {
+    if (item && !item.is_dir) {
+      activePreviewItem = item;
+    }
+  }
+
   function formatSize(bytes) {
     if (bytes === 0) return '0 B';
     if (!bytes || isNaN(bytes)) return '0 B';
@@ -273,10 +304,19 @@
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           class="trash-grid-card {selectedIds.has(item.id) ? 'selected' : ''}"
-          on:click={() => toggleSelect(item.id)}
+          on:click={() => handleItemClick(item)}
+          on:dblclick={() => handleItemDblClick(item)}
         >
           <div class="trash-grid-thumbnail">
-            <span class="material-symbols-outlined grid-icon">{getMaterialIcon(item)}</span>
+            {#if (item.type === 'photo' || item.type === 'video' || isMediaItem(item)) && !thumbnailErrors.has(item.id)}
+              <img
+                src={filesApi.getThumbnailUrl({ trashId: item.id })}
+                alt={item.name}
+                on:error={() => handleThumbnailError(item.id)}
+              />
+            {:else}
+              <span class="material-symbols-outlined grid-icon">{getMaterialIcon(item)}</span>
+            {/if}
           </div>
           <div class="trash-grid-info">
             <div class="trash-grid-name" title={item.name}>{item.name}</div>
@@ -329,7 +369,8 @@
           <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div
             class="trash-table-row {selectedIds.has(item.id) ? 'selected' : ''}"
-            on:click={() => toggleSelect(item.id)}
+            on:click={() => handleItemClick(item)}
+            on:dblclick={() => handleItemDblClick(item)}
           >
             <div class="col-check" on:click|stopPropagation>
               <label class="custom-checkbox">
@@ -342,7 +383,17 @@
               </label>
             </div>
             <div class="col-name cell-content font-medium">
-              <span class="material-symbols-outlined file-type-icon">{getMaterialIcon(item)}</span>
+              <div class="list-item-thumbnail">
+                {#if (item.type === 'photo' || item.type === 'video' || isMediaItem(item)) && !thumbnailErrors.has(item.id)}
+                  <img
+                    src={filesApi.getThumbnailUrl({ trashId: item.id })}
+                    alt={item.name}
+                    on:error={() => handleThumbnailError(item.id)}
+                  />
+                {:else}
+                  <span class="material-symbols-outlined file-type-icon">{getMaterialIcon(item)}</span>
+                {/if}
+              </div>
               <span class="file-name-text" title={item.name}>{item.name}</span>
             </div>
             <div class="col-path cell-content text-sub" title={item.original_path}>
@@ -384,29 +435,19 @@
       <span class="count-badge">{selectedIds.size}</span> selected
     </div>
 
-    <div class="action-buttons">
-      <button
-        class="btn btn-secondary action-btn text-body"
-        on:click={() => handleRestore(Array.from(selectedIds))}
-        title="Restore selected items"
-        style="display: inline-flex; align-items: center; gap: 8px;"
-      >
-        <span class="material-symbols-outlined" style="font-size: 20px; color: var(--color-success)">restore</span>
-        Restore
+    <div class="selection-buttons">
+      <button class="btn btn-secondary" on:click={() => handleRestore(Array.from(selectedIds))}>
+        <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-success)">restore</span>
+        Restore Selected
+      </button>
+
+      <button class="btn btn-secondary danger-btn" on:click={() => requestDelete(Array.from(selectedIds))}>
+        <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-danger)">delete_forever</span>
+        Delete Selected
       </button>
 
       <button
-        class="btn btn-secondary action-btn text-body danger-btn"
-        on:click={() => requestDelete(Array.from(selectedIds))}
-        title="Permanently delete selected items"
-        style="display: inline-flex; align-items: center; gap: 8px;"
-      >
-        <span class="material-symbols-outlined" style="font-size: 20px; color: var(--color-danger)">delete_forever</span>
-        Delete
-      </button>
-
-      <button
-        class="btn-icon close-btn"
+        class="btn-icon"
         on:click={() => { selectedIds.clear(); selectedIds = selectedIds; }}
         title="Deselect all"
         style="display: flex; align-items: center; justify-content: center;"
@@ -440,6 +481,28 @@
     allIds={restoreConflictModal.allIds}
     on:resolve={handleRestoreConflictResolved}
     on:close={() => (restoreConflictModal = null)}
+  />
+{/if}
+
+<!-- Media & Text Preview Modal for Trash -->
+{#if activePreviewItem}
+  <MediaPreviewModal
+    file={activePreviewItem}
+    items={filteredEntries.filter((e) => !e.is_dir)}
+    scope={scope}
+    isTrash={true}
+    on:close={() => (activePreviewItem = null)}
+    on:changeItem={(e) => (activePreviewItem = e.detail)}
+    on:restore={async (e) => {
+      const target = e.detail;
+      activePreviewItem = null;
+      await handleRestore([target.id]);
+    }}
+    on:delete={(e) => {
+      const target = e.detail;
+      activePreviewItem = null;
+      requestDelete([target.id]);
+    }}
   />
 {/if}
 
@@ -563,9 +626,36 @@
     margin-bottom: 8px;
   }
 
+  .trash-grid-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
   .trash-grid-thumbnail .grid-icon {
     font-size: 56px;
     color: var(--accent-color);
+  }
+
+  .list-item-thumbnail {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-surface-variant, rgba(255, 255, 255, 0.04));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+
+  .list-item-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .trash-grid-info {

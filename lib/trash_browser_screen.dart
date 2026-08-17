@@ -178,6 +178,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
         builder: (context) => ImageViewer(
           imageItems: imageItems,
           initialIndex: initialIndex,
+          isTrash: true,
           onFetchRemoteFile: (fileItem) async {
             final serverItem = fileItem.serverFile;
             if (serverItem == null) return null;
@@ -190,7 +191,14 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
               child: SmartThumbnail(item: fileItem),
             );
           },
-          onDeleteItem: (selectedImageItem) async {
+          onRestoreItem: (selectedImageItem) async {
+            final selectedServerItem = selectedImageItem.serverFile;
+            if (selectedServerItem == null) return;
+            controller.selectedFiles.clear();
+            controller.selectedFiles.add(selectedServerItem);
+            await _restoreSelected();
+          },
+          onDeletePermanentlyItem: (selectedImageItem) async {
             final selectedServerItem = selectedImageItem.serverFile;
             if (selectedServerItem == null) return;
             controller.selectedFiles.clear();
