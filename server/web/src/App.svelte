@@ -931,8 +931,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   {#if activePreviewFile}
     <MediaPreviewModal
       file={activePreviewFile}
+      items={$entries.filter((e) => !e.is_dir)}
       scope={$scope}
       on:close={() => (activePreviewFile = null)}
+      on:changeItem={(e) => (activePreviewFile = e.detail)}
     />
   {/if}
 

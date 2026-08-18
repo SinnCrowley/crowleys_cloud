@@ -52,7 +52,8 @@ export const filesApi = {
 
   async downloadFile({ scope = 'private', path, trashId, filename }) {
     const url = this.getDownloadUrl({ scope, path, trashId });
-    const blob = await apiGet(url);
+    const data = await apiGet(url, { responseType: 'blob' });
+    const blob = data instanceof Blob ? data : new Blob([typeof data === 'string' ? data : JSON.stringify(data)]);
     
     // Create temporary download link
     const link = document.createElement('a');
@@ -66,7 +67,8 @@ export const filesApi = {
 
   async downloadZip({ scope = 'private', path = '', filename }) {
     const url = this.getZipDownloadUrl({ scope, path });
-    const blob = await apiGet(url);
+    const data = await apiGet(url, { responseType: 'blob' });
+    const blob = data instanceof Blob ? data : new Blob([data]);
 
     const defaultName = path ? `${path.split('/').pop()}.zip` : 'files.zip';
     const link = document.createElement('a');

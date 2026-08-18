@@ -52,8 +52,40 @@ function processQueue(error, token = null) {
   failedQueue = [];
 }
 
-async function parseResponse(response) {
+async function parseResponse(response, responseType = null) {
   if (response.status === 204) return null;
+
+  if (!response.ok) {
+    const contentType = response.headers.get('Content-Type') || '';
+    let errorBody;
+    if (contentType.includes('application/json')) {
+      try {
+        errorBody = await response.json();
+      } catch (e) {
+        errorBody = null;
+      }
+    } else {
+      try {
+        errorBody = await response.text();
+      } catch (e) {
+        errorBody = null;
+      }
+    }
+    const errorMsg = (errorBody && typeof errorBody === 'object' && errorBody.error)
+      ? errorBody.error
+      : (typeof errorBody === 'string' && errorBody ? errorBody : response.statusText);
+    throw new ApiError(response.status, errorMsg, errorBody);
+  }
+
+  if (responseType === 'blob') {
+    return response.blob();
+  }
+  if (responseType === 'text') {
+    return response.text();
+  }
+  if (responseType === 'json') {
+    return response.json();
+  }
 
   const contentType = response.headers.get('Content-Type') || '';
   let body;
@@ -64,11 +96,6 @@ async function parseResponse(response) {
     body = await response.text();
   } else {
     body = await response.blob();
-  }
-
-  if (!response.ok) {
-    const errorMsg = (body && typeof body === 'object' && body.error) ? body.error : response.statusText;
-    throw new ApiError(response.status, errorMsg, body);
   }
 
   return body;
@@ -110,7 +137,7 @@ export async function apiFetch(endpoint, options = {}) {
       })
         .then((newToken) => {
           headers.set('Authorization', `Bearer ${newToken}`);
-          return fetch(url, { ...fetchOptions, headers }).then(parseResponse);
+          return fetch(url, { ...fetchOptions, headers }).then((res) => parseResponse(res, options.responseType));
         })
         .catch((err) => Promise.reject(err));
     }
@@ -148,7 +175,7 @@ export async function apiFetch(endpoint, options = {}) {
       // Retry original request with new token
       headers.set('Authorization', `Bearer ${refreshData.access_token}`);
       const retryResponse = await fetch(url, { ...fetchOptions, headers });
-      return parseResponse(retryResponse);
+      return parseResponse(retryResponse, options.responseType);
     } catch (refreshErr) {
       processQueue(refreshErr, null);
       isRefreshing = false;
@@ -157,7 +184,7 @@ export async function apiFetch(endpoint, options = {}) {
     }
   }
 
-  return parseResponse(response);
+  return parseResponse(response, options.responseType);
 }
 
 export const apiGet = (url, options = {}) => apiFetch(url, { ...options, method: 'GET' });

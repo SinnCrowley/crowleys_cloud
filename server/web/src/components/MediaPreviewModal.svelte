@@ -200,27 +200,29 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <div class="header-controls">
           {#if activeFileType === 'text'}
             <button class="btn btn-secondary text-body" on:click={copyText}>
-              {copied ? 'Copied! ✓' : '📋 Copy Text'}
+              <span class="material-symbols-outlined" style="font-size: 18px; color: {copied ? 'var(--color-success)' : 'inherit'};">{copied ? 'check' : 'content_copy'}</span>
+              {copied ? 'Copied!' : 'Copy Text'}
             </button>
           {/if}
 
           {#if isTrash}
             <button class="btn btn-secondary text-body" on:click={() => dispatch('restore', file)}>
-              <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; color: var(--color-success);">restore</span>
+              <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-success);">restore</span>
               Restore
             </button>
             <button class="btn btn-secondary text-body danger-btn" on:click={() => dispatch('delete', file)}>
-              <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; color: var(--color-danger);">delete_forever</span>
+              <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-danger);">delete_forever</span>
               Delete Permanently
             </button>
           {:else}
             <button class="btn btn-secondary text-body" on:click={handleDownload}>
-              ⬇️ Download
+              <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+              Download
             </button>
           {/if}
 
           <button class="btn-icon close-btn" on:click={() => dispatch('close')} title="Close (Esc)">
-            ✕
+            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
           </button>
         </div>
       </div>
@@ -229,7 +231,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <div class="preview-stage">
         {#if items.length > 1}
           <button class="nav-arrow left-arrow" on:click={handlePrev} title="Previous (←)">
-            ‹
+            <span class="material-symbols-outlined" style="font-size: 32px;">chevron_left</span>
           </button>
         {/if}
 
@@ -243,7 +245,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             </video>
           {:else if activeFileType === 'audio'}
             <div class="audio-card">
-              <span class="audio-icon">🎵</span>
+              <span class="material-symbols-outlined audio-icon">audiotrack</span>
               <h4 class="audio-name text-title">{file.name}</h4>
               <audio src={downloadUrl} controls autoplay class="preview-audio">
                 Your browser does not support html5 audio playback.
@@ -277,12 +279,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             </div>
           {:else}
             <div class="unsupported-card">
-              <span class="unsupported-icon">📄</span>
+              <span class="material-symbols-outlined unsupported-icon">description</span>
               <h3 class="text-title">Preview not available</h3>
               <p class="text-sub">
                 No inline preview for this file type. Click download to view locally.
               </p>
               <button class="btn btn-primary" on:click={handleDownload}>
+                <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
                 Download File ({formatSize(file.size)})
               </button>
             </div>
@@ -291,7 +294,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
         {#if items.length > 1}
           <button class="nav-arrow right-arrow" on:click={handleNext} title="Next (→)">
-            ›
+            <span class="material-symbols-outlined" style="font-size: 32px;">chevron_right</span>
           </button>
         {/if}
       </div>
@@ -411,6 +414,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .audio-icon {
     font-size: 64px;
+    color: var(--accent-color);
   }
 
   .preview-audio {
@@ -487,6 +491,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   .unsupported-icon {
     font-size: 64px;
     opacity: 0.8;
+    color: var(--text-sub);
   }
 
   .nav-arrow {
