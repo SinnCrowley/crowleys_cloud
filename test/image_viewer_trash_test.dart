@@ -62,7 +62,6 @@ void main() {
     'ImageViewer trash mode shows ONLY Restore and Delete Permanently',
     (tester) async {
       bool restored = false;
-      bool deletedPermanently = false;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -72,9 +71,6 @@ void main() {
             isTrash: true,
             onRestoreItem: (item) async {
               restored = true;
-            },
-            onDeletePermanentlyItem: (item) async {
-              deletedPermanently = true;
             },
           ),
         ),
