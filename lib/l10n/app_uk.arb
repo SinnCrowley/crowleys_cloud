@@ -1,0 +1,2654 @@
+{
+  "@@locale": "uk",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "Скасувати",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "Зберегти",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "Видалити",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "Перейменувати",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "Закрити",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "Повторити",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "Завантаження...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "Підтвердити",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "Помилка",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "Помилка: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "Невідомо",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "Завантажити",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "Завантажити",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "Поділитися",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "Копіювати",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "Перемістити",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "Відновити",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "Застосувати",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "Створити",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "Очистити",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "Додати",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "Видалити",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "Редагувати",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "Перемкнути",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "Пошук",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "Назвою",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "Датою",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "Розміром",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "Типом",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "За зростанням",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "За спаданням",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "Усі",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "Зображення",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "Фотографії",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "Відео",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "Аудіо",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "Документи",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "Архіви",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "Спільні",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "Інше",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "Інші файли",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "Файлів не знайдено.",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "У цій папці немає файлів.",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "Цю дію неможливо скасувати.",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "Паролі не збігаються.",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "Локальні файли",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "Файли сервера",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "Налаштування",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "Кошик",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "Локальні",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "Сервер",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "Додати сервер",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "Сервери не налаштовано.",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "Додайте сервер у налаштуваннях.",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "Додайте перший сервер, щоб продовжити.",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "Сервери ще не налаштовано.",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "Налаштування Crowley's Cloud",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "Підключити",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "Підключення...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "Підключено",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "Відключено",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "Змінити сервер",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "Вибрати інший сервер",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "Змінити сервер?",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "Змінити активний сервер на «{serverName}»?",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "Вибрати сервер",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "Потрібна автентифікація",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "Увійдіть, щоб отримати доступ до файлів на {serverName}",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "Увійти за допомогою пароля",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "Використати біометрію",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "Відкриття входу...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "Не вдалося підключитися до сервера",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "Не вдалося підключитися до активного сервера.",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "Не вдалося підключитися до {serverName}.",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "Пошук...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "Пошук файлів...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "Пошук файлів сервера...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "Пошук у кошику...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "Потрібен дозвіл на доступ до сховища",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "Надати дозвіл",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "Доступ заборонено. Надайте доступ до сховища в налаштуваннях.",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "Для перегляду й вибору папок потрібен дозвіл на керування сховищем.",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "Для синхронізації потрібні дозволи на доступ до сховища.",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "Доступне оновлення: v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "Натисніть, щоб переглянути новинки",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "Переглянути",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "Доступне оновлення",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "Версія {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "Поточна: v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "Нова: v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "Новинки:",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "GitHub",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "Опис змін не надано.",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "Пізніше",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "Завантажити APK",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "Оновити",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "Посилання для спільного доступу",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "Поділитися посиланням",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "Поділитися на сервері",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "Термін дії (дні)",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "Ніколи",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "1 день",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "7 днів",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "30 днів",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "90 днів",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "180 днів",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "365 днів",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "Створити посилання",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "Посилання для спільного доступу скопійовано в буфер обміну!",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "Не вдалося скопіювати посилання: {error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "Не можна поділитися файлами цього типу.",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "Не вдалося створити спільний доступ: {error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "Створити папку",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "Назва папки",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "Нова папка",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "Папку створено.",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "Не вдалося створити папку: {error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "Створення папки...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "Перейменувати",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "Нова назва",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "Введіть нову назву",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "Успішно перейменовано.",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "Не вдалося перейменувати: {error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "Перемістити до",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "Перемістити до: {path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "Перемістити сюди",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "Не вдалося перемістити: {error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "Переміщено до папки.",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "Не вдалося скопіювати: {error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "Вибрати папку",
+  "@selectFolder": {
+    "description": "Folder picker AppBar title"
+  },
+  "useThisFolder": "Використати цю папку",
+  "@useThisFolder": {
+    "description": "FAB label to confirm folder selection"
+  },
+  "storageRoot": "Сховище",
+  "@storageRoot": {
+    "description": "Root label in local file breadcrumb"
+  },
+  "serverRoot": "коренева папка",
+  "@serverRoot": {
+    "description": "Root label in server file breadcrumb"
+  },
+  "deleteNItemsTitle": "Видалити {count} елементів?",
+  "@deleteNItemsTitle": {
+    "description": "Bulk delete dialog title",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "Видалити файли?",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirm dialog title"
+  },
+  "deleteFilesBody": "Ви впевнені, що хочете видалити вибрані елементи ({count})? Цю дію неможливо скасувати.",
+  "@deleteFilesBody": {
+    "description": "Delete files confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "Видалити назавжди",
+  "@deletePermanently": {
+    "description": "Permanent delete action/button label"
+  },
+  "deletePermanentlyTitle": "Видалити назавжди?",
+  "@deletePermanentlyTitle": {
+    "description": "Permanent delete confirm dialog title"
+  },
+  "deletePermanentlyBody": "{filename} буде видалено назавжди.",
+  "@deletePermanentlyBody": {
+    "description": "Permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "Видалити файл?",
+  "@deleteFileTitle": {
+    "description": "Single file delete confirm dialog title"
+  },
+  "deleteFileBody": "Ви впевнені, що хочете видалити {filename}? Цю дію неможливо скасувати.",
+  "@deleteFileBody": {
+    "description": "Single file delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "Видалити назавжди",
+  "@deleteServerFileTitle": {
+    "description": "Server permanent delete confirm dialog title"
+  },
+  "deleteServerFileBody": "Ви впевнені, що хочете назавжди видалити «{filename}»? Цю дію неможливо скасувати.",
+  "@deleteServerFileBody": {
+    "description": "Server permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "Скасувати спільний доступ до елементів?",
+  "@unshareItemsTitle": {
+    "description": "Unshare confirm dialog title"
+  },
+  "unshareItemsBody": "Ви впевнені, що хочете скасувати спільний доступ до вибраних елементів ({count})? Їх буде видалено з папки «Спільні». ",
+  "@unshareItemsBody": {
+    "description": "Unshare confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "Скасувати спільний доступ",
+  "@unshare": {
+    "description": "Unshare button label"
+  },
+  "moveToTrash": "Перемістити до кошика",
+  "@moveToTrash": {
+    "description": "Move to trash action label"
+  },
+  "movedToTrash": "Переміщено до кошика.",
+  "@movedToTrash": {
+    "description": "Snackbar on single item moved to trash"
+  },
+  "movedNItemsToTrash": "{count} елементів переміщено до кошика.",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar on multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "Не вдалося перемістити до кошика: {error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move-to-trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "Видалено елементів: {count}.",
+  "@deletedNItems": {
+    "description": "Snackbar on bulk delete success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "Не вдалося видалити: {error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "Не вдалося видалити: {error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on server delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "Видалено {filename}.",
+  "@deletedFilename": {
+    "description": "Snackbar on single file delete success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "Не вдалося відкрити файл",
+  "@failedToOpenFile": {
+    "description": "Snackbar when file can't be opened"
+  },
+  "fileDownloadFailed": "Не вдалося завантажити файл: {error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on file download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "Завантаження...",
+  "@downloading": {
+    "description": "Snackbar while downloading"
+  },
+  "downloadingFile": "Завантаження файлу...",
+  "@downloadingFile": {
+    "description": "Loading text while downloading a file for preview"
+  },
+  "downloadComplete": "Завантаження завершено: {filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "Не вдалося завантажити: {error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "Не вдалося завантажити попередній перегляд файлу",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar when preview download fails"
+  },
+  "uploadComplete": "Завантаження завершено: {filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "Не вдалося завантажити: {error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "Не вдалося вибрати файли",
+  "@failedToPickFiles": {
+    "description": "Snackbar when file picker fails"
+  },
+  "uploadedNItems": "Завантажено елементів: {count}",
+  "@uploadedNItems": {
+    "description": "Snackbar on batch upload success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "Посилання скопійовано в буфер обміну.",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on link copy"
+  },
+  "failedToCopyLink": "Не вдалося скопіювати посилання: {error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on link copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "Вибір усіх елементів...",
+  "@selectingAll": {
+    "description": "Snackbar while selecting all items"
+  },
+  "allItemsSelected": "Усі елементи вибрано.",
+  "@allItemsSelected": {
+    "description": "Snackbar when all items are selected"
+  },
+  "failedToLoadSearchResults": "Не вдалося завантажити результати пошуку",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar on search failure"
+  },
+  "shareNotSupportedForType": "Спільний доступ для цього типу файлів не підтримується.",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar for unsupported share"
+  },
+  "nSelected": "Вибрано: {count}",
+  "@nSelected": {
+    "description": "Selection header: N items selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "Сервер не вибрано",
+  "@noServerSelected": {
+    "description": "Snackbar when no server is active"
+  },
+  "pleaseConnectToServerFirst": "Спочатку підключіться до сервера.",
+  "@pleaseConnectToServerFirst": {
+    "description": "Snackbar prompt to connect"
+  },
+  "signInRequired": "Потрібно увійти",
+  "@signInRequired": {
+    "description": "Snackbar when sign-in is needed"
+  },
+  "pleaseSignInToServer": "Спочатку увійдіть до {serverName}.",
+  "@pleaseSignInToServer": {
+    "description": "Snackbar prompting to sign in",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "Підключення до сервера...",
+  "@connectingToServer": {
+    "description": "Snackbar while connecting"
+  },
+  "connectedToServer": "Підключено до {serverName}.",
+  "@connectedToServer": {
+    "description": "Snackbar on successful connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "Не вдалося підключитися: {error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "Не вдалося підключитися: {error}",
+  "@failedToConnect": {
+    "description": "Snackbar on connect failure (alt)",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "Помилка автентифікації: {error}",
+  "@authFailed": {
+    "description": "Snackbar on authentication failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "Помилка автентифікації. Спробуйте ще раз.",
+  "@authFailedGeneric": {
+    "description": "Generic auth failure snackbar"
+  },
+  "biometricLoginFailed": "Помилка біометричного входу: {error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "Помилка біометричного входу.",
+  "@biometricLoginFailedGeneric": {
+    "description": "Generic biometric failure snackbar"
+  },
+  "noServerSessionToken": "Немає токена сеансу сервера. Повторно автентифікуйте сервер.",
+  "@noServerSessionToken": {
+    "description": "Snackbar when session token is missing"
+  },
+  "failedToSaveServer": "Не вдалося зберегти сервер: {error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on server save failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "Додати до папки",
+  "@addToFolder": {
+    "description": "Context menu action: add to folder"
+  },
+  "loginTabLabel": "Увійти",
+  "@loginTabLabel": {
+    "description": "Auth tab: log in"
+  },
+  "registerTabLabel": "Зареєструватися",
+  "@registerTabLabel": {
+    "description": "Auth tab: register"
+  },
+  "welcomeBack": "З поверненням",
+  "@welcomeBack": {
+    "description": "Auth login card title"
+  },
+  "signInToContinue": "Увійдіть, щоб продовжити",
+  "@signInToContinue": {
+    "description": "Auth login card subtitle"
+  },
+  "createAccount": "Створити обліковий запис",
+  "@createAccount": {
+    "description": "Auth register card title"
+  },
+  "joinTheServer": "Приєднатися до сервера",
+  "@joinTheServer": {
+    "description": "Auth register card subtitle"
+  },
+  "usernameLabel": "Ім’я користувача",
+  "@usernameLabel": {
+    "description": "Username text field label"
+  },
+  "usernameHint": "Введіть ім’я користувача",
+  "@usernameHint": {
+    "description": "Username text field hint"
+  },
+  "passwordLabel": "Пароль",
+  "@passwordLabel": {
+    "description": "Password text field label"
+  },
+  "passwordHint": "Введіть пароль",
+  "@passwordHint": {
+    "description": "Password text field hint"
+  },
+  "showPassword": "Показати пароль",
+  "@showPassword": {
+    "description": "Tooltip for show password button"
+  },
+  "hidePassword": "Приховати пароль",
+  "@hidePassword": {
+    "description": "Tooltip for hide password button"
+  },
+  "confirmPassword": "Підтвердити пароль",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "Увійти",
+  "@logIn": {
+    "description": "Login button label"
+  },
+  "loggingIn": "Вхід...",
+  "@loggingIn": {
+    "description": "Login loading state"
+  },
+  "registering": "Реєстрація...",
+  "@registering": {
+    "description": "Register loading state"
+  },
+  "forgotPassword": "Забули пароль?",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  "doNotHaveAccount": "Немає облікового запису? Перейдіть до реєстрації.",
+  "@doNotHaveAccount": {
+    "description": "Auth footer for login mode"
+  },
+  "alreadyHaveAccount": "Вже маєте обліковий запис? Перейдіть до входу.",
+  "@alreadyHaveAccount": {
+    "description": "Auth footer for register mode"
+  },
+  "usernameCannotBeEmpty": "Ім’я користувача не може бути порожнім.",
+  "@usernameCannotBeEmpty": {
+    "description": "Validation: empty username"
+  },
+  "passwordCannotBeEmpty": "Пароль не може бути порожнім.",
+  "@passwordCannotBeEmpty": {
+    "description": "Validation: empty password"
+  },
+  "usernameInvalid": "Ім’я користувача має містити 3–32 символи: літери, цифри, _ або -.",
+  "@usernameInvalid": {
+    "description": "Validation: invalid username format"
+  },
+  "passwordTooShort": "Пароль має містити щонайменше 8 символів.",
+  "@passwordTooShort": {
+    "description": "Validation: password too short"
+  },
+  "loginFailed": "Не вдалося увійти: {error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "Не вдалося зареєструватися: {error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "Скинути пароль",
+  "@resetPasswordTitle": {
+    "description": "Forgot password dialog title step 1"
+  },
+  "enterResetCodeTitle": "Введіть код скидання",
+  "@enterResetCodeTitle": {
+    "description": "Forgot password dialog title step 2"
+  },
+  "resetPasswordStep1Body": "Введіть ім’я користувача. 6-значний код підтвердження буде надруковано в журналах або консолі сервера.",
+  "@resetPasswordStep1Body": {
+    "description": "Forgot password step 1 instruction"
+  },
+  "resetPasswordStep2Body": "Код підтвердження надруковано в консолі сервера. Введіть 6-значний код і новий пароль.",
+  "@resetPasswordStep2Body": {
+    "description": "Forgot password step 2 instruction"
+  },
+  "resetCodeLabel": "Код скидання",
+  "@resetCodeLabel": {
+    "description": "Reset code field label"
+  },
+  "resetCodeHint": "Введіть 6-значний код",
+  "@resetCodeHint": {
+    "description": "Reset code field hint"
+  },
+  "newPasswordLabel": "Новий пароль",
+  "@newPasswordLabel": {
+    "description": "New password field label"
+  },
+  "newPasswordHint": "Введіть новий пароль",
+  "@newPasswordHint": {
+    "description": "New password field hint"
+  },
+  "passwordResetSuccessfully": "Пароль успішно скинуто!",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "Потрібно вказати ім’я користувача.",
+  "@usernameIsRequired": {
+    "description": "Validation: username required for reset"
+  },
+  "codeAndPasswordRequired": "Потрібні код і новий пароль.",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "Не вдалося надіслати запит на скидання. Перевірте URL сервера.",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request failure"
+  },
+  "failedToResetPassword": "Не вдалося скинути пароль. Перевірте код.",
+  "@failedToResetPassword": {
+    "description": "Snackbar on reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "Спочатку введіть URL сервера.",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Snackbar when server URL is missing"
+  },
+  "sendCode": "Надіслати код",
+  "@sendCode": {
+    "description": "Send reset code button label"
+  },
+  "settingsTitle": "Налаштування",
+  "@settingsTitle": {
+    "description": "Settings screen AppBar title"
+  },
+  "sectionBackupSync": "Резервне копіювання та синхронізація",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "Сховище та кеш",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "Безпека та поведінка",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security & behavior"
+  },
+  "sectionAboutUpdates": "Про програму та оновлення",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "Вигляд і налаштування",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "Сервери не налаштовано",
+  "@noServersConfiguredSync": {
+    "description": "Sync section tile title when no servers"
+  },
+  "addServerBeforeSync": "Додайте сервер перед налаштуванням синхронізації.",
+  "@addServerBeforeSync": {
+    "description": "Sync section hint when no servers"
+  },
+  "selectServerToConfigureSync": "Виберіть сервер, щоб налаштувати його синхронізацію.",
+  "@selectServerToConfigureSync": {
+    "description": "Sync section instruction"
+  },
+  "activeServerSuffix": "· активний",
+  "@activeServerSuffix": {
+    "description": "Suffix label for active server in list"
+  },
+  "folderAndCategorySync": "Синхронізація папок і категорій",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle title"
+  },
+  "keepCategoriesSynced": "Підтримувати вибрані локальні категорії або папки синхронізованими з цим сервером.",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle subtitle"
+  },
+  "addServerBeforeSyncEnable": "Додайте сервер перед увімкненням синхронізації.",
+  "@addServerBeforeSyncEnable": {
+    "description": "Sync toggle disabled subtitle"
+  },
+  "onlyOnWifi": "Лише через Wi-Fi",
+  "@onlyOnWifi": {
+    "description": "Sync preference: only on Wi-Fi"
+  },
+  "onlyWhileCharging": "Лише під час заряджання",
+  "@onlyWhileCharging": {
+    "description": "Sync preference: only while charging"
+  },
+  "serverTargetDirectory": "Цільова папка сервера",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory setting title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Hint text for server target directory"
+  },
+  "synchronizationFrequency": "Частота синхронізації",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency setting title"
+  },
+  "syncNow": "Синхронізувати зараз",
+  "@syncNow": {
+    "description": "Manual sync button label"
+  },
+  "syncing": "Синхронізація...",
+  "@syncing": {
+    "description": "Loading state for sync button"
+  },
+  "categoriesToSynchronize": "Категорії для синхронізації",
+  "@categoriesToSynchronize": {
+    "description": "Sync categories tile title"
+  },
+  "noCategoriesSelected": "Категорії не вибрано.",
+  "@noCategoriesSelected": {
+    "description": "Sync categories empty state"
+  },
+  "nCategoriesSelected": "Вибрано: {count}",
+  "@nCategoriesSelected": {
+    "description": "N categories selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "Папки для синхронізації",
+  "@foldersToSynchronize": {
+    "description": "Sync folders tile title"
+  },
+  "noCustomFolders": "Спеціальні папки не налаштовано.",
+  "@noCustomFolders": {
+    "description": "Sync folders empty state"
+  },
+  "nFolders": "Папок: {count}",
+  "@nFolders": {
+    "description": "N folders selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "Додати папку",
+  "@addFolder": {
+    "description": "Tooltip for add folder button"
+  },
+  "removeFolder": "Видалити папку",
+  "@removeFolder": {
+    "description": "Tooltip for remove folder button"
+  },
+  "removeServer": "Видалити сервер",
+  "@removeServer": {
+    "description": "Tooltip for remove server button"
+  },
+  "syncFreqEvery15Min": "Кожні 15 хвилин",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: every 15 min"
+  },
+  "syncFreqEvery30Min": "Кожні 30 хвилин",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: every 30 min"
+  },
+  "syncFreqEvery1Hour": "Щогодини",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: every hour"
+  },
+  "syncFreqEveryNHours": "Кожні {hours} год.",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency: every N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "Кожні {minutes} хв.",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency: every N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "Щодня",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "Виберіть частоту синхронізації",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency picker dialog title"
+  },
+  "cacheSize": "Розмір кешу",
+  "@cacheSize": {
+    "description": "Cache size setting tile title"
+  },
+  "refreshTooltip": "Оновити",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh button"
+  },
+  "cacheLimit": "Обмеження кешу",
+  "@cacheLimit": {
+    "description": "Cache limit dropdown label"
+  },
+  "downloadPath": "Шлях завантаження",
+  "@downloadPath": {
+    "description": "Download path setting title"
+  },
+  "defaultDownloadFolder": "Папка CrowleysCloud за замовчуванням",
+  "@defaultDownloadFolder": {
+    "description": "Fallback label for default download folder"
+  },
+  "clearCache": "Очистити кеш",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "Очистити кеш?",
+  "@clearCacheTitle": {
+    "description": "Clear cache confirm dialog title"
+  },
+  "clearCacheBody": "Це видалить локальні мініатюри та кешовані списки серверів.",
+  "@clearCacheBody": {
+    "description": "Clear cache confirm dialog body"
+  },
+  "downloadPathDialogTitle": "Шлях завантаження",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path hint text"
+  },
+  "useDefault": "Використати типовий",
+  "@useDefault": {
+    "description": "Use default path button in download path dialog"
+  },
+  "serverTargetDirDialogTitle": "Цільова папка сервера",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "Вимагати вхід",
+  "@requireLogin": {
+    "description": "Require login dropdown label"
+  },
+  "biometricLogin": "Біометричний вхід",
+  "@biometricLogin": {
+    "description": "Biometric login toggle title"
+  },
+  "biometricLoginSubtitle": "Дозволити вхід із збереженими обліковими даними за допомогою біометрії.",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login toggle subtitle"
+  },
+  "biometricsNotAvailable": "Біометрія недоступна на цьому пристрої.",
+  "@biometricsNotAvailable": {
+    "description": "Subtitle when biometrics unavailable"
+  },
+  "showHiddenFiles": "Показувати приховані файли",
+  "@showHiddenFiles": {
+    "description": "Show hidden files toggle title"
+  },
+  "showHiddenFilesSubtitle": "Показувати файли й папки, назви яких починаються з крапки.",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files toggle subtitle"
+  },
+  "changePassword": "Змінити пароль",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "Оновити пароль для {serverName}.",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "Додайте сервер перед зміною пароля.",
+  "@addServerBeforeChangePassword": {
+    "description": "Subtitle when no server for password change"
+  },
+  "deleteUserAccount": "Видалити обліковий запис",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "Видаляє користувача та всі файли приватної хмари.",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "Видалити обліковий запис?",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirm dialog title"
+  },
+  "deleteAccountBody": "Обліковий запис на {serverName} буде видалено назавжди разом із файлами з приватної хмарної папки. Цю дію неможливо скасувати.",
+  "@deleteAccountBody": {
+    "description": "Delete account confirm dialog body",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "Видалити обліковий запис",
+  "@deleteAccountButton": {
+    "description": "Delete account confirm button"
+  },
+  "changePasswordDialogTitle": "Змінити пароль",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "Новий пароль",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "Підтвердьте пароль",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "Введіть новий пароль.",
+  "@enterNewPassword": {
+    "description": "Validation: new password is required"
+  },
+  "passwordUpdated": "Пароль оновлено.",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "Не вдалося змінити пароль: {error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "Не вдалося змінити пароль.",
+  "@passwordChangeFailedGeneric": {
+    "description": "Generic password change failure snackbar"
+  },
+  "accountDeleted": "Обліковий запис видалено.",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "Не вдалося видалити обліковий запис: {error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "Не вдалося видалити обліковий запис.",
+  "@accountDeletionFailedGeneric": {
+    "description": "Generic account deletion failure snackbar"
+  },
+  "checkForUpdates": "Перевірити оновлення",
+  "@checkForUpdates": {
+    "description": "Update check tile title"
+  },
+  "checkingForUpdates": "Перевірка випусків GitHub...",
+  "@checkingForUpdates": {
+    "description": "Update check loading state"
+  },
+  "versionLabel": "Версія {version}",
+  "@versionLabel": {
+    "description": "Version label in settings",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "Crowley's Cloud оновлено до останньої версії (v{version}).",
+  "@appIsUpToDate": {
+    "description": "Snackbar when app is up to date",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "Не вдалося перевірити оновлення. Спробуйте пізніше.",
+  "@updateCheckFailed": {
+    "description": "Snackbar on update check failure"
+  },
+  "themeModeTitle": "Режим теми",
+  "@themeModeTitle": {
+    "description": "Theme mode tile title"
+  },
+  "themeDark": "Темна",
+  "@themeDark": {
+    "description": "Dark theme option"
+  },
+  "themeLight": "Світла",
+  "@themeLight": {
+    "description": "Light theme option"
+  },
+  "themeCustom": "Власна",
+  "@themeCustom": {
+    "description": "Custom theme option"
+  },
+  "themeDarkFull": "Темна тема",
+  "@themeDarkFull": {
+    "description": "Dark theme option (full label)"
+  },
+  "themeLightFull": "Світла тема",
+  "@themeLightFull": {
+    "description": "Light theme option (full label)"
+  },
+  "themeCustomFull": "Власна тема",
+  "@themeCustomFull": {
+    "description": "Custom theme option (full label)"
+  },
+  "accentColor": "Колір акценту",
+  "@accentColor": {
+    "description": "Accent color tile title"
+  },
+  "primaryAccentColor": "Основний колір акценту",
+  "@primaryAccentColor": {
+    "description": "Accent color tile subtitle"
+  },
+  "selectAccentColor": "Виберіть колір акценту",
+  "@selectAccentColor": {
+    "description": "Accent color picker dialog title"
+  },
+  "backgroundColor": "Колір тла",
+  "@backgroundColor": {
+    "description": "Background color tile"
+  },
+  "surfaceColor": "Колір поверхні",
+  "@surfaceColor": {
+    "description": "Surface color tile"
+  },
+  "textColor": "Колір тексту",
+  "@textColor": {
+    "description": "Text color tile"
+  },
+  "subtextColor": "Колір додаткового тексту",
+  "@subtextColor": {
+    "description": "Subtext color tile"
+  },
+  "borderColor": "Колір межі",
+  "@borderColor": {
+    "description": "Border color tile"
+  },
+  "fontSizeScale": "Масштаб шрифту",
+  "@fontSizeScale": {
+    "description": "Font size scale tile title"
+  },
+  "selectColor": "Виберіть {title}",
+  "@selectColor": {
+    "description": "Color picker dialog title (dynamic)",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "Категорії для синхронізації",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Sync categories dialog title"
+  },
+  "categoriesToSyncBody": "Виберіть одну або кілька категорій. Можна залишити все невибраним.",
+  "@categoriesToSyncBody": {
+    "description": "Sync categories dialog body"
+  },
+  "syncCategorySectionMedia": "Медіа",
+  "@syncCategorySectionMedia": {
+    "description": "Sync categories section: media"
+  },
+  "syncCategorySectionAudioDocs": "Аудіо та документи",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Sync categories section: audio & docs"
+  },
+  "syncCategorySectionOther": "Інше",
+  "@syncCategorySectionOther": {
+    "description": "Sync categories section: other"
+  },
+  "clearAll": "Очистити все",
+  "@clearAll": {
+    "description": "Clear all button in categories dialog"
+  },
+  "noSyncHasRunYet": "Синхронізація ще не запускалася.",
+  "@noSyncHasRunYet": {
+    "description": "Label when no sync has executed"
+  },
+  "lastRunAt": "Останній запуск: {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "Синхронізовано: {uploaded}, пропущено: {skipped}.",
+  "@syncResultSuccess": {
+    "description": "Sync result snackbar: success",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "Файли для синхронізації не вибрано.",
+  "@syncResultNoFiles": {
+    "description": "Sync result: no files"
+  },
+  "syncResultPartial": "Синхронізовано: {uploaded}, помилок: {failed}.",
+  "@syncResultPartial": {
+    "description": "Sync result snackbar: partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "Увійдіть перед синхронізацією.",
+  "@syncResultAuthRequired": {
+    "description": "Sync result: auth required"
+  },
+  "syncResultUnreachable": "Сервер недоступний. З’єднання втрачено.",
+  "@syncResultUnreachable": {
+    "description": "Sync result: server unreachable"
+  },
+  "syncResultFailed": "Синхронізація не вдалася.",
+  "@syncResultFailed": {
+    "description": "Sync result: generic failure"
+  },
+  "serverSetupAddServer": "Додати сервер",
+  "@serverSetupAddServer": {
+    "description": "Server setup screen AppBar title"
+  },
+  "serverSetupCardTitle": "Підключити сервер",
+  "@serverSetupCardTitle": {
+    "description": "Server setup auth card title"
+  },
+  "serverSetupCardSubtitle": "Додайте домашній файловий сервер і увійдіть.",
+  "@serverSetupCardSubtitle": {
+    "description": "Server setup auth card subtitle"
+  },
+  "serverSetupSubmitButton": "Зберегти сервер",
+  "@serverSetupSubmitButton": {
+    "description": "Server setup auth card submit button"
+  },
+  "serverNameLabel": "Назва сервера",
+  "@serverNameLabel": {
+    "description": "Server name field label"
+  },
+  "serverNameHint": "Home NAS",
+  "@serverNameHint": {
+    "description": "Server name field hint"
+  },
+  "baseUrlLabel": "Базова URL-адреса",
+  "@baseUrlLabel": {
+    "description": "Base URL field label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Base URL field hint"
+  },
+  "allFieldsRequired": "Усі поля обов’язкові.",
+  "@allFieldsRequired": {
+    "description": "Validation: all fields required"
+  },
+  "localFilesTitle": "Локальні файли",
+  "@localFilesTitle": {
+    "description": "Local file browser AppBar title"
+  },
+  "serverFilesTitle": "Файли сервера",
+  "@serverFilesTitle": {
+    "description": "Server file browser AppBar title"
+  },
+  "restoreItemsTitle": "Відновити елементи",
+  "@restoreItemsTitle": {
+    "description": "Trash restore confirm dialog title"
+  },
+  "restoreItemsBody": "Ви впевнені, що хочете відновити елементи ({count})?",
+  "@restoreItemsBody": {
+    "description": "Trash restore confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "Видалити назавжди",
+  "@permanentlyDeleteTitle": {
+    "description": "Trash permanent delete confirm dialog title"
+  },
+  "permanentlyDeleteBody": "Ви впевнені, що хочете назавжди видалити елементи ({count})? Цю дію неможливо скасувати.",
+  "@permanentlyDeleteBody": {
+    "description": "Trash permanent delete confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "Кошик порожній.",
+  "@trashIsEmpty": {
+    "description": "Trash empty state message"
+  },
+  "trashRetentionInfo": "Елементи в кошику автоматично видаляються через {days} днів.",
+  "@trashRetentionInfo": {
+    "description": "Trash retention info banner",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "Дата видалення",
+  "@deletionDate": {
+    "description": "Sort option: deletion date (trash)"
+  },
+  "deletePermanentlyAction": "Видалити назавжди",
+  "@deletePermanentlyAction": {
+    "description": "Action bar label for permanent delete in trash"
+  },
+  "conflictFileAlreadyExists": "Файл уже існує",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "Конфлікт {current} із {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog subtitle",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "Файл із назвою ",
+  "@conflictAFileNamed": {
+    "description": "Conflict dialog body text span prefix"
+  },
+  "conflictAlreadyExistsAt": " уже існує за адресою ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Conflict dialog body text span (restore)"
+  },
+  "conflictAlreadyExistsInFolder": " уже існує в цій папці.",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Conflict dialog body text span (upload)"
+  },
+  "conflictInFolder": "У папці",
+  "@conflictInFolder": {
+    "description": "Conflict dialog column header: existing file in folder"
+  },
+  "conflictFromTrash": "Із кошика",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog column header: file from trash"
+  },
+  "conflictExisting": "Наявний",
+  "@conflictExisting": {
+    "description": "Conflict dialog column header: existing upload file"
+  },
+  "conflictNewUpload": "Нове завантаження",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog column header: new uploaded file"
+  },
+  "conflictSizeLabel": "Розмір: {size}",
+  "@conflictSizeLabel": {
+    "description": "Conflict dialog size data label",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "Дата: {date}",
+  "@conflictDateLabel": {
+    "description": "Conflict dialog date data label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "Видалено: {date}",
+  "@conflictDeletedLabel": {
+    "description": "Conflict dialog deleted-at label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "Застосувати до решти конфліктів ({count})",
+  "@conflictApplyToRemaining": {
+    "description": "Conflict dialog apply-to-all checkbox label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "Зберегти всі копії",
+  "@conflictKeepAllCopies": {
+    "description": "Conflict action: keep all copies"
+  },
+  "conflictOverwriteAll": "Перезаписати все",
+  "@conflictOverwriteAll": {
+    "description": "Conflict action: overwrite all"
+  },
+  "conflictRestoreAllAsCopies": "Відновити все як копії",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Restore conflict action: restore all as copies"
+  },
+  "conflictRestoreAsCopy": "Відновити як копію",
+  "@conflictRestoreAsCopy": {
+    "description": "Restore conflict action: restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "Перезаписати решту",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Conflict action: overwrite all remaining"
+  },
+  "conflictSkipAll": "Пропустити все",
+  "@conflictSkipAll": {
+    "description": "Upload conflict action: skip all"
+  },
+  "conflictSkipAllRemaining": "Пропустити решту",
+  "@conflictSkipAllRemaining": {
+    "description": "Upload conflict action: skip all remaining"
+  },
+  "conflictSkip": "Пропустити",
+  "@conflictSkip": {
+    "description": "Upload conflict action: skip"
+  },
+  "conflictOverwrite": "Перезаписати",
+  "@conflictOverwrite": {
+    "description": "Conflict action: overwrite single"
+  },
+  "transfersTitle": "Передачі",
+  "@transfersTitle": {
+    "description": "Transfers page AppBar title"
+  },
+  "transferResume": "Продовжити",
+  "@transferResume": {
+    "description": "Transfer resume button tooltip"
+  },
+  "transferPause": "Призупинити",
+  "@transferPause": {
+    "description": "Transfer pause button tooltip"
+  },
+  "transferCancel": "Скасувати",
+  "@transferCancel": {
+    "description": "Transfer cancel button tooltip"
+  },
+  "transferResumeAll": "Продовжити все",
+  "@transferResumeAll": {
+    "description": "Resume all transfers button tooltip"
+  },
+  "transferPauseAll": "Призупинити все",
+  "@transferPauseAll": {
+    "description": "Pause all transfers button tooltip"
+  },
+  "transferCancelAll": "Скасувати все",
+  "@transferCancelAll": {
+    "description": "Cancel all transfers button tooltip"
+  },
+  "transferCancelFile": "Скасувати файл",
+  "@transferCancelFile": {
+    "description": "Cancel individual transfer button tooltip"
+  },
+  "noTransfers": "Немає передач.",
+  "@noTransfers": {
+    "description": "Empty state in transfers page"
+  },
+  "transferStatusQueued": "У черзі",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "Виконується",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "Призупинено",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "Завершено",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "Помилка",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "Скасовано",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "Попередні налаштування",
+  "@themePresetsSection": {
+    "description": "Theme customizer section header: presets"
+  },
+  "themeCustomPaletteSection": "Власна палітра",
+  "@themeCustomPaletteSection": {
+    "description": "Theme customizer section header: custom palette"
+  },
+  "themeHexRgbLabel": "Код HEX RGB",
+  "@themeHexRgbLabel": {
+    "description": "Theme customizer hex input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Theme customizer hex input hint"
+  },
+  "imageViewerNoFetchHandler": "Обробник отримання не налаштовано",
+  "@imageViewerNoFetchHandler": {
+    "description": "Image viewer internal error text"
+  },
+  "imageViewerFailedToLoad": "Не вдалося завантажити зображення",
+  "@imageViewerFailedToLoad": {
+    "description": "Image viewer image load error text"
+  },
+  "errorDeletingFile": "Помилка видалення {filename}: {error}",
+  "@errorDeletingFile": {
+    "description": "Snackbar on file delete error in image viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "Помилка читання файлу: {error}",
+  "@errorReadingFile": {
+    "description": "Error text when file cannot be read in text viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "Фонова синхронізація",
+  "@syncChannelName": {
+    "description": "Android notification channel name"
+  },
+  "syncChannelDescription": "Показує стан фонової синхронізації файлів.",
+  "@syncChannelDescription": {
+    "description": "Android notification channel description"
+  },
+  "storageStatsTitle": "Статистика сховища",
+  "@storageStatsTitle": {
+    "description": "Storage statistics sheet title / tooltip"
+  },
+  "storageStatsUsedSpace": "Використаний простір",
+  "@storageStatsUsedSpace": {
+    "description": "Storage stats: used space label"
+  },
+  "storageStatsTotalFiles": "Усього файлів",
+  "@storageStatsTotalFiles": {
+    "description": "Storage stats: total files label"
+  },
+  "storageStatsNItems": "{count} елементів",
+  "@storageStatsNItems": {
+    "description": "Storage stats: item count label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "Користувач #{userId}",
+  "@userFallback": {
+    "description": "Fallback label for unknown user",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "Розблокувати збережені облікові дані Crowley's Cloud.",
+  "@biometricUnlockReason": {
+    "description": "Biometric authentication prompt reason"
+  },
+  "tokenLifetimeEveryOpen": "Під час кожного відкриття програми",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime option: every app launch"
+  },
+  "tokenLifetimeOneHour": "Через 1 годину",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime option: 1 hour"
+  },
+  "tokenLifetime1Hour": "Через 1 годину",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime option: 1 hour (alias)"
+  },
+  "tokenLifetimeOneDay": "Через 1 день",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime option: 1 day"
+  },
+  "tokenLifetime1Day": "Через 1 день",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime option: 1 day (alias)"
+  },
+  "tokenLifetimeOneWeek": "Через 1 тиждень",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime option: 1 week"
+  },
+  "tokenLifetime1Week": "Через 1 тиждень",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime option: 1 week (alias)"
+  },
+  "tokenLifetimeOneMonth": "Через 1 місяць",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime option: 1 month"
+  },
+  "tokenLifetime1Month": "Через 1 місяць",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime option: 1 month (alias)"
+  },
+  "tokenLifetimeThreeMonths": "Через 3 місяці",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime option: 3 months"
+  },
+  "tokenLifetime3Months": "Через 3 місяці",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime option: 3 months (alias)"
+  },
+  "tokenLifetimeNever": "Ніколи на цьому пристрої",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime option: never expires on device"
+  },
+  "cacheLimitUnlimited": "Без обмежень",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit option: unlimited"
+  },
+  "syncCategoryOtherFiles": "Інші файли",
+  "@syncCategoryOtherFiles": {
+    "description": "Label for other files category in sync settings"
+  },
+  "internalStorage": "Внутрішнє сховище",
+  "@internalStorage": {
+    "description": "Label for device internal storage root in display path"
+  },
+  "localStorageRootName": "Внутрішнє сховище",
+  "@localStorageRootName": {
+    "description": "Display name for root internal storage directory"
+  },
+  "syncNotificationSyncingWith": "Синхронізація з {serverName}",
+  "@syncNotificationSyncingWith": {
+    "description": "Background sync notification title when syncing starts",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "Синхронізацію з {serverName} призупинено",
+  "@syncNotificationPausedTitle": {
+    "description": "Background sync notification title when sync is paused",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "Сервер недоступний. Фонову синхронізацію призупинено до відкриття програми.",
+  "@syncNotificationUnreachableBody": {
+    "description": "Background sync notification body when server is unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "Потрібна автентифікація. Відкрийте програму, щоб увійти.",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Background sync notification body when authentication fails"
+  },
+  "syncNotificationFailedTitle": "Синхронізація з {serverName} не вдалася",
+  "@syncNotificationFailedTitle": {
+    "description": "Background sync notification title on error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "Під час синхронізації сталася помилка.",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Background sync notification body generic error fallback"
+  },
+  "syncNotificationCompleteTitle": "Синхронізацію з {serverName} завершено",
+  "@syncNotificationCompleteTitle": {
+    "description": "Background sync notification title when sync completes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "Синхронізацію завершено.",
+  "@syncNotificationCompleteBody": {
+    "description": "Background sync notification body on completion"
+  },
+  "syncStatusConnecting": "Підключення до сервера...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress status message when connecting"
+  },
+  "syncStatusConnectionLost": "Не вдалося підключитися до {serverName}. З’єднання втрачено.",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error message when connection is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "Не вдалося підключитися до {serverName}. З’єднання втрачено.",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync error when connection to specific server is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "Сканування файлів на пристрої...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress status message when scanning device files"
+  },
+  "syncStatusNoFilesFound": "Файлів для синхронізації не знайдено.",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync progress status message when no files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "Файли для синхронізації не вибрано.",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync error message when no sync categories or folders are configured"
+  },
+  "syncStatusCalculatingChecksum": "Обчислення контрольної суми ({current}/{total}): {filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress status message while hashing candidates",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "Пошук дублікатів на сервері...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress status message while querying server duplicates"
+  },
+  "syncStatusSyncingFile": "Синхронізація ({current}/{total}): {filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress status message while uploading files",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "Завершення синхронізації...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress status message on finalizing sync run"
+  },
+  "showingCachedFiles": "Показ кешованих файлів.",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying offline cached files"
+  },
+  "showingCachedFilesRefreshFailed": "Показ кешованих файлів. Не вдалося оновити.",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when cache is shown and network refresh failed"
+  },
+  "downloadCanceled": "Завантаження скасовано.",
+  "@downloadCanceled": {
+    "description": "Snackbar on download cancellation"
+  },
+  "downloadedNFilesToPath": "Завантажено файлів: {count}, шлях: {path}",
+  "@downloadedNFilesToPath": {
+    "description": "Snackbar on successful file download to specific folder",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "Завантажено: {downloaded}, помилок: {failed}: {detail}",
+  "@downloadedNFilesFailedM": {
+    "description": "Snackbar on partial download failure",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "Завантажено: {count}, помилок: {failed}: {error}",
+  "@downloadedNFilesWithFailures": {
+    "description": "Snackbar on partial download failure with error",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "Створено посилань спільного доступу: {count}.",
+  "@createdNShareLinks": {
+    "description": "Snackbar on successful share links creation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "Не вдалося створити посилання спільного доступу.",
+  "@failedToCreateShareLinks": {
+    "description": "Snackbar when share link creation fails"
+  },
+  "alreadyInSharedScope": "Уже має спільний доступ.",
+  "@alreadyInSharedScope": {
+    "description": "Snackbar warning when file is already shared"
+  },
+  "sharedNItemsInServer": "На сервері надано спільний доступ до елементів: {count}.",
+  "@sharedNItemsInServer": {
+    "description": "Snackbar on sharing items in server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "Надано спільний доступ до {count} елементів, помилок: {failed}.",
+  "@sharedNItemsWithFailures": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "Надано спільний доступ до {shared} елементів, помилок: {failed}.",
+  "@sharedNItemsFailedM": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "Назва папки не може бути порожньою.",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is empty"
+  },
+  "folderAlreadyExists": "Папка вже існує.",
+  "@folderAlreadyExists": {
+    "description": "Error when created folder name already exists"
+  },
+  "folderCreationOnlyInAllFiles": "Створення папок доступне лише в розділі «Усі файли».",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Snackbar when folder creation is attempted outside All Files"
+  },
+  "currentDirectoryUnavailable": "Поточний каталог недоступний.",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when current browsing directory is not available"
+  },
+  "nothingSelected": "Нічого не вибрано.",
+  "@nothingSelected": {
+    "description": "Notice when batch operation is invoked with no selection"
+  },
+  "destinationFolderDoesNotExist": "Папка призначення не існує.",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination directory is missing"
+  },
+  "cannotMoveFolderIntoItself": "Неможливо перемістити папку «{name}» у саму себе.",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when moving a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "Не вдалося перемістити {name}: {error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a single item fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "Переміщено елементів: {count}.",
+  "@movedNItems": {
+    "description": "Snackbar on moving multiple items",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "Переміщено: {count}, помилок: {failed}.",
+  "@movedNItemsWithFailures": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "Переміщено: {moved}, помилок: {failed}.",
+  "@movedNItemsFailedM": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "Не вдалося перемістити вибрані елементи.",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic failure message when moving selected items fails"
+  },
+  "noFilesWereMoved": "Файли не переміщено.",
+  "@noFilesWereMoved": {
+    "description": "Notice when all files in a move operation were skipped"
+  },
+  "renamedOldToNew": "«{oldName}» перейменовано на «{newName}».",
+  "@renamedOldToNew": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "«{oldName}» перейменовано на «{newName}».",
+  "@renamedFileFromTo": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "Не вдалося перейменувати «{name}» ({statusCode}).",
+  "@failedToRenameWithStatus": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "Не вдалося перейменувати «{name}» ({statusCode}).",
+  "@failedToRenameFileWithCode": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "Не вдалося перейменувати «{name}»: {error}",
+  "@failedToRenameWithError": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "Не вдалося перейменувати «{name}»: {error}",
+  "@failedToRenameFile": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "Не вдалося перейменувати: файл або папка з такою назвою вже існує.",
+  "@renameConflictAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "renameFailedAlreadyExists": "Не вдалося перейменувати: файл або папка з такою назвою вже існує.",
+  "@renameFailedAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "failedToCreateFolderWithCode": "Не вдалося створити папку ({statusCode}).",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error message when server folder creation fails with status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "Видалено: {deleted}, помилок: {failed}.",
+  "@deletedNItemsFailedM": {
+    "description": "Notice on partial batch delete failure",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}%  {completed}/{total} файлів",
+  "@transferSummaryFiles": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}%  {completed}/{total} файлів",
+  "@transferSummaryProgress": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "Не вдалося завантажити",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failed text"
+  },
+  "uploadedNItemsWithFailures": "Завантажено: {uploaded}, помилок: {failed}",
+  "@uploadedNItemsWithFailures": {
+    "description": "Upload summary with failed item count",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "Завантажено: {uploaded}, помилок: {failed}.",
+  "@uploadedNItemsFailedM": {
+    "description": "Notice on batch upload with partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": ", помилок: {count}",
+  "@uploadSummaryFailedCount": {
+    "description": "Suffix for upload summary message indicating failure count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}: локальний шлях порожній",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}: локальний шлях порожній",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "Не вдалося завантажити каталог",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "Не вдалося завантажити каталог",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "Локальний файл не знайдено",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "Локальний файл не знайдено",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "Немає активного токена сесії",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "Немає активного токена сесії",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "Сервер від’єднано",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "Сервер від’єднано",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "Сервер недоступний.",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "Сервер недоступний.",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "Локальний каталог не знайдено",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "Не вдалося просканувати каталог",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "Не вдалося створити папку (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "У відповіді немає токена доступу",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "У відповіді немає токена оновлення",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "Збережені облікові дані відсутні",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "Токен оновлення відсутній",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "Активна сесія відсутня",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "Збережене ім’я користувача відсутнє",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "Випусків ще не опубліковано.",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "Мова",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

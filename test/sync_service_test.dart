@@ -15,8 +15,10 @@
 
 import 'dart:io';
 
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/sync_service.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeScanner implements SyncFileScanner {
@@ -439,4 +441,53 @@ void main() {
       expect(result.message, contains('Could not connect'));
     },
   );
+
+  test('returns localized Russian connection lost message when l10n is provided', () async {
+    final stateFile = File('${tempDir.path}/state.json');
+    final stateStore = FileSyncStateStore(
+      fileProvider: () async => stateFile,
+    );
+    final api = _FakeApiClient()..isServerUnreachable = true;
+    final service = SyncService(
+      scanner: _FakeScanner([]),
+      apiClient: api,
+      stateStore: stateStore,
+    );
+
+    final l10nRu = lookupAppLocalizations(const Locale('ru'));
+    final result = await service.syncServer(server, l10n: l10nRu);
+
+    expect(result.status, SyncRunStatus.serverUnreachable);
+    expect(result.message, l10nRu.syncStatusConnectionLost(server.displayName));
+  });
+
+  test('emits localized Russian progress messages during sync run', () async {
+    final file = await writeTestFile(tempDir, 'photo.jpg', 'some content');
+    final stateFile = File('${tempDir.path}/state.json');
+    final stateStore = FileSyncStateStore(
+      fileProvider: () async => stateFile,
+    );
+    final api = _FakeApiClient();
+    final service = SyncService(
+      scanner: _FakeScanner([
+        SyncCandidate(file: file, remotePath: 'backup/photos/photo.jpg'),
+      ]),
+      apiClient: api,
+      stateStore: stateStore,
+    );
+
+    final l10nRu = lookupAppLocalizations(const Locale('ru'));
+    final progressMessages = <String>[];
+    final result = await service.syncServer(
+      server,
+      l10n: l10nRu,
+      onProgress: (message, progress) => progressMessages.add(message),
+    );
+
+    expect(result.status, SyncRunStatus.success);
+    expect(progressMessages, contains('Подключение к серверу...'));
+    expect(progressMessages, contains('Сканирование файлов на устройстве...'));
+    expect(progressMessages, contains('Проверка дубликатов на сервере...'));
+    expect(progressMessages, contains('Завершение синхронизации...'));
+  });
 }

@@ -13,21 +13,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 /// Reusable dialog for prompting user to create a new folder.
 class CreateFolderDialog extends StatefulWidget {
   const CreateFolderDialog({
     super.key,
-    this.title = 'Create Folder',
-    this.hintText = 'Folder name',
+    this.title,
+    this.hintText,
     this.backgroundColor,
     this.textColor,
     this.hintColor,
   });
 
-  final String title;
-  final String hintText;
+  final String? title;
+  final String? hintText;
   final Color? backgroundColor;
   final Color? textColor;
   final Color? hintColor;
@@ -35,8 +36,8 @@ class CreateFolderDialog extends StatefulWidget {
   /// Helper static method to display the dialog and return the entered folder name.
   static Future<String?> show(
     BuildContext context, {
-    String title = 'Create Folder',
-    String hintText = 'Folder name',
+    String? title,
+    String? hintText,
     Color? backgroundColor,
     Color? textColor,
     Color? hintColor,
@@ -68,6 +69,9 @@ class _CreateFolderDialogState extends State<CreateFolderDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final effectiveTitle = widget.title ?? l10n.newFolderTitle;
+    final effectiveHint = widget.hintText ?? l10n.newFolderHint;
     final theme = Theme.of(context);
     final bg =
         widget.backgroundColor ??
@@ -78,24 +82,24 @@ class _CreateFolderDialogState extends State<CreateFolderDialog> {
 
     return AlertDialog(
       backgroundColor: bg,
-      title: Text(widget.title, style: TextStyle(color: txt)),
+      title: Text(effectiveTitle, style: TextStyle(color: txt)),
       content: TextField(
         controller: _inputController,
         autofocus: true,
         style: TextStyle(color: txt),
         decoration: InputDecoration(
-          hintText: widget.hintText,
+          hintText: effectiveHint,
           hintStyle: TextStyle(color: hint),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(_inputController.text),
-          child: const Text('Create'),
+          child: Text(l10n.create),
         ),
       ],
     );

@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <script>
   import { createEventDispatcher } from 'svelte';
   import { filesApi } from '../api/files.js';
+  import { t, i18n } from '../stores/i18n.js';
 
   export let items = [];
   export let selectedItems = new Set();
@@ -146,6 +147,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   function handleItemClick(item) {
     if (justLongPressed) {
+      justLongPressed = false;
       return;
     }
     if (item.is_parent) {
@@ -159,63 +161,70 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     }
   }
 
-  function handleLongPress(item) {
-    justLongPressed = true;
-    dispatch('select', item);
-    setTimeout(() => {
-      justLongPressed = false;
-    }, 500); // Block click event following mouseup for 500ms to cover touch delay
-  }
-
-  // Svelte Longpress Action Directive
   function longpress(node, threshold = 500) {
     let timer;
-    const handleDown = (e) => {
-      if (e.button && e.button !== 0) return;
-      if (e.target.closest('.grid-item-more-btn')) return;
 
+    const handleStart = (e) => {
+      if (e.type === 'mousedown' && e.button !== 0) return;
+      justLongPressed = false;
       timer = setTimeout(() => {
+        justLongPressed = true;
         node.dispatchEvent(new CustomEvent('longpress'));
       }, threshold);
     };
-    const handleUp = () => {
+
+    const handleCancel = () => {
       clearTimeout(timer);
     };
 
-    node.addEventListener('mousedown', handleDown);
-    node.addEventListener('mouseup', handleUp);
-    node.addEventListener('mouseleave', handleUp);
-    node.addEventListener('touchstart', handleDown);
-    node.addEventListener('touchend', handleUp);
+    node.addEventListener('mousedown', handleStart);
+    node.addEventListener('touchstart', handleStart, { passive: true });
+    node.addEventListener('mouseup', handleCancel);
+    node.addEventListener('mouseleave', handleCancel);
+    node.addEventListener('touchend', handleCancel);
+    node.addEventListener('touchcancel', handleCancel);
+    node.addEventListener('touchmove', handleCancel);
 
     return {
       destroy() {
-        node.removeEventListener('mousedown', handleDown);
-        node.removeEventListener('mouseup', handleUp);
-        node.removeEventListener('mouseleave', handleUp);
-        node.removeEventListener('touchstart', handleDown);
-        node.removeEventListener('touchend', handleUp);
+        clearTimeout(timer);
+        node.removeEventListener('mousedown', handleStart);
+        node.removeEventListener('touchstart', handleStart);
+        node.removeEventListener('mouseup', handleCancel);
+        node.removeEventListener('mouseleave', handleCancel);
+        node.removeEventListener('touchend', handleCancel);
+        node.removeEventListener('touchcancel', handleCancel);
+        node.removeEventListener('touchmove', handleCancel);
       }
     };
+  }
+
+  function handleLongPress(item) {
+    if (navigator.vibrate) navigator.vibrate(40);
+    dispatch('select', item);
+    setTimeout(() => {
+      justLongPressed = false;
+    }, 200);
   }
 
   function createDragGhost(count) {
     const ghost = document.createElement('div');
     ghost.className = 'drag-ghost-badge';
-    ghost.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;margin-right:6px;">drive_file_move</span> Moving ${count} item${count > 1 ? 's' : ''}`;
+    ghost.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px;">drive_file_move</span><span>${i18n.format('common.items', { count })}</span>`;
     ghost.style.position = 'absolute';
-    ghost.style.top = '-9999px';
-    ghost.style.left = '-9999px';
-    ghost.style.padding = '8px 16px';
-    ghost.style.background = 'var(--accent-color, #fa5252)';
-    ghost.style.color = '#ffffff';
+    ghost.style.top = '-1000px';
+    ghost.style.left = '-1000px';
+    ghost.style.backgroundColor = 'var(--accent-color, #FA5252)';
+    ghost.style.color = '#FFFFFF';
+    ghost.style.padding = '6px 14px';
     ghost.style.borderRadius = '20px';
     ghost.style.fontWeight = '600';
     ghost.style.fontSize = '13px';
-    ghost.style.boxShadow = '0 4px 16px rgba(0,0,0,0.3)';
+    ghost.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)';
     ghost.style.display = 'flex';
     ghost.style.alignItems = 'center';
-    ghost.style.zIndex = '99999';
+    ghost.style.gap = '6px';
+    ghost.style.zIndex = '9999';
     ghost.style.pointerEvents = 'none';
     document.body.appendChild(ghost);
     return ghost;
@@ -320,7 +329,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           dirReader.readEntries(async (entries) => {
             if (!entries || entries.length === 0) {
               resolve();
-              return;
             }
             for (const childEntry of entries) {
               await traverseEntry(childEntry, relPath, results);
@@ -399,8 +407,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     <div class="drag-over-overlay">
       <div class="drag-drop-card">
         <span class="material-symbols-outlined drop-icon">cloud_upload</span>
-        <h3 class="text-title" style="margin-top: 12px;">Drop files or folders here</h3>
-        <p class="text-sub">Items will be queued for upload</p>
+        <h3 class="text-title" style="margin-top: 12px;">{$t('files.drop_to_upload')}</h3>
+        <p class="text-sub">{$t('files.drop_to_upload_sub')}</p>
       </div>
     </div>
   {/if}
@@ -408,9 +416,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   {#if items.length === 0 && !showParentItem}
     <div class="empty-state">
       <span class="material-symbols-outlined empty-icon">folder_open</span>
-      <p class="empty-title text-title">No files found</p>
+      <p class="empty-title text-title">{searchQuery ? $t('files.no_results_title') : $t('files.empty_title')}</p>
       <p class="empty-sub text-sub">
-        This directory is empty. Drag & drop files here to upload!
+        {searchQuery ? $t('files.no_results_sub', { query: searchQuery }) : $t('files.empty_sub')}
       </p>
     </div>
   {:else}
@@ -422,7 +430,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           on:dragover={(e) => handleFolderDragOver(e, parentPath)}
           on:dragleave={(e) => handleFolderDragLeave(e, parentPath)}
           on:drop={(e) => handleFolderDrop(e, parentPath)}
-          title="Go to parent directory"
+          title={$t('files.home_root')}
         >
           <div class="grid-item-thumbnail">
             <span
@@ -436,7 +444,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <div class="grid-item-info">
             <div class="grid-item-name">..</div>
             <div class="grid-item-meta-row">
-              <span class="grid-item-meta">Parent folder</span>
+              <span class="grid-item-meta">{$t('common.folder')}</span>
             </div>
           </div>
         </div>
@@ -476,18 +484,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <div class="grid-item-info">
             <div class="grid-item-name">{item.name}</div>
             <div class="grid-item-meta-row">
-              <span class="grid-item-meta">{item.is_dir ? 'Folder' : formatSize(item.size)}</span>
+              <span class="grid-item-meta">{item.is_dir ? $t('common.folder') : formatSize(item.size)}</span>
               {#if scope === 'shared' && (item.owner_name || item.uploader_user_id)}
-                <span class="grid-owner-tag" title="Owner: {item.owner_name || `User #${item.uploader_user_id}`}">
+                <span class="grid-owner-tag" title="{$t('common.owner')}: {item.owner_name || `${$t('nav.user')} #${item.uploader_user_id}`}">
                   <span class="material-symbols-outlined" style="font-size: 11px; margin-right: 2px;">person</span>
-                  {item.owner_name || `User #${item.uploader_user_id}`}
+                  {item.owner_name || `${$t('nav.user')} #${item.uploader_user_id}`}
                 </span>
               {/if}
               
               <!-- More Options Menu Button in Bottom Right Corner -->
               <button
                 class="btn-icon grid-item-more-btn"
-                title="More Actions"
+                title={$t('common.actions')}
                 on:click={(e) => handleMoreClick(e, item)}
               >
                 <span class="material-symbols-outlined" style="font-size: 16px;">more_vert</span>

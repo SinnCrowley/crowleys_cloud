@@ -1,0 +1,2654 @@
+{
+  "@@locale": "fa",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "لغو",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "ذخیره",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "حذف",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "تغییر نام",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "بستن",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "تلاش مجدد",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "در حال بارگذاری...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "تأیید",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "خطا",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "خطا: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "نامشخص",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "بارگذاری",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "دانلود",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "اشتراک‌گذاری",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "کپی",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "انتقال",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "بازیابی",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "اعمال",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "ایجاد",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "پاک کردن",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "افزودن",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "حذف",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "ویرایش",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "تغییر",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "جستجو",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "نام",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "تاریخ",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "اندازه",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "نوع",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "صعودی",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "نزولی",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "همه",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "تصاویر",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "عکس‌ها",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "ویدئوها",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "صوتی",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "اسناد",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "بایگانی‌ها",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "اشتراک‌گذاری‌شده",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "سایر",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "سایر فایل‌ها",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "هیچ فایلی یافت نشد.",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "هیچ فایلی در این پوشه وجود ندارد.",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "این عملیات غیرقابل بازگشت است.",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "گذرواژه‌ها مطابقت ندارند.",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "فایل‌های محلی",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "فایل‌های سرور",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "تنظیمات",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "سطل زباله",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "محلی",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "سرور",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "افزودن سرور",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "هیچ سروری پیکربندی نشده است.",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "یک سرور در تنظیمات اضافه کنید.",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "برای ادامه، اولین سرور خود را اضافه کنید.",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "هنوز سروری پیکربندی نشده است.",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "راه‌اندازی Crowley's Cloud",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "اتصال",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "در حال اتصال...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "متصل شد",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "قطع شد",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "تغییر سرور",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "انتخاب سرور دیگر",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "تغییر سرور؟",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "سرور فعال به \"{serverName}\" تغییر یابد؟",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "انتخاب سرور",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "احراز هویت لازم است",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "برای دسترسی به فایل‌ها در {serverName} وارد شوید",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "ورود با گذرواژه",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "استفاده از بیومتریک",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "در حال باز کردن ورود...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "اتصال به سرور ناموفق بود",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "امکان اتصال به سرور فعال وجود ندارد.",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "اتصال به {serverName} برقرار نشد.",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "جستجو...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "جستجوی فایل‌ها...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "جستجوی فایل‌های سرور...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "جستجو در سطل زباله...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "مجوز دسترسی به حافظه لازم است",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "اعطای مجوز",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "مجوز رد شد. لطفاً در تنظیمات دسترسی به حافظه را فعال کنید.",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "برای مرور و انتخاب پوشه‌ها مجوز مدیریت حافظه لازم است.",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "برای انجام همگام‌سازی مجوزهای حافظه لازم است.",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "به‌روزرسانی موجود است: v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "برای مشاهده موارد جدید ضربه بزنید",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "مشاهده",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "به‌روزرسانی موجود است",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "نسخهٔ {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "فعلی: v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "جدید: v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "موارد جدید:",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "گیت‌هاب",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "یادداشت انتشاری ارائه نشده است.",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "بعداً",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "دانلود APK",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "به‌روزرسانی",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "پیوند اشتراک‌گذاری",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "اشتراک‌گذاری با پیوند",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "اشتراک‌گذاری در سرور",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "انقضا (روز)",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "هرگز",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "۱ روز",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "۷ روز",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "۳۰ روز",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "۹۰ روز",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "۱۸۰ روز",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "۳۶۵ روز",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "ایجاد پیوند",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "پیوند اشتراک‌گذاری در کلیپ‌بورد کپی شد!",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "کپی کردن پیوند اشتراک‌گذاری ناموفق بود: {error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "امکان اشتراک‌گذاری این نوع فایل وجود ندارد.",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "ایجاد اشتراک ناموفق بود: {error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "ایجاد پوشه",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "نام پوشه",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "پوشه جدید",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "پوشه ایجاد شد.",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "ایجاد پوشه ناموفق بود: {error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "در حال ایجاد پوشه...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "تغییر نام",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "نام جدید",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "نام جدید را وارد کنید",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "نام با موفقیت تغییر کرد.",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "تغییر نام ناموفق بود: {error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "انتقال به",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "انتقال به: {path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "انتقال به اینجا",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "انتقال ناموفق بود: {error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "به پوشه منتقل شد.",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "کپی ناموفق بود: {error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "انتخاب پوشه",
+  "@selectFolder": {
+    "description": "Folder picker AppBar title"
+  },
+  "useThisFolder": "استفاده از این پوشه",
+  "@useThisFolder": {
+    "description": "FAB label to confirm folder selection"
+  },
+  "storageRoot": "حافظه",
+  "@storageRoot": {
+    "description": "Root label in local file breadcrumb"
+  },
+  "serverRoot": "ریشه",
+  "@serverRoot": {
+    "description": "Root label in server file breadcrumb"
+  },
+  "deleteNItemsTitle": "{count} مورد حذف شود؟",
+  "@deleteNItemsTitle": {
+    "description": "Bulk delete dialog title",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "حذف فایل‌ها؟",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirm dialog title"
+  },
+  "deleteFilesBody": "آیا مطمئن هستید که می‌خواهید {count} مورد انتخاب‌شده را حذف کنید؟ این عملیات غیرقابل بازگشت است.",
+  "@deleteFilesBody": {
+    "description": "Delete files confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "حذف دائمی",
+  "@deletePermanently": {
+    "description": "Permanent delete action/button label"
+  },
+  "deletePermanentlyTitle": "حذف دائمی؟",
+  "@deletePermanentlyTitle": {
+    "description": "Permanent delete confirm dialog title"
+  },
+  "deletePermanentlyBody": "{filename} برای همیشه حذف خواهد شد.",
+  "@deletePermanentlyBody": {
+    "description": "Permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "حذف فایل؟",
+  "@deleteFileTitle": {
+    "description": "Single file delete confirm dialog title"
+  },
+  "deleteFileBody": "آیا مطمئن هستید که می‌خواهید {filename} را حذف کنید؟ این عملیات غیرقابل بازگشت است.",
+  "@deleteFileBody": {
+    "description": "Single file delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "حذف دائمی",
+  "@deleteServerFileTitle": {
+    "description": "Server permanent delete confirm dialog title"
+  },
+  "deleteServerFileBody": "آیا مطمئن هستید که می‌خواهید \"{filename}\" را برای همیشه حذف کنید؟ این عملیات غیرقابل بازگشت است.",
+  "@deleteServerFileBody": {
+    "description": "Server permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "لغو اشتراک‌گذاری موارد؟",
+  "@unshareItemsTitle": {
+    "description": "Unshare confirm dialog title"
+  },
+  "unshareItemsBody": "آیا مطمئن هستید که می‌خواهید اشتراک‌گذاری {count} مورد انتخاب‌شده را لغو کنید؟ این کار آن‌ها را از پوشه اشتراک‌گذاری‌شده حذف می‌کند.",
+  "@unshareItemsBody": {
+    "description": "Unshare confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "لغو اشتراک‌گذاری",
+  "@unshare": {
+    "description": "Unshare button label"
+  },
+  "moveToTrash": "انتقال به سطل زباله",
+  "@moveToTrash": {
+    "description": "Move to trash action label"
+  },
+  "movedToTrash": "به سطل زباله منتقل شد.",
+  "@movedToTrash": {
+    "description": "Snackbar on single item moved to trash"
+  },
+  "movedNItemsToTrash": "{count} مورد به سطل زباله منتقل شد.",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar on multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "انتقال به سطل زباله ناموفق بود: {error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move-to-trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "{count} مورد حذف شد.",
+  "@deletedNItems": {
+    "description": "Snackbar on bulk delete success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "حذف ناموفق بود: {error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "حذف ناموفق بود: {error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on server delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "{filename} حذف شد.",
+  "@deletedFilename": {
+    "description": "Snackbar on single file delete success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "باز کردن فایل ناموفق بود",
+  "@failedToOpenFile": {
+    "description": "Snackbar when file can't be opened"
+  },
+  "fileDownloadFailed": "دانلود فایل ناموفق بود: {error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on file download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "در حال دانلود...",
+  "@downloading": {
+    "description": "Snackbar while downloading"
+  },
+  "downloadingFile": "در حال دانلود فایل...",
+  "@downloadingFile": {
+    "description": "Loading text while downloading a file for preview"
+  },
+  "downloadComplete": "دانلود کامل شد: {filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "دانلود ناموفق بود: {error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "دانلود پیش‌نمایش فایل ناموفق بود",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar when preview download fails"
+  },
+  "uploadComplete": "بارگذاری کامل شد: {filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "بارگذاری ناموفق بود: {error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "انتخاب فایل‌ها ناموفق بود",
+  "@failedToPickFiles": {
+    "description": "Snackbar when file picker fails"
+  },
+  "uploadedNItems": "{count} مورد بارگذاری شد",
+  "@uploadedNItems": {
+    "description": "Snackbar on batch upload success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "پیوند در کلیپ‌بورد کپی شد.",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on link copy"
+  },
+  "failedToCopyLink": "کپی پیوند ناموفق بود: {error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on link copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "در حال انتخاب همه...",
+  "@selectingAll": {
+    "description": "Snackbar while selecting all items"
+  },
+  "allItemsSelected": "همه موارد انتخاب شدند.",
+  "@allItemsSelected": {
+    "description": "Snackbar when all items are selected"
+  },
+  "failedToLoadSearchResults": "بارگذاری نتایج جستجو ناموفق بود",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar on search failure"
+  },
+  "shareNotSupportedForType": "اشتراک‌گذاری برای این نوع فایل پشتیبانی نمی‌شود.",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar for unsupported share"
+  },
+  "nSelected": "{count} انتخاب شد",
+  "@nSelected": {
+    "description": "Selection header: N items selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "هیچ سروری انتخاب نشده است",
+  "@noServerSelected": {
+    "description": "Snackbar when no server is active"
+  },
+  "pleaseConnectToServerFirst": "لطفاً ابتدا به یک سرور متصل شوید.",
+  "@pleaseConnectToServerFirst": {
+    "description": "Snackbar prompt to connect"
+  },
+  "signInRequired": "ورود به سیستم لازم است",
+  "@signInRequired": {
+    "description": "Snackbar when sign-in is needed"
+  },
+  "pleaseSignInToServer": "لطفاً ابتدا وارد {serverName} شوید.",
+  "@pleaseSignInToServer": {
+    "description": "Snackbar prompting to sign in",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "در حال اتصال به سرور...",
+  "@connectingToServer": {
+    "description": "Snackbar while connecting"
+  },
+  "connectedToServer": "به {serverName} متصل شد.",
+  "@connectedToServer": {
+    "description": "Snackbar on successful connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "اتصال ناموفق بود: {error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "اتصال برقرار نشد: {error}",
+  "@failedToConnect": {
+    "description": "Snackbar on connect failure (alt)",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "احراز هویت ناموفق بود: {error}",
+  "@authFailed": {
+    "description": "Snackbar on authentication failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "احراز هویت ناموفق بود. لطفاً دوباره امتحان کنید.",
+  "@authFailedGeneric": {
+    "description": "Generic auth failure snackbar"
+  },
+  "biometricLoginFailed": "ورود با بیومتریک ناموفق بود: {error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "ورود با بیومتریک ناموفق بود.",
+  "@biometricLoginFailedGeneric": {
+    "description": "Generic biometric failure snackbar"
+  },
+  "noServerSessionToken": "توکن جلسه سرور وجود ندارد. دوباره احراز هویت کنید.",
+  "@noServerSessionToken": {
+    "description": "Snackbar when session token is missing"
+  },
+  "failedToSaveServer": "ذخیرهٔ سرور ناموفق بود: {error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on server save failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "افزودن به پوشه",
+  "@addToFolder": {
+    "description": "Context menu action: add to folder"
+  },
+  "loginTabLabel": "ورود",
+  "@loginTabLabel": {
+    "description": "Auth tab: log in"
+  },
+  "registerTabLabel": "ثبت‌نام",
+  "@registerTabLabel": {
+    "description": "Auth tab: register"
+  },
+  "welcomeBack": "خوش آمدید",
+  "@welcomeBack": {
+    "description": "Auth login card title"
+  },
+  "signInToContinue": "برای ادامه وارد شوید",
+  "@signInToContinue": {
+    "description": "Auth login card subtitle"
+  },
+  "createAccount": "ایجاد حساب کاربری",
+  "@createAccount": {
+    "description": "Auth register card title"
+  },
+  "joinTheServer": "به سرور بپیوندید",
+  "@joinTheServer": {
+    "description": "Auth register card subtitle"
+  },
+  "usernameLabel": "نام کاربری",
+  "@usernameLabel": {
+    "description": "Username text field label"
+  },
+  "usernameHint": "نام کاربری خود را وارد کنید",
+  "@usernameHint": {
+    "description": "Username text field hint"
+  },
+  "passwordLabel": "گذرواژه",
+  "@passwordLabel": {
+    "description": "Password text field label"
+  },
+  "passwordHint": "گذرواژه خود را وارد کنید",
+  "@passwordHint": {
+    "description": "Password text field hint"
+  },
+  "showPassword": "نمایش گذرواژه",
+  "@showPassword": {
+    "description": "Tooltip for show password button"
+  },
+  "hidePassword": "مخفی کردن گذرواژه",
+  "@hidePassword": {
+    "description": "Tooltip for hide password button"
+  },
+  "confirmPassword": "تأیید گذرواژه",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "ورود",
+  "@logIn": {
+    "description": "Login button label"
+  },
+  "loggingIn": "در حال ورود...",
+  "@loggingIn": {
+    "description": "Login loading state"
+  },
+  "registering": "در حال ثبت‌نام...",
+  "@registering": {
+    "description": "Register loading state"
+  },
+  "forgotPassword": "گذرواژه را فراموش کرده‌اید؟",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  "doNotHaveAccount": "حساب کاربری ندارید؟ به ثبت‌نام بروید.",
+  "@doNotHaveAccount": {
+    "description": "Auth footer for login mode"
+  },
+  "alreadyHaveAccount": "قبلاً ثبت‌نام کرده‌اید؟ به ورود بروید.",
+  "@alreadyHaveAccount": {
+    "description": "Auth footer for register mode"
+  },
+  "usernameCannotBeEmpty": "نام کاربری نمی‌تواند خالی باشد.",
+  "@usernameCannotBeEmpty": {
+    "description": "Validation: empty username"
+  },
+  "passwordCannotBeEmpty": "گذرواژه نمی‌تواند خالی باشد.",
+  "@passwordCannotBeEmpty": {
+    "description": "Validation: empty password"
+  },
+  "usernameInvalid": "نام کاربری باید ۳ تا ۳۲ کاراکتر شامل حروف، اعداد، _ یا - باشد.",
+  "@usernameInvalid": {
+    "description": "Validation: invalid username format"
+  },
+  "passwordTooShort": "گذرواژه باید حداقل ۸ کاراکتر باشد.",
+  "@passwordTooShort": {
+    "description": "Validation: password too short"
+  },
+  "loginFailed": "ورود ناموفق بود: {error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "ثبت‌نام ناموفق بود: {error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "بازنشانی گذرواژه",
+  "@resetPasswordTitle": {
+    "description": "Forgot password dialog title step 1"
+  },
+  "enterResetCodeTitle": "کد بازنشانی را وارد کنید",
+  "@enterResetCodeTitle": {
+    "description": "Forgot password dialog title step 2"
+  },
+  "resetPasswordStep1Body": "نام کاربری خود را وارد کنید. کد تأیید ۶ رقمی در لاگ‌ها/کنسول سرور چاپ خواهد شد.",
+  "@resetPasswordStep1Body": {
+    "description": "Forgot password step 1 instruction"
+  },
+  "resetPasswordStep2Body": "کد تأیید در کنسول سرور چاپ شده است. کد ۶ رقمی و گذرواژه جدید خود را وارد کنید.",
+  "@resetPasswordStep2Body": {
+    "description": "Forgot password step 2 instruction"
+  },
+  "resetCodeLabel": "کد بازنشانی",
+  "@resetCodeLabel": {
+    "description": "Reset code field label"
+  },
+  "resetCodeHint": "کد ۶ رقمی را وارد کنید",
+  "@resetCodeHint": {
+    "description": "Reset code field hint"
+  },
+  "newPasswordLabel": "گذرواژه جدید",
+  "@newPasswordLabel": {
+    "description": "New password field label"
+  },
+  "newPasswordHint": "گذرواژه جدید را وارد کنید",
+  "@newPasswordHint": {
+    "description": "New password field hint"
+  },
+  "passwordResetSuccessfully": "گذرواژه با موفقیت بازنشانی شد!",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "نام کاربری الزامی است.",
+  "@usernameIsRequired": {
+    "description": "Validation: username required for reset"
+  },
+  "codeAndPasswordRequired": "کد و گذرواژه جدید الزامی هستند.",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "درخواست بازنشانی ناموفق بود. آدرس سرور را بررسی کنید.",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request failure"
+  },
+  "failedToResetPassword": "بازنشانی گذرواژه ناموفق بود. لطفاً کد را بررسی کنید.",
+  "@failedToResetPassword": {
+    "description": "Snackbar on reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "لطفاً ابتدا آدرس سرور را وارد کنید.",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Snackbar when server URL is missing"
+  },
+  "sendCode": "ارسال کد",
+  "@sendCode": {
+    "description": "Send reset code button label"
+  },
+  "settingsTitle": "تنظیمات",
+  "@settingsTitle": {
+    "description": "Settings screen AppBar title"
+  },
+  "sectionBackupSync": "پشتیبان‌گیری و همگام‌سازی",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "حافظه و حافظه پنهان",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "امنیت و رفتار",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security & behavior"
+  },
+  "sectionAboutUpdates": "درباره و به‌روزرسانی‌ها",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "ظاهر و شخصی‌سازی",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "هیچ سروری پیکربندی نشده است",
+  "@noServersConfiguredSync": {
+    "description": "Sync section tile title when no servers"
+  },
+  "addServerBeforeSync": "قبل از پیکربندی همگام‌سازی یک سرور اضافه کنید.",
+  "@addServerBeforeSync": {
+    "description": "Sync section hint when no servers"
+  },
+  "selectServerToConfigureSync": "سروری را برای پیکربندی تنظیمات همگام‌سازی آن انتخاب کنید.",
+  "@selectServerToConfigureSync": {
+    "description": "Sync section instruction"
+  },
+  "activeServerSuffix": "· فعال",
+  "@activeServerSuffix": {
+    "description": "Suffix label for active server in list"
+  },
+  "folderAndCategorySync": "همگام‌سازی پوشه‌ها و دسته‌ها",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle title"
+  },
+  "keepCategoriesSynced": "همگام نگه داشتن دسته‌ها یا پوشه‌های محلی انتخاب‌شده با این سرور.",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle subtitle"
+  },
+  "addServerBeforeSyncEnable": "قبل از فعال کردن همگام‌سازی یک سرور اضافه کنید.",
+  "@addServerBeforeSyncEnable": {
+    "description": "Sync toggle disabled subtitle"
+  },
+  "onlyOnWifi": "فقط از طریق Wi-Fi",
+  "@onlyOnWifi": {
+    "description": "Sync preference: only on Wi-Fi"
+  },
+  "onlyWhileCharging": "فقط هنگام شارژ",
+  "@onlyWhileCharging": {
+    "description": "Sync preference: only while charging"
+  },
+  "serverTargetDirectory": "پوشه مقصد در سرور",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory setting title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Hint text for server target directory"
+  },
+  "synchronizationFrequency": "دوره تکرار همگام‌سازی",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency setting title"
+  },
+  "syncNow": "همگام‌سازی اکنون",
+  "@syncNow": {
+    "description": "Manual sync button label"
+  },
+  "syncing": "در حال همگام‌سازی...",
+  "@syncing": {
+    "description": "Loading state for sync button"
+  },
+  "categoriesToSynchronize": "دسته‌ها برای همگام‌سازی",
+  "@categoriesToSynchronize": {
+    "description": "Sync categories tile title"
+  },
+  "noCategoriesSelected": "هیچ دسته‌ای انتخاب نشده است.",
+  "@noCategoriesSelected": {
+    "description": "Sync categories empty state"
+  },
+  "nCategoriesSelected": "{count} انتخاب شد",
+  "@nCategoriesSelected": {
+    "description": "N categories selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "پوشه‌ها برای همگام‌سازی",
+  "@foldersToSynchronize": {
+    "description": "Sync folders tile title"
+  },
+  "noCustomFolders": "هیچ پوشه سفارشی پیکربندی نشده است.",
+  "@noCustomFolders": {
+    "description": "Sync folders empty state"
+  },
+  "nFolders": "{count} پوشه",
+  "@nFolders": {
+    "description": "N folders selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "افزودن پوشه",
+  "@addFolder": {
+    "description": "Tooltip for add folder button"
+  },
+  "removeFolder": "حذف پوشه",
+  "@removeFolder": {
+    "description": "Tooltip for remove folder button"
+  },
+  "removeServer": "حذف سرور",
+  "@removeServer": {
+    "description": "Tooltip for remove server button"
+  },
+  "syncFreqEvery15Min": "هر ۱۵ دقیقه",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: every 15 min"
+  },
+  "syncFreqEvery30Min": "هر ۳۰ دقیقه",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: every 30 min"
+  },
+  "syncFreqEvery1Hour": "هر ۱ ساعت",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: every hour"
+  },
+  "syncFreqEveryNHours": "هر {hours} ساعت",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency: every N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "هر {minutes} دقیقه",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency: every N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "روزانه",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "انتخاب دوره همگام‌سازی",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency picker dialog title"
+  },
+  "cacheSize": "اندازه حافظه پنهان",
+  "@cacheSize": {
+    "description": "Cache size setting tile title"
+  },
+  "refreshTooltip": "تازه‌سازی",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh button"
+  },
+  "cacheLimit": "محدودیت حافظه پنهان",
+  "@cacheLimit": {
+    "description": "Cache limit dropdown label"
+  },
+  "downloadPath": "مسیر دانلود",
+  "@downloadPath": {
+    "description": "Download path setting title"
+  },
+  "defaultDownloadFolder": "پوشه پیش‌فرض CrowleysCloud",
+  "@defaultDownloadFolder": {
+    "description": "Fallback label for default download folder"
+  },
+  "clearCache": "پاک کردن حافظه پنهان",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "حافظه پنهان پاک شود؟",
+  "@clearCacheTitle": {
+    "description": "Clear cache confirm dialog title"
+  },
+  "clearCacheBody": "این کار تصاویر کوچک محلی و فهرست‌های کش‌شده سرور را حذف می‌کند.",
+  "@clearCacheBody": {
+    "description": "Clear cache confirm dialog body"
+  },
+  "downloadPathDialogTitle": "مسیر دانلود",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path hint text"
+  },
+  "useDefault": "استفاده از پیش‌فرض",
+  "@useDefault": {
+    "description": "Use default path button in download path dialog"
+  },
+  "serverTargetDirDialogTitle": "پوشه مقصد در سرور",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "الزام ورود به سیستم",
+  "@requireLogin": {
+    "description": "Require login dropdown label"
+  },
+  "biometricLogin": "ورود با بیومتریک",
+  "@biometricLogin": {
+    "description": "Biometric login toggle title"
+  },
+  "biometricLoginSubtitle": "اجازه ورود با بیومتریک با استفاده از اطلاعات ذخیره‌شده.",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login toggle subtitle"
+  },
+  "biometricsNotAvailable": "بیومتریک در این دستگاه در دسترس نیست.",
+  "@biometricsNotAvailable": {
+    "description": "Subtitle when biometrics unavailable"
+  },
+  "showHiddenFiles": "نمایش فایل‌های مخفی",
+  "@showHiddenFiles": {
+    "description": "Show hidden files toggle title"
+  },
+  "showHiddenFilesSubtitle": "نمایش فایل‌ها و پوشه‌هایی که با نقطه شروع می‌شوند.",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files toggle subtitle"
+  },
+  "changePassword": "تغییر گذرواژه",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "به‌روزرسانی گذرواژه برای {serverName}.",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "قبل از تغییر گذرواژه یک سرور اضافه کنید.",
+  "@addServerBeforeChangePassword": {
+    "description": "Subtitle when no server for password change"
+  },
+  "deleteUserAccount": "حذف حساب کاربری",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "کاربر و تمام فایل‌های ابری خصوصی حذف می‌شوند.",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "حساب کاربری حذف شود؟",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirm dialog title"
+  },
+  "deleteAccountBody": "این کار حساب شما در {serverName} را برای همیشه حذف کرده و تمام فایل‌های ذخیره‌شده در پوشه ابری خصوصی شما را پاک می‌کند. این عملیات غیرقابل بازگشت است.",
+  "@deleteAccountBody": {
+    "description": "Delete account confirm dialog body",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "حذف حساب",
+  "@deleteAccountButton": {
+    "description": "Delete account confirm button"
+  },
+  "changePasswordDialogTitle": "تغییر گذرواژه",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "گذرواژه جدید",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "تأیید گذرواژه",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "یک گذرواژه جدید وارد کنید.",
+  "@enterNewPassword": {
+    "description": "Validation: new password is required"
+  },
+  "passwordUpdated": "گذرواژه به‌روزرسانی شد.",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "تغییر گذرواژه ناموفق بود: {error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "تغییر گذرواژه ناموفق بود.",
+  "@passwordChangeFailedGeneric": {
+    "description": "Generic password change failure snackbar"
+  },
+  "accountDeleted": "حساب کاربری حذف شد.",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "حذف حساب ناموفق بود: {error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "حذف حساب ناموفق بود.",
+  "@accountDeletionFailedGeneric": {
+    "description": "Generic account deletion failure snackbar"
+  },
+  "checkForUpdates": "بررسی برای به‌روزرسانی",
+  "@checkForUpdates": {
+    "description": "Update check tile title"
+  },
+  "checkingForUpdates": "در حال بررسی انتشارها در گیت‌هاب...",
+  "@checkingForUpdates": {
+    "description": "Update check loading state"
+  },
+  "versionLabel": "نسخه {version}",
+  "@versionLabel": {
+    "description": "Version label in settings",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "برنامهٔ Crowley's Cloud به‌روز است (v{version}).",
+  "@appIsUpToDate": {
+    "description": "Snackbar when app is up to date",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "بررسی به‌روزرسانی ناموفق بود. لطفاً بعداً دوباره امتحان کنید.",
+  "@updateCheckFailed": {
+    "description": "Snackbar on update check failure"
+  },
+  "themeModeTitle": "حالت تم",
+  "@themeModeTitle": {
+    "description": "Theme mode tile title"
+  },
+  "themeDark": "تیره",
+  "@themeDark": {
+    "description": "Dark theme option"
+  },
+  "themeLight": "روشن",
+  "@themeLight": {
+    "description": "Light theme option"
+  },
+  "themeCustom": "سفارشی",
+  "@themeCustom": {
+    "description": "Custom theme option"
+  },
+  "themeDarkFull": "تم تیره",
+  "@themeDarkFull": {
+    "description": "Dark theme option (full label)"
+  },
+  "themeLightFull": "تم روشن",
+  "@themeLightFull": {
+    "description": "Light theme option (full label)"
+  },
+  "themeCustomFull": "تم سفارشی",
+  "@themeCustomFull": {
+    "description": "Custom theme option (full label)"
+  },
+  "accentColor": "رنگ تأکیدی",
+  "@accentColor": {
+    "description": "Accent color tile title"
+  },
+  "primaryAccentColor": "رنگ تأکیدی اصلی",
+  "@primaryAccentColor": {
+    "description": "Accent color tile subtitle"
+  },
+  "selectAccentColor": "انتخاب رنگ تأکیدی",
+  "@selectAccentColor": {
+    "description": "Accent color picker dialog title"
+  },
+  "backgroundColor": "رنگ پس‌زمینه",
+  "@backgroundColor": {
+    "description": "Background color tile"
+  },
+  "surfaceColor": "رنگ سطح",
+  "@surfaceColor": {
+    "description": "Surface color tile"
+  },
+  "textColor": "رنگ متن",
+  "@textColor": {
+    "description": "Text color tile"
+  },
+  "subtextColor": "رنگ متن فرعی",
+  "@subtextColor": {
+    "description": "Subtext color tile"
+  },
+  "borderColor": "رنگ حاشیه",
+  "@borderColor": {
+    "description": "Border color tile"
+  },
+  "fontSizeScale": "مقیاس اندازه قلم",
+  "@fontSizeScale": {
+    "description": "Font size scale tile title"
+  },
+  "selectColor": "انتخاب {title}",
+  "@selectColor": {
+    "description": "Color picker dialog title (dynamic)",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "دسته‌ها برای همگام‌سازی",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Sync categories dialog title"
+  },
+  "categoriesToSyncBody": "یک یا چند دسته را انتخاب کنید. خالی گذاشتن همه موارد نیز مجاز است.",
+  "@categoriesToSyncBody": {
+    "description": "Sync categories dialog body"
+  },
+  "syncCategorySectionMedia": "رسانه",
+  "@syncCategorySectionMedia": {
+    "description": "Sync categories section: media"
+  },
+  "syncCategorySectionAudioDocs": "صوتی و اسناد",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Sync categories section: audio & docs"
+  },
+  "syncCategorySectionOther": "سایر",
+  "@syncCategorySectionOther": {
+    "description": "Sync categories section: other"
+  },
+  "clearAll": "پاک کردن همه",
+  "@clearAll": {
+    "description": "Clear all button in categories dialog"
+  },
+  "noSyncHasRunYet": "هنوز همگام‌سازی انجام نشده است.",
+  "@noSyncHasRunYet": {
+    "description": "Label when no sync has executed"
+  },
+  "lastRunAt": "آخرین اجرا {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "{uploaded} مورد همگام‌سازی شد، {skipped} مورد نادیده گرفته شد.",
+  "@syncResultSuccess": {
+    "description": "Sync result snackbar: success",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "هیچ فایلی برای همگام‌سازی انتخاب نشده است.",
+  "@syncResultNoFiles": {
+    "description": "Sync result: no files"
+  },
+  "syncResultPartial": "{uploaded} مورد همگام‌سازی شد، {failed} مورد ناموفق بود.",
+  "@syncResultPartial": {
+    "description": "Sync result snackbar: partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "قبل از همگام‌سازی وارد شوید.",
+  "@syncResultAuthRequired": {
+    "description": "Sync result: auth required"
+  },
+  "syncResultUnreachable": "سرور غیرقابل دسترس است. اتصال قطع شد.",
+  "@syncResultUnreachable": {
+    "description": "Sync result: server unreachable"
+  },
+  "syncResultFailed": "همگام‌سازی ناموفق بود.",
+  "@syncResultFailed": {
+    "description": "Sync result: generic failure"
+  },
+  "serverSetupAddServer": "افزودن سرور",
+  "@serverSetupAddServer": {
+    "description": "Server setup screen AppBar title"
+  },
+  "serverSetupCardTitle": "اتصال سرور",
+  "@serverSetupCardTitle": {
+    "description": "Server setup auth card title"
+  },
+  "serverSetupCardSubtitle": "سرور فایل خانگی خود را اضافه کرده و وارد شوید.",
+  "@serverSetupCardSubtitle": {
+    "description": "Server setup auth card subtitle"
+  },
+  "serverSetupSubmitButton": "ذخیره سرور",
+  "@serverSetupSubmitButton": {
+    "description": "Server setup auth card submit button"
+  },
+  "serverNameLabel": "نام سرور",
+  "@serverNameLabel": {
+    "description": "Server name field label"
+  },
+  "serverNameHint": "Home NAS",
+  "@serverNameHint": {
+    "description": "Server name field hint"
+  },
+  "baseUrlLabel": "آدرس پایه",
+  "@baseUrlLabel": {
+    "description": "Base URL field label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Base URL field hint"
+  },
+  "allFieldsRequired": "تمام فیلدها الزامی هستند.",
+  "@allFieldsRequired": {
+    "description": "Validation: all fields required"
+  },
+  "localFilesTitle": "فایل‌های محلی",
+  "@localFilesTitle": {
+    "description": "Local file browser AppBar title"
+  },
+  "serverFilesTitle": "فایل‌های سرور",
+  "@serverFilesTitle": {
+    "description": "Server file browser AppBar title"
+  },
+  "restoreItemsTitle": "بازیابی موارد",
+  "@restoreItemsTitle": {
+    "description": "Trash restore confirm dialog title"
+  },
+  "restoreItemsBody": "آیا مطمئن هستید که می‌خواهید {count} مورد را بازیابی کنید؟",
+  "@restoreItemsBody": {
+    "description": "Trash restore confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "حذف دائمی",
+  "@permanentlyDeleteTitle": {
+    "description": "Trash permanent delete confirm dialog title"
+  },
+  "permanentlyDeleteBody": "آیا مطمئن هستید که می‌خواهید {count} مورد را برای همیشه حذف کنید؟ این عملیات غیرقابل بازگشت است.",
+  "@permanentlyDeleteBody": {
+    "description": "Trash permanent delete confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "سطل زباله خالی است.",
+  "@trashIsEmpty": {
+    "description": "Trash empty state message"
+  },
+  "trashRetentionInfo": "موارد موجود در سطل زباله پس از {days} روز به‌طور خودکار حذف می‌شوند.",
+  "@trashRetentionInfo": {
+    "description": "Trash retention info banner",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "تاریخ حذف",
+  "@deletionDate": {
+    "description": "Sort option: deletion date (trash)"
+  },
+  "deletePermanentlyAction": "حذف دائمی",
+  "@deletePermanentlyAction": {
+    "description": "Action bar label for permanent delete in trash"
+  },
+  "conflictFileAlreadyExists": "فایل از قبل وجود دارد",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "تداخل {current} از {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog subtitle",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "فایلی با نام ",
+  "@conflictAFileNamed": {
+    "description": "Conflict dialog body text span prefix"
+  },
+  "conflictAlreadyExistsAt": " از قبل وجود دارد در ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Conflict dialog body text span (restore)"
+  },
+  "conflictAlreadyExistsInFolder": " از قبل در این پوشه وجود دارد.",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Conflict dialog body text span (upload)"
+  },
+  "conflictInFolder": "در پوشه",
+  "@conflictInFolder": {
+    "description": "Conflict dialog column header: existing file in folder"
+  },
+  "conflictFromTrash": "از سطل زباله",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog column header: file from trash"
+  },
+  "conflictExisting": "موجود",
+  "@conflictExisting": {
+    "description": "Conflict dialog column header: existing upload file"
+  },
+  "conflictNewUpload": "بارگذاری جدید",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog column header: new uploaded file"
+  },
+  "conflictSizeLabel": "اندازه: {size}",
+  "@conflictSizeLabel": {
+    "description": "Conflict dialog size data label",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "تاریخ: {date}",
+  "@conflictDateLabel": {
+    "description": "Conflict dialog date data label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "حذف‌شده: {date}",
+  "@conflictDeletedLabel": {
+    "description": "Conflict dialog deleted-at label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "اعمال برای تداخل‌های باقی‌مانده ({count})",
+  "@conflictApplyToRemaining": {
+    "description": "Conflict dialog apply-to-all checkbox label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "نگه‌داشتن تمام کپی‌ها",
+  "@conflictKeepAllCopies": {
+    "description": "Conflict action: keep all copies"
+  },
+  "conflictOverwriteAll": "جایگزینی همه",
+  "@conflictOverwriteAll": {
+    "description": "Conflict action: overwrite all"
+  },
+  "conflictRestoreAllAsCopies": "بازیابی همه به عنوان کپی",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Restore conflict action: restore all as copies"
+  },
+  "conflictRestoreAsCopy": "بازیابی به عنوان کپی",
+  "@conflictRestoreAsCopy": {
+    "description": "Restore conflict action: restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "جایگزینی تمام موارد باقی‌مانده",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Conflict action: overwrite all remaining"
+  },
+  "conflictSkipAll": "رد شدن از همه",
+  "@conflictSkipAll": {
+    "description": "Upload conflict action: skip all"
+  },
+  "conflictSkipAllRemaining": "رد شدن از تمام موارد باقی‌مانده",
+  "@conflictSkipAllRemaining": {
+    "description": "Upload conflict action: skip all remaining"
+  },
+  "conflictSkip": "رد شدن",
+  "@conflictSkip": {
+    "description": "Upload conflict action: skip"
+  },
+  "conflictOverwrite": "جایگزینی",
+  "@conflictOverwrite": {
+    "description": "Conflict action: overwrite single"
+  },
+  "transfersTitle": "انتقال‌ها",
+  "@transfersTitle": {
+    "description": "Transfers page AppBar title"
+  },
+  "transferResume": "ادامه",
+  "@transferResume": {
+    "description": "Transfer resume button tooltip"
+  },
+  "transferPause": "توقف موقت",
+  "@transferPause": {
+    "description": "Transfer pause button tooltip"
+  },
+  "transferCancel": "لغو",
+  "@transferCancel": {
+    "description": "Transfer cancel button tooltip"
+  },
+  "transferResumeAll": "ادامه همه",
+  "@transferResumeAll": {
+    "description": "Resume all transfers button tooltip"
+  },
+  "transferPauseAll": "توقف موقت همه",
+  "@transferPauseAll": {
+    "description": "Pause all transfers button tooltip"
+  },
+  "transferCancelAll": "لغو همه",
+  "@transferCancelAll": {
+    "description": "Cancel all transfers button tooltip"
+  },
+  "transferCancelFile": "لغو فایل",
+  "@transferCancelFile": {
+    "description": "Cancel individual transfer button tooltip"
+  },
+  "noTransfers": "هیچ انتقالی وجود ندارد.",
+  "@noTransfers": {
+    "description": "Empty state in transfers page"
+  },
+  "transferStatusQueued": "در صف",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "در حال اجرا",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "متوقف‌شده",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "تکمیل‌شده",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "ناموفق",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "لغوشده",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "پیش‌تنظیم‌ها",
+  "@themePresetsSection": {
+    "description": "Theme customizer section header: presets"
+  },
+  "themeCustomPaletteSection": "پالت سفارشی",
+  "@themeCustomPaletteSection": {
+    "description": "Theme customizer section header: custom palette"
+  },
+  "themeHexRgbLabel": "کد HEX RGB",
+  "@themeHexRgbLabel": {
+    "description": "Theme customizer hex input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Theme customizer hex input hint"
+  },
+  "imageViewerNoFetchHandler": "هیچ کنترل‌کننده دریافتی پیکربندی نشده است",
+  "@imageViewerNoFetchHandler": {
+    "description": "Image viewer internal error text"
+  },
+  "imageViewerFailedToLoad": "بارگذاری تصویر ناموفق بود",
+  "@imageViewerFailedToLoad": {
+    "description": "Image viewer image load error text"
+  },
+  "errorDeletingFile": "خطا در حذف {filename}: {error}",
+  "@errorDeletingFile": {
+    "description": "Snackbar on file delete error in image viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "خطا در خواندن فایل: {error}",
+  "@errorReadingFile": {
+    "description": "Error text when file cannot be read in text viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "همگام‌سازی در پس‌زمینه",
+  "@syncChannelName": {
+    "description": "Android notification channel name"
+  },
+  "syncChannelDescription": "وضعیت فایل‌های در حال همگام‌سازی در پس‌زمینه را نشان می‌دهد.",
+  "@syncChannelDescription": {
+    "description": "Android notification channel description"
+  },
+  "storageStatsTitle": "آمار حافظه",
+  "@storageStatsTitle": {
+    "description": "Storage statistics sheet title / tooltip"
+  },
+  "storageStatsUsedSpace": "فضای استفاده‌شده",
+  "@storageStatsUsedSpace": {
+    "description": "Storage stats: used space label"
+  },
+  "storageStatsTotalFiles": "کل فایل‌ها",
+  "@storageStatsTotalFiles": {
+    "description": "Storage stats: total files label"
+  },
+  "storageStatsNItems": "{count} مورد",
+  "@storageStatsNItems": {
+    "description": "Storage stats: item count label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "کاربر #{userId}",
+  "@userFallback": {
+    "description": "Fallback label for unknown user",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "باز کردن اطلاعات ذخیره‌شده برای Crowley's Cloud.",
+  "@biometricUnlockReason": {
+    "description": "Biometric authentication prompt reason"
+  },
+  "tokenLifetimeEveryOpen": "هر بار باز کردن برنامه",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime option: every app launch"
+  },
+  "tokenLifetimeOneHour": "پس از ۱ ساعت",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime option: 1 hour"
+  },
+  "tokenLifetime1Hour": "پس از ۱ ساعت",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime option: 1 hour (alias)"
+  },
+  "tokenLifetimeOneDay": "پس از ۱ روز",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime option: 1 day"
+  },
+  "tokenLifetime1Day": "پس از ۱ روز",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime option: 1 day (alias)"
+  },
+  "tokenLifetimeOneWeek": "پس از ۱ هفته",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime option: 1 week"
+  },
+  "tokenLifetime1Week": "پس از ۱ هفته",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime option: 1 week (alias)"
+  },
+  "tokenLifetimeOneMonth": "پس از ۱ ماه",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime option: 1 month"
+  },
+  "tokenLifetime1Month": "پس از ۱ ماه",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime option: 1 month (alias)"
+  },
+  "tokenLifetimeThreeMonths": "پس از ۳ ماه",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime option: 3 months"
+  },
+  "tokenLifetime3Months": "پس از ۳ ماه",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime option: 3 months (alias)"
+  },
+  "tokenLifetimeNever": "هرگز در این دستگاه",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime option: never expires on device"
+  },
+  "cacheLimitUnlimited": "نامحدود",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit option: unlimited"
+  },
+  "syncCategoryOtherFiles": "سایر فایل‌ها",
+  "@syncCategoryOtherFiles": {
+    "description": "Label for other files category in sync settings"
+  },
+  "internalStorage": "حافظه داخلی",
+  "@internalStorage": {
+    "description": "Label for device internal storage root in display path"
+  },
+  "localStorageRootName": "حافظه داخلی",
+  "@localStorageRootName": {
+    "description": "Display name for root internal storage directory"
+  },
+  "syncNotificationSyncingWith": "در حال همگام‌سازی با {serverName}",
+  "@syncNotificationSyncingWith": {
+    "description": "Background sync notification title when syncing starts",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "همگام‌سازی با {serverName} متوقف شد",
+  "@syncNotificationPausedTitle": {
+    "description": "Background sync notification title when sync is paused",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "سرور غیرقابل دسترس است. همگام‌سازی پس‌زمینه تا باز شدن برنامه متوقف شد.",
+  "@syncNotificationUnreachableBody": {
+    "description": "Background sync notification body when server is unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "احراز هویت لازم است. برای ورود برنامه را باز کنید.",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Background sync notification body when authentication fails"
+  },
+  "syncNotificationFailedTitle": "همگام‌سازی با {serverName} ناموفق بود",
+  "@syncNotificationFailedTitle": {
+    "description": "Background sync notification title on error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "در حین همگام‌سازی خطایی رخ داد.",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Background sync notification body generic error fallback"
+  },
+  "syncNotificationCompleteTitle": "همگام‌سازی با {serverName} کامل شد",
+  "@syncNotificationCompleteTitle": {
+    "description": "Background sync notification title when sync completes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "همگام‌سازی کامل شد.",
+  "@syncNotificationCompleteBody": {
+    "description": "Background sync notification body on completion"
+  },
+  "syncStatusConnecting": "در حال اتصال به سرور...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress status message when connecting"
+  },
+  "syncStatusConnectionLost": "امکان اتصال به {serverName} وجود نداشت. اتصال قطع شد.",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error message when connection is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "امکان اتصال به {serverName} وجود نداشت. اتصال قطع شد.",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync error when connection to specific server is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "در حال بررسی فایل‌ها در دستگاه...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress status message when scanning device files"
+  },
+  "syncStatusNoFilesFound": "هیچ فایلی برای همگام‌سازی یافت نشد.",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync progress status message when no files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "هیچ فایلی برای همگام‌سازی انتخاب نشده است.",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync error message when no sync categories or folders are configured"
+  },
+  "syncStatusCalculatingChecksum": "محاسبه چکسام ({current}/{total}): {filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress status message while hashing candidates",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "در حال بررسی موارد تکراری در سرور...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress status message while querying server duplicates"
+  },
+  "syncStatusSyncingFile": "در حال همگام‌سازی ({current}/{total}): {filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress status message while uploading files",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "در حال تکمیل همگام‌سازی...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress status message on finalizing sync run"
+  },
+  "showingCachedFiles": "نمایش فایل‌های ذخیره‌شده در حافظه پنهان.",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying offline cached files"
+  },
+  "showingCachedFilesRefreshFailed": "نمایش فایل‌های ذخیره‌شده در حافظه پنهان. تازه‌سازی ناموفق بود.",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when cache is shown and network refresh failed"
+  },
+  "downloadCanceled": "دانلود لغو شد.",
+  "@downloadCanceled": {
+    "description": "Snackbar on download cancellation"
+  },
+  "downloadedNFilesToPath": "{count} فایل در {path} دانلود شد",
+  "@downloadedNFilesToPath": {
+    "description": "Snackbar on successful file download to specific folder",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "{downloaded} فایل دانلود شد، {failed} مورد ناموفق: {detail}",
+  "@downloadedNFilesFailedM": {
+    "description": "Snackbar on partial download failure",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "{count} فایل دانلود شد، {failed} مورد ناموفق: {error}",
+  "@downloadedNFilesWithFailures": {
+    "description": "Snackbar on partial download failure with error",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "{count} پیوند اشتراک‌گذاری ایجاد شد.",
+  "@createdNShareLinks": {
+    "description": "Snackbar on successful share links creation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "ایجاد پیوند(های) اشتراک‌گذاری ناموفق بود.",
+  "@failedToCreateShareLinks": {
+    "description": "Snackbar when share link creation fails"
+  },
+  "alreadyInSharedScope": "قبلاً در محدوده مشترک قرار گرفته است.",
+  "@alreadyInSharedScope": {
+    "description": "Snackbar warning when file is already shared"
+  },
+  "sharedNItemsInServer": "{count} مورد در سرور به اشتراک گذاشته شد.",
+  "@sharedNItemsInServer": {
+    "description": "Snackbar on sharing items in server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "{count} مورد به اشتراک گذاشته شد، {failed} مورد ناموفق بود.",
+  "@sharedNItemsWithFailures": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "{shared} مورد به اشتراک گذاشته شد، {failed} مورد ناموفق بود.",
+  "@sharedNItemsFailedM": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "نام پوشه نمی‌تواند خالی باشد.",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is empty"
+  },
+  "folderAlreadyExists": "پوشه از قبل وجود دارد.",
+  "@folderAlreadyExists": {
+    "description": "Error when created folder name already exists"
+  },
+  "folderCreationOnlyInAllFiles": "ایجاد پوشه فقط در بخش همه فایل‌ها امکان‌پذیر است.",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Snackbar when folder creation is attempted outside All Files"
+  },
+  "currentDirectoryUnavailable": "پوشه فعلی در دسترس نیست.",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when current browsing directory is not available"
+  },
+  "nothingSelected": "هیچ موردی انتخاب نشده است.",
+  "@nothingSelected": {
+    "description": "Notice when batch operation is invoked with no selection"
+  },
+  "destinationFolderDoesNotExist": "پوشه مقصد وجود ندارد.",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination directory is missing"
+  },
+  "cannotMoveFolderIntoItself": "نمی‌توان پوشه \"{name}\" را به داخل خودش منتقل کرد.",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when moving a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "انتقال {name} ناموفق بود: {error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a single item fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "{count} مورد منتقل شد.",
+  "@movedNItems": {
+    "description": "Snackbar on moving multiple items",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "{count} مورد منتقل شد، {failed} مورد ناموفق بود.",
+  "@movedNItemsWithFailures": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "{moved} مورد منتقل شد، {failed} مورد ناموفق بود.",
+  "@movedNItemsFailedM": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "انتقال موارد انتخاب‌شده ناموفق بود.",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic failure message when moving selected items fails"
+  },
+  "noFilesWereMoved": "هیچ فایلی منتقل نشد.",
+  "@noFilesWereMoved": {
+    "description": "Notice when all files in a move operation were skipped"
+  },
+  "renamedOldToNew": "نام \"{oldName}\" به \"{newName}\" تغییر یافت.",
+  "@renamedOldToNew": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "نام \"{oldName}\" به \"{newName}\" تغییر یافت.",
+  "@renamedFileFromTo": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "تغییر نام \"{name}\" ناموفق بود ({statusCode}).",
+  "@failedToRenameWithStatus": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "تغییر نام \"{name}\" ناموفق بود ({statusCode}).",
+  "@failedToRenameFileWithCode": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "تغییر نام \"{name}\" ناموفق بود: {error}",
+  "@failedToRenameWithError": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "تغییر نام \"{name}\" ناموفق بود: {error}",
+  "@failedToRenameFile": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "تغییر نام ناموفق بود: فایل یا پوشه‌ای با این نام از قبل وجود دارد.",
+  "@renameConflictAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "renameFailedAlreadyExists": "تغییر نام ناموفق بود: فایل یا پوشه‌ای با این نام از قبل وجود دارد.",
+  "@renameFailedAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "failedToCreateFolderWithCode": "ایجاد پوشه ناموفق بود ({statusCode}).",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error message when server folder creation fails with status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "{deleted} مورد حذف شد، {failed} مورد ناموفق بود.",
+  "@deletedNItemsFailedM": {
+    "description": "Notice on partial batch delete failure",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}٪  {completed}/{total} فایل",
+  "@transferSummaryFiles": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}٪  {completed}/{total}",
+  "@transferSummaryProgress": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "دانلود ناموفق بود",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failed text"
+  },
+  "uploadedNItemsWithFailures": "{uploaded} مورد بارگذاری شد، {failed} مورد ناموفق بود",
+  "@uploadedNItemsWithFailures": {
+    "description": "Upload summary with failed item count",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "{uploaded} مورد بارگذاری شد، {failed} مورد ناموفق بود.",
+  "@uploadedNItemsFailedM": {
+    "description": "Notice on batch upload with partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": "، {count} مورد ناموفق",
+  "@uploadSummaryFailedCount": {
+    "description": "Suffix for upload summary message indicating failure count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}: مسیر محلی خالی است",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}: مسیر محلی خالی است",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "بارگذاری پوشه ناموفق بود",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "بارگذاری پوشه ناموفق بود",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "فایل محلی یافت نشد",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "فایل محلی یافت نشد",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "هیچ توکن جلسه فعالی وجود ندارد",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "هیچ توکن جلسه فعالی وجود ندارد",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "ارتباط با سرور قطع شد",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "ارتباط با سرور قطع شد",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "سرور غیرقابل دسترس است.",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "سرور غیرقابل دسترس است.",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "پوشه محلی یافت نشد",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "بررسی پوشه ناموفق بود",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "ایجاد پوشه ناموفق بود (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "توکن دسترسی در پاسخ وجود ندارد",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "توکن تازه‌سازی در پاسخ وجود ندارد",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "هیچ اطلاعات ذخیره‌شده‌ای موجود نیست",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "هیچ توکن تازه‌سازی موجود نیست",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "هیچ جلسه فعالی در دسترس نیست",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "هیچ نام کاربری ذخیره‌شده‌ای موجود نیست",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "هنوز هیچ نسخه‌ای منتشر نشده است.",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "زبان",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

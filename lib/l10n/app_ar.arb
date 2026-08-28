@@ -1,0 +1,2654 @@
+{
+  "@@locale": "ar",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "إلغاء",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "حفظ",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "حذف",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "إعادة تسمية",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "إغلاق",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "إعادة المحاولة",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "جارٍ التحميل...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "تأكيد",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "خطأ",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "خطأ: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "غير معروف",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "رفع",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "تنزيل",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "مشاركة",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "نسخ",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "نقل",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "استعادة",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "تطبيق",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "إنشاء",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "مسح",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "إضافة",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "إزالة",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "تعديل",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "تبديل",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "بحث",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "الاسم",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "التاريخ",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "الحجم",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "النوع",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "تصاعدي",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "تنازلي",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "الكل",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "الصور",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "الصور",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "الفيديوهات",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "الصوتيات",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "المستندات",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "الأرشيفات",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "مشتركة",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "أخرى",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "ملفات أخرى",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "لم يتم العثور على أي ملفات.",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "لا توجد ملفات في هذا المجلد.",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "لا يمكن التراجع عن هذا الإجراء.",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين.",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "الملفات المحلية",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "ملفات الخادم",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "الإعدادات",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "سلة المهملات",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "محلي",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "الخادم",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "إضافة خادم",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "لم يتم تكوين أي خوادم.",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "أضف خادمًا في الإعدادات.",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "أضف خادمك الأول للمتابعة.",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "لم يتم تكوين أي خوادم بعد.",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "إعداد Crowley's Cloud",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "اتصال",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "جارٍ الاتصال...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "متصل",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "غير متصل",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "تبديل الخادم",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "اختيار خادم آخر",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "تبديل الخادم؟",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "تبديل الخادم النشط إلى \"{serverName}\"؟",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "اختيار خادم",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "المصادقة مطلوبة",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "سجّل الدخول للوصول إلى الملفات على {serverName}",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "تسجيل الدخول بكلمة المرور",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "استخدام البصمة",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "جارٍ فتح تسجيل الدخول...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "فشل الاتصال بالخادم",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "تعذر الاتصال بالخادم النشط.",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "تعذر الاتصال بـ {serverName}.",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "بحث...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "بحث في الملفات...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "بحث في ملفات الخادم...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "بحث في سلة المهملات...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "إذن التخزين مطلوب",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "منح الإذن",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "تم رفض الإذن. يرجى منح إذن الوصول إلى التخزين في الإعدادات.",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "مطلوب إذن إدارة التخزين لتصفح المجلدات واختيارها.",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "مطلوب أذونات التخزين لإجراء المزامنة.",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "يتوفر تحديث: v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "انقر لمعرفة الجديد",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "عرض",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "يتوفر تحديث",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "الإصدار {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "الحالي: v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "الجديد: v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "ما الجديد:",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "GitHub",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "لا تتوفر ملاحظات الإصدار.",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "لاحقًا",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "تنزيل APK",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "تحديث",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "مشاركة الرابط",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "مشاركة عبر رابط",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "مشاركة على الخادم",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "الصلاحية (أيام)",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "أبدًا",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "يوم واحد",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "7 أيام",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "30 يومًا",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "90 يومًا",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "180 يومًا",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "365 يومًا",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "إنشاء رابط",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "تم نسخ رابط المشاركة إلى الحافظة!",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "فشل نسخ رابط المشاركة: {error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "لا يمكن مشاركة هذا النوع من الملفات.",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "فشل إنشاء المشاركة: {error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "إنشاء مجلد",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "اسم المجلد",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "مجلد جديد",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "تم إنشاء المجلد.",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "فشل إنشاء المجلد: {error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "جارٍ إنشاء المجلد...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "إعادة تسمية",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "الاسم الجديد",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "أدخل الاسم الجديد",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "تمت إعادة التسمية بنجاح.",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "فشلت إعادة التسمية: {error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "نقل إلى",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "نقل إلى: {path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "نقل إلى هنا",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "فشل النقل: {error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "تم النقل إلى المجلد.",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "فشل النسخ: {error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "تحديد مجلد",
+  "@selectFolder": {
+    "description": "Folder picker AppBar title"
+  },
+  "useThisFolder": "استخدام هذا المجلد",
+  "@useThisFolder": {
+    "description": "FAB label to confirm folder selection"
+  },
+  "storageRoot": "وحدة التخزين",
+  "@storageRoot": {
+    "description": "Root label in local file breadcrumb"
+  },
+  "serverRoot": "الجذر",
+  "@serverRoot": {
+    "description": "Root label in server file breadcrumb"
+  },
+  "deleteNItemsTitle": "حذف {count} عنصر؟",
+  "@deleteNItemsTitle": {
+    "description": "Bulk delete dialog title",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "حذف الملفات؟",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirm dialog title"
+  },
+  "deleteFilesBody": "هل أنت متأكد من رغبتك في حذف {count} عنصر محدد؟ لا يمكن التراجع عن هذا الإجراء.",
+  "@deleteFilesBody": {
+    "description": "Delete files confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "حذف نهائي",
+  "@deletePermanently": {
+    "description": "Permanent delete action/button label"
+  },
+  "deletePermanentlyTitle": "حذف نهائي؟",
+  "@deletePermanentlyTitle": {
+    "description": "Permanent delete confirm dialog title"
+  },
+  "deletePermanentlyBody": "سيتم حذف {filename} نهائيًا.",
+  "@deletePermanentlyBody": {
+    "description": "Permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "حذف الملف؟",
+  "@deleteFileTitle": {
+    "description": "Single file delete confirm dialog title"
+  },
+  "deleteFileBody": "هل أنت متأكد من رغبتك في حذف {filename}؟ لا يمكن التراجع عن هذا الإجراء.",
+  "@deleteFileBody": {
+    "description": "Single file delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "حذف نهائي",
+  "@deleteServerFileTitle": {
+    "description": "Server permanent delete confirm dialog title"
+  },
+  "deleteServerFileBody": "هل أنت متأكد من رغبتك في حذف \"{filename}\" نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.",
+  "@deleteServerFileBody": {
+    "description": "Server permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "إلغاء مشاركة العناصر؟",
+  "@unshareItemsTitle": {
+    "description": "Unshare confirm dialog title"
+  },
+  "unshareItemsBody": "هل أنت متأكد من رغبتك في إلغاء مشاركة {count} عنصر محدد؟ سيؤدي هذا إلى إزالتها من مجلد المشتركة.",
+  "@unshareItemsBody": {
+    "description": "Unshare confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "إلغاء المشاركة",
+  "@unshare": {
+    "description": "Unshare button label"
+  },
+  "moveToTrash": "نقل إلى سلة المهملات",
+  "@moveToTrash": {
+    "description": "Move to trash action label"
+  },
+  "movedToTrash": "تم النقل إلى سلة المهملات.",
+  "@movedToTrash": {
+    "description": "Snackbar on single item moved to trash"
+  },
+  "movedNItemsToTrash": "تم نقل {count} عنصر إلى سلة المهملات.",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar on multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "فشل النقل إلى سلة المهملات: {error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move-to-trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "تم حذف {count} عنصر.",
+  "@deletedNItems": {
+    "description": "Snackbar on bulk delete success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "فشل الحذف: {error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "فشل الحذف: {error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on server delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "تم حذف {filename}.",
+  "@deletedFilename": {
+    "description": "Snackbar on single file delete success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "تعذر فتح الملف",
+  "@failedToOpenFile": {
+    "description": "Snackbar when file can't be opened"
+  },
+  "fileDownloadFailed": "فشل تنزيل الملف: {error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on file download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "جارٍ التنزيل...",
+  "@downloading": {
+    "description": "Snackbar while downloading"
+  },
+  "downloadingFile": "جارٍ تنزيل الملف...",
+  "@downloadingFile": {
+    "description": "Loading text while downloading a file for preview"
+  },
+  "downloadComplete": "اكتمل التنزيل: {filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "فشل التنزيل: {error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "فشل تنزيل معاينة الملف",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar when preview download fails"
+  },
+  "uploadComplete": "اكتمل الرفع: {filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "فشل الرفع: {error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "فشل اختيار الملفات",
+  "@failedToPickFiles": {
+    "description": "Snackbar when file picker fails"
+  },
+  "uploadedNItems": "تم رفع {count} عنصر",
+  "@uploadedNItems": {
+    "description": "Snackbar on batch upload success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "تم نسخ الرابط إلى الحافظة.",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on link copy"
+  },
+  "failedToCopyLink": "فشل نسخ الرابط: {error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on link copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "جارٍ تحديد الكل...",
+  "@selectingAll": {
+    "description": "Snackbar while selecting all items"
+  },
+  "allItemsSelected": "تم تحديد جميع العناصر.",
+  "@allItemsSelected": {
+    "description": "Snackbar when all items are selected"
+  },
+  "failedToLoadSearchResults": "فشل تحميل نتائج البحث",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar on search failure"
+  },
+  "shareNotSupportedForType": "المشاركة غير مدعومة لهذا النوع من الملفات.",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar for unsupported share"
+  },
+  "nSelected": "تم تحديد {count}",
+  "@nSelected": {
+    "description": "Selection header: N items selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "لم يتم تحديد أي خادم",
+  "@noServerSelected": {
+    "description": "Snackbar when no server is active"
+  },
+  "pleaseConnectToServerFirst": "يرجى الاتصال بالخادم أولاً.",
+  "@pleaseConnectToServerFirst": {
+    "description": "Snackbar prompt to connect"
+  },
+  "signInRequired": "تسجيل الدخول مطلوب",
+  "@signInRequired": {
+    "description": "Snackbar when sign-in is needed"
+  },
+  "pleaseSignInToServer": "يرجى تسجيل الدخول إلى {serverName} أولاً.",
+  "@pleaseSignInToServer": {
+    "description": "Snackbar prompting to sign in",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "جارٍ الاتصال بالخادم...",
+  "@connectingToServer": {
+    "description": "Snackbar while connecting"
+  },
+  "connectedToServer": "تم الاتصال بـ {serverName}.",
+  "@connectedToServer": {
+    "description": "Snackbar on successful connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "فشل الاتصال: {error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "فشل الاتصال: {error}",
+  "@failedToConnect": {
+    "description": "Snackbar on connect failure (alt)",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "فشلت المصادقة: {error}",
+  "@authFailed": {
+    "description": "Snackbar on authentication failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "فشلت المصادقة. يرجى المحاولة مرة أخرى.",
+  "@authFailedGeneric": {
+    "description": "Generic auth failure snackbar"
+  },
+  "biometricLoginFailed": "فشل تسجيل الدخول بالبصمة: {error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "فشل تسجيل الدخول بالبصمة.",
+  "@biometricLoginFailedGeneric": {
+    "description": "Generic biometric failure snackbar"
+  },
+  "noServerSessionToken": "لا يوجد رمز جلسة للخادم. أعد مصادقة الخادم.",
+  "@noServerSessionToken": {
+    "description": "Snackbar when session token is missing"
+  },
+  "failedToSaveServer": "فشل حفظ الخادم: {error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on server save failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "إضافة إلى المجلد",
+  "@addToFolder": {
+    "description": "Context menu action: add to folder"
+  },
+  "loginTabLabel": "تسجيل الدخول",
+  "@loginTabLabel": {
+    "description": "Auth tab: log in"
+  },
+  "registerTabLabel": "إنشاء حساب",
+  "@registerTabLabel": {
+    "description": "Auth tab: register"
+  },
+  "welcomeBack": "مرحبًا بعودتك",
+  "@welcomeBack": {
+    "description": "Auth login card title"
+  },
+  "signInToContinue": "سجّل الدخول للمتابعة",
+  "@signInToContinue": {
+    "description": "Auth login card subtitle"
+  },
+  "createAccount": "إنشاء حساب",
+  "@createAccount": {
+    "description": "Auth register card title"
+  },
+  "joinTheServer": "الانضمام إلى الخادم",
+  "@joinTheServer": {
+    "description": "Auth register card subtitle"
+  },
+  "usernameLabel": "اسم المستخدم",
+  "@usernameLabel": {
+    "description": "Username text field label"
+  },
+  "usernameHint": "أدخل اسم المستخدم",
+  "@usernameHint": {
+    "description": "Username text field hint"
+  },
+  "passwordLabel": "كلمة المرور",
+  "@passwordLabel": {
+    "description": "Password text field label"
+  },
+  "passwordHint": "أدخل كلمة المرور",
+  "@passwordHint": {
+    "description": "Password text field hint"
+  },
+  "showPassword": "إظهار كلمة المرور",
+  "@showPassword": {
+    "description": "Tooltip for show password button"
+  },
+  "hidePassword": "إخفاء كلمة المرور",
+  "@hidePassword": {
+    "description": "Tooltip for hide password button"
+  },
+  "confirmPassword": "تأكيد كلمة المرور",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "تسجيل الدخول",
+  "@logIn": {
+    "description": "Login button label"
+  },
+  "loggingIn": "جارٍ تسجيل الدخول...",
+  "@loggingIn": {
+    "description": "Login loading state"
+  },
+  "registering": "جارٍ إنشاء الحساب...",
+  "@registering": {
+    "description": "Register loading state"
+  },
+  "forgotPassword": "هل نسيت كلمة المرور؟",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  "doNotHaveAccount": "ليس لديك حساب؟ انتقل إلى إنشاء حساب.",
+  "@doNotHaveAccount": {
+    "description": "Auth footer for login mode"
+  },
+  "alreadyHaveAccount": "لديك حساب بالفعل؟ انتقل إلى تسجيل الدخول.",
+  "@alreadyHaveAccount": {
+    "description": "Auth footer for register mode"
+  },
+  "usernameCannotBeEmpty": "لا يمكن أن يكون اسم المستخدم فارغًا.",
+  "@usernameCannotBeEmpty": {
+    "description": "Validation: empty username"
+  },
+  "passwordCannotBeEmpty": "لا يمكن أن تكون كلمة المرور فارغة.",
+  "@passwordCannotBeEmpty": {
+    "description": "Validation: empty password"
+  },
+  "usernameInvalid": "يجب أن يتراوح اسم المستخدم بين 3 و32 حرفًا أو رقمًا أو _ أو -.",
+  "@usernameInvalid": {
+    "description": "Validation: invalid username format"
+  },
+  "passwordTooShort": "يجب ألا تقل كلمة المرور عن 8 أحرف.",
+  "@passwordTooShort": {
+    "description": "Validation: password too short"
+  },
+  "loginFailed": "فشل تسجيل الدخول: {error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "فشل إنشاء الحساب: {error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "إعادة تعيين كلمة المرور",
+  "@resetPasswordTitle": {
+    "description": "Forgot password dialog title step 1"
+  },
+  "enterResetCodeTitle": "أدخل رمز إعادة التعيين",
+  "@enterResetCodeTitle": {
+    "description": "Forgot password dialog title step 2"
+  },
+  "resetPasswordStep1Body": "أدخل اسم المستخدم الخاص بك. ستتم طباعة رمز التحقق المكون من 6 أرقام في سجلات/وحدة تحكم الخادم.",
+  "@resetPasswordStep1Body": {
+    "description": "Forgot password step 1 instruction"
+  },
+  "resetPasswordStep2Body": "تمت طباعة رمز التحقق في وحدة تحكم الخادم. أدخل الرمز المكون من 6 أرقام وكلمة المرور الجديدة.",
+  "@resetPasswordStep2Body": {
+    "description": "Forgot password step 2 instruction"
+  },
+  "resetCodeLabel": "رمز إعادة التعيين",
+  "@resetCodeLabel": {
+    "description": "Reset code field label"
+  },
+  "resetCodeHint": "أدخل الرمز المكون من 6 أرقام",
+  "@resetCodeHint": {
+    "description": "Reset code field hint"
+  },
+  "newPasswordLabel": "كلمة المرور الجديدة",
+  "@newPasswordLabel": {
+    "description": "New password field label"
+  },
+  "newPasswordHint": "أدخل كلمة المرور الجديدة",
+  "@newPasswordHint": {
+    "description": "New password field hint"
+  },
+  "passwordResetSuccessfully": "تمت إعادة تعيين كلمة المرور بنجاح!",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "اسم المستخدم مطلوب.",
+  "@usernameIsRequired": {
+    "description": "Validation: username required for reset"
+  },
+  "codeAndPasswordRequired": "الرمز وكلمة المرور الجديدة مطلوبان.",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "فشل طلب إعادة التعيين. تحقق من عنوان URL للخادم.",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request failure"
+  },
+  "failedToResetPassword": "فشلت إعادة تعيين كلمة المرور. يرجى التحقق من الرمز.",
+  "@failedToResetPassword": {
+    "description": "Snackbar on reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "يرجى إدخال عنوان URL للخادم أولاً.",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Snackbar when server URL is missing"
+  },
+  "sendCode": "إرسال الرمز",
+  "@sendCode": {
+    "description": "Send reset code button label"
+  },
+  "settingsTitle": "الإعدادات",
+  "@settingsTitle": {
+    "description": "Settings screen AppBar title"
+  },
+  "sectionBackupSync": "النسخ الاحتياطي والمزامنة",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "التخزين وذاكرة التخزين المؤقت",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "الأمان والسلوك",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security & behavior"
+  },
+  "sectionAboutUpdates": "حول التطبيق والتحديثات",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "المظهر والتخصيص",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "لم يتم تكوين أي خوادم",
+  "@noServersConfiguredSync": {
+    "description": "Sync section tile title when no servers"
+  },
+  "addServerBeforeSync": "أضف خادمًا قبل تكوين المزامنة.",
+  "@addServerBeforeSync": {
+    "description": "Sync section hint when no servers"
+  },
+  "selectServerToConfigureSync": "حدد خادمًا لتكوين إعدادات المزامنة الخاصة به.",
+  "@selectServerToConfigureSync": {
+    "description": "Sync section instruction"
+  },
+  "activeServerSuffix": "· نشط",
+  "@activeServerSuffix": {
+    "description": "Suffix label for active server in list"
+  },
+  "folderAndCategorySync": "مزامنة المجلدات والفئات",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle title"
+  },
+  "keepCategoriesSynced": "إبقاء الفئات أو المجلدات المحلية المحددة متزامنة مع هذا الخادم.",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle subtitle"
+  },
+  "addServerBeforeSyncEnable": "أضف خادمًا قبل تمكين المزامنة.",
+  "@addServerBeforeSyncEnable": {
+    "description": "Sync toggle disabled subtitle"
+  },
+  "onlyOnWifi": "عبر Wi-Fi فقط",
+  "@onlyOnWifi": {
+    "description": "Sync preference: only on Wi-Fi"
+  },
+  "onlyWhileCharging": "أثناء الشحن فقط",
+  "@onlyWhileCharging": {
+    "description": "Sync preference: only while charging"
+  },
+  "serverTargetDirectory": "دليل الخادم المستهدف",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory setting title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Hint text for server target directory"
+  },
+  "synchronizationFrequency": "تكرار المزامنة",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency setting title"
+  },
+  "syncNow": "مزامنة الآن",
+  "@syncNow": {
+    "description": "Manual sync button label"
+  },
+  "syncing": "جارٍ المزامنة...",
+  "@syncing": {
+    "description": "Loading state for sync button"
+  },
+  "categoriesToSynchronize": "الفئات المراد مزامنتها",
+  "@categoriesToSynchronize": {
+    "description": "Sync categories tile title"
+  },
+  "noCategoriesSelected": "لم يتم تحديد أي فئات.",
+  "@noCategoriesSelected": {
+    "description": "Sync categories empty state"
+  },
+  "nCategoriesSelected": "تم تحديد {count}",
+  "@nCategoriesSelected": {
+    "description": "N categories selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "المجلدات المراد مزامنتها",
+  "@foldersToSynchronize": {
+    "description": "Sync folders tile title"
+  },
+  "noCustomFolders": "لم يتم تكوين أي مجلدات مخصصة.",
+  "@noCustomFolders": {
+    "description": "Sync folders empty state"
+  },
+  "nFolders": "{count} مجلد",
+  "@nFolders": {
+    "description": "N folders selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "إضافة مجلد",
+  "@addFolder": {
+    "description": "Tooltip for add folder button"
+  },
+  "removeFolder": "إزالة مجلد",
+  "@removeFolder": {
+    "description": "Tooltip for remove folder button"
+  },
+  "removeServer": "إزالة الخادم",
+  "@removeServer": {
+    "description": "Tooltip for remove server button"
+  },
+  "syncFreqEvery15Min": "كل 15 دقيقة",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: every 15 min"
+  },
+  "syncFreqEvery30Min": "كل 30 دقيقة",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: every 30 min"
+  },
+  "syncFreqEvery1Hour": "كل ساعة",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: every hour"
+  },
+  "syncFreqEveryNHours": "كل {hours} ساعات",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency: every N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "كل {minutes} دقيقة",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency: every N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "يوميًا",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "اختيار تكرار المزامنة",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency picker dialog title"
+  },
+  "cacheSize": "حجم ذاكرة التخزين المؤقت",
+  "@cacheSize": {
+    "description": "Cache size setting tile title"
+  },
+  "refreshTooltip": "تحديث",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh button"
+  },
+  "cacheLimit": "حد ذاكرة التخزين المؤقت",
+  "@cacheLimit": {
+    "description": "Cache limit dropdown label"
+  },
+  "downloadPath": "مسار التنزيل",
+  "@downloadPath": {
+    "description": "Download path setting title"
+  },
+  "defaultDownloadFolder": "مجلد CrowleysCloud الافتراضي",
+  "@defaultDownloadFolder": {
+    "description": "Fallback label for default download folder"
+  },
+  "clearCache": "مسح الذاكرة المؤقتة",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "مسح ذاكرة التخزين المؤقت؟",
+  "@clearCacheTitle": {
+    "description": "Clear cache confirm dialog title"
+  },
+  "clearCacheBody": "سيؤدي هذا إلى إزالة الصور المصغرة المحلية وقوائم الخادم المخزنة مؤقتًا.",
+  "@clearCacheBody": {
+    "description": "Clear cache confirm dialog body"
+  },
+  "downloadPathDialogTitle": "مسار التنزيل",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path hint text"
+  },
+  "useDefault": "استخدام الافتراضي",
+  "@useDefault": {
+    "description": "Use default path button in download path dialog"
+  },
+  "serverTargetDirDialogTitle": "دليل الخادم المستهدف",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "طلب تسجيل الدخول",
+  "@requireLogin": {
+    "description": "Require login dropdown label"
+  },
+  "biometricLogin": "تسجيل الدخول بالبصمة",
+  "@biometricLogin": {
+    "description": "Biometric login toggle title"
+  },
+  "biometricLoginSubtitle": "السماح بتسجيل الدخول باستخدام بيانات الاعتماد المحفوظة عبر البصمة.",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login toggle subtitle"
+  },
+  "biometricsNotAvailable": "القياسات الحيوية غير متوفرة على هذا الجهاز.",
+  "@biometricsNotAvailable": {
+    "description": "Subtitle when biometrics unavailable"
+  },
+  "showHiddenFiles": "إظهار الملفات المخفية",
+  "@showHiddenFiles": {
+    "description": "Show hidden files toggle title"
+  },
+  "showHiddenFilesSubtitle": "عرض الملفات والمجلدات التي تبدأ بنقطة.",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files toggle subtitle"
+  },
+  "changePassword": "تغيير كلمة المرور",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "تحديث كلمة المرور لـ {serverName}.",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "أضف خادمًا قبل تغيير كلمة المرور.",
+  "@addServerBeforeChangePassword": {
+    "description": "Subtitle when no server for password change"
+  },
+  "deleteUserAccount": "حذف حساب المستخدم",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "يحذف المستخدم وجميع الملفات السحابية الخاصة.",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "حذف الحساب؟",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirm dialog title"
+  },
+  "deleteAccountBody": "سيؤدي هذا إلى حذف حسابك نهائيًا على {serverName} وإزالة جميع الملفات المخزنة في مجلدك السحابي الخاص. لا يمكن التراجع عن هذا الإجراء.",
+  "@deleteAccountBody": {
+    "description": "Delete account confirm dialog body",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "حذف الحساب",
+  "@deleteAccountButton": {
+    "description": "Delete account confirm button"
+  },
+  "changePasswordDialogTitle": "تغيير كلمة المرور",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "كلمة المرور الجديدة",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "تأكيد كلمة المرور",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "أدخل كلمة مرور جديدة.",
+  "@enterNewPassword": {
+    "description": "Validation: new password is required"
+  },
+  "passwordUpdated": "تم تحديث كلمة المرور.",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "فشل تغيير كلمة المرور: {error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "فشل تغيير كلمة المرور.",
+  "@passwordChangeFailedGeneric": {
+    "description": "Generic password change failure snackbar"
+  },
+  "accountDeleted": "تم حذف الحساب.",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "فشل حذف الحساب: {error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "فشل حذف الحساب.",
+  "@accountDeletionFailedGeneric": {
+    "description": "Generic account deletion failure snackbar"
+  },
+  "checkForUpdates": "التحقق من وجود تحديثات",
+  "@checkForUpdates": {
+    "description": "Update check tile title"
+  },
+  "checkingForUpdates": "جارٍ التحقق من إصدارات GitHub...",
+  "@checkingForUpdates": {
+    "description": "Update check loading state"
+  },
+  "versionLabel": "الإصدار {version}",
+  "@versionLabel": {
+    "description": "Version label in settings",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "تطبيق Crowley's Cloud محدث إلى آخر إصدار (v{version}).",
+  "@appIsUpToDate": {
+    "description": "Snackbar when app is up to date",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "فشل التحقق من وجود تحديثات. يرجى المحاولة مرة أخرى لاحقًا.",
+  "@updateCheckFailed": {
+    "description": "Snackbar on update check failure"
+  },
+  "themeModeTitle": "وضع المظهر",
+  "@themeModeTitle": {
+    "description": "Theme mode tile title"
+  },
+  "themeDark": "داكن",
+  "@themeDark": {
+    "description": "Dark theme option"
+  },
+  "themeLight": "فاتح",
+  "@themeLight": {
+    "description": "Light theme option"
+  },
+  "themeCustom": "مخصص",
+  "@themeCustom": {
+    "description": "Custom theme option"
+  },
+  "themeDarkFull": "المظهر الداكن",
+  "@themeDarkFull": {
+    "description": "Dark theme option (full label)"
+  },
+  "themeLightFull": "المظهر الفاتح",
+  "@themeLightFull": {
+    "description": "Light theme option (full label)"
+  },
+  "themeCustomFull": "مظهر مخصص",
+  "@themeCustomFull": {
+    "description": "Custom theme option (full label)"
+  },
+  "accentColor": "لون التمييز",
+  "@accentColor": {
+    "description": "Accent color tile title"
+  },
+  "primaryAccentColor": "لون التمييز الأساسي",
+  "@primaryAccentColor": {
+    "description": "Accent color tile subtitle"
+  },
+  "selectAccentColor": "اختيار لون التمييز",
+  "@selectAccentColor": {
+    "description": "Accent color picker dialog title"
+  },
+  "backgroundColor": "لون الخلفية",
+  "@backgroundColor": {
+    "description": "Background color tile"
+  },
+  "surfaceColor": "لون السطح",
+  "@surfaceColor": {
+    "description": "Surface color tile"
+  },
+  "textColor": "لون النص",
+  "@textColor": {
+    "description": "Text color tile"
+  },
+  "subtextColor": "لون النص الفرعي",
+  "@subtextColor": {
+    "description": "Subtext color tile"
+  },
+  "borderColor": "لون الحدود",
+  "@borderColor": {
+    "description": "Border color tile"
+  },
+  "fontSizeScale": "تغيير حجم الخط",
+  "@fontSizeScale": {
+    "description": "Font size scale tile title"
+  },
+  "selectColor": "تحديد {title}",
+  "@selectColor": {
+    "description": "Color picker dialog title (dynamic)",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "الفئات المراد مزامنتها",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Sync categories dialog title"
+  },
+  "categoriesToSyncBody": "اختر فئة واحدة أو أكثر. ترك الكل دون تحديد يعد خيارًا صحيحًا.",
+  "@categoriesToSyncBody": {
+    "description": "Sync categories dialog body"
+  },
+  "syncCategorySectionMedia": "الوسائط",
+  "@syncCategorySectionMedia": {
+    "description": "Sync categories section: media"
+  },
+  "syncCategorySectionAudioDocs": "الصوتيات والمستندات",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Sync categories section: audio & docs"
+  },
+  "syncCategorySectionOther": "أخرى",
+  "@syncCategorySectionOther": {
+    "description": "Sync categories section: other"
+  },
+  "clearAll": "مسح الكل",
+  "@clearAll": {
+    "description": "Clear all button in categories dialog"
+  },
+  "noSyncHasRunYet": "لم يتم تشغيل أي مزامنة بعد.",
+  "@noSyncHasRunYet": {
+    "description": "Label when no sync has executed"
+  },
+  "lastRunAt": "آخر تشغيل {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "تمت مزامنة {uploaded}، وتخطي {skipped}.",
+  "@syncResultSuccess": {
+    "description": "Sync result snackbar: success",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "لم يتم تحديد أي ملفات للمزامنة.",
+  "@syncResultNoFiles": {
+    "description": "Sync result: no files"
+  },
+  "syncResultPartial": "تمت مزامنة {uploaded}، وفشل {failed}.",
+  "@syncResultPartial": {
+    "description": "Sync result snackbar: partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "سجّل الدخول قبل إجراء المزامنة.",
+  "@syncResultAuthRequired": {
+    "description": "Sync result: auth required"
+  },
+  "syncResultUnreachable": "تعذر الوصول إلى الخادم. فُقد الاتصال.",
+  "@syncResultUnreachable": {
+    "description": "Sync result: server unreachable"
+  },
+  "syncResultFailed": "فشلت المزامنة.",
+  "@syncResultFailed": {
+    "description": "Sync result: generic failure"
+  },
+  "serverSetupAddServer": "إضافة خادم",
+  "@serverSetupAddServer": {
+    "description": "Server setup screen AppBar title"
+  },
+  "serverSetupCardTitle": "اتصال بالخادم",
+  "@serverSetupCardTitle": {
+    "description": "Server setup auth card title"
+  },
+  "serverSetupCardSubtitle": "أضف خادم الملفات المنزلي وسجّل الدخول.",
+  "@serverSetupCardSubtitle": {
+    "description": "Server setup auth card subtitle"
+  },
+  "serverSetupSubmitButton": "حفظ الخادم",
+  "@serverSetupSubmitButton": {
+    "description": "Server setup auth card submit button"
+  },
+  "serverNameLabel": "اسم الخادم",
+  "@serverNameLabel": {
+    "description": "Server name field label"
+  },
+  "serverNameHint": "Home NAS",
+  "@serverNameHint": {
+    "description": "Server name field hint"
+  },
+  "baseUrlLabel": "عنوان URL الأساسي",
+  "@baseUrlLabel": {
+    "description": "Base URL field label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Base URL field hint"
+  },
+  "allFieldsRequired": "جميع الحقول مطلوبة.",
+  "@allFieldsRequired": {
+    "description": "Validation: all fields required"
+  },
+  "localFilesTitle": "الملفات المحلية",
+  "@localFilesTitle": {
+    "description": "Local file browser AppBar title"
+  },
+  "serverFilesTitle": "ملفات الخادم",
+  "@serverFilesTitle": {
+    "description": "Server file browser AppBar title"
+  },
+  "restoreItemsTitle": "استعادة العناصر",
+  "@restoreItemsTitle": {
+    "description": "Trash restore confirm dialog title"
+  },
+  "restoreItemsBody": "هل أنت متأكد من رغبتك في استعادة {count} عنصر؟",
+  "@restoreItemsBody": {
+    "description": "Trash restore confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "حذف نهائي",
+  "@permanentlyDeleteTitle": {
+    "description": "Trash permanent delete confirm dialog title"
+  },
+  "permanentlyDeleteBody": "هل أنت متأكد من رغبتك في حذف {count} عنصر نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.",
+  "@permanentlyDeleteBody": {
+    "description": "Trash permanent delete confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "سلة المهملات فارغة.",
+  "@trashIsEmpty": {
+    "description": "Trash empty state message"
+  },
+  "trashRetentionInfo": "يتم حذف العناصر الموجودة في سلة المهملات تلقائيًا بعد {days} يومًا.",
+  "@trashRetentionInfo": {
+    "description": "Trash retention info banner",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "تاريخ الحذف",
+  "@deletionDate": {
+    "description": "Sort option: deletion date (trash)"
+  },
+  "deletePermanentlyAction": "حذف نهائي",
+  "@deletePermanentlyAction": {
+    "description": "Action bar label for permanent delete in trash"
+  },
+  "conflictFileAlreadyExists": "الملف موجود بالفعل",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "تعارض {current} من {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog subtitle",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "ملف باسم ",
+  "@conflictAFileNamed": {
+    "description": "Conflict dialog body text span prefix"
+  },
+  "conflictAlreadyExistsAt": " موجود بالفعل في ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Conflict dialog body text span (restore)"
+  },
+  "conflictAlreadyExistsInFolder": " موجود بالفعل في هذا المجلد.",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Conflict dialog body text span (upload)"
+  },
+  "conflictInFolder": "في المجلد",
+  "@conflictInFolder": {
+    "description": "Conflict dialog column header: existing file in folder"
+  },
+  "conflictFromTrash": "من سلة المهملات",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog column header: file from trash"
+  },
+  "conflictExisting": "الحالي",
+  "@conflictExisting": {
+    "description": "Conflict dialog column header: existing upload file"
+  },
+  "conflictNewUpload": "الرفع الجديد",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog column header: new uploaded file"
+  },
+  "conflictSizeLabel": "الحجم: {size}",
+  "@conflictSizeLabel": {
+    "description": "Conflict dialog size data label",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "التاريخ: {date}",
+  "@conflictDateLabel": {
+    "description": "Conflict dialog date data label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "تاريخ الحذف: {date}",
+  "@conflictDeletedLabel": {
+    "description": "Conflict dialog deleted-at label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "تطبيق على التعارضات المتبقية ({count})",
+  "@conflictApplyToRemaining": {
+    "description": "Conflict dialog apply-to-all checkbox label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "الاحتفاظ بجميع النسخ",
+  "@conflictKeepAllCopies": {
+    "description": "Conflict action: keep all copies"
+  },
+  "conflictOverwriteAll": "استبدال الكل",
+  "@conflictOverwriteAll": {
+    "description": "Conflict action: overwrite all"
+  },
+  "conflictRestoreAllAsCopies": "استعادة الكل كنسخ",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Restore conflict action: restore all as copies"
+  },
+  "conflictRestoreAsCopy": "استعادة كنسخة",
+  "@conflictRestoreAsCopy": {
+    "description": "Restore conflict action: restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "استبدال جميع العناصر المتبقية",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Conflict action: overwrite all remaining"
+  },
+  "conflictSkipAll": "تخطي الكل",
+  "@conflictSkipAll": {
+    "description": "Upload conflict action: skip all"
+  },
+  "conflictSkipAllRemaining": "تخطي جميع العناصر المتبقية",
+  "@conflictSkipAllRemaining": {
+    "description": "Upload conflict action: skip all remaining"
+  },
+  "conflictSkip": "تخطي",
+  "@conflictSkip": {
+    "description": "Upload conflict action: skip"
+  },
+  "conflictOverwrite": "استبدال",
+  "@conflictOverwrite": {
+    "description": "Conflict action: overwrite single"
+  },
+  "transfersTitle": "عمليات النقل",
+  "@transfersTitle": {
+    "description": "Transfers page AppBar title"
+  },
+  "transferResume": "استئناف",
+  "@transferResume": {
+    "description": "Transfer resume button tooltip"
+  },
+  "transferPause": "إيقاف مؤقت",
+  "@transferPause": {
+    "description": "Transfer pause button tooltip"
+  },
+  "transferCancel": "إلغاء",
+  "@transferCancel": {
+    "description": "Transfer cancel button tooltip"
+  },
+  "transferResumeAll": "استئناف الكل",
+  "@transferResumeAll": {
+    "description": "Resume all transfers button tooltip"
+  },
+  "transferPauseAll": "إيقاف الكل مؤقتًا",
+  "@transferPauseAll": {
+    "description": "Pause all transfers button tooltip"
+  },
+  "transferCancelAll": "إلغاء الكل",
+  "@transferCancelAll": {
+    "description": "Cancel all transfers button tooltip"
+  },
+  "transferCancelFile": "إلغاء الملف",
+  "@transferCancelFile": {
+    "description": "Cancel individual transfer button tooltip"
+  },
+  "noTransfers": "لا توجد عمليات نقل.",
+  "@noTransfers": {
+    "description": "Empty state in transfers page"
+  },
+  "transferStatusQueued": "في قائمة الانتظار",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "قيد التشغيل",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "متوقف مؤقتًا",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "مكتمل",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "فشل",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "ملغى",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "الإعدادات المسبقة",
+  "@themePresetsSection": {
+    "description": "Theme customizer section header: presets"
+  },
+  "themeCustomPaletteSection": "لوحة ألوان مخصصة",
+  "@themeCustomPaletteSection": {
+    "description": "Theme customizer section header: custom palette"
+  },
+  "themeHexRgbLabel": "رمز HEX RGB",
+  "@themeHexRgbLabel": {
+    "description": "Theme customizer hex input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Theme customizer hex input hint"
+  },
+  "imageViewerNoFetchHandler": "لم يتم تكوين معالج الجلب",
+  "@imageViewerNoFetchHandler": {
+    "description": "Image viewer internal error text"
+  },
+  "imageViewerFailedToLoad": "فشل تحميل الصورة",
+  "@imageViewerFailedToLoad": {
+    "description": "Image viewer image load error text"
+  },
+  "errorDeletingFile": "خطأ أثناء حذف {filename}: {error}",
+  "@errorDeletingFile": {
+    "description": "Snackbar on file delete error in image viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "خطأ أثناء قراءة الملف: {error}",
+  "@errorReadingFile": {
+    "description": "Error text when file cannot be read in text viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "المزامنة في الخلفية",
+  "@syncChannelName": {
+    "description": "Android notification channel name"
+  },
+  "syncChannelDescription": "يعرض حالة مزامنة الملفات في الخلفية.",
+  "@syncChannelDescription": {
+    "description": "Android notification channel description"
+  },
+  "storageStatsTitle": "إحصائيات التخزين",
+  "@storageStatsTitle": {
+    "description": "Storage statistics sheet title / tooltip"
+  },
+  "storageStatsUsedSpace": "المساحة المستخدمة",
+  "@storageStatsUsedSpace": {
+    "description": "Storage stats: used space label"
+  },
+  "storageStatsTotalFiles": "إجمالي الملفات",
+  "@storageStatsTotalFiles": {
+    "description": "Storage stats: total files label"
+  },
+  "storageStatsNItems": "{count} عنصر",
+  "@storageStatsNItems": {
+    "description": "Storage stats: item count label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "المستخدم #{userId}",
+  "@userFallback": {
+    "description": "Fallback label for unknown user",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "إلغاء قفل بيانات الاعتماد المحفوظة لـ Crowley's Cloud.",
+  "@biometricUnlockReason": {
+    "description": "Biometric authentication prompt reason"
+  },
+  "tokenLifetimeEveryOpen": "عند كل فتح للتطبيق",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime option: every app launch"
+  },
+  "tokenLifetimeOneHour": "بعد ساعة واحدة",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime option: 1 hour"
+  },
+  "tokenLifetime1Hour": "بعد ساعة واحدة",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime option: 1 hour (alias)"
+  },
+  "tokenLifetimeOneDay": "بعد يوم واحد",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime option: 1 day"
+  },
+  "tokenLifetime1Day": "بعد يوم واحد",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime option: 1 day (alias)"
+  },
+  "tokenLifetimeOneWeek": "بعد أسبوع واحد",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime option: 1 week"
+  },
+  "tokenLifetime1Week": "بعد أسبوع واحد",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime option: 1 week (alias)"
+  },
+  "tokenLifetimeOneMonth": "بعد شهر واحد",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime option: 1 month"
+  },
+  "tokenLifetime1Month": "بعد شهر واحد",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime option: 1 month (alias)"
+  },
+  "tokenLifetimeThreeMonths": "بعد 3 أشهر",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime option: 3 months"
+  },
+  "tokenLifetime3Months": "بعد 3 أشهر",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime option: 3 months (alias)"
+  },
+  "tokenLifetimeNever": "أبدًا على هذا الجهاز",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime option: never expires on device"
+  },
+  "cacheLimitUnlimited": "غير محدود",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit option: unlimited"
+  },
+  "syncCategoryOtherFiles": "ملفات أخرى",
+  "@syncCategoryOtherFiles": {
+    "description": "Label for other files category in sync settings"
+  },
+  "internalStorage": "وحدة التخزين الداخلية",
+  "@internalStorage": {
+    "description": "Label for device internal storage root in display path"
+  },
+  "localStorageRootName": "وحدة التخزين الداخلية",
+  "@localStorageRootName": {
+    "description": "Display name for root internal storage directory"
+  },
+  "syncNotificationSyncingWith": "جارٍ المزامنة مع {serverName}",
+  "@syncNotificationSyncingWith": {
+    "description": "Background sync notification title when syncing starts",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "تم إيقاف المزامنة مع {serverName} مؤقتًا",
+  "@syncNotificationPausedTitle": {
+    "description": "Background sync notification title when sync is paused",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "تعذر الوصول إلى الخادم. تم إيقاف المزامنة في الخلفية مؤقتًا حتى فتح التطبيق.",
+  "@syncNotificationUnreachableBody": {
+    "description": "Background sync notification body when server is unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "المصادقة مطلوبة. افتح التطبيق لتسجيل الدخول.",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Background sync notification body when authentication fails"
+  },
+  "syncNotificationFailedTitle": "فشلت المزامنة مع {serverName}",
+  "@syncNotificationFailedTitle": {
+    "description": "Background sync notification title on error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "حدث خطأ أثناء المزامنة.",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Background sync notification body generic error fallback"
+  },
+  "syncNotificationCompleteTitle": "اكتملت المزامنة مع {serverName}",
+  "@syncNotificationCompleteTitle": {
+    "description": "Background sync notification title when sync completes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "اكتملت المزامنة.",
+  "@syncNotificationCompleteBody": {
+    "description": "Background sync notification body on completion"
+  },
+  "syncStatusConnecting": "جارٍ الاتصال بالخادم...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress status message when connecting"
+  },
+  "syncStatusConnectionLost": "تعذر الاتصال بـ {serverName}. فُقد الاتصال.",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error message when connection is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "تعذر الاتصال بـ {serverName}. فُقد الاتصال.",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync error when connection to specific server is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "جارٍ فحص الملفات على الجهاز...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress status message when scanning device files"
+  },
+  "syncStatusNoFilesFound": "لم يتم العثور على أي ملفات للمزامنة.",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync progress status message when no files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "لم يتم تحديد أي ملفات للمزامنة.",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync error message when no sync categories or folders are configured"
+  },
+  "syncStatusCalculatingChecksum": "جارٍ حساب المجموع الاختباري ({current}/{total}): {filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress status message while hashing candidates",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "جارٍ التحقق من التكرارات على الخادم...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress status message while querying server duplicates"
+  },
+  "syncStatusSyncingFile": "جارٍ المزامنة ({current}/{total}): {filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress status message while uploading files",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "جارٍ إكمال المزامنة...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress status message on finalizing sync run"
+  },
+  "showingCachedFiles": "جارٍ عرض الملفات المخزنة مؤقتًا.",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying offline cached files"
+  },
+  "showingCachedFilesRefreshFailed": "جارٍ عرض الملفات المخزنة مؤقتًا. فشل التحديث.",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when cache is shown and network refresh failed"
+  },
+  "downloadCanceled": "تم إلغاء التنزيل.",
+  "@downloadCanceled": {
+    "description": "Snackbar on download cancellation"
+  },
+  "downloadedNFilesToPath": "تم تنزيل {count} ملف إلى {path}",
+  "@downloadedNFilesToPath": {
+    "description": "Snackbar on successful file download to specific folder",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "تم تنزيل {downloaded} ملف، وفشل {failed}: {detail}",
+  "@downloadedNFilesFailedM": {
+    "description": "Snackbar on partial download failure",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "تم تنزيل {count} ملف، وفشل {failed}: {error}",
+  "@downloadedNFilesWithFailures": {
+    "description": "Snackbar on partial download failure with error",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "تم إنشاء {count} رابط مشاركة.",
+  "@createdNShareLinks": {
+    "description": "Snackbar on successful share links creation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "فشل إنشاء رابط/روابط المشاركة.",
+  "@failedToCreateShareLinks": {
+    "description": "Snackbar when share link creation fails"
+  },
+  "alreadyInSharedScope": "موجود بالفعل في النطاق المشترك.",
+  "@alreadyInSharedScope": {
+    "description": "Snackbar warning when file is already shared"
+  },
+  "sharedNItemsInServer": "تمت مشاركة {count} عنصر على الخادم.",
+  "@sharedNItemsInServer": {
+    "description": "Snackbar on sharing items in server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "تمت مشاركة {count} عنصر، وفشل {failed}.",
+  "@sharedNItemsWithFailures": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "تمت مشاركة {shared} عنصر، وفشل {failed}.",
+  "@sharedNItemsFailedM": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "لا يمكن أن يكون اسم المجلد فارغًا.",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is empty"
+  },
+  "folderAlreadyExists": "المجلد موجود بالفعل.",
+  "@folderAlreadyExists": {
+    "description": "Error when created folder name already exists"
+  },
+  "folderCreationOnlyInAllFiles": "إنشاء المجلدات متاح فقط في قسم كل الملفات.",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Snackbar when folder creation is attempted outside All Files"
+  },
+  "currentDirectoryUnavailable": "الدليل الحالي غير متاح.",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when current browsing directory is not available"
+  },
+  "nothingSelected": "لم يتم تحديد أي شيء.",
+  "@nothingSelected": {
+    "description": "Notice when batch operation is invoked with no selection"
+  },
+  "destinationFolderDoesNotExist": "مجلد الوجهة غير موجود.",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination directory is missing"
+  },
+  "cannotMoveFolderIntoItself": "لا يمكن نقل المجلد \"{name}\" إلى داخل نفسه.",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when moving a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "فشل نقل {name}: {error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a single item fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "تم نقل {count} عنصر.",
+  "@movedNItems": {
+    "description": "Snackbar on moving multiple items",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "تم نقل {count} عنصر، وفشل {failed}.",
+  "@movedNItemsWithFailures": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "تم نقل {moved} عنصر، وفشل {failed}.",
+  "@movedNItemsFailedM": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "فشل نقل العناصر المحددة.",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic failure message when moving selected items fails"
+  },
+  "noFilesWereMoved": "لم يتم نقل أي ملفات.",
+  "@noFilesWereMoved": {
+    "description": "Notice when all files in a move operation were skipped"
+  },
+  "renamedOldToNew": "تمت إعادة تسمية \"{oldName}\" إلى \"{newName}\".",
+  "@renamedOldToNew": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "تمت إعادة تسمية \"{oldName}\" إلى \"{newName}\".",
+  "@renamedFileFromTo": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "فشلت إعادة تسمية \"{name}\" ({statusCode}).",
+  "@failedToRenameWithStatus": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "فشلت إعادة تسمية \"{name}\" ({statusCode}).",
+  "@failedToRenameFileWithCode": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "فشلت إعادة تسمية \"{name}\": {error}",
+  "@failedToRenameWithError": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "فشلت إعادة تسمية \"{name}\": {error}",
+  "@failedToRenameFile": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "فشلت إعادة التسمية: يوجد ملف أو مجلد بهذا الاسم بالفعل.",
+  "@renameConflictAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "renameFailedAlreadyExists": "فشلت إعادة التسمية: يوجد ملف أو مجلد بهذا الاسم بالفعل.",
+  "@renameFailedAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "failedToCreateFolderWithCode": "فشل إنشاء المجلد ({statusCode}).",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error message when server folder creation fails with status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "تم حذف {deleted} عنصر، وفشل {failed}.",
+  "@deletedNItemsFailedM": {
+    "description": "Notice on partial batch delete failure",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}٪  {completed}/{total} ملفات",
+  "@transferSummaryFiles": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}٪  {completed}/{total}",
+  "@transferSummaryProgress": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "فشل التنزيل",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failed text"
+  },
+  "uploadedNItemsWithFailures": "تم رفع {uploaded} عنصر، وفشل {failed}",
+  "@uploadedNItemsWithFailures": {
+    "description": "Upload summary with failed item count",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "تم رفع {uploaded} عنصر، وفشل {failed}.",
+  "@uploadedNItemsFailedM": {
+    "description": "Notice on batch upload with partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": "، وفشل {count}",
+  "@uploadSummaryFailedCount": {
+    "description": "Suffix for upload summary message indicating failure count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}: المسار المحلي فارغ",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}: المسار المحلي فارغ",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "فشل رفع الدليل",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "فشل رفع الدليل",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "الملف المحلي غير موجود",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "الملف المحلي غير موجود",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "لا يوجد رمز جلسة نشط",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "لا يوجد رمز جلسة نشط",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "الخادم غير متصل",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "الخادم غير متصل",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "تعذر الوصول إلى الخادم.",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "تعذر الوصول إلى الخادم.",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "الدليل المحلي غير موجود",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "فشل فحص الدليل",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "فشل إنشاء المجلد (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "رمز الوصول مفقود في الاستجابة",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "رمز التحديث مفقود في الاستجابة",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "لا توجد بيانات اعتماد محفوظة متاحة",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "لا يوجد رمز تحديث متاح",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "لا توجد جلسة نشطة متاحة",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "لا يوجد اسم مستخدم محفوظ متاح",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "لم يتم نشر أي إصدارات بعد.",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "اللغة",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

@@ -15,6 +15,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { t } from '../stores/i18n.js';
 
   export let conflicts = [];
   export let allIds = [];
@@ -40,7 +41,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   }
 
   function formatDate(timestamp) {
-    if (!timestamp) return 'Unknown';
+    if (!timestamp) return $t('common.not_available');
     const date = new Date(typeof timestamp === 'number' && timestamp < 1e12 ? timestamp * 1000 : timestamp);
     return date.toLocaleDateString(undefined, {
       year: 'numeric',
@@ -105,20 +106,20 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <div class="conflict-title-area">
         <span class="material-symbols-outlined conflict-icon">restore_page</span>
         <div>
-          <h3 class="text-title" style="margin: 0;">File already exists</h3>
+          <h3 class="text-title" style="margin: 0;">{$t('modals.conflict.restore_title')}</h3>
           {#if isMultiConflict}
-            <span class="conflict-counter text-caption">Conflict {currentIndex + 1} of {totalConflicts}</span>
+            <span class="conflict-counter text-caption">{$t('modals.conflict.restore_subtitle', { count: totalConflicts })}</span>
           {/if}
         </div>
       </div>
-      <button class="btn-icon" on:click={handleClose} title="Cancel">
+      <button class="btn-icon" on:click={handleClose} title={$t('common.cancel')}>
         <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
       </button>
     </div>
 
     {#if currentConflict}
       <p class="conflict-description text-body">
-        A file named <strong class="file-highlight">{currentConflict.name}</strong> already exists at <strong class="file-highlight">{currentConflict.original_path || currentConflict.name}</strong>.
+        <strong class="file-highlight">{currentConflict.name}</strong>
       </p>
 
       <div class="file-comparison-grid">
@@ -126,16 +127,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <div class="comparison-card existing">
           <div class="comparison-header">
             <span class="material-symbols-outlined comp-icon">folder_open</span>
-            <span class="text-caption font-bold">Existing in folder</span>
+            <span class="text-caption font-bold">{$t('modals.conflict.existing_file', { size: formatSize(currentConflict.existing_size) })}</span>
           </div>
           <div class="comparison-details">
             <div class="detail-row">
-              <span class="text-caption text-sub">Size:</span>
+              <span class="text-caption text-sub">{$t('common.size')}:</span>
               <span class="text-caption font-medium">{formatSize(currentConflict.existing_size)}</span>
             </div>
             {#if currentConflict.existing_modified}
               <div class="detail-row">
-                <span class="text-caption text-sub">Modified:</span>
+                <span class="text-caption text-sub">{$t('common.date')}:</span>
                 <span class="text-caption font-medium">{formatDate(currentConflict.existing_modified)}</span>
               </div>
             {/if}
@@ -151,16 +152,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <div class="comparison-card incoming">
           <div class="comparison-header">
             <span class="material-symbols-outlined comp-icon">delete</span>
-            <span class="text-caption font-bold">In Trash Bin</span>
+            <span class="text-caption font-bold">{$t('modals.conflict.new_file', { size: formatSize(currentConflict.trash_size) })}</span>
           </div>
           <div class="comparison-details">
             <div class="detail-row">
-              <span class="text-caption text-sub">Size:</span>
+              <span class="text-caption text-sub">{$t('common.size')}:</span>
               <span class="text-caption font-medium">{formatSize(currentConflict.trash_size)}</span>
             </div>
             {#if currentConflict.trash_deleted_at}
               <div class="detail-row">
-                <span class="text-caption text-sub">Deleted:</span>
+                <span class="text-caption text-sub">{$t('common.date')}:</span>
                 <span class="text-caption font-medium">{formatDate(currentConflict.trash_deleted_at)}</span>
               </div>
             {/if}
@@ -171,7 +172,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       {#if isMultiConflict}
         <label class="apply-all-checkbox text-body">
           <input type="checkbox" bind:checked={applyToAll} />
-          <span>Apply to remaining {totalConflicts - currentIndex} conflict{totalConflicts - currentIndex > 1 ? 's' : ''}</span>
+          <span>{$t('modals.conflict.overwrite_all')} ({totalConflicts - currentIndex})</span>
         </label>
       {/if}
     {/if}
@@ -179,16 +180,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     <div class="conflict-actions">
       {#if isMultiConflict}
         <div class="batch-quick-actions">
-          <button class="btn btn-secondary btn-sm" on:click={handleRestoreAllCopies}>Keep All Copies</button>
-          <button class="btn btn-secondary btn-sm" on:click={handleOverwriteAll}>Overwrite All</button>
+          <button class="btn btn-secondary btn-sm" on:click={handleRestoreAllCopies}>{$t('modals.conflict.keep_both_all')}</button>
+          <button class="btn btn-secondary btn-sm" on:click={handleOverwriteAll}>{$t('modals.conflict.overwrite_all')}</button>
         </div>
       {/if}
       <div class="primary-choice-actions">
         <button class="btn btn-secondary" on:click={() => handleChoice(false)}>
-          {applyToAll ? 'Restore All as Copies' : 'Restore as Copy'}
+          {$t('modals.conflict.keep_both')}
         </button>
         <button class="btn btn-primary" on:click={() => handleChoice(true)}>
-          {applyToAll ? 'Overwrite All Remaining' : 'Overwrite'}
+          {$t('modals.conflict.overwrite')}
         </button>
       </div>
     </div>

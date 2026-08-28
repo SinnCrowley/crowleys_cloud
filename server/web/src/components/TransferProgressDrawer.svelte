@@ -15,6 +15,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <script>
   import { transfersStore } from '../stores/transfers.js';
+  import { t } from '../stores/i18n.js';
 
   const { queue, isDrawerOpen } = transfersStore;
 
@@ -45,6 +46,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     }
   }
 
+  function getStatusLabel(status) {
+    switch (status) {
+      case 'running': return $t('transfers.uploading');
+      case 'completed': return $t('transfers.completed');
+      case 'failed': return $t('transfers.failed');
+      case 'paused': return $t('transfers.paused');
+      case 'cancelled': return $t('transfers.cancelled');
+      default: return status;
+    }
+  }
+
   $: hasRunningOrQueued = $queue.some((t) => t.status === 'running' || t.status === 'queued');
   $: hasActiveTransfers = $queue.some((t) => t.status === 'running' || t.status === 'queued' || t.status === 'paused');
   $: hasCompletedOrFailed = $queue.some((t) => t.status === 'completed' || t.status === 'failed' || t.status === 'cancelled');
@@ -54,28 +66,28 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   <div class="transfer-drawer">
     <div class="drawer-header">
       <div class="drawer-title text-title">
-        Transfers Queue ({$queue.length})
+        {$t('transfers.transfers_title')} ({$queue.length})
       </div>
       <div class="drawer-controls">
         {#if hasActiveTransfers}
           <button
             class="btn-action text-caption"
             on:click={() => transfersStore.togglePauseAll()}
-            title={hasRunningOrQueued ? "Pause all transfers" : "Resume all transfers"}
+            title={hasRunningOrQueued ? $t('transfers.pause_all') : $t('transfers.resume_all')}
           >
             <span class="material-symbols-outlined" style="font-size: 16px;">
               {hasRunningOrQueued ? 'pause' : 'play_arrow'}
             </span>
-            <span>{hasRunningOrQueued ? 'Pause' : 'Resume'}</span>
+            <span>{hasRunningOrQueued ? $t('transfers.paused') : $t('transfers.resume_all')}</span>
           </button>
 
           <button
             class="btn-action btn-danger text-caption"
             on:click={() => transfersStore.cancelAll()}
-            title="Cancel all active transfers"
+            title={$t('transfers.cancel_all')}
           >
             <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
-            <span>Cancel</span>
+            <span>{$t('common.cancel')}</span>
           </button>
         {/if}
 
@@ -83,17 +95,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <button
             class="btn-action text-caption"
             on:click={() => transfersStore.clearCompleted()}
-            title="Clear finished transfers"
+            title={$t('transfers.clear_completed')}
           >
             <span class="material-symbols-outlined" style="font-size: 16px;">delete_sweep</span>
-            <span>Clear Completed</span>
+            <span>{$t('transfers.clear_completed')}</span>
           </button>
         {/if}
 
         <button
           class="btn-icon close-btn"
           on:click={() => transfersStore.toggleDrawer()}
-          title="Minimize drawer"
+          title={$t('common.close')}
         >
           <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
         </button>
@@ -119,14 +131,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
               </span>
             </div>
             <span class="status-badge {getStatusBadgeClass(item.status)} text-caption">
-              {item.status}
+              {getStatusLabel(item.status)}
             </span>
 
             <div class="item-actions">
               {#if item.status === 'running'}
                 <button
                   class="btn-icon mini-action"
-                  title="Pause transfer"
+                  title={$t('transfers.pause_transfer')}
                   on:click={() => transfersStore.pauseTransfer(item.id)}
                 >
                   <span class="material-symbols-outlined" style="font-size: 16px;">pause</span>
@@ -134,7 +146,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
               {:else if item.status === 'paused'}
                 <button
                   class="btn-icon mini-action"
-                  title="Resume transfer"
+                  title={$t('transfers.resume_transfer')}
                   on:click={() => transfersStore.resumeTransfer(item.id)}
                 >
                   <span class="material-symbols-outlined" style="font-size: 16px;">play_arrow</span>
@@ -144,7 +156,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
               {#if item.status === 'running' || item.status === 'queued' || item.status === 'paused'}
                 <button
                   class="btn-icon mini-action"
-                  title="Cancel transfer"
+                  title={$t('transfers.cancel_transfer')}
                   on:click={() => transfersStore.cancelTransfer(item.id)}
                 >
                   <span class="material-symbols-outlined" style="font-size: 16px;">close</span>

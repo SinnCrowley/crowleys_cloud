@@ -1,0 +1,2654 @@
+{
+  "@@locale": "ja",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "キャンセル",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "保存",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "削除",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "名前を変更",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "閉じる",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "再試行",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "読み込み中...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "確認",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "エラー",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "エラー: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "不明",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "アップロード",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "ダウンロード",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "共有",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "コピー",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "移動",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "復元",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "適用",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "作成",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "クリア",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "追加",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "削除",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "編集",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "切り替え",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "検索",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "名前",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "日付",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "サイズ",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "種類",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "昇順",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "降順",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "すべて",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "画像",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "写真",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "動画",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "音声",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "ドキュメント",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "アーカイブ",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "共有済み",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "その他",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "その他のファイル",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "ファイルが見つかりません。",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "このフォルダーにはファイルがありません。",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "この操作は元に戻せません。",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "パスワードが一致しません。",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "ローカル",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "サーバー",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "設定",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "ごみ箱",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "ローカル",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "サーバー",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "サーバーを追加",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "サーバーが設定されていません。",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "設定でサーバーを追加してください。",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "続行するには最初のサーバーを追加してください。",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "サーバーはまだ設定されていません。",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "Crowley's Cloud セットアップ",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "接続",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "接続中...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "接続済み",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "切断",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "サーバーを切り替え",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "他のサーバーを選択",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "サーバーを切り替えますか？",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "アクティブなサーバーを「{serverName}」に切り替えますか？",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "サーバーを選択",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "認証が必要です",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "{serverName} のファイルにアクセスするにはサインインしてください",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "パスワードでサインイン",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "生体認証を使用",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "サインインを開いています...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "サーバーへの接続に失敗しました",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "アクティブなサーバーに接続できません。",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "{serverName} に接続できません。",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "検索...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "ファイルを検索...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "サーバーのファイルを検索...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "ごみ箱を検索...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "ストレージの権限が必要です",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "権限を許可",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "権限が拒否されました。設定でストレージへのアクセスを許可してください。",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "フォルダーを参照および選択するには、すべてのファイルの管理権限が必要です。",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "同期を実行するにはストレージの権限が必要です。",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "アップデートがあります: v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "タップして更新内容を確認",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "表示",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "アップデートがあります",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "バージョン {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "現在: v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "最新: v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "更新内容:",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "GitHub",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "リリースノートはありません。",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "後で",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "APK をダウンロード",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "更新",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "共有リンク",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "リンクで共有",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "サーバーで共有",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "有効期間 (日数)",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "なし",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "1日",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "7日",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "30日",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "90日",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "180日",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "365日",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "リンクを作成",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "共有リンクをクリップボードにコピーしました！",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "共有リンクのコピーに失敗しました: {error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "この種類のファイルは共有できません。",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "共有の作成に失敗しました: {error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "フォルダーを作成",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "フォルダー名",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "新しいフォルダー",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "フォルダーを作成しました。",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "フォルダーの作成に失敗しました: {error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "フォルダーを作成中...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "名前を変更",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "新しい名前",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "新しい名前を入力",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "名前を変更しました。",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "名前の変更に失敗しました: {error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "移動先",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "移動先: {path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "ここに移動",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "移動に失敗しました: {error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "フォルダーに移動しました。",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "コピーに失敗しました: {error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "フォルダーを選択",
+  "@selectFolder": {
+    "description": "Folder picker dialog title"
+  },
+  "useThisFolder": "このフォルダーを使用",
+  "@useThisFolder": {
+    "description": "Button to confirm selected folder"
+  },
+  "storageRoot": "ストレージ",
+  "@storageRoot": {
+    "description": "Root breadcrumb label for local storage"
+  },
+  "serverRoot": "ルート",
+  "@serverRoot": {
+    "description": "Root breadcrumb label for server storage"
+  },
+  "deleteNItemsTitle": "{count} 件の項目を削除しますか？",
+  "@deleteNItemsTitle": {
+    "description": "Delete confirmation dialog title with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "ファイルを削除しますか？",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirmation dialog title"
+  },
+  "deleteFilesBody": "選択した {count} 件の項目を削除してもよろしいですか？この操作は元に戻せません。",
+  "@deleteFilesBody": {
+    "description": "Delete files confirmation body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "完全に削除",
+  "@deletePermanently": {
+    "description": "Delete permanently action button"
+  },
+  "deletePermanentlyTitle": "完全に削除しますか？",
+  "@deletePermanentlyTitle": {
+    "description": "Delete permanently confirmation title"
+  },
+  "deletePermanentlyBody": "「{filename}」は完全に削除されます。",
+  "@deletePermanentlyBody": {
+    "description": "Delete permanently confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "ファイルを削除しますか？",
+  "@deleteFileTitle": {
+    "description": "Delete single file confirmation title"
+  },
+  "deleteFileBody": "「{filename}」を削除してもよろしいですか？この操作は元に戻せません。",
+  "@deleteFileBody": {
+    "description": "Delete single file confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "完全に削除",
+  "@deleteServerFileTitle": {
+    "description": "Delete server file confirmation title"
+  },
+  "deleteServerFileBody": "「{filename}」を完全に削除してもよろしいですか？この操作は元に戻せません。",
+  "@deleteServerFileBody": {
+    "description": "Delete server file confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "項目の共有を解除しますか？",
+  "@unshareItemsTitle": {
+    "description": "Unshare items dialog title"
+  },
+  "unshareItemsBody": "選択した {count} 件の項目の共有を解除してもよろしいですか？共有フォルダーから削除されます。",
+  "@unshareItemsBody": {
+    "description": "Unshare items dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "共有を解除",
+  "@unshare": {
+    "description": "Unshare action button"
+  },
+  "moveToTrash": "ごみ箱に移動",
+  "@moveToTrash": {
+    "description": "Move to trash action button"
+  },
+  "movedToTrash": "ごみ箱に移動しました。",
+  "@movedToTrash": {
+    "description": "Snackbar when single item moved to trash"
+  },
+  "movedNItemsToTrash": "{count} 件の項目をごみ箱に移動しました。",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar when multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "ごみ箱への移動に失敗しました: {error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move to trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "{count} 件の項目を削除しました。",
+  "@deletedNItems": {
+    "description": "Snackbar when items are deleted",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "削除に失敗しました: {error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "削除に失敗しました: {error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on single item delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "「{filename}」を削除しました。",
+  "@deletedFilename": {
+    "description": "Snackbar on single file deletion",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "ファイルを開けませんでした",
+  "@failedToOpenFile": {
+    "description": "Snackbar when opening a file fails"
+  },
+  "fileDownloadFailed": "ダウンロードに失敗しました: {error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "ダウンロード中...",
+  "@downloading": {
+    "description": "Download progress indicator"
+  },
+  "downloadingFile": "ファイルをダウンロード中...",
+  "@downloadingFile": {
+    "description": "Download progress indicator with text"
+  },
+  "downloadComplete": "ダウンロードが完了しました: {filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download complete",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "ダウンロードに失敗しました: {error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "プレビューをダウンロードできませんでした",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar on preview download failure"
+  },
+  "uploadComplete": "アップロードが完了しました: {filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload complete",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "アップロードに失敗しました: {error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "ファイルを選択できませんでした",
+  "@failedToPickFiles": {
+    "description": "Snackbar on file picker failure"
+  },
+  "uploadedNItems": "{count} 件のファイルをアップロードしました",
+  "@uploadedNItems": {
+    "description": "Snackbar when multiple items uploaded",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "リンクをクリップボードにコピーしました。",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on copy link success"
+  },
+  "failedToCopyLink": "リンクのコピーに失敗しました: {error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on copy link failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "すべて選択中...",
+  "@selectingAll": {
+    "description": "Progress state while selecting all files"
+  },
+  "allItemsSelected": "すべての項目を選択しました。",
+  "@allItemsSelected": {
+    "description": "Snackbar when all files are selected"
+  },
+  "failedToLoadSearchResults": "検索結果の読み込みに失敗しました",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar when search fails"
+  },
+  "shareNotSupportedForType": "この種類のファイルは共有に対応していません。",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar when file type cannot be shared"
+  },
+  "nSelected": "{count} 件選択中",
+  "@nSelected": {
+    "description": "Selection counter in app bar",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "サーバーが選択されていません",
+  "@noServerSelected": {
+    "description": "Error banner when no server is chosen"
+  },
+  "pleaseConnectToServerFirst": "最初にサーバーへ接続してください。",
+  "@pleaseConnectToServerFirst": {
+    "description": "Error banner subtitle"
+  },
+  "signInRequired": "サインインが必要です",
+  "@signInRequired": {
+    "description": "Sign-in prompt title"
+  },
+  "pleaseSignInToServer": "最初に {serverName} へサインインしてください。",
+  "@pleaseSignInToServer": {
+    "description": "Sign-in prompt subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "サーバーに接続中...",
+  "@connectingToServer": {
+    "description": "Loading state during connection"
+  },
+  "connectedToServer": "{serverName} に接続しました。",
+  "@connectedToServer": {
+    "description": "Snackbar on successful server connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "接続に失敗しました: {error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "接続できませんでした: {error}",
+  "@failedToConnect": {
+    "description": "Snackbar on failed connection attempt",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "認証に失敗しました: {error}",
+  "@authFailed": {
+    "description": "Snackbar on auth failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "認証に失敗しました。もう一度お試しください。",
+  "@authFailedGeneric": {
+    "description": "Snackbar on generic auth failure"
+  },
+  "biometricLoginFailed": "生体認証ログインに失敗しました: {error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "生体認証ログインに失敗しました。",
+  "@biometricLoginFailedGeneric": {
+    "description": "Snackbar on generic biometric failure"
+  },
+  "noServerSessionToken": "セッショントークンがありません。サーバーで再認証してください。",
+  "@noServerSessionToken": {
+    "description": "Error when session token is missing"
+  },
+  "failedToSaveServer": "サーバーの保存に失敗しました: {error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on save server failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "フォルダーに追加",
+  "@addToFolder": {
+    "description": "Button to add files to current folder"
+  },
+  "loginTabLabel": "ログイン",
+  "@loginTabLabel": {
+    "description": "Auth screen tab: login"
+  },
+  "registerTabLabel": "アカウント登録",
+  "@registerTabLabel": {
+    "description": "Auth screen tab: register"
+  },
+  "welcomeBack": "おかえりなさい",
+  "@welcomeBack": {
+    "description": "Auth screen card title for login"
+  },
+  "signInToContinue": "続行するにはログインしてください",
+  "@signInToContinue": {
+    "description": "Auth screen card subtitle for login"
+  },
+  "createAccount": "アカウントを作成",
+  "@createAccount": {
+    "description": "Auth screen card title for register"
+  },
+  "joinTheServer": "サーバーに参加",
+  "@joinTheServer": {
+    "description": "Auth screen card subtitle for register"
+  },
+  "usernameLabel": "ユーザー名",
+  "@usernameLabel": {
+    "description": "Username field label"
+  },
+  "usernameHint": "ユーザー名を入力",
+  "@usernameHint": {
+    "description": "Username field hint"
+  },
+  "passwordLabel": "パスワード",
+  "@passwordLabel": {
+    "description": "Password field label"
+  },
+  "passwordHint": "パスワードを入力",
+  "@passwordHint": {
+    "description": "Password field hint"
+  },
+  "showPassword": "パスワードを表示",
+  "@showPassword": {
+    "description": "Tooltip for show password icon"
+  },
+  "hidePassword": "パスワードを非表示",
+  "@hidePassword": {
+    "description": "Tooltip for hide password icon"
+  },
+  "confirmPassword": "パスワードを確認",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "ログイン",
+  "@logIn": {
+    "description": "Log In submit button"
+  },
+  "loggingIn": "ログイン中...",
+  "@loggingIn": {
+    "description": "Log In button loading state"
+  },
+  "registering": "登録中...",
+  "@registering": {
+    "description": "Register button loading state"
+  },
+  "forgotPassword": "パスワードをお忘れですか？",
+  "@forgotPassword": {
+    "description": "Forgot password link button"
+  },
+  "doNotHaveAccount": "アカウントをお持ちでないですか？登録に切り替え。",
+  "@doNotHaveAccount": {
+    "description": "Switch to register tab hint"
+  },
+  "alreadyHaveAccount": "既にアカウントをお持ちですか？ログインに切り替え。",
+  "@alreadyHaveAccount": {
+    "description": "Switch to login tab hint"
+  },
+  "usernameCannotBeEmpty": "ユーザー名を入力してください。",
+  "@usernameCannotBeEmpty": {
+    "description": "Username validation error"
+  },
+  "passwordCannotBeEmpty": "パスワードを入力してください。",
+  "@passwordCannotBeEmpty": {
+    "description": "Password validation error"
+  },
+  "usernameInvalid": "ユーザー名は3〜32文字の英数字、_、-で指定してください。",
+  "@usernameInvalid": {
+    "description": "Username regex validation error"
+  },
+  "passwordTooShort": "パスワードは8文字以上である必要があります。",
+  "@passwordTooShort": {
+    "description": "Password length validation error"
+  },
+  "loginFailed": "ログインに失敗しました: {error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "アカウント登録に失敗しました: {error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "パスワードを再設定",
+  "@resetPasswordTitle": {
+    "description": "Reset password dialog/screen title"
+  },
+  "enterResetCodeTitle": "再設定コードを入力",
+  "@enterResetCodeTitle": {
+    "description": "Reset password step 2 title"
+  },
+  "resetPasswordStep1Body": "ユーザー名を入力してください。6桁の確認コードがサーバーログ/コンソールに出力されます。",
+  "@resetPasswordStep1Body": {
+    "description": "Reset password step 1 instructions"
+  },
+  "resetPasswordStep2Body": "確認コードがサーバーコンソールに出力されました。6桁のコードと新しいパスワードを入力してください。",
+  "@resetPasswordStep2Body": {
+    "description": "Reset password step 2 instructions"
+  },
+  "resetCodeLabel": "再設定コード",
+  "@resetCodeLabel": {
+    "description": "Reset code text field label"
+  },
+  "resetCodeHint": "6桁のコードを入力",
+  "@resetCodeHint": {
+    "description": "Reset code text field hint"
+  },
+  "newPasswordLabel": "新しいパスワード",
+  "@newPasswordLabel": {
+    "description": "New password text field label"
+  },
+  "newPasswordHint": "新しいパスワードを入力",
+  "@newPasswordHint": {
+    "description": "New password text field hint"
+  },
+  "passwordResetSuccessfully": "パスワードを再設定しました！",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "ユーザー名は必須です。",
+  "@usernameIsRequired": {
+    "description": "Validation: username is required for reset"
+  },
+  "codeAndPasswordRequired": "コードと新しいパスワードの両方が必要です。",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "再設定の要求に失敗しました。サーバー URL を確認してください。",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request error"
+  },
+  "failedToResetPassword": "パスワードの再設定に失敗しました。コードを確認してください。",
+  "@failedToResetPassword": {
+    "description": "Snackbar on password reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "最初にサーバー URL を入力してください。",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Validation: server URL needed before reset"
+  },
+  "sendCode": "コードを送信",
+  "@sendCode": {
+    "description": "Button to request reset code"
+  },
+  "settingsTitle": "設定",
+  "@settingsTitle": {
+    "description": "AppBar title for settings screen"
+  },
+  "sectionBackupSync": "バックアップと同期",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "ストレージとキャッシュ",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "セキュリティと動作",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security"
+  },
+  "sectionAboutUpdates": "情報とアップデート",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "外観とカスタマイズ",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "サーバーが設定されていません",
+  "@noServersConfiguredSync": {
+    "description": "Sync settings subtitle when no servers"
+  },
+  "addServerBeforeSync": "同期を設定する前にサーバーを追加してください。",
+  "@addServerBeforeSync": {
+    "description": "Sync settings prompt when no servers"
+  },
+  "selectServerToConfigureSync": "同期を設定するサーバーを選択してください。",
+  "@selectServerToConfigureSync": {
+    "description": "Sync settings server selector subtitle"
+  },
+  "activeServerSuffix": " · アクティブ",
+  "@activeServerSuffix": {
+    "description": "Suffix for active server in sync selector"
+  },
+  "folderAndCategorySync": "フォルダーとカテゴリーの同期",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle tile title"
+  },
+  "keepCategoriesSynced": "選択したローカルカテゴリーまたはフォルダーをこのサーバーと同期させます。",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle tile subtitle"
+  },
+  "addServerBeforeSyncEnable": "同期を有効にする前にサーバーを追加してください。",
+  "@addServerBeforeSyncEnable": {
+    "description": "Snackbar when enabling sync with no server"
+  },
+  "onlyOnWifi": "Wi-Fi 接続時のみ",
+  "@onlyOnWifi": {
+    "description": "Sync constraint switch label"
+  },
+  "onlyWhileCharging": "充電中のみ",
+  "@onlyWhileCharging": {
+    "description": "Sync constraint switch label"
+  },
+  "serverTargetDirectory": "サーバーの保存先ディレクトリ",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory tile title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Sync target directory text field hint"
+  },
+  "synchronizationFrequency": "同期頻度",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency tile title"
+  },
+  "syncNow": "今すぐ同期",
+  "@syncNow": {
+    "description": "Sync now action button"
+  },
+  "syncing": "同期中...",
+  "@syncing": {
+    "description": "Syncing state label"
+  },
+  "categoriesToSynchronize": "同期するカテゴリー",
+  "@categoriesToSynchronize": {
+    "description": "Category sync selector tile title"
+  },
+  "noCategoriesSelected": "カテゴリーが選択されていません。",
+  "@noCategoriesSelected": {
+    "description": "Category sync subtitle when none selected"
+  },
+  "nCategoriesSelected": "{count} 件を選択",
+  "@nCategoriesSelected": {
+    "description": "Category sync subtitle with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "同期するフォルダー",
+  "@foldersToSynchronize": {
+    "description": "Folder sync selector tile title"
+  },
+  "noCustomFolders": "カスタムフォルダーが設定されていません。",
+  "@noCustomFolders": {
+    "description": "Folder sync subtitle when none configured"
+  },
+  "nFolders": "{count} 個のフォルダー",
+  "@nFolders": {
+    "description": "Folder sync subtitle with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "フォルダーを追加",
+  "@addFolder": {
+    "description": "Button to add a folder to sync"
+  },
+  "removeFolder": "フォルダーを削除",
+  "@removeFolder": {
+    "description": "Tooltip to remove a folder from sync"
+  },
+  "removeServer": "サーバーを削除",
+  "@removeServer": {
+    "description": "Button to remove a server configuration"
+  },
+  "syncFreqEvery15Min": "15分ごと",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: 15 minutes"
+  },
+  "syncFreqEvery30Min": "30分ごと",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: 30 minutes"
+  },
+  "syncFreqEvery1Hour": "1時間ごと",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: 1 hour"
+  },
+  "syncFreqEveryNHours": "{hours} 時間ごと",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency option: N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "{minutes} 分ごと",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency option: N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "毎日",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "同期頻度を選択",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency dialog title"
+  },
+  "cacheSize": "キャッシュサイズ",
+  "@cacheSize": {
+    "description": "Cache size tile title"
+  },
+  "refreshTooltip": "更新",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh cache button"
+  },
+  "cacheLimit": "キャッシュ上限",
+  "@cacheLimit": {
+    "description": "Cache limit tile title"
+  },
+  "downloadPath": "ダウンロード保存先",
+  "@downloadPath": {
+    "description": "Download path tile title"
+  },
+  "defaultDownloadFolder": "既定の CrowleysCloud フォルダー",
+  "@defaultDownloadFolder": {
+    "description": "Download path subtitle when using default"
+  },
+  "clearCache": "キャッシュを消去",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "キャッシュを消去しますか？",
+  "@clearCacheTitle": {
+    "description": "Clear cache dialog title"
+  },
+  "clearCacheBody": "ローカルのサムネイルとキャッシュされたサーバー一覧を削除します。",
+  "@clearCacheBody": {
+    "description": "Clear cache dialog body"
+  },
+  "downloadPathDialogTitle": "ダウンロード保存先",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path dialog text field hint"
+  },
+  "useDefault": "既定値を使用",
+  "@useDefault": {
+    "description": "Button to reset download path to default"
+  },
+  "serverTargetDirDialogTitle": "サーバーの保存先ディレクトリ",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "ログインを要求",
+  "@requireLogin": {
+    "description": "Require login setting tile title"
+  },
+  "biometricLogin": "生体認証ログイン",
+  "@biometricLogin": {
+    "description": "Biometric login switch tile title"
+  },
+  "biometricLoginSubtitle": "生体認証による保存された認証情報でのログインを許可します。",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login switch tile subtitle"
+  },
+  "biometricsNotAvailable": "このデバイスでは生体認証を利用できません。",
+  "@biometricsNotAvailable": {
+    "description": "Biometrics unavailable subtitle"
+  },
+  "showHiddenFiles": "隠しファイルを表示",
+  "@showHiddenFiles": {
+    "description": "Show hidden files tile title"
+  },
+  "showHiddenFilesSubtitle": "ドットで始まるファイルやフォルダーを表示します。",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files tile subtitle"
+  },
+  "changePassword": "パスワードを変更",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "{serverName} のパスワードを変更します。",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle with server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "パスワードを変更する前にサーバーを追加してください。",
+  "@addServerBeforeChangePassword": {
+    "description": "Change password subtitle when no server"
+  },
+  "deleteUserAccount": "ユーザーアカウントを削除",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "ユーザーとすべてのプライベートクラウドファイルを削除します。",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "アカウントを削除しますか？",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirmation dialog title"
+  },
+  "deleteAccountBody": "{serverName} 上のアカウントを完全に削除し、プライベートクラウドフォルダーに保存されているすべてのファイルを削除します。この操作は元に戻せません。",
+  "@deleteAccountBody": {
+    "description": "Delete account confirmation body with server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "アカウントを削除",
+  "@deleteAccountButton": {
+    "description": "Delete account action button label"
+  },
+  "changePasswordDialogTitle": "パスワードを変更",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "新しいパスワード",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "パスワードの確認",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "新しいパスワードを入力してください。",
+  "@enterNewPassword": {
+    "description": "Change password instructions"
+  },
+  "passwordUpdated": "パスワードを更新しました。",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "パスワードの変更に失敗しました: {error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "パスワードの変更に失敗しました。",
+  "@passwordChangeFailedGeneric": {
+    "description": "Snackbar on generic password change failure"
+  },
+  "accountDeleted": "アカウントを削除しました。",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "アカウントの削除に失敗しました: {error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "アカウントの削除に失敗しました。",
+  "@accountDeletionFailedGeneric": {
+    "description": "Snackbar on generic account deletion failure"
+  },
+  "checkForUpdates": "アップデートを確認",
+  "@checkForUpdates": {
+    "description": "Check for updates tile title"
+  },
+  "checkingForUpdates": "GitHub リリースを確認中...",
+  "@checkingForUpdates": {
+    "description": "Check for updates subtitle while querying"
+  },
+  "versionLabel": "バージョン {version}",
+  "@versionLabel": {
+    "description": "Version display in about section",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "Crowley's Cloud は最新です (v{version})。",
+  "@appIsUpToDate": {
+    "description": "Update check result: app is current",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "アップデートの確認に失敗しました。後でもう一度お試しください。",
+  "@updateCheckFailed": {
+    "description": "Update check result: failure"
+  },
+  "themeModeTitle": "テーマモード",
+  "@themeModeTitle": {
+    "description": "Theme mode selector title"
+  },
+  "themeDark": "ダーク",
+  "@themeDark": {
+    "description": "Theme option: dark"
+  },
+  "themeLight": "ライト",
+  "@themeLight": {
+    "description": "Theme option: light"
+  },
+  "themeCustom": "カスタム",
+  "@themeCustom": {
+    "description": "Theme option: custom"
+  },
+  "themeDarkFull": "ダークテーマ",
+  "@themeDarkFull": {
+    "description": "Theme option long: dark theme"
+  },
+  "themeLightFull": "ライトテーマ",
+  "@themeLightFull": {
+    "description": "Theme option long: light theme"
+  },
+  "themeCustomFull": "カスタムテーマ",
+  "@themeCustomFull": {
+    "description": "Theme option long: custom theme"
+  },
+  "accentColor": "アクセントカラー",
+  "@accentColor": {
+    "description": "Accent color setting label"
+  },
+  "primaryAccentColor": "メインアクセントカラー",
+  "@primaryAccentColor": {
+    "description": "Primary accent color tile title"
+  },
+  "selectAccentColor": "アクセントカラーを選択",
+  "@selectAccentColor": {
+    "description": "Select accent color dialog title"
+  },
+  "backgroundColor": "背景色",
+  "@backgroundColor": {
+    "description": "Custom theme: background color"
+  },
+  "surfaceColor": "サーフェス色",
+  "@surfaceColor": {
+    "description": "Custom theme: surface color"
+  },
+  "textColor": "テキスト色",
+  "@textColor": {
+    "description": "Custom theme: text color"
+  },
+  "subtextColor": "サブテキスト色",
+  "@subtextColor": {
+    "description": "Custom theme: subtext color"
+  },
+  "borderColor": "ボーダー色",
+  "@borderColor": {
+    "description": "Custom theme: border color"
+  },
+  "fontSizeScale": "フォントサイズ倍率",
+  "@fontSizeScale": {
+    "description": "Font size scale setting label"
+  },
+  "selectColor": "{title} を選択",
+  "@selectColor": {
+    "description": "Color picker dialog title with slot name",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "同期するカテゴリー",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Categories to sync dialog title"
+  },
+  "categoriesToSyncBody": "1つ以上のカテゴリーを選択してください。すべて解除することもできます。",
+  "@categoriesToSyncBody": {
+    "description": "Categories to sync dialog body"
+  },
+  "syncCategorySectionMedia": "メディア",
+  "@syncCategorySectionMedia": {
+    "description": "Category section header: media"
+  },
+  "syncCategorySectionAudioDocs": "音声とドキュメント",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Category section header: audio & documents"
+  },
+  "syncCategorySectionOther": "その他",
+  "@syncCategorySectionOther": {
+    "description": "Category section header: other"
+  },
+  "clearAll": "すべてクリア",
+  "@clearAll": {
+    "description": "Clear all button in sync categories dialog"
+  },
+  "noSyncHasRunYet": "同期はまだ実行されていません。",
+  "@noSyncHasRunYet": {
+    "description": "Last sync status when never run"
+  },
+  "lastRunAt": "最終実行日時: {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "{uploaded} 件を同期し、{skipped} 件をスキップしました。",
+  "@syncResultSuccess": {
+    "description": "Sync outcome: success summary",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "同期するファイルが選択されていません。",
+  "@syncResultNoFiles": {
+    "description": "Sync outcome: no files selected"
+  },
+  "syncResultPartial": "{uploaded} 件を同期し、{failed} 件が失敗しました。",
+  "@syncResultPartial": {
+    "description": "Sync outcome: partial success summary",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "同期する前にサインインしてください。",
+  "@syncResultAuthRequired": {
+    "description": "Sync outcome: auth required"
+  },
+  "syncResultUnreachable": "サーバーに接続できません。接続が切断されました。",
+  "@syncResultUnreachable": {
+    "description": "Sync outcome: server unreachable"
+  },
+  "syncResultFailed": "同期に失敗しました。",
+  "@syncResultFailed": {
+    "description": "Sync outcome: generic failure"
+  },
+  "serverSetupAddServer": "サーバーを追加",
+  "@serverSetupAddServer": {
+    "description": "Title for the Add Server setup flow"
+  },
+  "serverSetupCardTitle": "サーバーに接続",
+  "@serverSetupCardTitle": {
+    "description": "Card title on server setup page"
+  },
+  "serverSetupCardSubtitle": "自宅のファイルサーバーを追加してサインインしてください。",
+  "@serverSetupCardSubtitle": {
+    "description": "Card subtitle on server setup page"
+  },
+  "serverSetupSubmitButton": "サーバーを保存",
+  "@serverSetupSubmitButton": {
+    "description": "Save server submit button"
+  },
+  "serverNameLabel": "サーバー名",
+  "@serverNameLabel": {
+    "description": "Server name input label"
+  },
+  "serverNameHint": "自宅の NAS",
+  "@serverNameHint": {
+    "description": "Server name placeholder hint"
+  },
+  "baseUrlLabel": "ベース URL",
+  "@baseUrlLabel": {
+    "description": "Server base URL input label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Server base URL placeholder hint"
+  },
+  "allFieldsRequired": "すべての項目を入力してください。",
+  "@allFieldsRequired": {
+    "description": "Validation message when required fields are empty"
+  },
+  "localFilesTitle": "ローカルファイル",
+  "@localFilesTitle": {
+    "description": "AppBar title for local files browser"
+  },
+  "serverFilesTitle": "サーバーファイル",
+  "@serverFilesTitle": {
+    "description": "AppBar title for server files browser"
+  },
+  "restoreItemsTitle": "項目を復元",
+  "@restoreItemsTitle": {
+    "description": "Restore confirmation dialog title"
+  },
+  "restoreItemsBody": "{count} 件の項目を復元してもよろしいですか？",
+  "@restoreItemsBody": {
+    "description": "Restore confirmation dialog body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "完全に削除",
+  "@permanentlyDeleteTitle": {
+    "description": "Permanent delete dialog title"
+  },
+  "permanentlyDeleteBody": "{count} 件の項目を完全に削除してもよろしいですか？この操作は元に戻せません。",
+  "@permanentlyDeleteBody": {
+    "description": "Permanent delete dialog body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "ごみ箱は空です。",
+  "@trashIsEmpty": {
+    "description": "Empty state message for trash screen"
+  },
+  "trashRetentionInfo": "ごみ箱内の項目は {days} 日後に自動的に削除されます。",
+  "@trashRetentionInfo": {
+    "description": "Info message about trash retention policy",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "削除日",
+  "@deletionDate": {
+    "description": "Column header / label for deletion timestamp"
+  },
+  "deletePermanentlyAction": "完全に削除",
+  "@deletePermanentlyAction": {
+    "description": "Action sheet option to delete permanently"
+  },
+  "conflictFileAlreadyExists": "ファイルが既に存在します",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "競合 {current} / {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog counter badge",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "「",
+  "@conflictAFileNamed": {
+    "description": "Prefix text in conflict dialog"
+  },
+  "conflictAlreadyExistsAt": "」というファイルは既に次の場所に存在します: ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Middle text in conflict dialog between name and path"
+  },
+  "conflictAlreadyExistsInFolder": "」というファイルはこのフォルダーに既に存在します。",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Suffix text in conflict dialog when path is not displayed"
+  },
+  "conflictInFolder": "フォルダー内",
+  "@conflictInFolder": {
+    "description": "Conflict dialog badge for existing file"
+  },
+  "conflictFromTrash": "ごみ箱から",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog badge for restoring file"
+  },
+  "conflictExisting": "既存のファイル",
+  "@conflictExisting": {
+    "description": "Conflict dialog badge for existing item"
+  },
+  "conflictNewUpload": "新規アップロード",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog badge for incoming upload"
+  },
+  "conflictSizeLabel": "サイズ: {size}",
+  "@conflictSizeLabel": {
+    "description": "File size label in conflict card",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "日付: {date}",
+  "@conflictDateLabel": {
+    "description": "File date label in conflict card",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "削除日時: {date}",
+  "@conflictDeletedLabel": {
+    "description": "File deletion date label in conflict card",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "残りの {count} 件の競合に適用",
+  "@conflictApplyToRemaining": {
+    "description": "Checkbox to apply conflict decision to remaining",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "すべてのコピーを保持",
+  "@conflictKeepAllCopies": {
+    "description": "Batch button to keep copies for all conflicts"
+  },
+  "conflictOverwriteAll": "すべて上書き",
+  "@conflictOverwriteAll": {
+    "description": "Batch button to overwrite all conflicts"
+  },
+  "conflictRestoreAllAsCopies": "すべてコピーとして復元",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Batch button to restore all as copies"
+  },
+  "conflictRestoreAsCopy": "コピーとして復元",
+  "@conflictRestoreAsCopy": {
+    "description": "Single-item button to restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "残りをすべて上書き",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Button to overwrite all remaining conflicts"
+  },
+  "conflictSkipAll": "すべてスキップ",
+  "@conflictSkipAll": {
+    "description": "Button to skip all conflicts"
+  },
+  "conflictSkipAllRemaining": "残りをすべてスキップ",
+  "@conflictSkipAllRemaining": {
+    "description": "Button to skip all remaining conflicts"
+  },
+  "conflictSkip": "スキップ",
+  "@conflictSkip": {
+    "description": "Button to skip single conflict"
+  },
+  "conflictOverwrite": "上書き",
+  "@conflictOverwrite": {
+    "description": "Button to overwrite single file"
+  },
+  "transfersTitle": "転送",
+  "@transfersTitle": {
+    "description": "AppBar title for transfers screen"
+  },
+  "transferResume": "再開",
+  "@transferResume": {
+    "description": "Action to resume paused transfer"
+  },
+  "transferPause": "一時停止",
+  "@transferPause": {
+    "description": "Action to pause running transfer"
+  },
+  "transferCancel": "キャンセル",
+  "@transferCancel": {
+    "description": "Action to cancel transfer"
+  },
+  "transferResumeAll": "すべて再開",
+  "@transferResumeAll": {
+    "description": "Action to resume all transfers"
+  },
+  "transferPauseAll": "すべて一時停止",
+  "@transferPauseAll": {
+    "description": "Action to pause all transfers"
+  },
+  "transferCancelAll": "すべてキャンセル",
+  "@transferCancelAll": {
+    "description": "Action to cancel all transfers"
+  },
+  "transferCancelFile": "ファイルをキャンセル",
+  "@transferCancelFile": {
+    "description": "Action to cancel single file transfer"
+  },
+  "noTransfers": "転送はありません。",
+  "@noTransfers": {
+    "description": "Empty state when no transfers exist"
+  },
+  "transferStatusQueued": "待機中",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "実行中",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "一時停止中",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "完了",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "失敗",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "キャンセル済み",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "プリセット",
+  "@themePresetsSection": {
+    "description": "Header for theme presets section"
+  },
+  "themeCustomPaletteSection": "カスタムパレット",
+  "@themeCustomPaletteSection": {
+    "description": "Header for custom color palette section"
+  },
+  "themeHexRgbLabel": "HEX RGB コード",
+  "@themeHexRgbLabel": {
+    "description": "Color picker HEX input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Color picker HEX input placeholder"
+  },
+  "imageViewerNoFetchHandler": "画像取得ハンドラーが設定されていません",
+  "@imageViewerNoFetchHandler": {
+    "description": "Error when image viewer lacks network/local fetch handler"
+  },
+  "imageViewerFailedToLoad": "画像の読み込みに失敗しました",
+  "@imageViewerFailedToLoad": {
+    "description": "Error when image fails to load in viewer"
+  },
+  "errorDeletingFile": "「{filename}」の削除に失敗しました: {error}",
+  "@errorDeletingFile": {
+    "description": "Error message when file deletion fails in viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "ファイルの読み取りに失敗しました: {error}",
+  "@errorReadingFile": {
+    "description": "Error message when text file read fails in viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "バックグラウンド同期",
+  "@syncChannelName": {
+    "description": "Notification channel name for background file synchronization"
+  },
+  "syncChannelDescription": "バックグラウンドでのファイル同期状態を表示します。",
+  "@syncChannelDescription": {
+    "description": "Notification channel description for background sync"
+  },
+  "storageStatsTitle": "ストレージ統計",
+  "@storageStatsTitle": {
+    "description": "Title for storage statistics card/section"
+  },
+  "storageStatsUsedSpace": "使用容量",
+  "@storageStatsUsedSpace": {
+    "description": "Label for used storage space"
+  },
+  "storageStatsTotalFiles": "総ファイル数",
+  "@storageStatsTotalFiles": {
+    "description": "Label for total file count in storage stats"
+  },
+  "storageStatsNItems": "{count} 件の項目",
+  "@storageStatsNItems": {
+    "description": "File count display in storage stats",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "ユーザー #{userId}",
+  "@userFallback": {
+    "description": "Fallback display name when username is empty",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "Crowley's Cloud に保存された認証情報を解除するには生体認証を行ってください。",
+  "@biometricUnlockReason": {
+    "description": "Localized reason string presented in system biometric prompt"
+  },
+  "tokenLifetimeEveryOpen": "アプリを開くたび",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime setting option: re-authenticate on every app launch"
+  },
+  "tokenLifetimeOneHour": "1時間後",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime setting option: 1 hour"
+  },
+  "tokenLifetime1Hour": "1時間後",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime setting option: 1 hour (compact)"
+  },
+  "tokenLifetimeOneDay": "1日後",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime setting option: 1 day"
+  },
+  "tokenLifetime1Day": "1日後",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime setting option: 1 day (compact)"
+  },
+  "tokenLifetimeOneWeek": "1週間後",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime setting option: 1 week"
+  },
+  "tokenLifetime1Week": "1週間後",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime setting option: 1 week (compact)"
+  },
+  "tokenLifetimeOneMonth": "1か月後",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime setting option: 1 month"
+  },
+  "tokenLifetime1Month": "1か月後",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime setting option: 1 month (compact)"
+  },
+  "tokenLifetimeThreeMonths": "3か月後",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime setting option: 3 months"
+  },
+  "tokenLifetime3Months": "3か月後",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime setting option: 3 months (compact)"
+  },
+  "tokenLifetimeNever": "このデバイスでは無期限",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime setting option: never expire"
+  },
+  "cacheLimitUnlimited": "無制限",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit setting option: no limit"
+  },
+  "syncCategoryOtherFiles": "その他のファイル",
+  "@syncCategoryOtherFiles": {
+    "description": "Category name for other/uncategorized files in sync settings"
+  },
+  "internalStorage": "内部ストレージ",
+  "@internalStorage": {
+    "description": "Display name for device internal storage root"
+  },
+  "localStorageRootName": "内部ストレージ",
+  "@localStorageRootName": {
+    "description": "Display name for local root breadcrumb when path is empty"
+  },
+  "syncNotificationSyncingWith": "{serverName} と同期中",
+  "@syncNotificationSyncingWith": {
+    "description": "Notification content text when sync is actively running",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "{serverName} との同期を一時停止しました",
+  "@syncNotificationPausedTitle": {
+    "description": "Notification title when sync is paused due to constraints",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "サーバーに接続できません。アプリを開くまでバックグラウンド同期を一時停止します。",
+  "@syncNotificationUnreachableBody": {
+    "description": "Notification body when sync paused due to network/server unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "認証が必要です。アプリを開いてサインインしてください。",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Notification body when sync paused due to expired credentials"
+  },
+  "syncNotificationFailedTitle": "{serverName} との同期に失敗しました",
+  "@syncNotificationFailedTitle": {
+    "description": "Notification title when sync fails with an error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "同期中にエラーが発生しました。",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Notification body for generic sync error"
+  },
+  "syncNotificationCompleteTitle": "{serverName} との同期が完了しました",
+  "@syncNotificationCompleteTitle": {
+    "description": "Notification title when background sync finishes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "同期が完了しました。",
+  "@syncNotificationCompleteBody": {
+    "description": "Notification body for successful sync completion"
+  },
+  "syncStatusConnecting": "サーバーに接続中...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress step: connecting to server"
+  },
+  "syncStatusConnectionLost": "{serverName} に接続できませんでした。接続が切断されました。",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error: connection lost with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "{serverName} に接続できませんでした。接続が切断されました。",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync result error: server unreachable with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "デバイス上のファイルをスキャン中...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress step: scanning local filesystem"
+  },
+  "syncStatusNoFilesFound": "同期するファイルが見つかりませんでした。",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync status: no local files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "同期するファイルが選択されていません。",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync status: no categories or folders selected"
+  },
+  "syncStatusCalculatingChecksum": "チェックサムを計算中 ({current}/{total}): {filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress step: hashing local file for change detection",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "サーバー上の重複ファイルを確認中...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress step: checking file index on server"
+  },
+  "syncStatusSyncingFile": "同期中 ({current}/{total}): {filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress step: uploading single file",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "同期を完了しています...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress step: finalizing batch"
+  },
+  "showingCachedFiles": "キャッシュされたファイルを表示しています。",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying cached file listing offline"
+  },
+  "showingCachedFilesRefreshFailed": "キャッシュされたファイルを表示しています。更新に失敗しました。",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when server refresh fails and cached listing is shown"
+  },
+  "downloadCanceled": "ダウンロードをキャンセルしました。",
+  "@downloadCanceled": {
+    "description": "Snackbar notification when a file download is canceled"
+  },
+  "downloadedNFilesToPath": "{path} に {count} 件のファイルをダウンロードしました",
+  "@downloadedNFilesToPath": {
+    "description": "Notification when multiple files are downloaded successfully to a path",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "{downloaded} 件のファイルをダウンロードしました（{failed} 件失敗: {detail}）",
+  "@downloadedNFilesFailedM": {
+    "description": "Notification when some batch downloads succeeded and some failed",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "{count} 件のファイルをダウンロードしました（{failed} 件失敗: {error}）",
+  "@downloadedNFilesWithFailures": {
+    "description": "Notification when some batch downloads failed with an error message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "{count} 件の共有リンクを作成しました。",
+  "@createdNShareLinks": {
+    "description": "Notification when multiple public share links are generated",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "共有リンクを作成できませんでした。",
+  "@failedToCreateShareLinks": {
+    "description": "Error notification when creating batch share links fails"
+  },
+  "alreadyInSharedScope": "既に共有スコープ内です。",
+  "@alreadyInSharedScope": {
+    "description": "Notification when item is already shared in server scope"
+  },
+  "sharedNItemsInServer": "サーバー上で {count} 件の項目を共有しました。",
+  "@sharedNItemsInServer": {
+    "description": "Notification when multiple items are shared within the server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "{count} 件の項目を共有しました（{failed} 件失敗）。",
+  "@sharedNItemsWithFailures": {
+    "description": "Notification when some server shares succeeded and some failed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "{shared} 件の項目を共有しました（{failed} 件失敗）。",
+  "@sharedNItemsFailedM": {
+    "description": "Notification with counts of shared vs failed items",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "フォルダー名を入力してください。",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is left blank"
+  },
+  "folderAlreadyExists": "同じ名前のフォルダーが既に存在します。",
+  "@folderAlreadyExists": {
+    "description": "Validation error when folder name already exists in target directory"
+  },
+  "folderCreationOnlyInAllFiles": "フォルダーの作成は「すべてのファイル」でのみ可能です。",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Error when attempting to create folder within a filtered category view"
+  },
+  "currentDirectoryUnavailable": "現在のディレクトリは利用できません。",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when active directory path does not exist or cannot be accessed"
+  },
+  "nothingSelected": "何も選択されていません。",
+  "@nothingSelected": {
+    "description": "Message shown when an action is triggered with zero selected items"
+  },
+  "destinationFolderDoesNotExist": "移動先フォルダーが存在しません。",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination folder is not found"
+  },
+  "cannotMoveFolderIntoItself": "フォルダー「{name}」を自分自身の中に移動することはできません。",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when attempting to move a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "「{name}」の移動に失敗しました: {error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a specific file or folder fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "{count} 件の項目を移動しました。",
+  "@movedNItems": {
+    "description": "Notification when multiple items are moved successfully",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "{count} 件の項目を移動しました（{failed} 件失敗）。",
+  "@movedNItemsWithFailures": {
+    "description": "Notification when some item moves succeeded and some failed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "{moved} 件の項目を移動しました（{failed} 件失敗）。",
+  "@movedNItemsFailedM": {
+    "description": "Notification with counts of moved vs failed items",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "選択した項目の移動に失敗しました。",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic error when batch move operation fails"
+  },
+  "noFilesWereMoved": "ファイルは移動されませんでした。",
+  "@noFilesWereMoved": {
+    "description": "Notice when a move operation completed without moving any items"
+  },
+  "renamedOldToNew": "「{oldName}」の名前を「{newName}」に変更しました。",
+  "@renamedOldToNew": {
+    "description": "Notification when file/folder is renamed showing old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "「{oldName}」の名前を「{newName}」に変更しました。",
+  "@renamedFileFromTo": {
+    "description": "Notification when file is renamed from old to new name",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "「{name}」の名前変更に失敗しました ({statusCode})。",
+  "@failedToRenameWithStatus": {
+    "description": "Error when rename fails with HTTP status code",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "「{name}」の名前変更に失敗しました ({statusCode})。",
+  "@failedToRenameFileWithCode": {
+    "description": "Error when file rename fails with HTTP status code",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "「{name}」の名前変更に失敗しました: {error}",
+  "@failedToRenameWithError": {
+    "description": "Error message when rename fails with detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "「{name}」の名前変更に失敗しました: {error}",
+  "@failedToRenameFile": {
+    "description": "Error message when file rename fails with detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "名前を変更できませんでした: 同じ名前のファイルまたはフォルダーが既に存在します。",
+  "@renameConflictAlreadyExists": {
+    "description": "Error when rename target name collides with existing item"
+  },
+  "renameFailedAlreadyExists": "名前を変更できませんでした: 同じ名前のファイルまたはフォルダーが既に存在します。",
+  "@renameFailedAlreadyExists": {
+    "description": "Error when renaming fails because target already exists"
+  },
+  "failedToCreateFolderWithCode": "フォルダーの作成に失敗しました (コード {statusCode})。",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error when folder creation fails with HTTP status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "{deleted} 件の項目を削除しました（{failed} 件失敗）。",
+  "@deletedNItemsFailedM": {
+    "description": "Notification with counts of deleted vs failed items",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}%  {completed}/{total} ファイル",
+  "@transferSummaryFiles": {
+    "description": "Overall transfers header showing percent and file count progress",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}%  {completed}/{total} ファイル",
+  "@transferSummaryProgress": {
+    "description": "Transfers screen progress summary line",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "ダウンロードに失敗しました",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failure notification title"
+  },
+  "uploadedNItemsWithFailures": "{uploaded} 件の項目をアップロードしました（{failed} 件失敗）",
+  "@uploadedNItemsWithFailures": {
+    "description": "Notification when batch upload finishes with partial errors",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "{uploaded} 件の項目をアップロードしました（{failed} 件失敗）。",
+  "@uploadedNItemsFailedM": {
+    "description": "Notification with counts of uploaded vs failed items",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": "、{count} 件失敗",
+  "@uploadSummaryFailedCount": {
+    "description": "Appended clause to transfer summary when failures occur",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}: ローカルパスが空です",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}: ローカルパスが空です",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "ディレクトリのアップロードに失敗しました",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "ディレクトリのアップロードに失敗しました",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "ローカルファイルが見つかりません",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "ローカルファイルが見つかりません",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "アクティブなセッショントークンがありません",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "アクティブなセッショントークンがありません",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "サーバーが切断されました",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "サーバーが切断されました",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "サーバーに接続できません。",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "サーバーに接続できません。",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "ローカルディレクトリが見つかりません",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "ディレクトリのスキャンに失敗しました",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "フォルダーの作成に失敗しました (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "応答にアクセストークンがありません",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "応答にリフレッシュトークンがありません",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "保存された認証情報がありません",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "利用可能なリフレッシュトークンがありません",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "アクティブなセッションがありません",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "保存されたユーザー名がありません",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "公開されているリリースはまだありません。",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "言語",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

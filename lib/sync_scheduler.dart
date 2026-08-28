@@ -20,6 +20,8 @@ import 'dart:convert';
 
 import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations_en.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_store.dart';
@@ -30,6 +32,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import 'package:crowleys_cloud/notification_service.dart';
+
+AppLocalizations _resolveAppLocalizations() {
+  try {
+    final locale = PlatformDispatcher.instance.locale;
+    return lookupAppLocalizations(locale);
+  } catch (_) {
+    return AppLocalizationsEn();
+  }
+}
 
 const syncBackgroundTaskName = 'crowleys_cloud_background_sync';
 const syncBackgroundUniquePrefix = 'crowleys_cloud_sync_';
@@ -178,7 +189,12 @@ void syncCallbackDispatcher() {
 }
 
 /// Executes background sync for active servers and updates system notifications.
-Future<bool> runBackgroundSync({String? serverId, String? syncToken}) async {
+Future<bool> runBackgroundSync({
+  String? serverId,
+  String? syncToken,
+  AppLocalizations? l10n,
+}) async {
+  final resolvedL10n = l10n ?? _resolveAppLocalizations();
   final store = ServerStore();
   final snapshot = await store.load();
   final settingsService = AppSettingsService();
@@ -222,6 +238,7 @@ Future<bool> runBackgroundSync({String? serverId, String? syncToken}) async {
 
     final result = await syncService.syncServer(
       server,
+      l10n: resolvedL10n,
       onProgress: (message, progress) {
         int? intProgress;
         if (progress != null) {
@@ -230,7 +247,7 @@ Future<bool> runBackgroundSync({String? serverId, String? syncToken}) async {
         unawaited(
           SyncNotificationService.instance.showProgressNotification(
             id: notificationId,
-            title: 'Syncing with $serverName',
+            title: resolvedL10n.syncNotificationSyncingWith(serverName),
             body: message,
             progress: intProgress,
           ),
@@ -243,10 +260,10 @@ Future<bool> runBackgroundSync({String? serverId, String? syncToken}) async {
       final isUnreachable = result.status == SyncRunStatus.serverUnreachable;
       await SyncNotificationService.instance.showCompleteNotification(
         id: notificationId,
-        title: 'Sync with $serverName paused',
+        title: resolvedL10n.syncNotificationPausedTitle(serverName),
         body: isUnreachable
-            ? 'Server is unreachable. Background sync paused until app is opened.'
-            : 'Authentication required. Open app to log in.',
+            ? resolvedL10n.syncNotificationUnreachableBody
+            : resolvedL10n.syncNotificationAuthRequiredBody,
         isError: true,
       );
       await Workmanager().cancelByUniqueName(
@@ -259,16 +276,16 @@ Future<bool> runBackgroundSync({String? serverId, String? syncToken}) async {
         result.status == SyncRunStatus.partialFailure) {
       await SyncNotificationService.instance.showCompleteNotification(
         id: notificationId,
-        title: 'Sync with $serverName failed',
-        body: result.message ?? 'An error occurred during synchronization.',
+        title: resolvedL10n.syncNotificationFailedTitle(serverName),
+        body: result.message ?? resolvedL10n.syncNotificationGenericErrorBody,
         isError: true,
       );
       if (result.status == SyncRunStatus.failed) return false;
     } else {
       await SyncNotificationService.instance.showCompleteNotification(
         id: notificationId,
-        title: 'Sync with $serverName complete',
-        body: 'Sync complete.',
+        title: resolvedL10n.syncNotificationCompleteTitle(serverName),
+        body: resolvedL10n.syncNotificationCompleteBody,
         isError: false,
       );
     }

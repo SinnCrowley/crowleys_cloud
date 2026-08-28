@@ -22,6 +22,8 @@ import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_browser_controller.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
+import 'package:crowleys_cloud/l10n/localization_fallback.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
 import 'package:crowleys_cloud/shared/utils/iterable_extensions.dart';
@@ -522,7 +524,11 @@ class HttpSyncApiClient implements SyncApiClient {
       ),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) return;
-    throw SyncException('Create folder failed: HTTP ${response.statusCode}');
+    throw SyncException(
+      platformAppLocalizations().failedToCreateFolder(
+        'HTTP ${response.statusCode}',
+      ),
+    );
   }
 
   @override
@@ -594,7 +600,9 @@ class HttpSyncApiClient implements SyncApiClient {
         return MapEntry(key, path);
       });
     }
-    throw SyncException('Check hashes failed: HTTP ${response.statusCode}');
+    throw SyncException(
+      platformAppLocalizations().syncResultFailed,
+    );
   }
 
   @override
@@ -622,7 +630,9 @@ class HttpSyncApiClient implements SyncApiClient {
       );
       if (response.statusCode >= 200 && response.statusCode < 300) return;
       throw SyncException(
-        'Empty file upload failed: HTTP ${response.statusCode}',
+        platformAppLocalizations().uploadFailed(
+          'HTTP ${response.statusCode}',
+        ),
       );
     }
 
@@ -665,7 +675,9 @@ class HttpSyncApiClient implements SyncApiClient {
 
         if (response.statusCode < 200 || response.statusCode >= 300) {
           throw SyncException(
-            'Chunk upload failed (${response.statusCode}) at offset $offset',
+            platformAppLocalizations().uploadFailed(
+              'HTTP ${response.statusCode}',
+            ),
           );
         }
 
@@ -692,7 +704,9 @@ class HttpSyncApiClient implements SyncApiClient {
       return response.statusCode >= 200 && response.statusCode < 500;
     } on SyncException catch (e) {
       if (e.isUnreachable) return false;
-      if (e.message == 'Authentication required') return true;
+      if (e.message == platformAppLocalizations().authenticationRequired) {
+        return true;
+      }
       return false;
     } catch (_) {
       return false;
@@ -728,24 +742,24 @@ class HttpSyncApiClient implements SyncApiClient {
       } catch (_) {}
 
       return await authClient.sendAuthorized(send: send);
-    } on SocketException catch (e) {
+    } on SocketException {
       throw SyncException(
-        'Server unreachable: ${e.message}',
+        platformAppLocalizations().serverIsUnreachable,
         isUnreachable: true,
       );
-    } on http.ClientException catch (e) {
+    } on http.ClientException {
       throw SyncException(
-        'Unable to reach server: ${e.message}',
+        platformAppLocalizations().serverIsUnreachable,
         isUnreachable: true,
       );
     } on TimeoutException catch (_) {
-      throw const SyncException(
-        'Server connection timed out',
+      throw SyncException(
+        platformAppLocalizations().serverIsUnreachable,
         isUnreachable: true,
       );
-    } on HandshakeException catch (e) {
+    } on HandshakeException {
       throw SyncException(
-        'Secure connection failed: ${e.message}',
+        platformAppLocalizations().serverIsUnreachable,
         isUnreachable: true,
       );
     }
@@ -784,8 +798,10 @@ class SyncService {
 
   Future<SyncRunResult> syncServer(
     ServerProfile server, {
+    AppLocalizations? l10n,
     void Function(String message, double? progress)? onProgress,
   }) async {
+    final resolvedL10n = l10n ?? platformAppLocalizations();
     final startedAt = DateTime.now().toUtc();
     var scanned = 0;
     var uploaded = 0;
@@ -793,7 +809,10 @@ class SyncService {
     var failed = 0;
     String? message;
 
-    onProgress?.call('Connecting to server...', null);
+    onProgress?.call(
+      resolvedL10n.syncStatusConnecting,
+      null,
+    );
     final isAlive = await apiClient.ping(server: server);
     if (!isAlive) {
       final result = SyncRunResult(
@@ -804,19 +823,26 @@ class SyncService {
         failedFiles: 0,
         startedAt: startedAt,
         finishedAt: DateTime.now().toUtc(),
-        message: 'Could not connect to ${server.displayName}. Connection lost.',
+        message:
+            resolvedL10n.syncStatusConnectionLost(server.displayName),
       );
       await stateStore.saveLastResult(server.id, result);
       return result;
     }
 
-    onProgress?.call('Scanning files on device...', null);
+    onProgress?.call(
+      resolvedL10n.syncStatusScanningFiles,
+      null,
+    );
 
     try {
       final candidates = await scanner.scan(server);
       scanned = candidates.length;
       if (candidates.isEmpty) {
-        onProgress?.call('No files found to synchronize.', 1.0);
+        onProgress?.call(
+          resolvedL10n.syncStatusNoFilesFound,
+          1.0,
+        );
         final result = SyncRunResult(
           status: SyncRunStatus.noFiles,
           scannedFiles: 0,
@@ -825,7 +851,8 @@ class SyncService {
           failedFiles: 0,
           startedAt: startedAt,
           finishedAt: DateTime.now().toUtc(),
-          message: 'No files selected for synchronization.',
+          message:
+              resolvedL10n.syncStatusNoFilesSelected,
         );
         await stateStore.saveLastResult(server.id, result);
         return result;
@@ -881,7 +908,11 @@ class SyncService {
           final candidate = candidatesToHash[i];
           final filename = p.basename(candidate.file.path);
           onProgress?.call(
-            'Calculating checksum (${i + 1}/${candidatesToHash.length}): $filename',
+            resolvedL10n.syncStatusCalculatingChecksum(
+              i + 1,
+              candidatesToHash.length,
+              filename,
+            ),
             i / candidatesToHash.length,
           );
           try {
@@ -897,7 +928,10 @@ class SyncService {
       // Step 3: Query server for duplicate file hashes
       Map<String, String> existingRemotePaths = const {};
       if (hashToCandidate.isNotEmpty) {
-        onProgress?.call('Checking for duplicates on server...', null);
+        onProgress?.call(
+          resolvedL10n.syncStatusCheckingDuplicates,
+          null,
+        );
         try {
           existingRemotePaths = await apiClient.checkHashes(
             server: server,
@@ -914,7 +948,11 @@ class SyncService {
         final filename = p.basename(candidate.file.path);
         final progress = i / candidatesToHash.length;
         onProgress?.call(
-          'Syncing (${i + 1}/${candidatesToHash.length}): $filename',
+          resolvedL10n.syncStatusSyncingFile(
+            i + 1,
+            candidatesToHash.length,
+            filename,
+          ),
           progress,
         );
 
@@ -966,7 +1004,8 @@ class SyncService {
           );
           uploaded++;
         } on SyncException catch (e) {
-          if (e.message == 'Authentication required' || e.isUnreachable) {
+          if (e.message == platformAppLocalizations().authenticationRequired ||
+              e.isUnreachable) {
             rethrow;
           }
           failed++;
@@ -977,7 +1016,10 @@ class SyncService {
         }
       }
 
-      onProgress?.call('Completing synchronization...', 1.0);
+      onProgress?.call(
+        resolvedL10n.syncStatusCompleting,
+        1.0,
+      );
 
       final status = failed > 0
           ? SyncRunStatus.partialFailure
@@ -997,7 +1039,7 @@ class SyncService {
     } on SyncException catch (e) {
       final status = e.isUnreachable
           ? SyncRunStatus.serverUnreachable
-          : (e.message == 'Authentication required'
+          : (e.message == platformAppLocalizations().authenticationRequired
                 ? SyncRunStatus.authRequired
                 : SyncRunStatus.failed);
       final result = SyncRunResult(

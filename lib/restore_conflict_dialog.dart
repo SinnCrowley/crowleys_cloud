@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 
 class RestoreConflictItem {
   final int id;
@@ -115,8 +116,8 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
     return '${size.toStringAsFixed(1)} ${suffixes[i]}';
   }
 
-  String _formatDate(DateTime date) {
-    if (date.millisecondsSinceEpoch == 0) return 'Unknown';
+  String _formatDate(DateTime date, AppLocalizations l10n) {
+    if (date.millisecondsSinceEpoch == 0) return l10n.unknown;
     final local = date.toLocal();
     final y = local.year;
     final m = local.month.toString().padLeft(2, '0');
@@ -171,6 +172,7 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final conflict = _currentConflict;
 
@@ -191,13 +193,19 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'File already exists',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.conflictFileAlreadyExists,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (_isMultiConflict)
                   Text(
-                    'Conflict ${_currentIndex + 1} of ${widget.conflicts.length}',
+                    l10n.conflictNofM(
+                      _currentIndex + 1,
+                      widget.conflicts.length,
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -222,12 +230,12 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
               text: TextSpan(
                 style: theme.textTheme.bodyMedium,
                 children: [
-                  const TextSpan(text: 'A file named '),
+                  TextSpan(text: l10n.conflictAFileNamed),
                   TextSpan(
                     text: conflict.name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const TextSpan(text: ' already exists at '),
+                  TextSpan(text: l10n.conflictAlreadyExistsAt),
                   TextSpan(
                     text: conflict.originalPath.isEmpty
                         ? conflict.name
@@ -266,9 +274,9 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 4),
-                            const Text(
-                              'In Folder',
-                              style: TextStyle(
+                            Text(
+                              l10n.conflictInFolder,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -277,11 +285,15 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Size: ${_formatBytes(conflict.existingSize)}',
+                          l10n.conflictSizeLabel(
+                            _formatBytes(conflict.existingSize),
+                          ),
                           style: theme.textTheme.bodySmall,
                         ),
                         Text(
-                          'Date: ${_formatDate(conflict.existingModified)}',
+                          l10n.conflictDateLabel(
+                            _formatDate(conflict.existingModified, l10n),
+                          ),
                           style: theme.textTheme.bodySmall,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -306,9 +318,9 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 4),
-                            const Text(
-                              'From Trash',
-                              style: TextStyle(
+                            Text(
+                              l10n.conflictFromTrash,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -317,11 +329,15 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Size: ${_formatBytes(conflict.trashSize)}',
+                          l10n.conflictSizeLabel(
+                            _formatBytes(conflict.trashSize),
+                          ),
                           style: theme.textTheme.bodySmall,
                         ),
                         Text(
-                          'Deleted: ${_formatDate(conflict.trashDeletedAt)}',
+                          l10n.conflictDeletedLabel(
+                            _formatDate(conflict.trashDeletedAt, l10n),
+                          ),
                           style: theme.textTheme.bodySmall,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -349,7 +365,7 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          'Apply to remaining $_remainingCount conflict${_remainingCount > 1 ? 's' : ''}',
+                          l10n.conflictApplyToRemaining(_remainingCount),
                           style: theme.textTheme.bodySmall,
                         ),
                       ),
@@ -365,22 +381,28 @@ class _RestoreConflictDialogState extends State<RestoreConflictDialog> {
         if (_isMultiConflict) ...[
           OutlinedButton(
             onPressed: _handleKeepAllCopies,
-            child: const Text('Keep All Copies'),
+            child: Text(l10n.conflictKeepAllCopies),
           ),
           OutlinedButton(
             onPressed: _handleOverwriteAll,
-            child: const Text('Overwrite All'),
+            child: Text(l10n.conflictOverwriteAll),
           ),
         ],
         OutlinedButton(
           onPressed: () => _handleChoice(false),
           child: Text(
-            _applyToAll ? 'Restore All as Copies' : 'Restore as Copy',
+            _applyToAll
+                ? l10n.conflictRestoreAllAsCopies
+                : l10n.conflictRestoreAsCopy,
           ),
         ),
         FilledButton(
           onPressed: () => _handleChoice(true),
-          child: Text(_applyToAll ? 'Overwrite All Remaining' : 'Overwrite'),
+          child: Text(
+            _applyToAll
+                ? l10n.conflictOverwriteAllRemaining
+                : l10n.conflictOverwrite,
+          ),
         ),
       ],
     );

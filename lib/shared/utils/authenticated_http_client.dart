@@ -19,6 +19,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../auth_service.dart';
+import '../../l10n/localization_fallback.dart';
 
 /// Centralized HTTP client wrapper that handles Bearer token authorization,
 /// automatic 401 interception, session refresh via [AuthService], network failure notifications, and retry logic.
@@ -246,26 +247,27 @@ class AuthenticatedHttpClient {
   Future<http.Response> _safeRequest(
     Future<http.Response> Function() action,
   ) async {
+    final message = platformAppLocalizations().serverIsUnreachable;
     try {
       final response = await action();
       if (_isConnectionUnavailableStatus(response.statusCode)) {
-        _notifyConnectionLost('Server is unreachable.');
+        _notifyConnectionLost(message);
       }
       return response;
     } on SocketException {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.Response('', 503);
     } on http.ClientException {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.Response('', 503);
     } on TimeoutException {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.Response('', 504);
     } on HandshakeException {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.Response('', 525);
     } catch (_) {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.Response('', 500);
     }
   }
@@ -273,26 +275,27 @@ class AuthenticatedHttpClient {
   Future<http.StreamedResponse> _safeStreamedRequest(
     Future<http.StreamedResponse> Function() action,
   ) async {
+    final message = platformAppLocalizations().serverIsUnreachable;
     try {
       final response = await action();
       if (_isConnectionUnavailableStatus(response.statusCode)) {
-        _notifyConnectionLost('Server is unreachable.');
+        _notifyConnectionLost(message);
       }
       return response;
     } on SocketException {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.StreamedResponse(const Stream.empty(), 503);
     } on http.ClientException {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.StreamedResponse(const Stream.empty(), 503);
     } on TimeoutException {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.StreamedResponse(const Stream.empty(), 504);
     } on HandshakeException {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.StreamedResponse(const Stream.empty(), 525);
     } catch (_) {
-      _notifyConnectionLost('Server is unreachable.');
+      _notifyConnectionLost(message);
       return http.StreamedResponse(const Stream.empty(), 500);
     }
   }

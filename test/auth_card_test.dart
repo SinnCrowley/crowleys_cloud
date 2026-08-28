@@ -17,6 +17,7 @@ import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_helpers.dart';
 
 void main() {
   testWidgets('AuthCard defaults to login mode', (tester) async {
@@ -24,8 +25,8 @@ void main() {
     final passwordController = TextEditingController();
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
+      wrapWithLocalization(
+        Scaffold(
           body: AuthCard(
             title: 'Sign In',
             usernameController: usernameController,
@@ -54,8 +55,8 @@ void main() {
     final passwordController = TextEditingController();
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
+      wrapWithLocalization(
+        Scaffold(
           body: AuthCard(
             title: 'Sign In',
             usernameController: usernameController,

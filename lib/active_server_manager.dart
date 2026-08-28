@@ -15,10 +15,11 @@
 
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/cache_service.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_store.dart';
 import 'package:crowleys_cloud/shared/utils/iterable_extensions.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 class ActiveServerManager extends ChangeNotifier {
   ActiveServerManager({
@@ -38,7 +39,20 @@ class ActiveServerManager extends ChangeNotifier {
   bool requiresAuth = false;
   String? connectionErrorMessage;
 
-  Future<void> initialize() async {
+  AppLocalizations _getL10n([AppLocalizations? l10n]) {
+    if (l10n != null) return l10n;
+    try {
+      final locale = WidgetsBinding.instance.platformDispatcher.locale;
+      if (AppLocalizations.supportedLocales.any(
+        (loc) => loc.languageCode == locale.languageCode,
+      )) {
+        return lookupAppLocalizations(Locale(locale.languageCode));
+      }
+    } catch (_) {}
+    return lookupAppLocalizations(const Locale('en'));
+  }
+
+  Future<void> initialize([AppLocalizations? l10n]) async {
     final snapshot = await store.load();
     servers = snapshot.servers;
     if (servers.isEmpty) {
@@ -52,7 +66,7 @@ class ActiveServerManager extends ChangeNotifier {
 
     requiresSetup = false;
     activeServer = _pickActive(servers, snapshot.activeServerId);
-    await _refreshAuthAndConnectionState(activeServer!);
+    await _refreshAuthAndConnectionState(activeServer!, l10n);
     isReady = true;
     notifyListeners();
   }
@@ -67,7 +81,7 @@ class ActiveServerManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> switchActive(String serverId) async {
+  Future<void> switchActive(String serverId, [AppLocalizations? l10n]) async {
     final next = servers.where((s) => s.id == serverId).firstOrNull;
     if (next == null) return;
 
@@ -75,12 +89,12 @@ class ActiveServerManager extends ChangeNotifier {
     servers = servers
         .map((s) => s.id == next.id ? activeServer! : s)
         .toList(growable: false);
-    await _refreshAuthAndConnectionState(activeServer!);
+    await _refreshAuthAndConnectionState(activeServer!, l10n);
     await _persist();
     notifyListeners();
   }
 
-  Future<void> removeServer(String serverId) async {
+  Future<void> removeServer(String serverId, [AppLocalizations? l10n]) async {
     servers = servers.where((s) => s.id != serverId).toList(growable: false);
     await authService.logout(serverId);
     await _cacheService.deleteServer(serverId);
@@ -96,15 +110,15 @@ class ActiveServerManager extends ChangeNotifier {
 
     if (activeServer?.id == serverId) {
       activeServer = _pickMostRecent(servers);
-      await _refreshAuthAndConnectionState(activeServer!);
+      await _refreshAuthAndConnectionState(activeServer!, l10n);
     }
     await _persist();
     notifyListeners();
   }
 
-  Future<void> markAuthed(String serverId) async {
+  Future<void> markAuthed(String serverId, [AppLocalizations? l10n]) async {
     if (activeServer?.id == serverId) {
-      await _refreshAuthAndConnectionState(activeServer!);
+      await _refreshAuthAndConnectionState(activeServer!, l10n);
       notifyListeners();
     }
   }
@@ -136,15 +150,22 @@ class ActiveServerManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  void reportConnectionError({required String serverId, String? message}) {
+  void reportConnectionError({
+    required String serverId,
+    String? message,
+    AppLocalizations? l10n,
+  }) {
     if (activeServer?.id != serverId) return;
     requiresAuth = false;
     connectionErrorMessage =
-        message ?? 'Unable to connect to the active server.';
+        message ?? _getL10n(l10n).unableToConnectToServer;
     notifyListeners();
   }
 
-  Future<void> _refreshAuthAndConnectionState(ServerProfile profile) async {
+  Future<void> _refreshAuthAndConnectionState(
+    ServerProfile profile, [
+    AppLocalizations? l10n,
+  ]) async {
     connectionErrorMessage = null;
     final hasSession = await authService.hasSession(profile.id);
     requiresAuth = !hasSession;
@@ -166,7 +187,7 @@ class ActiveServerManager extends ChangeNotifier {
       case SessionCheckStatus.serverError:
         requiresAuth = false;
         connectionErrorMessage =
-            check.message ?? 'Unable to connect to the active server.';
+            check.message ?? _getL10n(l10n).unableToConnectToServer;
         break;
     }
   }

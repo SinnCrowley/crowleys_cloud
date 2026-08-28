@@ -15,6 +15,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <script>
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { t } from '../stores/i18n.js';
 
   export let x = 0;
   export let y = 0;
@@ -98,70 +99,70 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
     {#if !item.is_dir}
       <button class="menu-item text-body" on:click={() => handleAction('preview')}>
-        <span class="material-symbols-outlined item-icon">visibility</span> Preview / Open
+        <span class="material-symbols-outlined item-icon">visibility</span> {$t('context_menu.preview')}
       </button>
       <button class="menu-item text-body" on:click={() => handleAction('download')}>
-        <span class="material-symbols-outlined item-icon">download</span> Download
+        <span class="material-symbols-outlined item-icon">download</span> {$t('common.download')}
       </button>
     {:else}
       <button class="menu-item text-body" on:click={() => handleAction('preview')}>
-        <span class="material-symbols-outlined item-icon">folder_open</span> Open Folder
+        <span class="material-symbols-outlined item-icon">folder_open</span> {$t('context_menu.open_folder')}
       </button>
       <button class="menu-item text-body" on:click={() => handleAction('downloadZip')}>
-        <span class="material-symbols-outlined item-icon">folder_zip</span> Download ZIP
+        <span class="material-symbols-outlined item-icon">folder_zip</span> {$t('context_menu.download_zip')}
       </button>
     {/if}
 
     {#if currentScope !== 'shared'}
       <button class="menu-item text-body" on:click={() => handleAction('share')}>
-        <span class="material-symbols-outlined item-icon">share</span> Share Link
+        <span class="material-symbols-outlined item-icon">share</span> {$t('context_menu.share_link')}
       </button>
       <button class="menu-item text-body" on:click={() => handleAction('toggleServerShared')}>
         <span class="material-symbols-outlined item-icon">
           {item.is_shared ? 'folder_off' : 'folder_shared'}
         </span>
-        {item.is_shared ? 'Unshare in Server' : 'Share in Server'}
+        {item.is_shared ? $t('context_menu.unshare_in_server') : $t('context_menu.share_in_server')}
       </button>
 
       <button class="menu-item text-body" on:click={() => handleAction('rename')}>
-        <span class="material-symbols-outlined item-icon">edit</span> Rename
+        <span class="material-symbols-outlined item-icon">edit</span> {$t('common.rename')}
       </button>
       <button class="menu-item text-body" on:click={() => handleAction('move')}>
-        <span class="material-symbols-outlined item-icon">drive_file_move</span> Move To...
+        <span class="material-symbols-outlined item-icon">drive_file_move</span> {$t('context_menu.move_to')}
       </button>
       <div class="menu-divider" />
       <button class="menu-item text-body danger" on:click={() => handleAction('delete')}>
-        <span class="material-symbols-outlined item-icon">delete</span> Move to Trash
+        <span class="material-symbols-outlined item-icon">delete</span> {$t('context_menu.move_to_trash')}
       </button>
     {:else}
       {#if item.is_owner !== false}
         <div class="menu-divider" />
         <button class="menu-item text-body danger" on:click={() => handleAction('toggleServerShared')}>
-          <span class="material-symbols-outlined item-icon">folder_off</span> Unshare in Server
+          <span class="material-symbols-outlined item-icon">folder_off</span> {$t('context_menu.unshare_in_server')}
         </button>
       {/if}
     {/if}
   {:else if selectedCount > 0}
-    <div class="menu-header text-caption">{selectedCount} items selected</div>
+    <div class="menu-header text-caption">{$t('context_menu.items_selected', { count: selectedCount })}</div>
     <div class="menu-divider" />
     <button class="menu-item text-body" on:click={() => handleAction('download')}>
-      <span class="material-symbols-outlined item-icon">download</span> Download Selected
+      <span class="material-symbols-outlined item-icon">download</span> {$t('context_menu.download_selected')}
     </button>
     {#if currentScope !== 'shared'}
       <button class="menu-item text-body" on:click={() => handleAction('move')}>
-        <span class="material-symbols-outlined item-icon">drive_file_move</span> Move Selected...
+        <span class="material-symbols-outlined item-icon">drive_file_move</span> {$t('context_menu.move_selected')}
       </button>
       <div class="menu-divider" />
       <button class="menu-item text-body danger" on:click={() => handleAction('delete')}>
-        <span class="material-symbols-outlined item-icon">delete</span> Delete Selected to Trash
+        <span class="material-symbols-outlined item-icon">delete</span> {$t('context_menu.delete_selected')}
       </button>
     {/if}
   {:else}
     <button class="menu-item text-body" on:click={() => handleAction('refresh')}>
-      <span class="material-symbols-outlined item-icon">refresh</span> Refresh Directory
+      <span class="material-symbols-outlined item-icon">refresh</span> {$t('common.refresh')}
     </button>
     <button class="menu-item text-body" on:click={() => handleAction('newFolder')}>
-      <span class="material-symbols-outlined item-icon">create_new_folder</span> New Folder
+      <span class="material-symbols-outlined item-icon">create_new_folder</span> {$t('context_menu.new_folder')}
     </button>
   {/if}
 </div>

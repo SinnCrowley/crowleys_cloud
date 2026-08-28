@@ -1,0 +1,2654 @@
+{
+  "@@locale": "vi",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "Hủy",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "Lưu",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "Xóa",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "Đổi tên",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "Đóng",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "Thử lại",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "Đang tải...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "Xác nhận",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "Lỗi",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "Lỗi: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "Không xác định",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "Tải lên",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "Tải xuống",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "Chia sẻ",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "Sao chép",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "Di chuyển",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "Khôi phục",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "Áp dụng",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "Tạo",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "Xóa",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "Thêm",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "Gỡ bỏ",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "Chỉnh sửa",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "Chuyển đổi",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "Tìm kiếm",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "Tên",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "Ngày",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "Kích thước",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "Loại",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "Tăng dần",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "Giảm dần",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "Tất cả",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "Hình ảnh",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "Ảnh",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "Video",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "Âm thanh",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "Tài liệu",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "Tệp nén",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "Đã chia sẻ",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "Khác",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "Tệp khác",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "Không tìm thấy tệp nào.",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "Không có tệp nào trong thư mục này.",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "Hành động này không thể hoàn tác.",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "Mật khẩu không khớp.",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "Tệp cục bộ",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "Tệp máy chủ",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "Cài đặt",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "Thùng rác",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "Cục bộ",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "Máy chủ",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "Thêm máy chủ",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "Chưa định cấu hình máy chủ nào.",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "Thêm máy chủ trong Cài đặt.",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "Thêm máy chủ đầu tiên của bạn để tiếp tục.",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "Chưa có máy chủ nào được định cấu hình.",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "Thiết lập Crowley's Cloud",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "Kết nối",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "Đang kết nối...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "Đã kết nối",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "Đã ngắt kết nối",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "Chuyển máy chủ",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "Chọn máy chủ khác",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "Chuyển máy chủ?",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "Chuyển máy chủ đang hoạt động sang \"{serverName}\"?",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "Chọn máy chủ",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "Yêu cầu xác thực",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "Đăng nhập để truy cập tệp trên {serverName}",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "Đăng nhập bằng mật khẩu",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "Sử dụng sinh trắc học",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "Đang mở đăng nhập...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "Kết nối máy chủ thất bại",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "Không thể kết nối đến máy chủ đang hoạt động.",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "Không thể kết nối đến {serverName}.",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "Tìm kiếm...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "Tìm kiếm tệp...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "Tìm kiếm tệp máy chủ...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "Tìm kiếm trong thùng rác...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "Yêu cầu quyền truy cập bộ nhớ",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "Cấp quyền",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "Quyền bị từ chối. Vui lòng cấp quyền truy cập bộ nhớ trong Cài đặt.",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "Cần có quyền Quản lý bộ nhớ để duyệt và chọn thư mục.",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "Cần có quyền truy cập bộ nhớ để thực hiện đồng bộ hóa.",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "Bản cập nhật có sẵn: v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "Nhấn để xem tính năng mới",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "Xem",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "Có bản cập nhật mới",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "Phiên bản {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "Hiện tại: v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "Mới: v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "Tính năng mới:",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "GitHub",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "Không có ghi chú phát hành.",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "Để sau",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "Tải APK",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "Cập nhật",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "Chia sẻ liên kết",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "Chia sẻ qua liên kết",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "Chia sẻ trong máy chủ",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "Hạn sử dụng (ngày)",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "Không bao giờ",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "1 ngày",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "7 ngày",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "30 ngày",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "90 ngày",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "180 ngày",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "365 ngày",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "Tạo liên kết",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "Đã sao chép liên kết chia sẻ vào khay nhớ tạm!",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "Sao chép liên kết chia sẻ thất bại: {error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "Không thể chia sẻ loại tệp này.",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "Tạo chia sẻ thất bại: {error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "Tạo thư mục",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "Tên thư mục",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "Thư mục mới",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "Đã tạo thư mục.",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "Tạo thư mục thất bại: {error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "Đang tạo thư mục...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "Đổi tên",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "Tên mới",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "Nhập tên mới",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "Đổi tên thành công.",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "Đổi tên thất bại: {error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "Di chuyển đến",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "Di chuyển đến: {path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "Di chuyển đến đây",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "Di chuyển thất bại: {error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "Đã di chuyển vào thư mục.",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "Sao chép thất bại: {error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "Chọn thư mục",
+  "@selectFolder": {
+    "description": "Folder picker dialog title"
+  },
+  "useThisFolder": "Sử dụng thư mục này",
+  "@useThisFolder": {
+    "description": "Button to confirm selected folder"
+  },
+  "storageRoot": "Bộ nhớ",
+  "@storageRoot": {
+    "description": "Root breadcrumb label for local storage"
+  },
+  "serverRoot": "gốc",
+  "@serverRoot": {
+    "description": "Root breadcrumb label for server storage"
+  },
+  "deleteNItemsTitle": "Xóa {count} mục?",
+  "@deleteNItemsTitle": {
+    "description": "Delete confirmation dialog title with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "Xóa tệp?",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirmation dialog title"
+  },
+  "deleteFilesBody": "Bạn có chắc chắn muốn xóa {count} mục đã chọn không? Hành động này không thể hoàn tác.",
+  "@deleteFilesBody": {
+    "description": "Delete files confirmation body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "Xóa vĩnh viễn",
+  "@deletePermanently": {
+    "description": "Delete permanently action button"
+  },
+  "deletePermanentlyTitle": "Xóa vĩnh viễn?",
+  "@deletePermanentlyTitle": {
+    "description": "Delete permanently confirmation title"
+  },
+  "deletePermanentlyBody": "{filename} sẽ bị xóa vĩnh viễn.",
+  "@deletePermanentlyBody": {
+    "description": "Delete permanently confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "Xóa tệp?",
+  "@deleteFileTitle": {
+    "description": "Delete single file confirmation title"
+  },
+  "deleteFileBody": "Bạn có chắc chắn muốn xóa {filename} không? Hành động này không thể hoàn tác.",
+  "@deleteFileBody": {
+    "description": "Delete single file confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "Xóa vĩnh viễn",
+  "@deleteServerFileTitle": {
+    "description": "Delete server file confirmation title"
+  },
+  "deleteServerFileBody": "Bạn có chắc chắn muốn xóa vĩnh viễn \"{filename}\" không? Hành động này không thể hoàn tác.",
+  "@deleteServerFileBody": {
+    "description": "Delete server file confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "Hủy chia sẻ các mục?",
+  "@unshareItemsTitle": {
+    "description": "Unshare items dialog title"
+  },
+  "unshareItemsBody": "Bạn có chắc chắn muốn hủy chia sẻ {count} mục đã chọn không? Chúng sẽ bị xóa khỏi thư mục Đã chia sẻ.",
+  "@unshareItemsBody": {
+    "description": "Unshare items dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "Hủy chia sẻ",
+  "@unshare": {
+    "description": "Unshare action button"
+  },
+  "moveToTrash": "Chuyển vào thùng rác",
+  "@moveToTrash": {
+    "description": "Move to trash action button"
+  },
+  "movedToTrash": "Đã chuyển vào thùng rác.",
+  "@movedToTrash": {
+    "description": "Snackbar when single item moved to trash"
+  },
+  "movedNItemsToTrash": "Đã chuyển {count} mục vào thùng rác.",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar when multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "Chuyển vào thùng rác thất bại: {error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move to trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "Đã xóa {count} mục.",
+  "@deletedNItems": {
+    "description": "Snackbar when items are deleted",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "Xóa thất bại: {error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "Xóa thất bại: {error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on single item delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "Đã xóa {filename}.",
+  "@deletedFilename": {
+    "description": "Snackbar on single file deletion",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "Không thể mở tệp",
+  "@failedToOpenFile": {
+    "description": "Snackbar when opening a file fails"
+  },
+  "fileDownloadFailed": "Tải tệp xuống thất bại: {error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "Đang tải xuống...",
+  "@downloading": {
+    "description": "Download progress indicator"
+  },
+  "downloadingFile": "Đang tải tệp xuống...",
+  "@downloadingFile": {
+    "description": "Download progress indicator with text"
+  },
+  "downloadComplete": "Tải xuống hoàn tất: {filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download complete",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "Tải xuống thất bại: {error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "Không thể tải bản xem trước",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar on preview download failure"
+  },
+  "uploadComplete": "Tải lên hoàn tất: {filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload complete",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "Tải lên thất bại: {error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "Không thể chọn tệp",
+  "@failedToPickFiles": {
+    "description": "Snackbar on file picker failure"
+  },
+  "uploadedNItems": "Đã tải lên {count} tệp",
+  "@uploadedNItems": {
+    "description": "Snackbar when multiple items uploaded",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "Đã sao chép liên kết vào khay nhớ tạm.",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on copy link success"
+  },
+  "failedToCopyLink": "Sao chép liên kết thất bại: {error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on copy link failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "Đang chọn tất cả...",
+  "@selectingAll": {
+    "description": "Progress state while selecting all files"
+  },
+  "allItemsSelected": "Đã chọn tất cả các mục.",
+  "@allItemsSelected": {
+    "description": "Snackbar when all files are selected"
+  },
+  "failedToLoadSearchResults": "Không thể tải kết quả tìm kiếm",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar when search fails"
+  },
+  "shareNotSupportedForType": "Loại tệp này không hỗ trợ chia sẻ.",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar when file type cannot be shared"
+  },
+  "nSelected": "Đã chọn {count} mục",
+  "@nSelected": {
+    "description": "Selection counter in app bar",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "Chưa chọn máy chủ",
+  "@noServerSelected": {
+    "description": "Error banner when no server is chosen"
+  },
+  "pleaseConnectToServerFirst": "Vui lòng kết nối với máy chủ trước.",
+  "@pleaseConnectToServerFirst": {
+    "description": "Error banner subtitle"
+  },
+  "signInRequired": "Yêu cầu đăng nhập",
+  "@signInRequired": {
+    "description": "Sign-in prompt title"
+  },
+  "pleaseSignInToServer": "Vui lòng đăng nhập vào {serverName} trước.",
+  "@pleaseSignInToServer": {
+    "description": "Sign-in prompt subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "Đang kết nối đến máy chủ...",
+  "@connectingToServer": {
+    "description": "Loading state during connection"
+  },
+  "connectedToServer": "Đã kết nối với {serverName}.",
+  "@connectedToServer": {
+    "description": "Snackbar on successful server connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "Kết nối thất bại: {error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "Không thể kết nối: {error}",
+  "@failedToConnect": {
+    "description": "Snackbar on failed connection attempt",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "Xác thực thất bại: {error}",
+  "@authFailed": {
+    "description": "Snackbar on auth failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "Xác thực thất bại. Vui lòng thử lại.",
+  "@authFailedGeneric": {
+    "description": "Snackbar on generic auth failure"
+  },
+  "biometricLoginFailed": "Đăng nhập sinh trắc học thất bại: {error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "Đăng nhập sinh trắc học thất bại.",
+  "@biometricLoginFailedGeneric": {
+    "description": "Snackbar on generic biometric failure"
+  },
+  "noServerSessionToken": "Không có mã phiên máy chủ. Vui lòng xác thực lại với máy chủ.",
+  "@noServerSessionToken": {
+    "description": "Error when session token is missing"
+  },
+  "failedToSaveServer": "Lưu máy chủ thất bại: {error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on save server failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "Thêm vào thư mục",
+  "@addToFolder": {
+    "description": "Button to add files to current folder"
+  },
+  "loginTabLabel": "Đăng nhập",
+  "@loginTabLabel": {
+    "description": "Auth screen tab: login"
+  },
+  "registerTabLabel": "Đăng ký",
+  "@registerTabLabel": {
+    "description": "Auth screen tab: register"
+  },
+  "welcomeBack": "Chào mừng trở lại",
+  "@welcomeBack": {
+    "description": "Auth screen card title for login"
+  },
+  "signInToContinue": "Đăng nhập để tiếp tục",
+  "@signInToContinue": {
+    "description": "Auth screen card subtitle for login"
+  },
+  "createAccount": "Tạo tài khoản",
+  "@createAccount": {
+    "description": "Auth screen card title for register"
+  },
+  "joinTheServer": "Tham gia máy chủ",
+  "@joinTheServer": {
+    "description": "Auth screen card subtitle for register"
+  },
+  "usernameLabel": "Tên người dùng",
+  "@usernameLabel": {
+    "description": "Username field label"
+  },
+  "usernameHint": "Nhập tên người dùng của bạn",
+  "@usernameHint": {
+    "description": "Username field hint"
+  },
+  "passwordLabel": "Mật khẩu",
+  "@passwordLabel": {
+    "description": "Password field label"
+  },
+  "passwordHint": "Nhập mật khẩu của bạn",
+  "@passwordHint": {
+    "description": "Password field hint"
+  },
+  "showPassword": "Hiện mật khẩu",
+  "@showPassword": {
+    "description": "Tooltip for show password icon"
+  },
+  "hidePassword": "Ẩn mật khẩu",
+  "@hidePassword": {
+    "description": "Tooltip for hide password icon"
+  },
+  "confirmPassword": "Xác nhận mật khẩu",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "Đăng nhập",
+  "@logIn": {
+    "description": "Log In submit button"
+  },
+  "loggingIn": "Đang đăng nhập...",
+  "@loggingIn": {
+    "description": "Log In button loading state"
+  },
+  "registering": "Đang đăng ký...",
+  "@registering": {
+    "description": "Register button loading state"
+  },
+  "forgotPassword": "Quên mật khẩu?",
+  "@forgotPassword": {
+    "description": "Forgot password link button"
+  },
+  "doNotHaveAccount": "Chưa có tài khoản? Chuyển sang Đăng ký.",
+  "@doNotHaveAccount": {
+    "description": "Switch to register tab hint"
+  },
+  "alreadyHaveAccount": "Đã có tài khoản? Chuyển sang Đăng nhập.",
+  "@alreadyHaveAccount": {
+    "description": "Switch to login tab hint"
+  },
+  "usernameCannotBeEmpty": "Tên người dùng không được để trống.",
+  "@usernameCannotBeEmpty": {
+    "description": "Username validation error"
+  },
+  "passwordCannotBeEmpty": "Mật khẩu không được để trống.",
+  "@passwordCannotBeEmpty": {
+    "description": "Password validation error"
+  },
+  "usernameInvalid": "Tên người dùng phải từ 3–32 ký tự, gồm chữ cái, số, _ hoặc -.",
+  "@usernameInvalid": {
+    "description": "Username regex validation error"
+  },
+  "passwordTooShort": "Mật khẩu phải có ít nhất 8 ký tự.",
+  "@passwordTooShort": {
+    "description": "Password length validation error"
+  },
+  "loginFailed": "Đăng nhập thất bại: {error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "Đăng ký thất bại: {error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "Đặt lại mật khẩu",
+  "@resetPasswordTitle": {
+    "description": "Reset password dialog/screen title"
+  },
+  "enterResetCodeTitle": "Nhập mã đặt lại",
+  "@enterResetCodeTitle": {
+    "description": "Reset password step 2 title"
+  },
+  "resetPasswordStep1Body": "Nhập tên người dùng của bạn. Mã xác nhận gồm 6 chữ số sẽ được xuất ra nhật ký/bảng điều khiển máy chủ.",
+  "@resetPasswordStep1Body": {
+    "description": "Reset password step 1 instructions"
+  },
+  "resetPasswordStep2Body": "Mã xác nhận đã được gửi đến bảng điều khiển máy chủ. Nhập mã gồm 6 chữ số và mật khẩu mới của bạn.",
+  "@resetPasswordStep2Body": {
+    "description": "Reset password step 2 instructions"
+  },
+  "resetCodeLabel": "Mã đặt lại",
+  "@resetCodeLabel": {
+    "description": "Reset code text field label"
+  },
+  "resetCodeHint": "Nhập mã 6 chữ số",
+  "@resetCodeHint": {
+    "description": "Reset code text field hint"
+  },
+  "newPasswordLabel": "Mật khẩu mới",
+  "@newPasswordLabel": {
+    "description": "New password text field label"
+  },
+  "newPasswordHint": "Nhập mật khẩu mới",
+  "@newPasswordHint": {
+    "description": "New password text field hint"
+  },
+  "passwordResetSuccessfully": "Đặt lại mật khẩu thành công!",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "Tên người dùng là bắt buộc.",
+  "@usernameIsRequired": {
+    "description": "Validation: username is required for reset"
+  },
+  "codeAndPasswordRequired": "Cần có cả mã xác nhận và mật khẩu mới.",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "Yêu cầu đặt lại thất bại. Vui lòng kiểm tra URL máy chủ.",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request error"
+  },
+  "failedToResetPassword": "Đặt lại mật khẩu thất bại. Vui lòng kiểm tra mã xác nhận.",
+  "@failedToResetPassword": {
+    "description": "Snackbar on password reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "Vui lòng nhập URL máy chủ trước.",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Validation: server URL needed before reset"
+  },
+  "sendCode": "Gửi mã",
+  "@sendCode": {
+    "description": "Button to request reset code"
+  },
+  "settingsTitle": "Cài đặt",
+  "@settingsTitle": {
+    "description": "AppBar title for settings screen"
+  },
+  "sectionBackupSync": "Sao lưu & Đồng bộ",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "Bộ nhớ & Bộ đệm",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "Bảo mật & Hành vi",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security"
+  },
+  "sectionAboutUpdates": "Thông tin & Bản cập nhật",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "Giao diện & Tùy chỉnh",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "Chưa định cấu hình máy chủ",
+  "@noServersConfiguredSync": {
+    "description": "Sync settings subtitle when no servers"
+  },
+  "addServerBeforeSync": "Vui lòng thêm máy chủ trước khi định cấu hình đồng bộ.",
+  "@addServerBeforeSync": {
+    "description": "Sync settings prompt when no servers"
+  },
+  "selectServerToConfigureSync": "Chọn một máy chủ để định cấu hình đồng bộ.",
+  "@selectServerToConfigureSync": {
+    "description": "Sync settings server selector subtitle"
+  },
+  "activeServerSuffix": " · đang hoạt động",
+  "@activeServerSuffix": {
+    "description": "Suffix for active server in sync selector"
+  },
+  "folderAndCategorySync": "Đồng bộ thư mục và danh mục",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle tile title"
+  },
+  "keepCategoriesSynced": "Duy trì đồng bộ các danh mục hoặc thư mục cục bộ đã chọn với máy chủ này.",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle tile subtitle"
+  },
+  "addServerBeforeSyncEnable": "Vui lòng thêm máy chủ trước khi bật đồng bộ hóa.",
+  "@addServerBeforeSyncEnable": {
+    "description": "Snackbar when enabling sync with no server"
+  },
+  "onlyOnWifi": "Chỉ qua Wi-Fi",
+  "@onlyOnWifi": {
+    "description": "Sync constraint switch label"
+  },
+  "onlyWhileCharging": "Chỉ khi đang sạc",
+  "@onlyWhileCharging": {
+    "description": "Sync constraint switch label"
+  },
+  "serverTargetDirectory": "Thư mục đích trên máy chủ",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory tile title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Sync target directory text field hint"
+  },
+  "synchronizationFrequency": "Tần suất đồng bộ hóa",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency tile title"
+  },
+  "syncNow": "Đồng bộ ngay",
+  "@syncNow": {
+    "description": "Sync now action button"
+  },
+  "syncing": "Đang đồng bộ hóa...",
+  "@syncing": {
+    "description": "Syncing state label"
+  },
+  "categoriesToSynchronize": "Danh mục cần đồng bộ",
+  "@categoriesToSynchronize": {
+    "description": "Category sync selector tile title"
+  },
+  "noCategoriesSelected": "Chưa chọn danh mục nào.",
+  "@noCategoriesSelected": {
+    "description": "Category sync subtitle when none selected"
+  },
+  "nCategoriesSelected": "Đã chọn {count} danh mục",
+  "@nCategoriesSelected": {
+    "description": "Category sync subtitle with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "Thư mục cần đồng bộ",
+  "@foldersToSynchronize": {
+    "description": "Folder sync selector tile title"
+  },
+  "noCustomFolders": "Chưa định cấu hình thư mục tùy chỉnh nào.",
+  "@noCustomFolders": {
+    "description": "Folder sync subtitle when none configured"
+  },
+  "nFolders": "{count} thư mục",
+  "@nFolders": {
+    "description": "Folder sync subtitle with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "Thêm thư mục",
+  "@addFolder": {
+    "description": "Button to add a folder to sync"
+  },
+  "removeFolder": "Gỡ bỏ thư mục",
+  "@removeFolder": {
+    "description": "Tooltip to remove a folder from sync"
+  },
+  "removeServer": "Xóa máy chủ",
+  "@removeServer": {
+    "description": "Button to remove a server configuration"
+  },
+  "syncFreqEvery15Min": "Mỗi 15 phút",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: 15 minutes"
+  },
+  "syncFreqEvery30Min": "Mỗi 30 phút",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: 30 minutes"
+  },
+  "syncFreqEvery1Hour": "Mỗi giờ",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: 1 hour"
+  },
+  "syncFreqEveryNHours": "Mỗi {hours} giờ",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency option: N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "Mỗi {minutes} phút",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency option: N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "Hàng ngày",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "Chọn tần suất đồng bộ",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency dialog title"
+  },
+  "cacheSize": "Kích thước bộ nhớ đệm",
+  "@cacheSize": {
+    "description": "Cache size tile title"
+  },
+  "refreshTooltip": "Làm mới",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh cache button"
+  },
+  "cacheLimit": "Giới hạn bộ đệm",
+  "@cacheLimit": {
+    "description": "Cache limit tile title"
+  },
+  "downloadPath": "Đường dẫn tải xuống",
+  "@downloadPath": {
+    "description": "Download path tile title"
+  },
+  "defaultDownloadFolder": "Thư mục CrowleysCloud mặc định",
+  "@defaultDownloadFolder": {
+    "description": "Download path subtitle when using default"
+  },
+  "clearCache": "Xóa bộ nhớ đệm",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "Xóa bộ nhớ đệm?",
+  "@clearCacheTitle": {
+    "description": "Clear cache dialog title"
+  },
+  "clearCacheBody": "Thao tác này sẽ xóa hình thu nhỏ cục bộ và danh sách máy chủ được lưu trong bộ nhớ đệm.",
+  "@clearCacheBody": {
+    "description": "Clear cache dialog body"
+  },
+  "downloadPathDialogTitle": "Đường dẫn tải xuống",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path dialog text field hint"
+  },
+  "useDefault": "Dùng mặc định",
+  "@useDefault": {
+    "description": "Button to reset download path to default"
+  },
+  "serverTargetDirDialogTitle": "Thư mục đích trên máy chủ",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "Yêu cầu đăng nhập",
+  "@requireLogin": {
+    "description": "Require login setting tile title"
+  },
+  "biometricLogin": "Đăng nhập bằng sinh trắc học",
+  "@biometricLogin": {
+    "description": "Biometric login switch tile title"
+  },
+  "biometricLoginSubtitle": "Cho phép đăng nhập bằng thông tin xác thực đã lưu cùng sinh trắc học.",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login switch tile subtitle"
+  },
+  "biometricsNotAvailable": "Sinh trắc học không khả dụng trên thiết bị này.",
+  "@biometricsNotAvailable": {
+    "description": "Biometrics unavailable subtitle"
+  },
+  "showHiddenFiles": "Hiện tệp ẩn",
+  "@showHiddenFiles": {
+    "description": "Show hidden files tile title"
+  },
+  "showHiddenFilesSubtitle": "Hiển thị các tệp và thư mục bắt đầu bằng dấu chấm.",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files tile subtitle"
+  },
+  "changePassword": "Đổi mật khẩu",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "Đổi mật khẩu cho {serverName}.",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle with server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "Vui lòng thêm máy chủ trước khi đổi mật khẩu.",
+  "@addServerBeforeChangePassword": {
+    "description": "Change password subtitle when no server"
+  },
+  "deleteUserAccount": "Xóa tài khoản người dùng",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "Xóa người dùng và tất cả các tệp đám mây riêng tư.",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "Xóa tài khoản?",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirmation dialog title"
+  },
+  "deleteAccountBody": "Thao tác này sẽ xóa vĩnh viễn tài khoản của bạn trên {serverName} và xóa tất cả các tệp được lưu trữ trong thư mục đám mây riêng tư của bạn. Hành động này không thể hoàn tác.",
+  "@deleteAccountBody": {
+    "description": "Delete account confirmation body with server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "Xóa tài khoản",
+  "@deleteAccountButton": {
+    "description": "Delete account action button label"
+  },
+  "changePasswordDialogTitle": "Đổi mật khẩu",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "Mật khẩu mới",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "Xác nhận mật khẩu",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "Nhập mật khẩu mới.",
+  "@enterNewPassword": {
+    "description": "Change password instructions"
+  },
+  "passwordUpdated": "Đã cập nhật mật khẩu.",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "Đổi mật khẩu thất bại: {error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "Đổi mật khẩu thất bại.",
+  "@passwordChangeFailedGeneric": {
+    "description": "Snackbar on generic password change failure"
+  },
+  "accountDeleted": "Đã xóa tài khoản.",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "Xóa tài khoản thất bại: {error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "Xóa tài khoản thất bại.",
+  "@accountDeletionFailedGeneric": {
+    "description": "Snackbar on generic account deletion failure"
+  },
+  "checkForUpdates": "Kiểm tra bản cập nhật",
+  "@checkForUpdates": {
+    "description": "Check for updates tile title"
+  },
+  "checkingForUpdates": "Đang kiểm tra GitHub Releases...",
+  "@checkingForUpdates": {
+    "description": "Check for updates subtitle while querying"
+  },
+  "versionLabel": "Phiên bản {version}",
+  "@versionLabel": {
+    "description": "Version display in about section",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "Crowley's Cloud đã là phiên bản mới nhất (v{version}).",
+  "@appIsUpToDate": {
+    "description": "Update check result: app is current",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "Kiểm tra bản cập nhật thất bại. Vui lòng thử lại sau.",
+  "@updateCheckFailed": {
+    "description": "Update check result: failure"
+  },
+  "themeModeTitle": "Chế độ giao diện",
+  "@themeModeTitle": {
+    "description": "Theme mode selector title"
+  },
+  "themeDark": "Tối",
+  "@themeDark": {
+    "description": "Theme option: dark"
+  },
+  "themeLight": "Sáng",
+  "@themeLight": {
+    "description": "Theme option: light"
+  },
+  "themeCustom": "Tùy chỉnh",
+  "@themeCustom": {
+    "description": "Theme option: custom"
+  },
+  "themeDarkFull": "Chế độ tối",
+  "@themeDarkFull": {
+    "description": "Theme option long: dark theme"
+  },
+  "themeLightFull": "Chế độ sáng",
+  "@themeLightFull": {
+    "description": "Theme option long: light theme"
+  },
+  "themeCustomFull": "Chế độ tùy chỉnh",
+  "@themeCustomFull": {
+    "description": "Theme option long: custom theme"
+  },
+  "accentColor": "Màu nhấn",
+  "@accentColor": {
+    "description": "Accent color setting label"
+  },
+  "primaryAccentColor": "Màu nhấn chính",
+  "@primaryAccentColor": {
+    "description": "Primary accent color tile title"
+  },
+  "selectAccentColor": "Chọn màu nhấn",
+  "@selectAccentColor": {
+    "description": "Select accent color dialog title"
+  },
+  "backgroundColor": "Màu nền",
+  "@backgroundColor": {
+    "description": "Custom theme: background color"
+  },
+  "surfaceColor": "Màu bề mặt",
+  "@surfaceColor": {
+    "description": "Custom theme: surface color"
+  },
+  "textColor": "Màu chữ",
+  "@textColor": {
+    "description": "Custom theme: text color"
+  },
+  "subtextColor": "Màu chữ phụ",
+  "@subtextColor": {
+    "description": "Custom theme: subtext color"
+  },
+  "borderColor": "Màu viền",
+  "@borderColor": {
+    "description": "Custom theme: border color"
+  },
+  "fontSizeScale": "Tỷ lệ cỡ chữ",
+  "@fontSizeScale": {
+    "description": "Font size scale setting label"
+  },
+  "selectColor": "Chọn {title}",
+  "@selectColor": {
+    "description": "Color picker dialog title with slot name",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "Danh mục cần đồng bộ",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Categories to sync dialog title"
+  },
+  "categoriesToSyncBody": "Chọn một hoặc nhiều danh mục. Bạn có thể bỏ chọn tất cả.",
+  "@categoriesToSyncBody": {
+    "description": "Categories to sync dialog body"
+  },
+  "syncCategorySectionMedia": "Phương tiện",
+  "@syncCategorySectionMedia": {
+    "description": "Category section header: media"
+  },
+  "syncCategorySectionAudioDocs": "Âm thanh & Tài liệu",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Category section header: audio & documents"
+  },
+  "syncCategorySectionOther": "Khác",
+  "@syncCategorySectionOther": {
+    "description": "Category section header: other"
+  },
+  "clearAll": "Xóa tất cả",
+  "@clearAll": {
+    "description": "Clear all button in sync categories dialog"
+  },
+  "noSyncHasRunYet": "Chưa có lần đồng bộ nào chạy.",
+  "@noSyncHasRunYet": {
+    "description": "Last sync status when never run"
+  },
+  "lastRunAt": "Chạy lần cuối {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "Đã đồng bộ {uploaded}, đã bỏ qua {skipped}.",
+  "@syncResultSuccess": {
+    "description": "Sync outcome: success summary",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "Không có tệp nào được chọn để đồng bộ.",
+  "@syncResultNoFiles": {
+    "description": "Sync outcome: no files selected"
+  },
+  "syncResultPartial": "Đã đồng bộ {uploaded}, thất bại {failed}.",
+  "@syncResultPartial": {
+    "description": "Sync outcome: partial success summary",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "Đăng nhập trước khi đồng bộ.",
+  "@syncResultAuthRequired": {
+    "description": "Sync outcome: auth required"
+  },
+  "syncResultUnreachable": "Không thể kết nối máy chủ. Mất kết nối.",
+  "@syncResultUnreachable": {
+    "description": "Sync outcome: server unreachable"
+  },
+  "syncResultFailed": "Đồng bộ thất bại.",
+  "@syncResultFailed": {
+    "description": "Sync outcome: generic failure"
+  },
+  "serverSetupAddServer": "Thêm máy chủ",
+  "@serverSetupAddServer": {
+    "description": "Title for the Add Server setup flow"
+  },
+  "serverSetupCardTitle": "Kết nối máy chủ",
+  "@serverSetupCardTitle": {
+    "description": "Card title on server setup page"
+  },
+  "serverSetupCardSubtitle": "Thêm máy chủ tệp gia đình của bạn và đăng nhập.",
+  "@serverSetupCardSubtitle": {
+    "description": "Card subtitle on server setup page"
+  },
+  "serverSetupSubmitButton": "Lưu máy chủ",
+  "@serverSetupSubmitButton": {
+    "description": "Save server submit button"
+  },
+  "serverNameLabel": "Tên máy chủ",
+  "@serverNameLabel": {
+    "description": "Server name input label"
+  },
+  "serverNameHint": "NAS Gia đình",
+  "@serverNameHint": {
+    "description": "Server name placeholder hint"
+  },
+  "baseUrlLabel": "URL cơ sở",
+  "@baseUrlLabel": {
+    "description": "Server base URL input label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Server base URL placeholder hint"
+  },
+  "allFieldsRequired": "Tất cả các trường đều là bắt buộc.",
+  "@allFieldsRequired": {
+    "description": "Validation message when required fields are empty"
+  },
+  "localFilesTitle": "Tệp cục bộ",
+  "@localFilesTitle": {
+    "description": "AppBar title for local files browser"
+  },
+  "serverFilesTitle": "Tệp máy chủ",
+  "@serverFilesTitle": {
+    "description": "AppBar title for server files browser"
+  },
+  "restoreItemsTitle": "Khôi phục mục",
+  "@restoreItemsTitle": {
+    "description": "Restore confirmation dialog title"
+  },
+  "restoreItemsBody": "Bạn có chắc chắn muốn khôi phục {count} mục không?",
+  "@restoreItemsBody": {
+    "description": "Restore confirmation dialog body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "Xóa vĩnh viễn",
+  "@permanentlyDeleteTitle": {
+    "description": "Permanent delete dialog title"
+  },
+  "permanentlyDeleteBody": "Bạn có chắc chắn muốn xóa vĩnh viễn {count} mục không? Hành động này không thể hoàn tác.",
+  "@permanentlyDeleteBody": {
+    "description": "Permanent delete dialog body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "Thùng rác trống.",
+  "@trashIsEmpty": {
+    "description": "Empty state message for trash screen"
+  },
+  "trashRetentionInfo": "Các mục trong thùng rác sẽ tự động bị xóa sau {days} ngày.",
+  "@trashRetentionInfo": {
+    "description": "Info message about trash retention policy",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "Ngày xóa",
+  "@deletionDate": {
+    "description": "Column header / label for deletion timestamp"
+  },
+  "deletePermanentlyAction": "Xóa vĩnh viễn",
+  "@deletePermanentlyAction": {
+    "description": "Action sheet option to delete permanently"
+  },
+  "conflictFileAlreadyExists": "Tệp đã tồn tại",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "Xung đột {current} / {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog counter badge",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "Một tệp có tên ",
+  "@conflictAFileNamed": {
+    "description": "Prefix text in conflict dialog"
+  },
+  "conflictAlreadyExistsAt": " đã tồn tại tại ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Middle text in conflict dialog between name and path"
+  },
+  "conflictAlreadyExistsInFolder": " đã tồn tại trong thư mục này.",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Suffix text in conflict dialog when path is not displayed"
+  },
+  "conflictInFolder": "Trong thư mục",
+  "@conflictInFolder": {
+    "description": "Conflict dialog badge for existing file"
+  },
+  "conflictFromTrash": "Từ thùng rác",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog badge for restoring file"
+  },
+  "conflictExisting": "Hiện có",
+  "@conflictExisting": {
+    "description": "Conflict dialog badge for existing item"
+  },
+  "conflictNewUpload": "Tải lên mới",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog badge for incoming upload"
+  },
+  "conflictSizeLabel": "Kích thước: {size}",
+  "@conflictSizeLabel": {
+    "description": "File size label in conflict card",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "Ngày: {date}",
+  "@conflictDateLabel": {
+    "description": "File date label in conflict card",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "Ngày xóa: {date}",
+  "@conflictDeletedLabel": {
+    "description": "File deletion date label in conflict card",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "Áp dụng cho {count} xung đột còn lại",
+  "@conflictApplyToRemaining": {
+    "description": "Checkbox to apply conflict decision to remaining",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "Giữ lại tất cả bản sao",
+  "@conflictKeepAllCopies": {
+    "description": "Batch button to keep copies for all conflicts"
+  },
+  "conflictOverwriteAll": "Ghi đè tất cả",
+  "@conflictOverwriteAll": {
+    "description": "Batch button to overwrite all conflicts"
+  },
+  "conflictRestoreAllAsCopies": "Khôi phục tất cả dưới dạng bản sao",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Batch button to restore all as copies"
+  },
+  "conflictRestoreAsCopy": "Khôi phục dưới dạng bản sao",
+  "@conflictRestoreAsCopy": {
+    "description": "Single-item button to restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "Ghi đè tất cả phần còn lại",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Button to overwrite all remaining conflicts"
+  },
+  "conflictSkipAll": "Bỏ qua tất cả",
+  "@conflictSkipAll": {
+    "description": "Button to skip all conflicts"
+  },
+  "conflictSkipAllRemaining": "Bỏ qua tất cả phần còn lại",
+  "@conflictSkipAllRemaining": {
+    "description": "Button to skip all remaining conflicts"
+  },
+  "conflictSkip": "Bỏ qua",
+  "@conflictSkip": {
+    "description": "Button to skip single conflict"
+  },
+  "conflictOverwrite": "Ghi đè",
+  "@conflictOverwrite": {
+    "description": "Button to overwrite single file"
+  },
+  "transfersTitle": "Truyền tệp",
+  "@transfersTitle": {
+    "description": "AppBar title for transfers screen"
+  },
+  "transferResume": "Tiếp tục",
+  "@transferResume": {
+    "description": "Action to resume paused transfer"
+  },
+  "transferPause": "Tạm dừng",
+  "@transferPause": {
+    "description": "Action to pause running transfer"
+  },
+  "transferCancel": "Hủy",
+  "@transferCancel": {
+    "description": "Action to cancel transfer"
+  },
+  "transferResumeAll": "Tiếp tục tất cả",
+  "@transferResumeAll": {
+    "description": "Action to resume all transfers"
+  },
+  "transferPauseAll": "Tạm dừng tất cả",
+  "@transferPauseAll": {
+    "description": "Action to pause all transfers"
+  },
+  "transferCancelAll": "Hủy tất cả",
+  "@transferCancelAll": {
+    "description": "Action to cancel all transfers"
+  },
+  "transferCancelFile": "Hủy tệp",
+  "@transferCancelFile": {
+    "description": "Action to cancel single file transfer"
+  },
+  "noTransfers": "Không có truyền tệp nào.",
+  "@noTransfers": {
+    "description": "Empty state when no transfers exist"
+  },
+  "transferStatusQueued": "Đang chờ",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "Đang chạy",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "Đã tạm dừng",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "Đã hoàn thành",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "Thất bại",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "Đã hủy",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "Cài đặt sẵn",
+  "@themePresetsSection": {
+    "description": "Header for theme presets section"
+  },
+  "themeCustomPaletteSection": "Bảng màu tùy chỉnh",
+  "@themeCustomPaletteSection": {
+    "description": "Header for custom color palette section"
+  },
+  "themeHexRgbLabel": "Mã HEX RGB",
+  "@themeHexRgbLabel": {
+    "description": "Color picker HEX input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Color picker HEX input placeholder"
+  },
+  "imageViewerNoFetchHandler": "Chưa định cấu hình trình xử lý tìm nạp hình ảnh",
+  "@imageViewerNoFetchHandler": {
+    "description": "Error when image viewer lacks network/local fetch handler"
+  },
+  "imageViewerFailedToLoad": "Không thể tải hình ảnh",
+  "@imageViewerFailedToLoad": {
+    "description": "Error when image fails to load in viewer"
+  },
+  "errorDeletingFile": "Lỗi khi xóa {filename}: {error}",
+  "@errorDeletingFile": {
+    "description": "Error message when file deletion fails in viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "Lỗi khi đọc tệp: {error}",
+  "@errorReadingFile": {
+    "description": "Error message when text file read fails in viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "Đồng bộ nền",
+  "@syncChannelName": {
+    "description": "Notification channel name for background file synchronization"
+  },
+  "syncChannelDescription": "Hiển thị trạng thái đồng bộ hóa tệp trong nền.",
+  "@syncChannelDescription": {
+    "description": "Notification channel description for background sync"
+  },
+  "storageStatsTitle": "Thống kê bộ nhớ",
+  "@storageStatsTitle": {
+    "description": "Title for storage statistics card/section"
+  },
+  "storageStatsUsedSpace": "Dung lượng đã dùng",
+  "@storageStatsUsedSpace": {
+    "description": "Label for used storage space"
+  },
+  "storageStatsTotalFiles": "Tổng số tệp",
+  "@storageStatsTotalFiles": {
+    "description": "Label for total file count in storage stats"
+  },
+  "storageStatsNItems": "{count} mục",
+  "@storageStatsNItems": {
+    "description": "File count display in storage stats",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "Người dùng #{userId}",
+  "@userFallback": {
+    "description": "Fallback display name when username is empty",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "Mở khóa thông tin xác thực đã lưu cho Crowley's Cloud.",
+  "@biometricUnlockReason": {
+    "description": "Localized reason string presented in system biometric prompt"
+  },
+  "tokenLifetimeEveryOpen": "Mỗi lần mở ứng dụng",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime setting option: re-authenticate on every app launch"
+  },
+  "tokenLifetimeOneHour": "Sau 1 giờ",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime setting option: 1 hour"
+  },
+  "tokenLifetime1Hour": "Sau 1 giờ",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime setting option: 1 hour (compact)"
+  },
+  "tokenLifetimeOneDay": "Sau 1 ngày",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime setting option: 1 day"
+  },
+  "tokenLifetime1Day": "Sau 1 ngày",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime setting option: 1 day (compact)"
+  },
+  "tokenLifetimeOneWeek": "Sau 1 tuần",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime setting option: 1 week"
+  },
+  "tokenLifetime1Week": "Sau 1 tuần",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime setting option: 1 week (compact)"
+  },
+  "tokenLifetimeOneMonth": "Sau 1 tháng",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime setting option: 1 month"
+  },
+  "tokenLifetime1Month": "Sau 1 tháng",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime setting option: 1 month (compact)"
+  },
+  "tokenLifetimeThreeMonths": "Sau 3 tháng",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime setting option: 3 months"
+  },
+  "tokenLifetime3Months": "Sau 3 tháng",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime setting option: 3 months (compact)"
+  },
+  "tokenLifetimeNever": "Không bao giờ trên thiết bị này",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime setting option: never expire"
+  },
+  "cacheLimitUnlimited": "Không giới hạn",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit setting option: no limit"
+  },
+  "syncCategoryOtherFiles": "Tệp khác",
+  "@syncCategoryOtherFiles": {
+    "description": "Category name for other/uncategorized files in sync settings"
+  },
+  "internalStorage": "Bộ nhớ trong",
+  "@internalStorage": {
+    "description": "Display name for device internal storage root"
+  },
+  "localStorageRootName": "Bộ nhớ trong",
+  "@localStorageRootName": {
+    "description": "Display name for local root breadcrumb when path is empty"
+  },
+  "syncNotificationSyncingWith": "Đang đồng bộ với {serverName}",
+  "@syncNotificationSyncingWith": {
+    "description": "Notification content text when sync is actively running",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "Đã tạm dừng đồng bộ với {serverName}",
+  "@syncNotificationPausedTitle": {
+    "description": "Notification title when sync is paused due to constraints",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "Không thể truy cập máy chủ. Tạm dừng đồng bộ nền cho đến khi mở ứng dụng.",
+  "@syncNotificationUnreachableBody": {
+    "description": "Notification body when sync paused due to network/server unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "Yêu cầu xác thực. Hãy mở ứng dụng để đăng nhập.",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Notification body when sync paused due to expired credentials"
+  },
+  "syncNotificationFailedTitle": "Đồng bộ với {serverName} thất bại",
+  "@syncNotificationFailedTitle": {
+    "description": "Notification title when sync fails with an error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "Đã xảy ra lỗi trong quá trình đồng bộ hóa.",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Notification body for generic sync error"
+  },
+  "syncNotificationCompleteTitle": "Đồng bộ với {serverName} hoàn tất",
+  "@syncNotificationCompleteTitle": {
+    "description": "Notification title when background sync finishes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "Đồng bộ hoàn tất.",
+  "@syncNotificationCompleteBody": {
+    "description": "Notification body for successful sync completion"
+  },
+  "syncStatusConnecting": "Đang kết nối đến máy chủ...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress step: connecting to server"
+  },
+  "syncStatusConnectionLost": "Không thể kết nối đến {serverName}. Mất kết nối.",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error: connection lost with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "Không thể kết nối đến {serverName}. Mất kết nối.",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync result error: server unreachable with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "Đang quét tệp trên thiết bị...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress step: scanning local filesystem"
+  },
+  "syncStatusNoFilesFound": "Không tìm thấy tệp nào để đồng bộ.",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync status: no local files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "Chưa chọn tệp nào để đồng bộ.",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync status: no categories or folders selected"
+  },
+  "syncStatusCalculatingChecksum": "Đang tính toán checksum ({current}/{total}): {filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress step: hashing local file for change detection",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "Đang kiểm tra tệp trùng lặp trên máy chủ...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress step: checking file index on server"
+  },
+  "syncStatusSyncingFile": "Đang đồng bộ ({current}/{total}): {filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress step: uploading single file",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "Đang hoàn tất đồng bộ hóa...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress step: finalizing batch"
+  },
+  "showingCachedFiles": "Đang hiển thị các tệp trong bộ nhớ đệm.",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying cached file listing offline"
+  },
+  "showingCachedFilesRefreshFailed": "Đang hiển thị các tệp trong bộ nhớ đệm. Làm mới thất bại.",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when server refresh fails and cached listing is shown"
+  },
+  "downloadCanceled": "Đã hủy tải xuống.",
+  "@downloadCanceled": {
+    "description": "Snackbar notification when a file download is canceled"
+  },
+  "downloadedNFilesToPath": "Đã tải xuống {count} tệp vào {path}",
+  "@downloadedNFilesToPath": {
+    "description": "Notification when multiple files are downloaded successfully to a path",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "Đã tải xuống {downloaded} tệp, thất bại {failed}: {detail}",
+  "@downloadedNFilesFailedM": {
+    "description": "Notification when some batch downloads succeeded and some failed",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "Đã tải xuống {count} tệp, thất bại {failed}: {error}",
+  "@downloadedNFilesWithFailures": {
+    "description": "Notification when some batch downloads failed with an error message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "Đã tạo {count} liên kết chia sẻ.",
+  "@createdNShareLinks": {
+    "description": "Notification when multiple public share links are generated",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "Không thể tạo liên kết chia sẻ.",
+  "@failedToCreateShareLinks": {
+    "description": "Error notification when creating batch share links fails"
+  },
+  "alreadyInSharedScope": "Đã nằm trong phạm vi chia sẻ.",
+  "@alreadyInSharedScope": {
+    "description": "Notification when item is already shared in server scope"
+  },
+  "sharedNItemsInServer": "Đã chia sẻ {count} mục trên máy chủ.",
+  "@sharedNItemsInServer": {
+    "description": "Notification when multiple items are shared within the server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "Đã chia sẻ {count} mục, thất bại {failed} mục.",
+  "@sharedNItemsWithFailures": {
+    "description": "Notification when some server shares succeeded and some failed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "Đã chia sẻ {shared} mục, thất bại {failed} mục.",
+  "@sharedNItemsFailedM": {
+    "description": "Notification with counts of shared vs failed items",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "Tên thư mục không được để trống.",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is left blank"
+  },
+  "folderAlreadyExists": "Thư mục có tên này đã tồn tại.",
+  "@folderAlreadyExists": {
+    "description": "Validation error when folder name already exists in target directory"
+  },
+  "folderCreationOnlyInAllFiles": "Chỉ có thể tạo thư mục trong mục 'Tất cả tệp'.",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Error when attempting to create folder within a filtered category view"
+  },
+  "currentDirectoryUnavailable": "Thư mục hiện tại không khả dụng.",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when active directory path does not exist or cannot be accessed"
+  },
+  "nothingSelected": "Chưa chọn mục nào.",
+  "@nothingSelected": {
+    "description": "Message shown when an action is triggered with zero selected items"
+  },
+  "destinationFolderDoesNotExist": "Thư mục đích không tồn tại.",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination folder is not found"
+  },
+  "cannotMoveFolderIntoItself": "Không thể di chuyển thư mục \"{name}\" vào chính nó.",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when attempting to move a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "Di chuyển {name} thất bại: {error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a specific file or folder fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "Đã di chuyển {count} mục.",
+  "@movedNItems": {
+    "description": "Notification when multiple items are moved successfully",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "Đã di chuyển {count} mục, thất bại {failed} mục.",
+  "@movedNItemsWithFailures": {
+    "description": "Notification when some item moves succeeded and some failed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "Đã di chuyển {moved} mục, thất bại {failed} mục.",
+  "@movedNItemsFailedM": {
+    "description": "Notification with counts of moved vs failed items",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "Di chuyển các mục đã chọn thất bại.",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic error when batch move operation fails"
+  },
+  "noFilesWereMoved": "Không có tệp nào được di chuyển.",
+  "@noFilesWereMoved": {
+    "description": "Notice when a move operation completed without moving any items"
+  },
+  "renamedOldToNew": "Đã đổi tên \"{oldName}\" thành \"{newName}\".",
+  "@renamedOldToNew": {
+    "description": "Notification when file/folder is renamed showing old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "Đã đổi tên \"{oldName}\" thành \"{newName}\".",
+  "@renamedFileFromTo": {
+    "description": "Notification when file is renamed from old to new name",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "Đổi tên \"{name}\" thất bại ({statusCode}).",
+  "@failedToRenameWithStatus": {
+    "description": "Error when rename fails with HTTP status code",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "Đổi tên \"{name}\" thất bại ({statusCode}).",
+  "@failedToRenameFileWithCode": {
+    "description": "Error when file rename fails with HTTP status code",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "Đổi tên \"{name}\" thất bại: {error}",
+  "@failedToRenameWithError": {
+    "description": "Error message when rename fails with detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "Đổi tên \"{name}\" thất bại: {error}",
+  "@failedToRenameFile": {
+    "description": "Error message when file rename fails with detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "Đổi tên thất bại: tệp hoặc thư mục có tên này đã tồn tại.",
+  "@renameConflictAlreadyExists": {
+    "description": "Error when rename target name collides with existing item"
+  },
+  "renameFailedAlreadyExists": "Đổi tên thất bại: tệp hoặc thư mục có tên này đã tồn tại.",
+  "@renameFailedAlreadyExists": {
+    "description": "Error when renaming fails because target already exists"
+  },
+  "failedToCreateFolderWithCode": "Tạo thư mục thất bại (Mã {statusCode}).",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error when folder creation fails with HTTP status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "Đã xóa {deleted} mục, thất bại {failed} mục.",
+  "@deletedNItemsFailedM": {
+    "description": "Notification with counts of deleted vs failed items",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}%  {completed}/{total} tệp",
+  "@transferSummaryFiles": {
+    "description": "Overall transfers header showing percent and file count progress",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}%  {completed}/{total} tệp",
+  "@transferSummaryProgress": {
+    "description": "Transfers screen progress summary line",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "Tải xuống thất bại",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failure notification title"
+  },
+  "uploadedNItemsWithFailures": "Đã tải lên {uploaded} mục, thất bại {failed} mục",
+  "@uploadedNItemsWithFailures": {
+    "description": "Notification when batch upload finishes with partial errors",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "Đã tải lên {uploaded} mục, thất bại {failed} mục.",
+  "@uploadedNItemsFailedM": {
+    "description": "Notification with counts of uploaded vs failed items",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": ", thất bại {count}",
+  "@uploadSummaryFailedCount": {
+    "description": "Appended clause to transfer summary when failures occur",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}: đường dẫn cục bộ trống",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}: đường dẫn cục bộ trống",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "Tải thư mục lên thất bại",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "Tải thư mục lên thất bại",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "Không tìm thấy tệp cục bộ",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "Không tìm thấy tệp cục bộ",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "Không có mã phiên hoạt động",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "Không có mã phiên hoạt động",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "Đã ngắt kết nối máy chủ",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "Đã ngắt kết nối máy chủ",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "Không thể kết nối máy chủ.",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "Không thể kết nối máy chủ.",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "Không tìm thấy thư mục cục bộ",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "Quét thư mục thất bại",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "Tạo thư mục thất bại (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "Thiếu mã truy cập trong phản hồi",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "Thiếu mã làm mới trong phản hồi",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "Không có thông tin đăng nhập đã lưu",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "Không có sẵn mã làm mới",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "Không có phiên hoạt động nào",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "Không có sẵn tên người dùng đã lưu",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "Chưa có bản phát hành nào được công bố.",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "Ngôn ngữ",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

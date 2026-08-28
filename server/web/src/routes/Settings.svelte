@@ -20,6 +20,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { authStore } from '../stores/auth.js';
   import { filesApi } from '../api/files.js';
   import { authApi } from '../api/auth.js';
+  import { languagePreference, i18n, t, selectableLanguages } from '../stores/i18n.js';
   import CustomSelect from '../components/CustomSelect.svelte';
 
   const dispatch = createEventDispatcher();
@@ -31,6 +32,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let biometricLogin = true; // mapped to Automatic Sign In
   let tokenLifetime = '30days'; // mapped to Require login duration
   let cacheMaxBytes = 500 * 1024 * 1024; // 500 MB default
+  let trashRetentionDays = 30;
+
+  $: languageOptions = [
+    { value: 'system', label: $t('settings.language_auto') },
+    { value: 'en', label: $t('settings.language_en') },
+    { value: 'ru', label: $t('settings.language_ru') },
+    ...selectableLanguages.filter((language) => !['en', 'ru'].includes(language)).map((language) => ({
+      value: language,
+      label: $t(`settings.language_${language}`)
+    }))
+  ];
 
   const cacheOptions = [
     { value: 50 * 1024 * 1024, label: '50 MB' },
@@ -113,14 +125,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     }
   }
 
+  function handleLanguageChange(e) {
+    i18n.setLanguage(e.detail);
+  }
+
   async function handleTrashRetentionChange(e) {
     const days = parseInt(e.target.value);
     trashRetentionDays = days;
     try {
       await filesApi.setTrashSettings(days);
-      dispatch('toast', { message: 'Trash retention policy updated on server.', type: 'success' });
+      dispatch('toast', { message: i18n.format('toasts.trash_retention_updated'), type: 'success' });
     } catch (err) {
-      dispatch('toast', { message: err.message || 'Failed to update trash retention policy', type: 'error' });
+      dispatch('toast', { message: err.message || i18n.format('toasts.trash_retention_failed'), type: 'error' });
     }
   }
 
@@ -130,13 +146,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     try {
       const res = await filesApi.rebuildIndex({ scope: 'private' });
       rebuildSuccess = true;
-      rebuildMessage = res.message || 'Index rebuilt successfully!';
-      dispatch('toast', { message: 'Search index rebuilt successfully.', type: 'success' });
+      rebuildMessage = res.message || i18n.format('toasts.search_rebuilt');
+      dispatch('toast', { message: i18n.format('toasts.search_rebuilt'), type: 'success' });
       filesStore.loadDirectory();
     } catch (err) {
       rebuildSuccess = false;
-      rebuildMessage = err.message || 'Failed to rebuild search index';
-      dispatch('toast', { message: 'Failed to rebuild search index.', type: 'error' });
+      rebuildMessage = err.message || i18n.format('toasts.search_rebuild_failed');
+      dispatch('toast', { message: i18n.format('toasts.search_rebuild_failed'), type: 'error' });
     } finally {
       isRebuilding = false;
     }
@@ -144,11 +160,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   async function handleChangePassword() {
     if (!newPassword.trim()) {
-      passwordError = 'Password cannot be empty';
+      passwordError = $t('settings.password_error_empty');
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      passwordError = 'Passwords do not match';
+      passwordError = $t('settings.password_error_mismatch');
       return;
     }
     passwordError = '';
@@ -157,7 +173,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       showPasswordModal = false;
       newPassword = '';
       confirmNewPassword = '';
-      dispatch('toast', { message: 'Password updated. Please sign in again.', type: 'success' });
+      dispatch('toast', { message: $t('toasts.password_updated'), type: 'success' });
       authStore.clearSession();
     } catch (err) {
       passwordError = err.message || 'Failed to update password';
@@ -175,28 +191,43 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         }
       });
     }
-    dispatch('toast', { message: `Cache cleared successfully! Removed ${count} temporary items.`, type: 'success' });
+    dispatch('toast', { message: i18n.format('toasts.cache_cleared', { count }), type: 'success' });
   }
 </script>
 
 <div class="settings-wrapper" style="padding: 24px;">
   <div class="canvas-header">
     <div class="canvas-header-info">
-      <h2>Settings</h2>
-      <p>Configure interface options, storage preferences, and server utilities.</p>
+      <h2>{$t('settings.title')}</h2>
+      <p>{$t('settings.subtitle')}</p>
     </div>
   </div>
 
   <div class="settings-layout">
     <!-- Group 1: Appearance & Theme -->
     <div class="settings-card">
-      <h3 class="settings-card-title">Appearance & Theme</h3>
+      <h3 class="settings-card-title">{$t('settings.appearance')}</h3>
+
+      <!-- Language Selector -->
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <span class="settings-row-title">{$t('settings.language')}</span>
+          <span class="settings-row-desc">{$t('settings.language_desc')}</span>
+        </div>
+        <div class="settings-row-control">
+          <CustomSelect
+            value={$languagePreference}
+            options={languageOptions}
+            on:change={handleLanguageChange}
+          />
+        </div>
+      </div>
       
       <!-- Theme Mode -->
       <div class="settings-row">
         <div class="settings-row-info">
-          <span class="settings-row-title">Dark Mode</span>
-          <span class="settings-row-desc">Switch between light and dark visual themes.</span>
+          <span class="settings-row-title">{$t('settings.dark_mode')}</span>
+          <span class="settings-row-desc">{$t('settings.dark_mode_desc')}</span>
         </div>
         <div class="settings-row-control">
           <label class="custom-checkbox">
@@ -213,8 +244,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <!-- Accent Color Selection -->
       <div class="settings-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
         <div class="settings-row-info">
-          <span class="settings-row-title">Accent Color Scheme</span>
-          <span class="settings-row-desc">Choose a primary color preset that matches the mobile app.</span>
+          <span class="settings-row-title">{$t('settings.accent_color')}</span>
+          <span class="settings-row-desc">{$t('settings.accent_color_desc')}</span>
         </div>
         <div class="preset-theme-grid">
           {#each presetColors as color}
@@ -235,8 +266,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <!-- Text Font Scale -->
       <div class="settings-row">
         <div class="settings-row-info">
-          <span class="settings-row-title">Text Scale</span>
-          <span class="settings-row-desc">Adjust the global interface text scaling ({($fontScale * 100).toFixed(0)}%).</span>
+          <span class="settings-row-title">{$t('settings.font_scale')}</span>
+          <span class="settings-row-desc">{$t('settings.font_scale_desc')} ({($fontScale * 100).toFixed(0)}%).</span>
         </div>
         <div class="settings-row-control">
           <input
@@ -254,135 +285,57 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
     <!-- Group 2: Cache & Storage Management -->
     <div class="settings-card">
-      <h3 class="settings-card-title">Cache & Storage Management</h3>
+      <h3 class="settings-card-title">{$t('settings.cache')}</h3>
       
-      <!-- Cache Limit -->
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-title">Cache Size Limit</span>
-          <span class="settings-row-desc">Define the maximum local storage allocation for previews and thumbnails.</span>
-        </div>
-        <div class="settings-row-control">
-          <CustomSelect
-            bind:value={cacheMaxBytes}
-            options={cacheOptions}
-            on:change={() => updateLocalSetting('cc_cache_max_bytes', cacheMaxBytes)}
-          />
-        </div>
-      </div>
-
       <!-- Clear Cache Button -->
       <div class="settings-row">
         <div class="settings-row-info">
-          <span class="settings-row-title">Clear Temporary Cache</span>
-          <span class="settings-row-desc">Instantly delete all local thumbnails and folder cache descriptors.</span>
+          <span class="settings-row-title">{$t('settings.cache')}</span>
+          <span class="settings-row-desc">{$t('settings.cache_desc')}</span>
         </div>
         <div class="settings-row-control">
-          <button class="btn btn-secondary" on:click={clearThumbnailCache}>Clear Cache</button>
+          <button class="btn btn-secondary" on:click={clearThumbnailCache}>{$t('settings.clear_cache')}</button>
         </div>
       </div>
     </div>
 
-    <!-- Group 3: Security & Behavior -->
+    <!-- Group 3: User Account -->
     <div class="settings-card">
-      <h3 class="settings-card-title">Security & Behavior</h3>
-      
-      <!-- Require login (formerly Token Lifetime) -->
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-title">Require login</span>
-          <span class="settings-row-desc">Define session credential expiration duration.</span>
-        </div>
-        <div class="settings-row-control">
-          <CustomSelect
-            bind:value={tokenLifetime}
-            options={loginOptions}
-            on:change={() => updateLocalSetting('cc_token_lifetime', tokenLifetime)}
-          />
-        </div>
-      </div>
-
-      <!-- Automatic Sign In -->
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-title">Automatic Sign In</span>
-          <span class="settings-row-desc">Keep your session active and automatically log in on this device.</span>
-        </div>
-        <div class="settings-row-control">
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              bind:checked={biometricLogin}
-              on:change={() => updateLocalSetting('cc_biometric_login', biometricLogin)}
-            />
-            <span class="checkbox-indicator"></span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Show Hidden Files -->
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-title">Show Hidden Files</span>
-          <span class="settings-row-desc">Display files and folders starting with a dot (e.g., .git, .env).</span>
-        </div>
-        <div class="settings-row-control">
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              bind:checked={showHiddenFiles}
-              on:change={() => updateLocalSetting('cc_show_hidden', showHiddenFiles)}
-            />
-            <span class="checkbox-indicator"></span>
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- Group 4: User Account -->
-    <div class="settings-card">
-      <h3 class="settings-card-title">User Account</h3>
+      <h3 class="settings-card-title">{$t('settings.account')}</h3>
       {#if $isAuthenticated}
         <!-- Account Info -->
         <div class="settings-row">
           <div class="settings-row-info">
-            <span class="settings-row-title">Signed In User</span>
-            <span class="settings-row-desc">Username: <strong>{$user?.username || 'User'}</strong></span>
+            <span class="settings-row-title">{$t('settings.logged_in')}</span>
+            <span class="settings-row-desc"><strong>{$user?.username || $t('nav.user')}</strong></span>
           </div>
           <div class="settings-row-control">
-            <button class="btn btn-secondary" on:click={() => authStore.clearSession()}>Sign Out</button>
+            <button class="btn btn-secondary" on:click={() => authStore.clearSession()}>{$t('settings.sign_out')}</button>
           </div>
         </div>
 
         <!-- Change password button -->
         <div class="settings-row">
           <div class="settings-row-info">
-            <span class="settings-row-title">Change password</span>
-            <span class="settings-row-desc">Update password for your account. All sessions will be revoked.</span>
+            <span class="settings-row-title">{$t('settings.change_password')}</span>
+            <span class="settings-row-desc">{$t('modals.auth.password')}</span>
           </div>
           <div class="settings-row-control">
-            <button class="btn btn-secondary" on:click={() => (showPasswordModal = true)}>Change Password</button>
-          </div>
-        </div>
-      {:else}
-        <div class="settings-row">
-          <div class="settings-row-info">
-            <span class="settings-row-title">Anonymous Access</span>
-            <span class="settings-row-desc">Sign in to sync files and manage your personal repository.</span>
+            <button class="btn btn-secondary" on:click={() => (showPasswordModal = true)}>{$t('settings.change_password')}</button>
           </div>
         </div>
       {/if}
     </div>
 
-    <!-- Group 5: Server Administration -->
+    <!-- Group 4: Server Administration -->
     <div class="settings-card">
-      <h3 class="settings-card-title">Server Administration</h3>
+      <h3 class="settings-card-title">{$t('settings.file_mgmt')}</h3>
       
       <!-- Rebuild Index -->
       <div class="settings-row">
         <div class="settings-row-info">
-          <span class="settings-row-title">Rebuild Search Index</span>
-          <span class="settings-row-desc">Force the server to re-scan physical directories and rebuild search SQLite tables.</span>
+          <span class="settings-row-title">{$t('settings.search_index')}</span>
+          <span class="settings-row-desc">{$t('settings.search_index_desc')}</span>
         </div>
         <div class="settings-row-control">
           <button
@@ -390,13 +343,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             disabled={isRebuilding}
             on:click={handleRebuildIndex}
           >
-            {isRebuilding ? 'Running...' : 'Rebuild Index'}
+            {isRebuilding ? $t('settings.rebuilding') : $t('settings.rebuild_index')}
           </button>
         </div>
       </div>
 
-
-      
       {#if rebuildMessage}
         <div
           style="margin-top: 12px; padding: 12px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500;
@@ -414,23 +365,23 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 {#if showPasswordModal}
   <div class="modal-backdrop" on:click|self={() => (showPasswordModal = false)}>
     <div class="dialog-card">
-      <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">Change Password</h3>
+      <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">{$t('settings.change_password')}</h3>
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
         <div>
-          <label class="text-caption" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">New Password</label>
+          <label class="text-caption" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">{$t('settings.new_password')}</label>
           <input
             type="password"
             class="form-input text-body"
-            placeholder="Enter new password"
+            placeholder={$t('modals.auth.password_placeholder')}
             bind:value={newPassword}
           />
         </div>
         <div>
-          <label class="text-caption" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">Confirm New Password</label>
+          <label class="text-caption" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">{$t('settings.confirm_new_password')}</label>
           <input
             type="password"
             class="form-input text-body"
-            placeholder="Confirm new password"
+            placeholder={$t('modals.auth.confirm_password_placeholder')}
             bind:value={confirmNewPassword}
             on:keydown={(e) => e.key === 'Enter' && handleChangePassword()}
           />
@@ -440,8 +391,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <div class="text-caption" style="color: var(--color-danger); font-weight: 600; margin-top: 8px;">{passwordError}</div>
       {/if}
       <div class="dialog-actions" style="display: flex; justify-content: flex-end; gap: var(--spacing-sm); margin-top: 20px;">
-        <button class="btn btn-secondary" on:click={() => { showPasswordModal = false; passwordError = ''; }}>Cancel</button>
-        <button class="btn btn-primary" on:click={handleChangePassword}>Update Password</button>
+        <button class="btn btn-secondary" on:click={() => { showPasswordModal = false; passwordError = ''; }}>{$t('common.cancel')}</button>
+        <button class="btn btn-primary" on:click={handleChangePassword}>{$t('common.save')}</button>
       </div>
     </div>
   </div>

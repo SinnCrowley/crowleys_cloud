@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { filesApi } from '../api/files.js';
   import { apiGet } from '../api/client.js';
+  import { t } from '../stores/i18n.js';
 
   export let file = null;
   export let items = [];
@@ -201,27 +202,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           {#if activeFileType === 'text'}
             <button class="btn btn-secondary text-body" on:click={copyText}>
               <span class="material-symbols-outlined" style="font-size: 18px; color: {copied ? 'var(--color-success)' : 'inherit'};">{copied ? 'check' : 'content_copy'}</span>
-              {copied ? 'Copied!' : 'Copy Text'}
+              {copied ? $t('common.copied') : $t('modals.preview.copy_text')}
             </button>
           {/if}
 
           {#if isTrash}
             <button class="btn btn-secondary text-body" on:click={() => dispatch('restore', file)}>
               <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-success);">restore</span>
-              Restore
+              {$t('common.restore')}
             </button>
             <button class="btn btn-secondary text-body danger-btn" on:click={() => dispatch('delete', file)}>
               <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-danger);">delete_forever</span>
-              Delete Permanently
+              {$t('trash.delete_forever')}
             </button>
           {:else}
             <button class="btn btn-secondary text-body" on:click={handleDownload}>
               <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
-              Download
+              {$t('common.download')}
             </button>
           {/if}
 
-          <button class="btn-icon close-btn" on:click={() => dispatch('close')} title="Close (Esc)">
+          <button class="btn-icon close-btn" on:click={() => dispatch('close')} title={$t('modals.preview.close')}>
             <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
           </button>
         </div>
@@ -230,7 +231,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <!-- Main Stage Content -->
       <div class="preview-stage">
         {#if items.length > 1}
-          <button class="nav-arrow left-arrow" on:click={handlePrev} title="Previous (←)">
+          <button class="nav-arrow left-arrow" on:click={handlePrev} title={$t('modals.preview.prev_file')}>
             <span class="material-symbols-outlined" style="font-size: 32px;">chevron_left</span>
           </button>
         {/if}
@@ -253,7 +254,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             </div>
           {:else if activeFileType === 'pdf'}
             {#if isLoadingPdf}
-              <div class="loading-text text-sub">Loading PDF preview...</div>
+              <div class="loading-text text-sub">{$t('modals.preview.loading_pdf')}</div>
             {:else if pdfError}
               <div class="error-text text-sub">{pdfError}</div>
             {:else if pdfObjectUrl}
@@ -263,7 +264,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           {:else if activeFileType === 'text'}
             <div class="text-viewer-card">
               {#if isLoadingText}
-                <div class="loading-text text-sub">Loading file contents...</div>
+                <div class="loading-text text-sub">{$t('modals.preview.loading_text')}</div>
               {:else if textError}
                 <div class="error-text text-sub">{textError}</div>
               {:else}
@@ -280,20 +281,20 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           {:else}
             <div class="unsupported-card">
               <span class="material-symbols-outlined unsupported-icon">description</span>
-              <h3 class="text-title">Preview not available</h3>
+              <h3 class="text-title">{$t('modals.preview.preview_not_available')}</h3>
               <p class="text-sub">
-                No inline preview for this file type. Click download to view locally.
+                {$t('modals.preview.preview_not_available_sub')}
               </p>
               <button class="btn btn-primary" on:click={handleDownload}>
                 <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
-                Download File ({formatSize(file.size)})
+                {$t('modals.preview.download_file', { size: formatSize(file.size) })}
               </button>
             </div>
           {/if}
         </div>
 
         {#if items.length > 1}
-          <button class="nav-arrow right-arrow" on:click={handleNext} title="Next (→)">
+          <button class="nav-arrow right-arrow" on:click={handleNext} title={$t('modals.preview.next_file')}>
             <span class="material-symbols-outlined" style="font-size: 32px;">chevron_right</span>
           </button>
         {/if}

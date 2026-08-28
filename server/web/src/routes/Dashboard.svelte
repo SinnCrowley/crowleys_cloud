@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import { statsStore, refreshStats } from '../stores/stats.js';
+  import { t } from '../stores/i18n.js';
 
   const dispatch = createEventDispatcher();
 
@@ -91,23 +92,23 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     <div class="drag-over-overlay">
       <div class="drag-drop-card">
         <span class="material-symbols-outlined drop-icon">cloud_upload</span>
-        <h3 class="text-title" style="margin-top: 12px;">Drop files to upload</h3>
-        <p class="text-sub">Items will be queued for upload to root directory</p>
+        <h3 class="text-title" style="margin-top: 12px;">{$t('dashboard.drop_title')}</h3>
+        <p class="text-sub">{$t('dashboard.drop_subtitle')}</p>
       </div>
     </div>
   {/if}
 
   <div class="canvas-header">
     <div class="canvas-header-info">
-      <h2>Dashboard</h2>
-      <p>Overview of your central file repository.</p>
+      <h2>{$t('dashboard.title')}</h2>
+      <p>{$t('dashboard.subtitle')}</p>
     </div>
 
     <div class="dashboard-storage-widget">
       <div class="storage-widget-header">
         <div class="storage-widget-title">
           <span class="material-symbols-outlined storage-icon">cloud</span>
-          <span>Storage Used</span>
+          <span>{$t('dashboard.storage_used')}</span>
         </div>
         <span class="storage-widget-size">{formatSize($statsStore.totalSize)} / ∞</span>
       </div>
@@ -115,7 +116,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <div class="storage-widget-fill" style="width: 100%;"></div>
       </div>
       <div class="storage-widget-footer">
-        <span>{$statsStore.totalCount} items stored</span>
+        <span>{$t('dashboard.items_stored', { count: $statsStore.totalCount })}</span>
       </div>
     </div>
   </div>
@@ -129,16 +130,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <div class="bento-card-icon-container primary-light">
           <span class="material-symbols-outlined">folder_open</span>
         </div>
-        <button class="bento-card-action">
+        <button class="bento-card-action" title={$t('common.actions')}>
           <span class="material-symbols-outlined">more_vert</span>
         </button>
       </div>
       <div>
-        <h3 class="bento-card-title">All Files</h3>
+        <h3 class="bento-card-title">{$t('dashboard.all_files')}</h3>
         <div class="bento-card-info">
-          <span>{$statsStore.totalCount} items</span>
+          <span>{$t('common.items', { count: $statsStore.totalCount })}</span>
           <span>•</span>
-          <span>Last modified recently</span>
+          <span>{$t('dashboard.all_files_desc')}</span>
         </div>
       </div>
     </div>
@@ -151,8 +152,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <span class="material-symbols-outlined">image</span>
       </div>
       <div>
-        <h3 class="bento-card-title">Photos</h3>
-        <div class="bento-card-info">{$statsStore.photoCount} items ({formatSize($statsStore.photoSize)})</div>
+        <h3 class="bento-card-title">{$t('dashboard.photos')}</h3>
+        <div class="bento-card-info">{$t('common.items', { count: $statsStore.photoCount })} ({formatSize($statsStore.photoSize)})</div>
       </div>
     </div>
 
@@ -164,8 +165,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <span class="material-symbols-outlined">movie</span>
       </div>
       <div>
-        <h3 class="bento-card-title">Videos</h3>
-        <div class="bento-card-info">{$statsStore.videoCount} items ({formatSize($statsStore.videoSize)})</div>
+        <h3 class="bento-card-title">{$t('dashboard.videos')}</h3>
+        <div class="bento-card-info">{$t('common.items', { count: $statsStore.videoCount })} ({formatSize($statsStore.videoSize)})</div>
       </div>
     </div>
 
@@ -177,8 +178,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <span class="material-symbols-outlined">music_note</span>
       </div>
       <div>
-        <h3 class="bento-card-title">Audio</h3>
-        <div class="bento-card-info">{$statsStore.audioCount} items ({formatSize($statsStore.audioSize)})</div>
+        <h3 class="bento-card-title">{$t('dashboard.audio')}</h3>
+        <div class="bento-card-info">{$t('common.items', { count: $statsStore.audioCount })} ({formatSize($statsStore.audioSize)})</div>
       </div>
     </div>
 
@@ -190,8 +191,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <span class="material-symbols-outlined">description</span>
       </div>
       <div>
-        <h3 class="bento-card-title">Documents</h3>
-        <div class="bento-card-info">{$statsStore.documentCount} items ({formatSize($statsStore.documentSize)})</div>
+        <h3 class="bento-card-title">{$t('dashboard.documents')}</h3>
+        <div class="bento-card-info">{$t('common.items', { count: $statsStore.documentCount })} ({formatSize($statsStore.documentSize)})</div>
       </div>
     </div>
 
@@ -208,8 +209,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         </div>
       </div>
       <div>
-        <h3 class="bento-card-title">Shared</h3>
-        <div class="bento-card-info">{$statsStore.sharedCount} items ({formatSize($statsStore.sharedSize)})</div>
+        <h3 class="bento-card-title">{$t('dashboard.shared')}</h3>
+        <div class="bento-card-info">{$t('common.items', { count: $statsStore.sharedCount })} ({formatSize($statsStore.sharedSize)})</div>
       </div>
     </div>
 
@@ -221,8 +222,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <span class="material-symbols-outlined">category</span>
       </div>
       <div>
-        <h3 class="bento-card-title">Other</h3>
-        <div class="bento-card-info">{$statsStore.otherCount} items ({formatSize($statsStore.otherSize)})</div>
+        <h3 class="bento-card-title">{$t('nav.other')}</h3>
+        <div class="bento-card-info">{$t('common.items', { count: $statsStore.otherCount })} ({formatSize($statsStore.otherSize)})</div>
       </div>
     </div>
   </div>

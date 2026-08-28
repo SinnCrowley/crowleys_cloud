@@ -16,6 +16,7 @@
 import 'dart:io';
 
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
@@ -70,7 +71,9 @@ class _TextViewerState extends State<TextViewer> {
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(
-                    'Error reading file: ${snapshot.error}',
+                    AppLocalizations.of(
+                      context,
+                    )!.errorReadingFile(snapshot.error.toString()),
                     style: TextStyle(color: appAccent),
                     textAlign: TextAlign.center,
                   ),

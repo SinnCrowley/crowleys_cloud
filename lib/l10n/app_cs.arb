@@ -1,0 +1,2654 @@
+{
+  "@@locale": "cs",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "Zrušit",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "Uložit",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "Smazat",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "Přejmenovat",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "Zavřít",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "Zkusit znovu",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "Načítání...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "Potvrdit",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "Chyba",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "Chyba: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "Neznámé",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "Nahrát",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "Stáhnout",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "Sdílet",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "Kopírovat",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "Přesunout",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "Obnovit",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "Použít",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "Vytvořit",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "Vymazat",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "Přidat",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "Odebrat",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "Upravit",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "Přepnout",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "Hledat",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "Název",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "Datum",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "Velikost",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "Typ",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "Vzestupně",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "Sestupně",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "Vše",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "Obrázky",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "Fotografie",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "Videa",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "Zvuk",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "Dokumenty",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "Archivy",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "Sdílené",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "Ostatní",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "Ostatní soubory",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "Nenalezeny žádné soubory.",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "V této složce nejsou žádné soubory.",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "Tuto akci nelze vrátit zpět.",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "Hesla se neshodují.",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "Místní soubory",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "Soubory na serveru",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "Nastavení",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "Koš",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "Místní",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "Server",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "Přidat server",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "Nejsou nastaveny žádné servery.",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "Přidejte server v Nastavení.",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "Chcete-li pokračovat, přidejte první server.",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "Zatím nejsou nastaveny žádné servery.",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "Nastavení Crowley's Cloud",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "Připojit",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "Připojování...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "Připojeno",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "Odpojeno",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "Přepnout server",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "Vybrat jiný server",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "Přepnout server?",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "Přepnout aktivní server na „{serverName}“?",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "Vybrat server",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "Vyžadováno ověření",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "Přihlaste se pro přístup k souborům na serveru {serverName}",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "Přihlásit se heslem",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "Použít biometrii",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "Otevírání přihlášení...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "Připojení k serveru selhalo",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "K aktivnímu serveru se nelze připojit.",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "K serveru {serverName} se nelze připojit.",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "Hledat...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "Hledat soubory...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "Hledat soubory na serveru...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "Hledat v koši...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "Vyžadováno oprávnění k úložišti",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "Udělit oprávnění",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "Oprávnění bylo zamítnuto. Udělte přístup k úložišti v Nastavení.",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "K procházení a výběru složek je nutné oprávnění ke správě úložiště.",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "Pro synchronizaci jsou nutná oprávnění k úložišti.",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "Dostupná aktualizace: v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "Klepnutím zobrazíte novinky",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "Zobrazit",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "Dostupná aktualizace",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "Verze {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "Aktuální: v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "Nová: v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "Co je nového:",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "GitHub",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "Poznámky k vydání nejsou k dispozici.",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "Později",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "Stáhnout APK",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "Aktualizovat",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "Odkaz ke sdílení",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "Sdílet odkazem",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "Sdílet na serveru",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "Platnost (dny)",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "Nikdy",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "1 den",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "7 dní",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "30 dní",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "90 dní",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "180 dní",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "365 dní",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "Vytvořit odkaz",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "Odkaz ke sdílení byl zkopírován do schránky!",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "Odkaz ke sdílení se nepodařilo zkopírovat: {error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "Tento typ souboru nelze sdílet.",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "Sdílení se nepodařilo vytvořit: {error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "Vytvořit složku",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "Název složky",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "Nová složka",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "Složka byla vytvořena.",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "Složku se nepodařilo vytvořit: {error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "Vytváření složky...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "Přejmenovat",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "Nový název",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "Zadejte nový název",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "Přejmenování proběhlo úspěšně.",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "Přejmenování selhalo: {error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "Přesunout do",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "Přesunout do: {path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "Přesunout sem",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "Přesun selhal: {error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "Přesunuto do složky.",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "Kopírování selhalo: {error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "Vybrat složku",
+  "@selectFolder": {
+    "description": "Folder picker AppBar title"
+  },
+  "useThisFolder": "Použít tuto složku",
+  "@useThisFolder": {
+    "description": "FAB label to confirm folder selection"
+  },
+  "storageRoot": "Úložiště",
+  "@storageRoot": {
+    "description": "Root label in local file breadcrumb"
+  },
+  "serverRoot": "kořen",
+  "@serverRoot": {
+    "description": "Root label in server file breadcrumb"
+  },
+  "deleteNItemsTitle": "Smazat položek: {count}?",
+  "@deleteNItemsTitle": {
+    "description": "Bulk delete dialog title",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "Smazat soubory?",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirm dialog title"
+  },
+  "deleteFilesBody": "Opravdu chcete smazat {count} vybraných položek? Tuto akci nelze vrátit zpět.",
+  "@deleteFilesBody": {
+    "description": "Delete files confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "Trvale smazat",
+  "@deletePermanently": {
+    "description": "Permanent delete action/button label"
+  },
+  "deletePermanentlyTitle": "Trvale smazat?",
+  "@deletePermanentlyTitle": {
+    "description": "Permanent delete confirm dialog title"
+  },
+  "deletePermanentlyBody": "Soubor {filename} bude trvale smazán.",
+  "@deletePermanentlyBody": {
+    "description": "Permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "Smazat soubor?",
+  "@deleteFileTitle": {
+    "description": "Single file delete confirm dialog title"
+  },
+  "deleteFileBody": "Opravdu chcete smazat {filename}? Tuto akci nelze vrátit zpět.",
+  "@deleteFileBody": {
+    "description": "Single file delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "Trvale smazat",
+  "@deleteServerFileTitle": {
+    "description": "Server permanent delete confirm dialog title"
+  },
+  "deleteServerFileBody": "Opravdu chcete trvale smazat „{filename}“? Tuto akci nelze vrátit zpět.",
+  "@deleteServerFileBody": {
+    "description": "Server permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "Zrušit sdílení položek?",
+  "@unshareItemsTitle": {
+    "description": "Unshare confirm dialog title"
+  },
+  "unshareItemsBody": "Opravdu chcete zrušit sdílení {count} vybraných položek? Budou odstraněny ze složky Sdílené.",
+  "@unshareItemsBody": {
+    "description": "Unshare confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "Zrušit sdílení",
+  "@unshare": {
+    "description": "Unshare button label"
+  },
+  "moveToTrash": "Přesunout do koše",
+  "@moveToTrash": {
+    "description": "Move to trash action label"
+  },
+  "movedToTrash": "Přesunuto do koše.",
+  "@movedToTrash": {
+    "description": "Snackbar on single item moved to trash"
+  },
+  "movedNItemsToTrash": "Přesunuto do koše položek: {count}.",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar on multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "Přesun do koše selhal: {error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move-to-trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "Smazáno položek: {count}.",
+  "@deletedNItems": {
+    "description": "Snackbar on bulk delete success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "Smazání selhalo: {error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "Smazání položky selhalo: {error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on server delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "Soubor {filename} byl smazán.",
+  "@deletedFilename": {
+    "description": "Snackbar on single file delete success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "Soubor se nepodařilo otevřít",
+  "@failedToOpenFile": {
+    "description": "Snackbar when file can't be opened"
+  },
+  "fileDownloadFailed": "Stažení souboru selhalo: {error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on file download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "Stahování...",
+  "@downloading": {
+    "description": "Snackbar while downloading"
+  },
+  "downloadingFile": "Stahování souboru...",
+  "@downloadingFile": {
+    "description": "Loading text while downloading a file for preview"
+  },
+  "downloadComplete": "Stahování dokončeno: {filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "Stahování selhalo: {error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "Náhled souboru se nepodařilo stáhnout",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar when preview download fails"
+  },
+  "uploadComplete": "Nahrávání dokončeno: {filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "Nahrávání selhalo: {error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "Soubory se nepodařilo vybrat",
+  "@failedToPickFiles": {
+    "description": "Snackbar when file picker fails"
+  },
+  "uploadedNItems": "Nahráno položek: {count}",
+  "@uploadedNItems": {
+    "description": "Snackbar on batch upload success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "Odkaz byl zkopírován do schránky.",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on link copy"
+  },
+  "failedToCopyLink": "Odkaz se nepodařilo zkopírovat: {error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on link copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "Vybírá se vše...",
+  "@selectingAll": {
+    "description": "Snackbar while selecting all items"
+  },
+  "allItemsSelected": "Všechny položky jsou vybrány.",
+  "@allItemsSelected": {
+    "description": "Snackbar when all items are selected"
+  },
+  "failedToLoadSearchResults": "Výsledky hledání se nepodařilo načíst",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar on search failure"
+  },
+  "shareNotSupportedForType": "Sdílení není pro tento typ souboru podporováno.",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar for unsupported share"
+  },
+  "nSelected": "Vybráno: {count}",
+  "@nSelected": {
+    "description": "Selection header: N items selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "Není vybrán žádný server",
+  "@noServerSelected": {
+    "description": "Snackbar when no server is active"
+  },
+  "pleaseConnectToServerFirst": "Nejprve se připojte k serveru.",
+  "@pleaseConnectToServerFirst": {
+    "description": "Snackbar prompt to connect"
+  },
+  "signInRequired": "Je nutné se přihlásit",
+  "@signInRequired": {
+    "description": "Snackbar when sign-in is needed"
+  },
+  "pleaseSignInToServer": "Nejprve se přihlaste k serveru {serverName}.",
+  "@pleaseSignInToServer": {
+    "description": "Snackbar prompting to sign in",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "Připojování k serveru...",
+  "@connectingToServer": {
+    "description": "Snackbar while connecting"
+  },
+  "connectedToServer": "Připojeno k {serverName}.",
+  "@connectedToServer": {
+    "description": "Snackbar on successful connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "Připojení selhalo: {error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "Připojení se nepodařilo: {error}",
+  "@failedToConnect": {
+    "description": "Snackbar on connect failure (alt)",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "Ověření selhalo: {error}",
+  "@authFailed": {
+    "description": "Snackbar on authentication failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "Ověření selhalo. Zkuste to znovu.",
+  "@authFailedGeneric": {
+    "description": "Generic auth failure snackbar"
+  },
+  "biometricLoginFailed": "Biometrické přihlášení selhalo: {error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "Biometrické přihlášení selhalo.",
+  "@biometricLoginFailedGeneric": {
+    "description": "Generic biometric failure snackbar"
+  },
+  "noServerSessionToken": "Chybí token relace serveru. Ověřte server znovu.",
+  "@noServerSessionToken": {
+    "description": "Snackbar when session token is missing"
+  },
+  "failedToSaveServer": "Server se nepodařilo uložit: {error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on server save failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "Přidat do složky",
+  "@addToFolder": {
+    "description": "Context menu action: add to folder"
+  },
+  "loginTabLabel": "Přihlásit se",
+  "@loginTabLabel": {
+    "description": "Auth tab: log in"
+  },
+  "registerTabLabel": "Registrovat se",
+  "@registerTabLabel": {
+    "description": "Auth tab: register"
+  },
+  "welcomeBack": "Vítejte zpět",
+  "@welcomeBack": {
+    "description": "Auth login card title"
+  },
+  "signInToContinue": "Přihlaste se pro pokračování",
+  "@signInToContinue": {
+    "description": "Auth login card subtitle"
+  },
+  "createAccount": "Vytvořit účet",
+  "@createAccount": {
+    "description": "Auth register card title"
+  },
+  "joinTheServer": "Připojit se k serveru",
+  "@joinTheServer": {
+    "description": "Auth register card subtitle"
+  },
+  "usernameLabel": "Uživatelské jméno",
+  "@usernameLabel": {
+    "description": "Username text field label"
+  },
+  "usernameHint": "Zadejte uživatelské jméno",
+  "@usernameHint": {
+    "description": "Username text field hint"
+  },
+  "passwordLabel": "Heslo",
+  "@passwordLabel": {
+    "description": "Password text field label"
+  },
+  "passwordHint": "Zadejte heslo",
+  "@passwordHint": {
+    "description": "Password text field hint"
+  },
+  "showPassword": "Zobrazit heslo",
+  "@showPassword": {
+    "description": "Tooltip for show password button"
+  },
+  "hidePassword": "Skrýt heslo",
+  "@hidePassword": {
+    "description": "Tooltip for hide password button"
+  },
+  "confirmPassword": "Potvrdit heslo",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "Přihlásit se",
+  "@logIn": {
+    "description": "Login button label"
+  },
+  "loggingIn": "Přihlašování...",
+  "@loggingIn": {
+    "description": "Login loading state"
+  },
+  "registering": "Registrace...",
+  "@registering": {
+    "description": "Register loading state"
+  },
+  "forgotPassword": "Zapomněli jste heslo?",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  "doNotHaveAccount": "Nemáte účet? Přepněte na registraci.",
+  "@doNotHaveAccount": {
+    "description": "Auth footer for login mode"
+  },
+  "alreadyHaveAccount": "Už máte účet? Přepněte na přihlášení.",
+  "@alreadyHaveAccount": {
+    "description": "Auth footer for register mode"
+  },
+  "usernameCannotBeEmpty": "Uživatelské jméno nesmí být prázdné.",
+  "@usernameCannotBeEmpty": {
+    "description": "Validation: empty username"
+  },
+  "passwordCannotBeEmpty": "Heslo nesmí být prázdné.",
+  "@passwordCannotBeEmpty": {
+    "description": "Validation: empty password"
+  },
+  "usernameInvalid": "Uživatelské jméno musí mít 3–32 znaků: písmena, čísla, _ nebo -.",
+  "@usernameInvalid": {
+    "description": "Validation: invalid username format"
+  },
+  "passwordTooShort": "Heslo musí mít alespoň 8 znaků.",
+  "@passwordTooShort": {
+    "description": "Validation: password too short"
+  },
+  "loginFailed": "Přihlášení selhalo: {error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "Registrace selhala: {error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "Obnovit heslo",
+  "@resetPasswordTitle": {
+    "description": "Forgot password dialog title step 1"
+  },
+  "enterResetCodeTitle": "Zadejte obnovovací kód",
+  "@enterResetCodeTitle": {
+    "description": "Forgot password dialog title step 2"
+  },
+  "resetPasswordStep1Body": "Zadejte uživatelské jméno. Šestimístný ověřovací kód se zobrazí v protokolu nebo konzoli serveru.",
+  "@resetPasswordStep1Body": {
+    "description": "Forgot password step 1 instruction"
+  },
+  "resetPasswordStep2Body": "Ověřovací kód byl vypsán do konzole serveru. Zadejte šestimístný kód a nové heslo.",
+  "@resetPasswordStep2Body": {
+    "description": "Forgot password step 2 instruction"
+  },
+  "resetCodeLabel": "Obnovovací kód",
+  "@resetCodeLabel": {
+    "description": "Reset code field label"
+  },
+  "resetCodeHint": "Zadejte šestimístný kód",
+  "@resetCodeHint": {
+    "description": "Reset code field hint"
+  },
+  "newPasswordLabel": "Nové heslo",
+  "@newPasswordLabel": {
+    "description": "New password field label"
+  },
+  "newPasswordHint": "Zadejte nové heslo",
+  "@newPasswordHint": {
+    "description": "New password field hint"
+  },
+  "passwordResetSuccessfully": "Heslo bylo úspěšně obnoveno!",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "Uživatelské jméno je povinné.",
+  "@usernameIsRequired": {
+    "description": "Validation: username required for reset"
+  },
+  "codeAndPasswordRequired": "Kód a nové heslo jsou povinné.",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "Požadavek na obnovu selhal. Ověřte adresu URL serveru.",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request failure"
+  },
+  "failedToResetPassword": "Heslo se nepodařilo obnovit. Zkontrolujte kód.",
+  "@failedToResetPassword": {
+    "description": "Snackbar on reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "Nejprve zadejte adresu URL serveru.",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Snackbar when server URL is missing"
+  },
+  "sendCode": "Odeslat kód",
+  "@sendCode": {
+    "description": "Send reset code button label"
+  },
+  "settingsTitle": "Nastavení",
+  "@settingsTitle": {
+    "description": "Settings screen AppBar title"
+  },
+  "sectionBackupSync": "Zálohování a synchronizace",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "Úložiště a mezipaměť",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "Zabezpečení a chování",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security & behavior"
+  },
+  "sectionAboutUpdates": "Informace a aktualizace",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "Vzhled a přizpůsobení",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "Nejsou nastaveny žádné servery",
+  "@noServersConfiguredSync": {
+    "description": "Sync section tile title when no servers"
+  },
+  "addServerBeforeSync": "Před nastavením synchronizace přidejte server.",
+  "@addServerBeforeSync": {
+    "description": "Sync section hint when no servers"
+  },
+  "selectServerToConfigureSync": "Vyberte server pro nastavení synchronizace.",
+  "@selectServerToConfigureSync": {
+    "description": "Sync section instruction"
+  },
+  "activeServerSuffix": "· aktivní",
+  "@activeServerSuffix": {
+    "description": "Suffix label for active server in list"
+  },
+  "folderAndCategorySync": "Synchronizace složek a kategorií",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle title"
+  },
+  "keepCategoriesSynced": "Udržujte vybrané místní kategorie nebo složky synchronizované s tímto serverem.",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle subtitle"
+  },
+  "addServerBeforeSyncEnable": "Před zapnutím synchronizace přidejte server.",
+  "@addServerBeforeSyncEnable": {
+    "description": "Sync toggle disabled subtitle"
+  },
+  "onlyOnWifi": "Pouze přes Wi-Fi",
+  "@onlyOnWifi": {
+    "description": "Sync preference: only on Wi-Fi"
+  },
+  "onlyWhileCharging": "Pouze při nabíjení",
+  "@onlyWhileCharging": {
+    "description": "Sync preference: only while charging"
+  },
+  "serverTargetDirectory": "Cílový adresář na serveru",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory setting title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Hint text for server target directory"
+  },
+  "synchronizationFrequency": "Frekvence synchronizace",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency setting title"
+  },
+  "syncNow": "Synchronizovat nyní",
+  "@syncNow": {
+    "description": "Manual sync button label"
+  },
+  "syncing": "Synchronizace...",
+  "@syncing": {
+    "description": "Loading state for sync button"
+  },
+  "categoriesToSynchronize": "Kategorie k synchronizaci",
+  "@categoriesToSynchronize": {
+    "description": "Sync categories tile title"
+  },
+  "noCategoriesSelected": "Nejsou vybrány žádné kategorie.",
+  "@noCategoriesSelected": {
+    "description": "Sync categories empty state"
+  },
+  "nCategoriesSelected": "Vybráno: {count}",
+  "@nCategoriesSelected": {
+    "description": "N categories selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "Složky k synchronizaci",
+  "@foldersToSynchronize": {
+    "description": "Sync folders tile title"
+  },
+  "noCustomFolders": "Nejsou nastaveny žádné vlastní složky.",
+  "@noCustomFolders": {
+    "description": "Sync folders empty state"
+  },
+  "nFolders": "Složek: {count}",
+  "@nFolders": {
+    "description": "N folders selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "Přidat složku",
+  "@addFolder": {
+    "description": "Tooltip for add folder button"
+  },
+  "removeFolder": "Odebrat složku",
+  "@removeFolder": {
+    "description": "Tooltip for remove folder button"
+  },
+  "removeServer": "Odebrat server",
+  "@removeServer": {
+    "description": "Tooltip for remove server button"
+  },
+  "syncFreqEvery15Min": "Každých 15 minut",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: every 15 min"
+  },
+  "syncFreqEvery30Min": "Každých 30 minut",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: every 30 min"
+  },
+  "syncFreqEvery1Hour": "Každou hodinu",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: every hour"
+  },
+  "syncFreqEveryNHours": "Každých {hours} hodin",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency: every N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "Každých {minutes} minut",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency: every N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "Denně",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "Vyberte frekvenci synchronizace",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency picker dialog title"
+  },
+  "cacheSize": "Velikost mezipaměti",
+  "@cacheSize": {
+    "description": "Cache size setting tile title"
+  },
+  "refreshTooltip": "Obnovit",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh button"
+  },
+  "cacheLimit": "Limit mezipaměti",
+  "@cacheLimit": {
+    "description": "Cache limit dropdown label"
+  },
+  "downloadPath": "Cesta pro stahování",
+  "@downloadPath": {
+    "description": "Download path setting title"
+  },
+  "defaultDownloadFolder": "Výchozí složka CrowleysCloud",
+  "@defaultDownloadFolder": {
+    "description": "Fallback label for default download folder"
+  },
+  "clearCache": "Vymazat mezipaměť",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "Vymazat mezipaměť?",
+  "@clearCacheTitle": {
+    "description": "Clear cache confirm dialog title"
+  },
+  "clearCacheBody": "Tímto odstraníte místní náhledy a uložené výpisy serveru.",
+  "@clearCacheBody": {
+    "description": "Clear cache confirm dialog body"
+  },
+  "downloadPathDialogTitle": "Cesta pro stahování",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path hint text"
+  },
+  "useDefault": "Použít výchozí",
+  "@useDefault": {
+    "description": "Use default path button in download path dialog"
+  },
+  "serverTargetDirDialogTitle": "Cílový adresář na serveru",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "Vyžadovat přihlášení",
+  "@requireLogin": {
+    "description": "Require login dropdown label"
+  },
+  "biometricLogin": "Biometrické přihlášení",
+  "@biometricLogin": {
+    "description": "Biometric login toggle title"
+  },
+  "biometricLoginSubtitle": "Povolit přihlášení uloženými údaji pomocí biometrie.",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login toggle subtitle"
+  },
+  "biometricsNotAvailable": "Biometrie není na tomto zařízení k dispozici.",
+  "@biometricsNotAvailable": {
+    "description": "Subtitle when biometrics unavailable"
+  },
+  "showHiddenFiles": "Zobrazit skryté soubory",
+  "@showHiddenFiles": {
+    "description": "Show hidden files toggle title"
+  },
+  "showHiddenFilesSubtitle": "Zobrazit soubory a složky začínající tečkou.",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files toggle subtitle"
+  },
+  "changePassword": "Změnit heslo",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "Změnit heslo pro {serverName}.",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "Před změnou hesla přidejte server.",
+  "@addServerBeforeChangePassword": {
+    "description": "Subtitle when no server for password change"
+  },
+  "deleteUserAccount": "Smazat uživatelský účet",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "Smaže uživatele a všechny soukromé soubory v cloudu.",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "Smazat účet?",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirm dialog title"
+  },
+  "deleteAccountBody": "Tímto trvale smažete účet na {serverName} a všechny soubory uložené v soukromé cloudové složce. Tuto akci nelze vrátit zpět.",
+  "@deleteAccountBody": {
+    "description": "Delete account confirm dialog body",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "Smazat účet",
+  "@deleteAccountButton": {
+    "description": "Delete account confirm button"
+  },
+  "changePasswordDialogTitle": "Změnit heslo",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "Nové heslo",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "Potvrdit heslo",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "Zadejte nové heslo.",
+  "@enterNewPassword": {
+    "description": "Validation: new password is required"
+  },
+  "passwordUpdated": "Heslo bylo změněno.",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "Změna hesla selhala: {error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "Změna hesla selhala.",
+  "@passwordChangeFailedGeneric": {
+    "description": "Generic password change failure snackbar"
+  },
+  "accountDeleted": "Účet byl smazán.",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "Smazání účtu selhalo: {error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "Smazání účtu selhalo.",
+  "@accountDeletionFailedGeneric": {
+    "description": "Generic account deletion failure snackbar"
+  },
+  "checkForUpdates": "Zkontrolovat aktualizace",
+  "@checkForUpdates": {
+    "description": "Update check tile title"
+  },
+  "checkingForUpdates": "Kontrola vydání na GitHubu...",
+  "@checkingForUpdates": {
+    "description": "Update check loading state"
+  },
+  "versionLabel": "Verze {version}",
+  "@versionLabel": {
+    "description": "Version label in settings",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "Crowley's Cloud je aktuální (v{version}).",
+  "@appIsUpToDate": {
+    "description": "Snackbar when app is up to date",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "Aktualizace se nepodařilo zkontrolovat. Zkuste to později.",
+  "@updateCheckFailed": {
+    "description": "Snackbar on update check failure"
+  },
+  "themeModeTitle": "Režim motivu",
+  "@themeModeTitle": {
+    "description": "Theme mode tile title"
+  },
+  "themeDark": "Tmavý",
+  "@themeDark": {
+    "description": "Dark theme option"
+  },
+  "themeLight": "Světlý",
+  "@themeLight": {
+    "description": "Light theme option"
+  },
+  "themeCustom": "Vlastní",
+  "@themeCustom": {
+    "description": "Custom theme option"
+  },
+  "themeDarkFull": "Tmavý motiv",
+  "@themeDarkFull": {
+    "description": "Dark theme option (full label)"
+  },
+  "themeLightFull": "Světlý motiv",
+  "@themeLightFull": {
+    "description": "Light theme option (full label)"
+  },
+  "themeCustomFull": "Vlastní motiv",
+  "@themeCustomFull": {
+    "description": "Custom theme option (full label)"
+  },
+  "accentColor": "Barva zvýraznění",
+  "@accentColor": {
+    "description": "Accent color tile title"
+  },
+  "primaryAccentColor": "Hlavní barva zvýraznění",
+  "@primaryAccentColor": {
+    "description": "Accent color tile subtitle"
+  },
+  "selectAccentColor": "Vyberte barvu zvýraznění",
+  "@selectAccentColor": {
+    "description": "Accent color picker dialog title"
+  },
+  "backgroundColor": "Barva pozadí",
+  "@backgroundColor": {
+    "description": "Background color tile"
+  },
+  "surfaceColor": "Barva povrchu",
+  "@surfaceColor": {
+    "description": "Surface color tile"
+  },
+  "textColor": "Barva textu",
+  "@textColor": {
+    "description": "Text color tile"
+  },
+  "subtextColor": "Barva doplňkového textu",
+  "@subtextColor": {
+    "description": "Subtext color tile"
+  },
+  "borderColor": "Barva okraje",
+  "@borderColor": {
+    "description": "Border color tile"
+  },
+  "fontSizeScale": "Měřítko velikosti písma",
+  "@fontSizeScale": {
+    "description": "Font size scale tile title"
+  },
+  "selectColor": "Vyberte {title}",
+  "@selectColor": {
+    "description": "Color picker dialog title (dynamic)",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "Kategorie k synchronizaci",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Sync categories dialog title"
+  },
+  "categoriesToSyncBody": "Vyberte jednu nebo více kategorií. Je možné nechat vše nezaškrtnuté.",
+  "@categoriesToSyncBody": {
+    "description": "Sync categories dialog body"
+  },
+  "syncCategorySectionMedia": "Média",
+  "@syncCategorySectionMedia": {
+    "description": "Sync categories section: media"
+  },
+  "syncCategorySectionAudioDocs": "Zvuk a dokumenty",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Sync categories section: audio & docs"
+  },
+  "syncCategorySectionOther": "Ostatní",
+  "@syncCategorySectionOther": {
+    "description": "Sync categories section: other"
+  },
+  "clearAll": "Vymazat vše",
+  "@clearAll": {
+    "description": "Clear all button in categories dialog"
+  },
+  "noSyncHasRunYet": "Synchronizace zatím nebyla spuštěna.",
+  "@noSyncHasRunYet": {
+    "description": "Label when no sync has executed"
+  },
+  "lastRunAt": "Poslední spuštění: {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "Synchronizováno: {uploaded}, přeskočeno: {skipped}.",
+  "@syncResultSuccess": {
+    "description": "Sync result snackbar: success",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "K synchronizaci nejsou vybrány žádné soubory.",
+  "@syncResultNoFiles": {
+    "description": "Sync result: no files"
+  },
+  "syncResultPartial": "Synchronizováno: {uploaded}, selhalo: {failed}.",
+  "@syncResultPartial": {
+    "description": "Sync result snackbar: partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "Před synchronizací se přihlaste.",
+  "@syncResultAuthRequired": {
+    "description": "Sync result: auth required"
+  },
+  "syncResultUnreachable": "Server není dostupný. Připojení bylo ztraceno.",
+  "@syncResultUnreachable": {
+    "description": "Sync result: server unreachable"
+  },
+  "syncResultFailed": "Synchronizace selhala.",
+  "@syncResultFailed": {
+    "description": "Sync result: generic failure"
+  },
+  "serverSetupAddServer": "Přidat server",
+  "@serverSetupAddServer": {
+    "description": "Server setup screen AppBar title"
+  },
+  "serverSetupCardTitle": "Připojit server",
+  "@serverSetupCardTitle": {
+    "description": "Server setup auth card title"
+  },
+  "serverSetupCardSubtitle": "Přidejte domácí souborový server a přihlaste se.",
+  "@serverSetupCardSubtitle": {
+    "description": "Server setup auth card subtitle"
+  },
+  "serverSetupSubmitButton": "Uložit server",
+  "@serverSetupSubmitButton": {
+    "description": "Server setup auth card submit button"
+  },
+  "serverNameLabel": "Název serveru",
+  "@serverNameLabel": {
+    "description": "Server name field label"
+  },
+  "serverNameHint": "Home NAS",
+  "@serverNameHint": {
+    "description": "Server name field hint"
+  },
+  "baseUrlLabel": "Základní adresa URL",
+  "@baseUrlLabel": {
+    "description": "Base URL field label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Base URL field hint"
+  },
+  "allFieldsRequired": "Všechna pole jsou povinná.",
+  "@allFieldsRequired": {
+    "description": "Validation: all fields required"
+  },
+  "localFilesTitle": "Místní soubory",
+  "@localFilesTitle": {
+    "description": "Local file browser AppBar title"
+  },
+  "serverFilesTitle": "Soubory na serveru",
+  "@serverFilesTitle": {
+    "description": "Server file browser AppBar title"
+  },
+  "restoreItemsTitle": "Obnovit položky",
+  "@restoreItemsTitle": {
+    "description": "Trash restore confirm dialog title"
+  },
+  "restoreItemsBody": "Opravdu chcete obnovit {count} položek?",
+  "@restoreItemsBody": {
+    "description": "Trash restore confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "Trvale smazat",
+  "@permanentlyDeleteTitle": {
+    "description": "Trash permanent delete confirm dialog title"
+  },
+  "permanentlyDeleteBody": "Opravdu chcete trvale smazat {count} položek? Tuto akci nelze vrátit zpět.",
+  "@permanentlyDeleteBody": {
+    "description": "Trash permanent delete confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "Koš je prázdný.",
+  "@trashIsEmpty": {
+    "description": "Trash empty state message"
+  },
+  "trashRetentionInfo": "Položky v koši se automaticky smažou po {days} dnech.",
+  "@trashRetentionInfo": {
+    "description": "Trash retention info banner",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "Datum smazání",
+  "@deletionDate": {
+    "description": "Sort option: deletion date (trash)"
+  },
+  "deletePermanentlyAction": "Trvale smazat",
+  "@deletePermanentlyAction": {
+    "description": "Action bar label for permanent delete in trash"
+  },
+  "conflictFileAlreadyExists": "Soubor již existuje",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "Konflikt {current} z {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog subtitle",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "Soubor s názvem ",
+  "@conflictAFileNamed": {
+    "description": "Conflict dialog body text span prefix"
+  },
+  "conflictAlreadyExistsAt": " již existuje v umístění ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Conflict dialog body text span (restore)"
+  },
+  "conflictAlreadyExistsInFolder": " již v této složce existuje.",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Conflict dialog body text span (upload)"
+  },
+  "conflictInFolder": "Ve složce",
+  "@conflictInFolder": {
+    "description": "Conflict dialog column header: existing file in folder"
+  },
+  "conflictFromTrash": "Z koše",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog column header: file from trash"
+  },
+  "conflictExisting": "Existující",
+  "@conflictExisting": {
+    "description": "Conflict dialog column header: existing upload file"
+  },
+  "conflictNewUpload": "Nové nahrání",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog column header: new uploaded file"
+  },
+  "conflictSizeLabel": "Velikost: {size}",
+  "@conflictSizeLabel": {
+    "description": "Conflict dialog size data label",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "Datum: {date}",
+  "@conflictDateLabel": {
+    "description": "Conflict dialog date data label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "Smazáno: {date}",
+  "@conflictDeletedLabel": {
+    "description": "Conflict dialog deleted-at label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "Použít na zbývajících konfliktů: {count}",
+  "@conflictApplyToRemaining": {
+    "description": "Conflict dialog apply-to-all checkbox label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "Ponechat všechny kopie",
+  "@conflictKeepAllCopies": {
+    "description": "Conflict action: keep all copies"
+  },
+  "conflictOverwriteAll": "Přepsat vše",
+  "@conflictOverwriteAll": {
+    "description": "Conflict action: overwrite all"
+  },
+  "conflictRestoreAllAsCopies": "Obnovit vše jako kopie",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Restore conflict action: restore all as copies"
+  },
+  "conflictRestoreAsCopy": "Obnovit jako kopii",
+  "@conflictRestoreAsCopy": {
+    "description": "Restore conflict action: restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "Přepsat vše zbývající",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Conflict action: overwrite all remaining"
+  },
+  "conflictSkipAll": "Přeskočit vše",
+  "@conflictSkipAll": {
+    "description": "Upload conflict action: skip all"
+  },
+  "conflictSkipAllRemaining": "Přeskočit vše zbývající",
+  "@conflictSkipAllRemaining": {
+    "description": "Upload conflict action: skip all remaining"
+  },
+  "conflictSkip": "Přeskočit",
+  "@conflictSkip": {
+    "description": "Upload conflict action: skip"
+  },
+  "conflictOverwrite": "Přepsat",
+  "@conflictOverwrite": {
+    "description": "Conflict action: overwrite single"
+  },
+  "transfersTitle": "Přenosy",
+  "@transfersTitle": {
+    "description": "Transfers page AppBar title"
+  },
+  "transferResume": "Pokračovat",
+  "@transferResume": {
+    "description": "Transfer resume button tooltip"
+  },
+  "transferPause": "Pozastavit",
+  "@transferPause": {
+    "description": "Transfer pause button tooltip"
+  },
+  "transferCancel": "Zrušit",
+  "@transferCancel": {
+    "description": "Transfer cancel button tooltip"
+  },
+  "transferResumeAll": "Obnovit vše",
+  "@transferResumeAll": {
+    "description": "Resume all transfers button tooltip"
+  },
+  "transferPauseAll": "Pozastavit vše",
+  "@transferPauseAll": {
+    "description": "Pause all transfers button tooltip"
+  },
+  "transferCancelAll": "Zrušit vše",
+  "@transferCancelAll": {
+    "description": "Cancel all transfers button tooltip"
+  },
+  "transferCancelFile": "Zrušit soubor",
+  "@transferCancelFile": {
+    "description": "Cancel individual transfer button tooltip"
+  },
+  "noTransfers": "Žádné přenosy.",
+  "@noTransfers": {
+    "description": "Empty state in transfers page"
+  },
+  "transferStatusQueued": "Ve frontě",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "Probíhá",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "Pozastaveno",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "Dokončeno",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "Selhalo",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "Zrušeno",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "Předvolby",
+  "@themePresetsSection": {
+    "description": "Theme customizer section header: presets"
+  },
+  "themeCustomPaletteSection": "Vlastní paleta",
+  "@themeCustomPaletteSection": {
+    "description": "Theme customizer section header: custom palette"
+  },
+  "themeHexRgbLabel": "Kód HEX RGB",
+  "@themeHexRgbLabel": {
+    "description": "Theme customizer hex input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Theme customizer hex input hint"
+  },
+  "imageViewerNoFetchHandler": "Není nastaven obslužný program načítání",
+  "@imageViewerNoFetchHandler": {
+    "description": "Image viewer internal error text"
+  },
+  "imageViewerFailedToLoad": "Obrázek se nepodařilo načíst",
+  "@imageViewerFailedToLoad": {
+    "description": "Image viewer image load error text"
+  },
+  "errorDeletingFile": "Chyba při mazání {filename}: {error}",
+  "@errorDeletingFile": {
+    "description": "Snackbar on file delete error in image viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "Chyba při čtení souboru: {error}",
+  "@errorReadingFile": {
+    "description": "Error text when file cannot be read in text viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "Synchronizace na pozadí",
+  "@syncChannelName": {
+    "description": "Android notification channel name"
+  },
+  "syncChannelDescription": "Zobrazuje stav souborů synchronizovaných na pozadí.",
+  "@syncChannelDescription": {
+    "description": "Android notification channel description"
+  },
+  "storageStatsTitle": "Statistiky úložiště",
+  "@storageStatsTitle": {
+    "description": "Storage statistics sheet title / tooltip"
+  },
+  "storageStatsUsedSpace": "Využité místo",
+  "@storageStatsUsedSpace": {
+    "description": "Storage stats: used space label"
+  },
+  "storageStatsTotalFiles": "Celkem souborů",
+  "@storageStatsTotalFiles": {
+    "description": "Storage stats: total files label"
+  },
+  "storageStatsNItems": "Položek: {count}",
+  "@storageStatsNItems": {
+    "description": "Storage stats: item count label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "Uživatel č. {userId}",
+  "@userFallback": {
+    "description": "Fallback label for unknown user",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "Odemkněte uložené přihlašovací údaje pro Crowley's Cloud.",
+  "@biometricUnlockReason": {
+    "description": "Biometric authentication prompt reason"
+  },
+  "tokenLifetimeEveryOpen": "Při každém otevření aplikace",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime option: every app launch"
+  },
+  "tokenLifetimeOneHour": "Po 1 hodině",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime option: 1 hour"
+  },
+  "tokenLifetime1Hour": "Po 1 hodině",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime option: 1 hour (alias)"
+  },
+  "tokenLifetimeOneDay": "Po 1 dni",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime option: 1 day"
+  },
+  "tokenLifetime1Day": "Po 1 dni",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime option: 1 day (alias)"
+  },
+  "tokenLifetimeOneWeek": "Po 1 týdnu",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime option: 1 week"
+  },
+  "tokenLifetime1Week": "Po 1 týdnu",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime option: 1 week (alias)"
+  },
+  "tokenLifetimeOneMonth": "Po 1 měsíci",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime option: 1 month"
+  },
+  "tokenLifetime1Month": "Po 1 měsíci",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime option: 1 month (alias)"
+  },
+  "tokenLifetimeThreeMonths": "Po 3 měsících",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime option: 3 months"
+  },
+  "tokenLifetime3Months": "Po 3 měsících",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime option: 3 months (alias)"
+  },
+  "tokenLifetimeNever": "Nikdy na tomto zařízení",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime option: never expires on device"
+  },
+  "cacheLimitUnlimited": "Bez omezení",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit option: unlimited"
+  },
+  "syncCategoryOtherFiles": "Ostatní soubory",
+  "@syncCategoryOtherFiles": {
+    "description": "Label for other files category in sync settings"
+  },
+  "internalStorage": "Interní úložiště",
+  "@internalStorage": {
+    "description": "Label for device internal storage root in display path"
+  },
+  "localStorageRootName": "Interní úložiště",
+  "@localStorageRootName": {
+    "description": "Display name for root internal storage directory"
+  },
+  "syncNotificationSyncingWith": "Synchronizace s {serverName}",
+  "@syncNotificationSyncingWith": {
+    "description": "Background sync notification title when syncing starts",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "Synchronizace s {serverName} pozastavena",
+  "@syncNotificationPausedTitle": {
+    "description": "Background sync notification title when sync is paused",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "Server není dostupný. Synchronizace na pozadí je pozastavena do otevření aplikace.",
+  "@syncNotificationUnreachableBody": {
+    "description": "Background sync notification body when server is unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "Je vyžadováno ověření. Otevřete aplikaci a přihlaste se.",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Background sync notification body when authentication fails"
+  },
+  "syncNotificationFailedTitle": "Synchronizace s {serverName} selhala",
+  "@syncNotificationFailedTitle": {
+    "description": "Background sync notification title on error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "Během synchronizace došlo k chybě.",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Background sync notification body generic error fallback"
+  },
+  "syncNotificationCompleteTitle": "Synchronizace s {serverName} dokončena",
+  "@syncNotificationCompleteTitle": {
+    "description": "Background sync notification title when sync completes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "Synchronizace dokončena.",
+  "@syncNotificationCompleteBody": {
+    "description": "Background sync notification body on completion"
+  },
+  "syncStatusConnecting": "Připojování k serveru...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress status message when connecting"
+  },
+  "syncStatusConnectionLost": "K serveru {serverName} se nepodařilo připojit. Připojení bylo ztraceno.",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error message when connection is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "K serveru {serverName} se nepodařilo připojit. Připojení bylo ztraceno.",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync error when connection to specific server is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "Prohledávání souborů v zařízení...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress status message when scanning device files"
+  },
+  "syncStatusNoFilesFound": "Nenalezeny žádné soubory k synchronizaci.",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync progress status message when no files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "K synchronizaci nejsou vybrány žádné soubory.",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync error message when no sync categories or folders are configured"
+  },
+  "syncStatusCalculatingChecksum": "Výpočet kontrolního součtu ({current}/{total}): {filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress status message while hashing candidates",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "Kontrola duplicit na serveru...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress status message while querying server duplicates"
+  },
+  "syncStatusSyncingFile": "Synchronizace ({current}/{total}): {filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress status message while uploading files",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "Dokončování synchronizace...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress status message on finalizing sync run"
+  },
+  "showingCachedFiles": "Zobrazují se soubory z mezipaměti.",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying offline cached files"
+  },
+  "showingCachedFilesRefreshFailed": "Zobrazují se soubory z mezipaměti. Obnovení selhalo.",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when cache is shown and network refresh failed"
+  },
+  "downloadCanceled": "Stahování zrušeno.",
+  "@downloadCanceled": {
+    "description": "Snackbar on download cancellation"
+  },
+  "downloadedNFilesToPath": "Staženo souborů: {count} do {path}",
+  "@downloadedNFilesToPath": {
+    "description": "Snackbar on successful file download to specific folder",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "Staženo souborů: {downloaded}, selhalo: {failed}: {detail}",
+  "@downloadedNFilesFailedM": {
+    "description": "Snackbar on partial download failure",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "Staženo souborů: {count}, selhalo: {failed}: {error}",
+  "@downloadedNFilesWithFailures": {
+    "description": "Snackbar on partial download failure with error",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "Vytvořeno odkazů ke sdílení: {count}.",
+  "@createdNShareLinks": {
+    "description": "Snackbar on successful share links creation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "Odkazy ke sdílení se nepodařilo vytvořit.",
+  "@failedToCreateShareLinks": {
+    "description": "Snackbar when share link creation fails"
+  },
+  "alreadyInSharedScope": "Již je v rozsahu sdílení.",
+  "@alreadyInSharedScope": {
+    "description": "Snackbar warning when file is already shared"
+  },
+  "sharedNItemsInServer": "Na serveru bylo sdíleno položek: {count}.",
+  "@sharedNItemsInServer": {
+    "description": "Snackbar on sharing items in server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "Sdíleno položek: {count}, selhalo: {failed}.",
+  "@sharedNItemsWithFailures": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "Sdíleno položek: {shared}, selhalo: {failed}.",
+  "@sharedNItemsFailedM": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "Název složky nesmí být prázdný.",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is empty"
+  },
+  "folderAlreadyExists": "Složka již existuje.",
+  "@folderAlreadyExists": {
+    "description": "Error when created folder name already exists"
+  },
+  "folderCreationOnlyInAllFiles": "Složky lze vytvářet pouze ve Všech souborech.",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Snackbar when folder creation is attempted outside All Files"
+  },
+  "currentDirectoryUnavailable": "Aktuální adresář není k dispozici.",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when current browsing directory is not available"
+  },
+  "nothingSelected": "Není nic vybráno.",
+  "@nothingSelected": {
+    "description": "Notice when batch operation is invoked with no selection"
+  },
+  "destinationFolderDoesNotExist": "Cílová složka neexistuje.",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination directory is missing"
+  },
+  "cannotMoveFolderIntoItself": "Složku „{name}“ nelze přesunout do ní samotné.",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when moving a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "Položku {name} se nepodařilo přesunout: {error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a single item fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "Přesunuto položek: {count}.",
+  "@movedNItems": {
+    "description": "Snackbar on moving multiple items",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "Přesunuto položek: {count}, selhalo: {failed}.",
+  "@movedNItemsWithFailures": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "Přesunuto položek: {moved}, selhalo: {failed}.",
+  "@movedNItemsFailedM": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "Vybrané položky se nepodařilo přesunout.",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic failure message when moving selected items fails"
+  },
+  "noFilesWereMoved": "Žádné soubory nebyly přesunuty.",
+  "@noFilesWereMoved": {
+    "description": "Notice when all files in a move operation were skipped"
+  },
+  "renamedOldToNew": "Přejmenováno „{oldName}“ na „{newName}“.",
+  "@renamedOldToNew": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "Přejmenováno „{oldName}“ na „{newName}“.",
+  "@renamedFileFromTo": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "Soubor „{name}“ se nepodařilo přejmenovat ({statusCode}).",
+  "@failedToRenameWithStatus": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "Soubor „{name}“ se nepodařilo přejmenovat ({statusCode}).",
+  "@failedToRenameFileWithCode": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "Soubor „{name}“ se nepodařilo přejmenovat: {error}",
+  "@failedToRenameWithError": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "Soubor „{name}“ se nepodařilo přejmenovat: {error}",
+  "@failedToRenameFile": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "Přejmenování selhalo: soubor nebo složka s tímto názvem již existuje.",
+  "@renameConflictAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "renameFailedAlreadyExists": "Přejmenování selhalo: soubor nebo složka s tímto názvem již existuje.",
+  "@renameFailedAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "failedToCreateFolderWithCode": "Složku se nepodařilo vytvořit ({statusCode}).",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error message when server folder creation fails with status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "Smazáno položek: {deleted}, selhalo: {failed}.",
+  "@deletedNItemsFailedM": {
+    "description": "Notice on partial batch delete failure",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}%  souborů: {completed}/{total}",
+  "@transferSummaryFiles": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}%  souborů: {completed}/{total}",
+  "@transferSummaryProgress": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "Stahování selhalo",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failed text"
+  },
+  "uploadedNItemsWithFailures": "Nahráno položek: {uploaded}, selhalo: {failed}",
+  "@uploadedNItemsWithFailures": {
+    "description": "Upload summary with failed item count",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "Nahráno položek: {uploaded}, selhalo: {failed}.",
+  "@uploadedNItemsFailedM": {
+    "description": "Notice on batch upload with partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": ", selhalo: {count}",
+  "@uploadSummaryFailedCount": {
+    "description": "Suffix for upload summary message indicating failure count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}: místní cesta je prázdná",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}: místní cesta je prázdná",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "Nahrání adresáře selhalo",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "Nahrání adresáře selhalo",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "Místní soubor nebyl nalezen",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "Místní soubor nebyl nalezen",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "Chybí aktivní token relace",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "Chybí aktivní token relace",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "Server odpojen",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "Server odpojen",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "Server není dostupný.",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "Server není dostupný.",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "Místní adresář nebyl nalezen",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "Adresář se nepodařilo prohledat",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "Vytvoření složky selhalo (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "V odpovědi chybí přístupový token",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "V odpovědi chybí obnovovací token",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "Nejsou k dispozici žádné uložené přihlašovací údaje",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "Není k dispozici žádný obnovovací token",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "Není k dispozici žádná aktivní relace",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "Není k dispozici žádné uložené uživatelské jméno",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "Zatím nebylo zveřejněno žádné vydání.",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "Jazyk",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

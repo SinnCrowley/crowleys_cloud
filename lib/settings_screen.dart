@@ -15,6 +15,9 @@
 
 import 'dart:io';
 
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
+import 'package:crowleys_cloud/l10n/localization_fallback.dart';
+
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/app_settings_service.dart';
@@ -61,6 +64,7 @@ class SettingsScreen extends StatefulWidget {
     this.syncStateStore = const FileSyncStateStore(),
     this.syncScheduler,
     this.localFolderPicker,
+    this.onLocaleChanged,
   }) : settingsService = settingsService ?? AppSettingsService(),
        biometricAuthService = biometricAuthService ?? BiometricAuthService(),
        cacheService = cacheService ?? CacheService.instance;
@@ -73,6 +77,7 @@ class SettingsScreen extends StatefulWidget {
   final SyncStateStore syncStateStore;
   final SyncBackgroundScheduler? syncScheduler;
   final Future<String?> Function(BuildContext context)? localFolderPicker;
+  final Future<void> Function(Locale? locale)? onLocaleChanged;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -93,6 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double? _syncProgressPercent;
   String _defaultTargetDir = '/backup/device';
   bool _isCheckingUpdate = false;
+  String? _localeCode;
 
   SyncService get _syncService {
     return widget.syncService ??
@@ -136,13 +142,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _defaultTargetDir;
   }
 
-  String _displayLocalFolderPath(String path) {
+  String _displayLocalFolderPath(String path, [AppLocalizations? l10n]) {
     const androidPrimaryStoragePrefix = '/storage/emulated/0';
     final trimmed = path.trim();
-    if (trimmed == androidPrimaryStoragePrefix) return 'Storage';
+    final storageLabel = (l10n ?? platformAppLocalizations()).storageRoot;
+    if (trimmed == androidPrimaryStoragePrefix) return storageLabel;
     if (trimmed.startsWith('$androidPrimaryStoragePrefix/')) {
       final relative = trimmed.substring(androidPrimaryStoragePrefix.length);
-      return relative.isEmpty ? 'Storage' : relative;
+      return relative.isEmpty ? storageLabel : relative;
     }
     return trimmed;
   }
@@ -209,6 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       widget.cacheService.cacheSizeBytes(),
       widget.settingsService.downloadDirectoryPath(),
       widget.settingsService.defaultBackupTargetDirectory(),
+      widget.settingsService.localeCode(),
     ]);
     if (!mounted) return;
     setState(() {
@@ -220,6 +228,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _cacheSizeBytes = results[5]! as int;
       _downloadPath = results[6] as String?;
       _defaultTargetDir = results[7]! as String;
+      _localeCode = results[8] as String?;
       _selectedSyncServerId =
           widget.serverManager.activeServer?.id ??
           widget.serverManager.servers.firstOrNull?.id;
@@ -248,6 +257,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await widget.settingsService.setBiometricLoginEnabled(value);
     if (!mounted) return;
     setState(() => _biometricLoginEnabled = value);
+  }
+
+  Future<void> _setLocaleCode(String? code) async {
+    await widget.settingsService.setLocaleCode(code);
+    await widget.onLocaleChanged?.call(
+      code == null
+          ? null
+          : code == 'pt-BR'
+          ? const Locale('pt', 'BR')
+          : code == 'zh-Hans'
+          ? const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans')
+          : Locale(code),
+    );
+    if (mounted) setState(() => _localeCode = code);
   }
 
   Future<void> _setTokenLifetime(TokenLifetimeOption? value) async {
@@ -279,19 +302,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       await widget.serverManager.markAuthed(server.id);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Password updated.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.passwordUpdated)),
+      );
     } on AuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Password change failed: ${e.message}')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.passwordChangeFailed(e.message),
+          ),
+        ),
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Password change failed.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.passwordChangeFailedGeneric,
+          ),
+        ),
+      );
     }
   }
 
@@ -299,23 +330,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final server = widget.serverManager.activeServer;
     if (server == null) return;
 
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: const Text('Delete account?'),
-        content: Text(
-          'This permanently deletes your account on ${server.displayName} and removes all files stored in your private cloud folder. This cannot be undone.',
-        ),
+        title: Text(l10n.deleteAccountTitle),
+        content: Text(l10n.deleteAccountBody(server.displayName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete account'),
+            child: Text(l10n.deleteAccountButton),
           ),
         ],
       ),
@@ -336,17 +366,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Account deleted.')));
+      ).showSnackBar(SnackBar(content: Text(l10n.accountDeleted)));
     } on AuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Account deletion failed: ${e.message}')),
+        SnackBar(content: Text(l10n.accountDeletionFailed(e.message))),
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Account deletion failed.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.accountDeletionFailedGeneric)),
+      );
     }
   }
 
@@ -365,22 +395,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _clearCache() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: const Text('Clear cache?'),
-        content: const Text(
-          'This removes local thumbnails and cached server listings.',
-        ),
+        title: Text(l10n.clearCacheTitle),
+        content: Text(l10n.clearCacheBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Clear'),
+            child: Text(l10n.clear),
           ),
         ],
       ),
@@ -391,13 +420,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _editDownloadPath() async {
+    final l10n = AppLocalizations.of(context)!;
     final path = await showDialog<String?>(
       context: context,
       builder: (context) => _TextInputDialog(
-        title: 'Download path',
+        title: l10n.downloadPathDialogTitle,
         initialValue: _downloadPath ?? '',
-        hintText: '/storage/emulated/0/CrowleysCloud',
-        secondaryActionLabel: 'Use default',
+        hintText: l10n.downloadPathHint,
+        secondaryActionLabel: l10n.useDefault,
         secondaryActionValue: '',
       ),
     );
@@ -408,6 +438,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _editTargetDirectory() async {
+    final l10n = AppLocalizations.of(context)!;
     final current = _syncString(
       'backupTargetDirectory',
       _defaultTargetDirectory(),
@@ -415,9 +446,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final path = await showDialog<String?>(
       context: context,
       builder: (context) => _TextInputDialog(
-        title: 'Server target directory',
+        title: l10n.serverTargetDirDialogTitle,
         initialValue: current,
-        hintText: '/backup/mobile_phone',
+        hintText: l10n.serverTargetDirectoryHint,
       ),
     );
     if (path == null) return;
@@ -449,9 +480,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to save server: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.failedToSaveServer(e.toString()),
+          ),
+        ),
+      );
       return;
     }
 
@@ -490,9 +525,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (!status.isGranted) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text(
-                  'Manage Storage permission is required to browse and select folders.',
+                  AppLocalizations.of(context)!.manageStoragePermissionRequired,
                 ),
               ),
             );
@@ -510,8 +545,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     if (startDir == null || !mounted) return null;
 
+    final l10n = AppLocalizations.of(context)!;
     final controller = FileBrowserController(
-      category: const FileCategory('All files', Icons.folder_outlined),
+      category: FileCategory(l10n.allFiles, Icons.folder_outlined),
       loadOnInit: false,
       settingsService: widget.settingsService,
     );
@@ -557,28 +593,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  String _syncFrequencyLabel(int minutes) {
-    if (minutes == 15) return 'Every 15 minutes';
-    if (minutes == 30) return 'Every 30 minutes';
-    if (minutes == 60) return 'Every hour';
+  String _syncFrequencyLabel(AppLocalizations l10n, int minutes) {
+    if (minutes == 15) return l10n.syncFreqEvery15Min;
+    if (minutes == 30) return l10n.syncFreqEvery30Min;
+    if (minutes == 60) return l10n.syncFreqEvery1Hour;
     if (minutes % 60 == 0) {
       final hours = minutes ~/ 60;
-      if (hours == 1) return 'Every hour';
-      if (hours == 24) return 'Daily';
-      return 'Every $hours hours';
+      if (hours == 1) return l10n.syncFreqEvery1Hour;
+      if (hours == 24) return l10n.syncFreqDaily;
+      return l10n.syncFreqEveryNHours(hours);
     }
-    return 'Every $minutes minutes';
+    return l10n.syncFreqEveryNMin(minutes);
   }
 
   Future<void> _showSyncFrequencyPicker() async {
     final current = _syncPrefs['syncFrequency'] as int? ?? 15;
     final options = [15, 30, 60, 120, 240, 480, 720, 1440];
+    final l10n = AppLocalizations.of(context)!;
 
     final selected = await showDialog<int>(
       context: context,
       builder: (context) => SimpleDialog(
         backgroundColor: appSurface,
-        title: Text('Choose Sync Frequency', style: TextStyle(color: appText)),
+        title: Text(
+          l10n.chooseSyncFrequencyTitle,
+          style: TextStyle(color: appText),
+        ),
         children: options.map((minutes) {
           return SimpleDialogOption(
             onPressed: () => Navigator.pop(context, minutes),
@@ -586,7 +626,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _syncFrequencyLabel(minutes),
+                  _syncFrequencyLabel(l10n, minutes),
                   style: TextStyle(color: appText),
                 ),
                 if (minutes == current)
@@ -663,17 +703,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _syncSelectedServerNow() async {
     final server = _selectedSyncServer;
     if (server == null || _isSyncing) return;
+    final l10n = AppLocalizations.of(context)!;
 
     final hasPermission = await _requestPermissionsForServerSync(server);
     if (!hasPermission) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Storage permissions are required to perform synchronization.',
-          ),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.storagePermissionsRequired)));
       return;
     }
 
@@ -683,6 +720,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
     final result = await _syncService.syncServer(
       server,
+      l10n: l10n,
       onProgress: (message, progress) {
         if (!mounted) return;
         setState(() {
@@ -697,15 +735,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(_syncResultMessage(result))));
+    ).showSnackBar(SnackBar(content: Text(_syncResultMessage(l10n, result))));
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: appBackground,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settingsTitle),
         backgroundColor: appSurface,
         surfaceTintColor: appSurface,
       ),
@@ -714,21 +753,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _themeSection(),
+                _themeSection(l10n),
                 const SizedBox(height: 14),
-                _backupSection(),
+                _backupSection(l10n),
                 const SizedBox(height: 14),
-                _cacheSection(),
+                _cacheSection(l10n),
                 const SizedBox(height: 14),
-                _securitySection(),
+                _securitySection(l10n),
                 const SizedBox(height: 14),
-                _aboutSection(),
+                _aboutSection(l10n),
               ],
             ),
     );
   }
 
-  Widget _backupSection() {
+  Widget _backupSection(AppLocalizations l10n) {
     final selectedServer = _selectedSyncServer;
     final hasSelectedServer = selectedServer != null;
     final syncEnabled = _syncBool('syncEnabled', false);
@@ -742,25 +781,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final syncFolders = _syncStringList('syncFolders');
 
     return _SettingsSection(
-      title: 'Backup & Sync',
+      title: l10n.sectionBackupSync,
       children: [
         if (widget.serverManager.servers.isEmpty)
           ListTile(
             leading: const Icon(Icons.dns_outlined),
-            title: const Text('No servers configured'),
-            subtitle: const Text('Add a server before configuring sync.'),
+            title: Text(l10n.noServersConfiguredSync),
+            subtitle: Text(l10n.addServerBeforeSync),
             trailing: IconButton(
-              tooltip: 'Add server',
+              tooltip: l10n.addServer,
               icon: const Icon(Icons.add),
               onPressed: _openAddServerFlow,
             ),
           )
         else ...[
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
             child: Text(
-              'Select a server to configure its sync settings.',
-              style: TextStyle(color: Colors.white70),
+              l10n.selectServerToConfigureSync,
+              style: const TextStyle(color: Colors.white70),
             ),
           ),
           ...widget.serverManager.servers.map((server) {
@@ -774,7 +813,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               title: Text(server.displayName, style: TextStyle(color: appText)),
               subtitle: Text(
-                isActive ? '${server.baseUrl} · active' : server.baseUrl,
+                isActive
+                    ? '${server.baseUrl} ${l10n.activeServerSuffix}'
+                    : server.baseUrl,
                 style: TextStyle(color: appSubtext),
               ),
               onTap: () {
@@ -786,7 +827,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   if (isSelected) Icon(Icons.check, color: appAccent),
                   IconButton(
-                    tooltip: 'Remove server',
+                    tooltip: l10n.removeServer,
                     icon: Icon(Icons.delete_outline, color: appSubtext),
                     onPressed: () => _removeServer(server),
                   ),
@@ -796,20 +837,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }),
           ListTile(
             leading: Icon(Icons.add, color: appSubtext),
-            title: Text('Add server', style: TextStyle(color: appText)),
+            title: Text(l10n.addServer, style: TextStyle(color: appText)),
             onTap: _openAddServerFlow,
           ),
         ],
         SwitchListTile(
           secondary: Icon(Icons.sync, color: appAccent),
           title: Text(
-            'Folder and category sync',
+            l10n.folderAndCategorySync,
             style: TextStyle(color: appText),
           ),
           subtitle: Text(
             hasSelectedServer
-                ? 'Keep selected local categories or folders synced with this server.'
-                : 'Add a server before enabling synchronization.',
+                ? l10n.keepCategoriesSynced
+                : l10n.addServerBeforeSyncEnable,
             style: TextStyle(color: appSubtext),
           ),
           value: hasSelectedServer && syncEnabled,
@@ -822,7 +863,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (hasSelectedServer && syncEnabled) ...[
           ListTile(
             leading: Icon(Icons.wifi, color: appAccent),
-            title: Text('Only on Wi-Fi', style: TextStyle(color: appText)),
+            title: Text(l10n.onlyOnWifi, style: TextStyle(color: appText)),
             trailing: Switch(
               value: wifiOnly,
               onChanged: (value) => _updateSyncPrefs({'backupWifiOnly': value}),
@@ -831,7 +872,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: Icon(Icons.battery_charging_full, color: appAccent),
             title: Text(
-              'Only while charging',
+              l10n.onlyWhileCharging,
               style: TextStyle(color: appText),
             ),
             trailing: Switch(
@@ -844,7 +885,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             enabled: hasSelectedServer,
             leading: Icon(Icons.folder_outlined, color: appAccent),
             title: Text(
-              'Server target directory',
+              l10n.serverTargetDirectory,
               style: TextStyle(color: appText),
             ),
             subtitle: Text(target, style: TextStyle(color: appSubtext)),
@@ -855,11 +896,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             enabled: hasSelectedServer,
             leading: Icon(Icons.av_timer, color: appAccent),
             title: Text(
-              'Synchronization frequency',
+              l10n.synchronizationFrequency,
               style: TextStyle(color: appText),
             ),
             subtitle: Text(
-              _syncFrequencyLabel(_syncPrefs['syncFrequency'] as int? ?? 15),
+              _syncFrequencyLabel(
+                l10n,
+                _syncPrefs['syncFrequency'] as int? ?? 15,
+              ),
               style: TextStyle(color: appSubtext),
             ),
             trailing: Icon(Icons.arrow_drop_down, color: appSubtext),
@@ -874,7 +918,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Icon(Icons.sync_outlined, color: appAccent),
-            title: Text('Sync now', style: TextStyle(color: appText)),
+            title: Text(l10n.syncNow, style: TextStyle(color: appText)),
             subtitle: _isSyncing
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -882,7 +926,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       const SizedBox(height: 4),
                       Text(
-                        'Syncing...',
+                        l10n.syncing,
                         style: TextStyle(color: appSubtext, fontSize: 13),
                       ),
                       const SizedBox(height: 6),
@@ -898,7 +942,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   )
                 : Text(
-                    _syncStatusLabel(_lastSyncResult),
+                    _syncStatusLabel(l10n, _lastSyncResult),
                     style: TextStyle(color: appSubtext),
                   ),
             trailing: _isSyncing
@@ -911,13 +955,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: Icon(Icons.category_outlined, color: appAccent),
             title: Text(
-              'Categories to synchronize',
+              l10n.categoriesToSynchronize,
               style: TextStyle(color: appText),
             ),
             subtitle: Text(
               syncCategories.isEmpty
-                  ? 'No categories selected.'
-                  : '${syncCategories.length} selected',
+                  ? l10n.noCategoriesSelected
+                  : l10n.nCategoriesSelected(syncCategories.length),
               style: TextStyle(color: appSubtext),
             ),
             trailing: Icon(Icons.chevron_right, color: appSubtext),
@@ -926,20 +970,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: Icon(Icons.folder_copy_outlined, color: appAccent),
             title: Text(
-              'Folders to synchronize',
+              l10n.foldersToSynchronize,
               style: TextStyle(color: appText),
             ),
             subtitle: Text(
               syncFolders.isEmpty
-                  ? 'No custom folders configured.'
+                  ? l10n.noCustomFolders
                   : syncFolders.length == 1
-                  ? _displayLocalFolderPath(syncFolders.single)
-                  : '${syncFolders.length} folder(s)',
+                  ? _displayLocalFolderPath(syncFolders.single, l10n)
+                  : l10n.nFolders(syncFolders.length),
               style: TextStyle(color: appSubtext),
             ),
             onTap: hasSelectedServer ? _addSyncFolder : null,
             trailing: IconButton(
-              tooltip: 'Add folder',
+              tooltip: l10n.addFolder,
               icon: Icon(Icons.add, color: appSubtext),
               onPressed: hasSelectedServer ? _addSyncFolder : null,
             ),
@@ -948,9 +992,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return ListTile(
               dense: true,
               contentPadding: const EdgeInsets.only(left: 56, right: 16),
-              title: Text(_displayLocalFolderPath(folder)),
+              title: Text(_displayLocalFolderPath(folder, l10n)),
               trailing: IconButton(
-                tooltip: 'Remove folder',
+                tooltip: l10n.removeFolder,
                 icon: const Icon(Icons.close),
                 onPressed: hasSelectedServer
                     ? () => _removeSyncFolder(folder)
@@ -963,19 +1007,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _cacheSection() {
+  Widget _cacheSection(AppLocalizations l10n) {
     return _SettingsSection(
-      title: 'Storage & Cache',
+      title: l10n.sectionStorageCache,
       children: [
         ListTile(
           leading: Icon(Icons.storage_outlined, color: appAccent),
-          title: Text('Cache size', style: TextStyle(color: appText)),
+          title: Text(l10n.cacheSize, style: TextStyle(color: appText)),
           subtitle: Text(
             _formatBytes(_cacheSizeBytes),
             style: TextStyle(color: appSubtext),
           ),
           trailing: IconButton(
-            tooltip: 'Refresh',
+            tooltip: l10n.refreshTooltip,
             onPressed: _refreshCacheSize,
             icon: Icon(Icons.refresh, color: appSubtext),
           ),
@@ -990,12 +1034,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ? _cacheMaxBytes
                 : null,
             hint: Text(_formatBytes(_cacheMaxBytes)),
-            decoration: const InputDecoration(labelText: 'Cache limit'),
+            decoration: InputDecoration(labelText: l10n.cacheLimit),
             items: CacheLimitOption.values
                 .map(
                   (option) => DropdownMenuItem<int>(
                     value: option.bytes,
-                    child: Text(option.label),
+                    child: Text(
+                      option.bytes == CacheLimitOption.unlimitedBytes
+                          ? l10n.cacheLimitUnlimited
+                          : option.label,
+                    ),
                   ),
                 )
                 .toList(growable: false),
@@ -1004,9 +1052,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         ListTile(
           leading: Icon(Icons.download_outlined, color: appAccent),
-          title: Text('Download path', style: TextStyle(color: appText)),
+          title: Text(l10n.downloadPath, style: TextStyle(color: appText)),
           subtitle: Text(
-            _downloadPath ?? 'Default CrowleysCloud folder',
+            _downloadPath ?? l10n.defaultDownloadFolder,
             style: TextStyle(color: appSubtext),
           ),
           trailing: Icon(Icons.chevron_right, color: appSubtext),
@@ -1017,33 +1065,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: OutlinedButton.icon(
             onPressed: _clearCache,
             icon: const Icon(Icons.delete_outline),
-            label: const Text('Clear cache'),
+            label: Text(l10n.clearCache),
           ),
         ),
       ],
     );
   }
 
-  Widget _securitySection() {
+  Widget _securitySection(AppLocalizations l10n) {
     final activeServer = widget.serverManager.activeServer;
     final hasActiveServer = activeServer != null;
 
     return _SettingsSection(
-      title: 'Security & Behavior',
+      title: l10n.sectionSecurityBehavior,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
           child: DropdownButtonFormField<TokenLifetimeOption>(
             initialValue: _tokenLifetime,
-            decoration: const InputDecoration(
-              labelText: 'Require login',
-              prefixIcon: Icon(Icons.key_outlined),
+            decoration: InputDecoration(
+              labelText: l10n.requireLogin,
+              prefixIcon: const Icon(Icons.key_outlined),
             ),
             items: TokenLifetimeOption.values
                 .map(
                   (option) => DropdownMenuItem<TokenLifetimeOption>(
                     value: option,
-                    child: Text(option.label),
+                    child: Text(switch (option.id) {
+                      'everyOpen' => l10n.tokenLifetimeEveryOpen,
+                      'oneHour' => l10n.tokenLifetimeOneHour,
+                      'oneDay' => l10n.tokenLifetimeOneDay,
+                      'oneWeek' => l10n.tokenLifetimeOneWeek,
+                      'oneMonth' => l10n.tokenLifetimeOneMonth,
+                      'threeMonths' => l10n.tokenLifetimeThreeMonths,
+                      'never' => l10n.tokenLifetimeNever,
+                      _ => option.label,
+                    }),
                   ),
                 )
                 .toList(growable: false),
@@ -1052,11 +1109,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         SwitchListTile(
           secondary: Icon(Icons.fingerprint, color: appAccent),
-          title: Text('Biometric login', style: TextStyle(color: appText)),
+          title: Text(l10n.biometricLogin, style: TextStyle(color: appText)),
           subtitle: Text(
             _canUseBiometrics
-                ? 'Allow saved-credential login with biometrics.'
-                : 'Biometrics are not available on this device.',
+                ? l10n.biometricLoginSubtitle
+                : l10n.biometricsNotAvailable,
             style: TextStyle(color: appSubtext),
           ),
           value: _canUseBiometrics && _biometricLoginEnabled,
@@ -1064,9 +1121,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         SwitchListTile(
           secondary: Icon(Icons.visibility_outlined, color: appAccent),
-          title: Text('Show hidden files', style: TextStyle(color: appText)),
+          title: Text(l10n.showHiddenFiles, style: TextStyle(color: appText)),
           subtitle: Text(
-            'Display dot-files and dot-folders.',
+            l10n.showHiddenFilesSubtitle,
             style: TextStyle(color: appSubtext),
           ),
           value: _showHiddenFiles,
@@ -1075,11 +1132,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ListTile(
           enabled: hasActiveServer,
           leading: Icon(Icons.lock_reset_outlined, color: appAccent),
-          title: Text('Change password', style: TextStyle(color: appText)),
+          title: Text(l10n.changePassword, style: TextStyle(color: appText)),
           subtitle: Text(
             hasActiveServer
-                ? 'Update password for ${activeServer.displayName}.'
-                : 'Add a server before changing password.',
+                ? l10n.changePasswordSubtitle(activeServer.displayName)
+                : l10n.addServerBeforeChangePassword,
             style: TextStyle(color: appSubtext),
           ),
           trailing: Icon(Icons.chevron_right, color: appSubtext),
@@ -1091,9 +1148,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icons.person_remove_outlined,
             color: hasActiveServer ? Colors.redAccent : appSubtext,
           ),
-          title: Text('Delete user account', style: TextStyle(color: appText)),
+          title: Text(l10n.deleteUserAccount, style: TextStyle(color: appText)),
           subtitle: Text(
-            'Deletes the user and all private cloud files.',
+            l10n.deleteUserAccountSubtitle,
             style: TextStyle(color: appSubtext),
           ),
           trailing: Icon(Icons.chevron_right, color: appSubtext),
@@ -1106,28 +1163,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _checkForUpdatesManually() async {
     if (_isCheckingUpdate) return;
     setState(() => _isCheckingUpdate = true);
+    final l10n = AppLocalizations.of(context)!;
     try {
       final service = AppUpdateService();
-      final info = await service.checkForUpdates();
+      final info = await service.checkForUpdates(l10n: l10n);
       if (!mounted) return;
       if (info != null && info.hasUpdate) {
         await AppUpdateDialog.show(context, info);
       } else if (info != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Crowley\'s Cloud is up to date (v${info.currentVersion}).',
-            ),
-          ),
+          SnackBar(content: Text(l10n.appIsUpToDate(info.currentVersion))),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Failed to check for updates. Please try again later.',
-            ),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.updateCheckFailed)));
       }
     } finally {
       if (mounted) {
@@ -1136,9 +1186,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Widget _aboutSection() {
+  Widget _aboutSection(AppLocalizations l10n) {
     return _SettingsSection(
-      title: 'About & Updates',
+      title: l10n.sectionAboutUpdates,
       children: [
         ListTile(
           leading: _isCheckingUpdate
@@ -1148,11 +1198,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : Icon(Icons.system_update_outlined, color: appAccent),
-          title: Text('Check for updates', style: TextStyle(color: appText)),
+          title: Text(l10n.checkForUpdates, style: TextStyle(color: appText)),
           subtitle: Text(
             _isCheckingUpdate
-                ? 'Checking GitHub Releases...'
-                : 'Version $appVersion',
+                ? l10n.checkingForUpdates
+                : l10n.versionLabel(appVersion),
             style: TextStyle(color: appSubtext),
           ),
           trailing: _isCheckingUpdate
@@ -1166,22 +1216,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _formatBytes(int bytes) => ByteFormatter.format(bytes);
 
-  String _syncStatusLabel(SyncRunResult? result) {
-    if (result == null) return 'No sync has run yet.';
+  String _syncStatusLabel(AppLocalizations l10n, SyncRunResult? result) {
+    if (result == null) return l10n.noSyncHasRunYet;
     final localFinished = result.finishedAt.toLocal();
     final minute = localFinished.minute.toString().padLeft(2, '0');
     final hour = localFinished.hour.toString().padLeft(2, '0');
     final day = localFinished.day.toString().padLeft(2, '0');
     final month = localFinished.month.toString().padLeft(2, '0');
-    return 'Last run $day.$month.${localFinished.year} $hour:$minute';
+    return l10n.lastRunAt('$day.$month.${localFinished.year} $hour:$minute');
   }
 
-  Widget _themeSection() {
+  Widget _themeSection(AppLocalizations l10n) {
     final currentTheme = AppTheme.current;
 
     return _SettingsSection(
-      title: 'Appearance & Customization',
+      title: l10n.sectionAppearance,
       children: [
+        ListTile(
+          leading: Icon(Icons.language_outlined, color: appAccent),
+          title: Text(l10n.language, style: TextStyle(color: appText)),
+          trailing: DropdownButton<String?>(
+            value: _localeCode,
+            dropdownColor: currentTheme.surface,
+            underline: const SizedBox.shrink(),
+            onChanged: _setLocaleCode,
+            items: const [
+              DropdownMenuItem(value: null, child: Text('System default')),
+              DropdownMenuItem(value: 'en', child: Text('English')),
+              DropdownMenuItem(value: 'cs', child: Text('Čeština')),
+              DropdownMenuItem(value: 'ru', child: Text('Русский')),
+              DropdownMenuItem(value: 'uk', child: Text('Українська')),
+              DropdownMenuItem(value: 'pl', child: Text('Polski')),
+              DropdownMenuItem(value: 'de', child: Text('Deutsch')),
+              DropdownMenuItem(value: 'es', child: Text('Español')),
+              DropdownMenuItem(value: 'fr', child: Text('Français')),
+              DropdownMenuItem(value: 'ar', child: Text('العربية')),
+              DropdownMenuItem(value: 'bn', child: Text('বাংলা')),
+              DropdownMenuItem(value: 'fa', child: Text('فارسی')),
+              DropdownMenuItem(value: 'hi', child: Text('हिन्दी')),
+              DropdownMenuItem(value: 'id', child: Text('Bahasa Indonesia')),
+              DropdownMenuItem(value: 'it', child: Text('Italiano')),
+              DropdownMenuItem(value: 'pt', child: Text('Português')),
+              DropdownMenuItem(
+                value: 'pt-BR',
+                child: Text('Português (Brasil)'),
+              ),
+              DropdownMenuItem(value: 'tr', child: Text('Türkçe')),
+              DropdownMenuItem(value: 'vi', child: Text('Tiếng Việt')),
+              DropdownMenuItem(value: 'ja', child: Text('日本語')),
+              DropdownMenuItem(value: 'ko', child: Text('한국어')),
+              DropdownMenuItem(value: 'zh', child: Text('中文')),
+              DropdownMenuItem(value: 'zh-Hans', child: Text('简体中文')),
+            ],
+          ),
+        ),
         ListTile(
           leading: Icon(
             currentTheme.mode == AppThemeMode.light
@@ -1191,13 +1279,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 : Icons.palette_outlined,
             color: appAccent,
           ),
-          title: Text('Theme Mode', style: TextStyle(color: appText)),
+          title: Text(l10n.themeModeTitle, style: TextStyle(color: appText)),
           subtitle: Text(
             currentTheme.mode == AppThemeMode.light
-                ? 'Light Theme'
+                ? l10n.themeLightFull
                 : currentTheme.mode == AppThemeMode.dark
-                ? 'Dark Theme'
-                : 'Custom Theme',
+                ? l10n.themeDarkFull
+                : l10n.themeCustomFull,
             style: TextStyle(color: appSubtext),
           ),
         ),
@@ -1210,21 +1298,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               foregroundColor: appSubtext,
               side: BorderSide(color: appBorder),
             ),
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: AppThemeMode.dark,
-                label: Text('Dark'),
-                icon: Icon(Icons.dark_mode_outlined, size: 16),
+                label: Text(l10n.themeDark),
+                icon: const Icon(Icons.dark_mode_outlined, size: 16),
               ),
               ButtonSegment(
                 value: AppThemeMode.light,
-                label: Text('Light'),
-                icon: Icon(Icons.light_mode_outlined, size: 16),
+                label: Text(l10n.themeLight),
+                icon: const Icon(Icons.light_mode_outlined, size: 16),
               ),
               ButtonSegment(
                 value: AppThemeMode.custom,
-                label: Text('Custom'),
-                icon: Icon(Icons.palette_outlined, size: 16),
+                label: Text(l10n.themeCustom),
+                icon: const Icon(Icons.palette_outlined, size: 16),
               ),
             ],
             selected: {currentTheme.mode},
@@ -1257,9 +1345,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Accent Color Picker
         ListTile(
           leading: Icon(Icons.color_lens_outlined, color: appAccent),
-          title: Text('Accent Color', style: TextStyle(color: appText)),
+          title: Text(l10n.accentColor, style: TextStyle(color: appText)),
           subtitle: Text(
-            'Primary accent color',
+            l10n.primaryAccentColor,
             style: TextStyle(color: appSubtext),
           ),
           trailing: GestureDetector(
@@ -1267,7 +1355,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final picked = await ColorPickerDialog.show(
                 context,
                 initialColor: currentTheme.accent,
-                title: 'Select Accent Color',
+                title: l10n.selectAccentColor,
               );
               if (picked != null) {
                 final newTheme = currentTheme.copyWith(accent: picked);
@@ -1291,7 +1379,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Custom Theme Colors (visible when Mode is Custom)
         if (currentTheme.mode == AppThemeMode.custom) ...[
           _buildColorTile(
-            title: 'Background Color',
+            l10n: l10n,
+            title: l10n.backgroundColor,
             color: currentTheme.background,
             onColorPicked: (newColor) async {
               final newTheme = currentTheme.copyWith(background: newColor);
@@ -1301,7 +1390,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           _buildColorTile(
-            title: 'Surface Color',
+            l10n: l10n,
+            title: l10n.surfaceColor,
             color: currentTheme.surface,
             onColorPicked: (newColor) async {
               final newTheme = currentTheme.copyWith(surface: newColor);
@@ -1311,7 +1401,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           _buildColorTile(
-            title: 'Text Color',
+            l10n: l10n,
+            title: l10n.textColor,
             color: currentTheme.text,
             onColorPicked: (newColor) async {
               final newTheme = currentTheme.copyWith(text: newColor);
@@ -1321,7 +1412,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           _buildColorTile(
-            title: 'Subtext Color',
+            l10n: l10n,
+            title: l10n.subtextColor,
             color: currentTheme.subtext,
             onColorPicked: (newColor) async {
               final newTheme = currentTheme.copyWith(subtext: newColor);
@@ -1331,7 +1423,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           _buildColorTile(
-            title: 'Border Color',
+            l10n: l10n,
+            title: l10n.borderColor,
             color: currentTheme.border,
             onColorPicked: (newColor) async {
               final newTheme = currentTheme.copyWith(border: newColor);
@@ -1345,7 +1438,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Font Size Scale Slider
         ListTile(
           leading: Icon(Icons.format_size_outlined, color: appAccent),
-          title: Text('Font Size Scale', style: TextStyle(color: appText)),
+          title: Text(l10n.fontSizeScale, style: TextStyle(color: appText)),
           subtitle: Text(
             '${(currentTheme.fontSizeScale * 100).round()}%',
             style: TextStyle(color: appSubtext),
@@ -1375,6 +1468,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildColorTile({
+    required AppLocalizations l10n,
     required String title,
     required Color color,
     required ValueChanged<Color> onColorPicked,
@@ -1387,7 +1481,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final picked = await ColorPickerDialog.show(
             context,
             initialColor: color,
-            title: 'Select $title',
+            title: l10n.selectColor(title),
           );
           if (picked != null) {
             onColorPicked(picked);
@@ -1406,17 +1500,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  String _syncResultMessage(SyncRunResult result) {
+  String _syncResultMessage(AppLocalizations l10n, SyncRunResult result) {
     return switch (result.status) {
-      SyncRunStatus.success =>
-        'Synced ${result.uploadedFiles}, skipped ${result.skippedFiles}.',
-      SyncRunStatus.noFiles => 'No files selected for sync.',
-      SyncRunStatus.partialFailure =>
-        'Synced ${result.uploadedFiles}, failed ${result.failedFiles}.',
-      SyncRunStatus.authRequired => 'Sign in before syncing.',
+      SyncRunStatus.success => l10n.syncResultSuccess(
+        result.uploadedFiles,
+        result.skippedFiles,
+      ),
+      SyncRunStatus.noFiles => l10n.syncResultNoFiles,
+      SyncRunStatus.partialFailure => l10n.syncResultPartial(
+        result.uploadedFiles,
+        result.failedFiles,
+      ),
+      SyncRunStatus.authRequired => l10n.syncResultAuthRequired,
       SyncRunStatus.serverUnreachable =>
-        result.message ?? 'Server unreachable. Connection lost.',
-      SyncRunStatus.failed => result.message ?? 'Sync failed.',
+        result.message ?? l10n.syncResultUnreachable,
+      SyncRunStatus.failed => result.message ?? l10n.syncResultFailed,
     };
   }
 }
@@ -1490,6 +1588,7 @@ class _TextInputDialogState extends State<_TextInputDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       backgroundColor: appSurface,
       title: Text(widget.title),
@@ -1501,7 +1600,7 @@ class _TextInputDialogState extends State<_TextInputDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         if (widget.secondaryActionLabel != null)
           TextButton(
@@ -1511,7 +1610,7 @@ class _TextInputDialogState extends State<_TextInputDialog> {
           ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(_controller.text),
-          child: const Text('Save'),
+          child: Text(l10n.save),
         ),
       ],
     );
@@ -1540,14 +1639,15 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context)!;
     final password = _newPasswordController.text;
     final confirm = _confirmPasswordController.text;
     if (password.isEmpty) {
-      setState(() => _errorText = 'Enter a new password.');
+      setState(() => _errorText = l10n.enterNewPassword);
       return;
     }
     if (password != confirm) {
-      setState(() => _errorText = 'Passwords do not match.');
+      setState(() => _errorText = l10n.passwordsDoNotMatch);
       return;
     }
     Navigator.of(context).pop(password);
@@ -1555,9 +1655,10 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       backgroundColor: appSurface,
-      title: const Text('Change password'),
+      title: Text(l10n.changePasswordDialogTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1566,9 +1667,11 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
             autofocus: true,
             obscureText: !_showNewPassword,
             decoration: InputDecoration(
-              labelText: 'New password',
+              labelText: l10n.newPasswordFieldLabel,
               suffixIcon: IconButton(
-                tooltip: _showNewPassword ? 'Hide password' : 'Show password',
+                tooltip: _showNewPassword
+                    ? l10n.hidePassword
+                    : l10n.showPassword,
                 icon: Icon(
                   _showNewPassword
                       ? Icons.visibility_off_outlined
@@ -1585,12 +1688,12 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
             controller: _confirmPasswordController,
             obscureText: !_showConfirmPassword,
             decoration: InputDecoration(
-              labelText: 'Confirm password',
+              labelText: l10n.confirmPasswordLabel,
               errorText: _errorText,
               suffixIcon: IconButton(
                 tooltip: _showConfirmPassword
-                    ? 'Hide password'
-                    : 'Show password',
+                    ? l10n.hidePassword
+                    : l10n.showPassword,
                 icon: Icon(
                   _showConfirmPassword
                       ? Icons.visibility_off_outlined
@@ -1608,9 +1711,9 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Save')),
+        FilledButton(onPressed: _submit, child: Text(l10n.save)),
       ],
     );
   }
@@ -1646,22 +1749,23 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final sections = <({String title, List<_SyncCategoryOption> items})>[
       (
-        title: 'Media',
+        title: l10n.syncCategorySectionMedia,
         items: [_syncCategoryOptions[0], _syncCategoryOptions[1]],
       ),
       (
-        title: 'Audio and documents',
+        title: l10n.syncCategorySectionAudioDocs,
         items: [_syncCategoryOptions[2], _syncCategoryOptions[3]],
       ),
-      (title: 'Other', items: [_syncCategoryOptions[4]]),
+      (title: l10n.syncCategorySectionOther, items: [_syncCategoryOptions[4]]),
     ];
 
     return AlertDialog(
       backgroundColor: appSurface,
       title: Text(
-        'Categories to synchronize',
+        l10n.categoriesToSyncDialogTitle,
         style: TextStyle(color: appText),
       ),
       content: SizedBox(
@@ -1673,7 +1777,7 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  'Choose one or more categories. Leaving everything unchecked is valid.',
+                  l10n.categoriesToSyncBody,
                   style: TextStyle(color: appSubtext),
                 ),
               ),
@@ -1698,10 +1802,13 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
                       dense: true,
                       activeColor: appAccent,
                       secondary: Icon(option.icon, color: appAccent),
-                      title: Text(
-                        option.label,
-                        style: TextStyle(color: appText),
-                      ),
+                      title: Text(switch (option.id) {
+                        'photos' => l10n.categoryPhotos,
+                        'videos' => l10n.categoryVideos,
+                        'audio' => l10n.categoryAudio,
+                        'documents' => l10n.categoryDocuments,
+                        _ => l10n.categoryOtherFiles,
+                      }, style: TextStyle(color: appText)),
                       value: _selected.contains(option.id),
                       onChanged: (value) =>
                           _setSelected(option.id, value ?? false),
@@ -1716,16 +1823,16 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
       actions: [
         TextButton(
           onPressed: () => setState(_selected.clear),
-          child: Text('Clear all', style: TextStyle(color: appSubtext)),
+          child: Text(l10n.clearAll, style: TextStyle(color: appSubtext)),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: Text('Cancel', style: TextStyle(color: appSubtext)),
+          child: Text(l10n.cancel, style: TextStyle(color: appSubtext)),
         ),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: appAccent),
           onPressed: () => Navigator.of(context).pop({..._selected}),
-          child: const Text('Save'),
+          child: Text(l10n.save),
         ),
       ],
     );

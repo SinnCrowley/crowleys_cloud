@@ -17,14 +17,15 @@ import 'package:crowleys_cloud/app_theme.dart';
 import 'package:crowleys_cloud/theme_customizer_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_helpers.dart';
 
 void main() {
   testWidgets('ColorPickerDialog renders without layout assertion errors', (
     tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
+      wrapWithLocalization(
+        Scaffold(
           body: Builder(
             builder: (context) => ElevatedButton(
               onPressed: () {
@@ -59,17 +60,8 @@ void main() {
       ValueListenableBuilder<AppThemeData>(
         valueListenable: AppTheme.notifier,
         builder: (context, appTheme, _) {
-          return MaterialApp(
-            builder: (context, child) {
-              final mediaQuery = MediaQuery.of(context);
-              return MediaQuery(
-                data: mediaQuery.copyWith(
-                  textScaler: TextScaler.linear(appTheme.fontSizeScale),
-                ),
-                child: child!,
-              );
-            },
-            home: const Scaffold(body: Center(child: Text('Scaled Text Test'))),
+          return wrapWithLocalization(
+            const Scaffold(body: Center(child: Text('Scaled Text Test'))),
           );
         },
       ),

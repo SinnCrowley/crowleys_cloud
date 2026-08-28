@@ -15,6 +15,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { t } from '../stores/i18n.js';
 
   export let selectedCount = 0;
   export let shiftUp = false;
@@ -26,66 +27,67 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 {#if selectedCount > 0}
   <div class="selection-action-bar" class:shifted={shiftUp}>
     <div class="selection-info text-body">
-      <span class="count-badge">{selectedCount}</span> selected
+      <span class="count-badge">{selectedCount}</span>
+      <span>{$t('common.selected')}</span>
     </div>
 
     <div class="action-buttons">
       <button
         class="btn btn-secondary action-btn text-body"
         on:click={() => dispatch('downloadSelected')}
-        title="Download selected items"
+        title={$t('context_menu.download_selected')}
         style="display: inline-flex; align-items: center; gap: 8px;"
       >
         <span class="material-symbols-outlined" style="font-size: 20px;">download</span>
-        Download
+        {$t('common.download')}
       </button>
 
       {#if currentScope !== 'shared'}
         <button
           class="btn btn-secondary action-btn text-body"
           on:click={() => dispatch('shareSelected')}
-          title="Share selected items in server"
+          title={$t('context_menu.share_link')}
           style="display: inline-flex; align-items: center; gap: 8px;"
         >
           <span class="material-symbols-outlined" style="font-size: 20px;">folder_shared</span>
-          Share
+          {$t('common.share')}
         </button>
 
         <button
           class="btn btn-secondary action-btn text-body"
           on:click={() => dispatch('moveSelected')}
-          title="Move selected items"
+          title={$t('context_menu.move_selected')}
           style="display: inline-flex; align-items: center; gap: 8px;"
         >
           <span class="material-symbols-outlined" style="font-size: 20px;">drive_file_move</span>
-          Move
+          {$t('common.move')}
         </button>
 
         <button
           class="btn btn-secondary action-btn text-body danger-btn"
           on:click={() => dispatch('deleteSelected')}
-          title="Delete selected items to trash"
+          title={$t('context_menu.delete_selected')}
           style="display: inline-flex; align-items: center; gap: 8px;"
         >
           <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
-          Delete
+          {$t('common.delete')}
         </button>
       {:else}
         <button
           class="btn btn-secondary action-btn text-body danger-btn"
           on:click={() => dispatch('unshareSelected')}
-          title="Unshare selected items in server"
+          title={$t('context_menu.unshare_in_server')}
           style="display: inline-flex; align-items: center; gap: 8px;"
         >
           <span class="material-symbols-outlined" style="font-size: 20px;">folder_off</span>
-          Unshare
+          {$t('common.unshare')}
         </button>
       {/if}
 
       <button
         class="btn-icon close-btn"
         on:click={() => dispatch('clear')}
-        title="Deselect all"
+        title={$t('common.deselect_all')}
         style="display: flex; align-items: center; justify-content: center;"
       >
         <span class="material-symbols-outlined" style="font-size: 20px;">close</span>

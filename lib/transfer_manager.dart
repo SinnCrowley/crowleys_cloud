@@ -15,6 +15,8 @@
 
 import 'dart:async';
 
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
+import 'package:crowleys_cloud/l10n/localization_fallback.dart';
 import 'package:flutter/foundation.dart';
 
 enum TransferDirection { upload, download }
@@ -100,7 +102,16 @@ class TransferManager extends ChangeNotifier {
 
   String get summaryLabel {
     final percent = (progress * 100).round();
-    return '$percent%  $completedCount/$totalCount files';
+    return platformAppLocalizations().transferSummaryProgress(
+      percent,
+      completedCount,
+      totalCount,
+    );
+  }
+
+  String formatSummary(AppLocalizations l10n) {
+    final percent = (progress * 100).round();
+    return l10n.transferSummaryProgress(percent, completedCount, totalCount);
   }
 
   TransferItem addItem({

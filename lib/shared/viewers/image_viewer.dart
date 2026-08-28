@@ -18,6 +18,7 @@ import 'dart:io';
 
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_item.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
@@ -152,27 +153,30 @@ class _ImageViewerState extends State<ImageViewer>
     final item = _items[_currentIndex];
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: appSurface,
-        title: Text('Delete File?', style: TextStyle(color: appText)),
-        content: Text(
-          'Are you sure you want to delete ${item.name}? This action cannot be undone.',
-          style: TextStyle(color: appSubtext),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          backgroundColor: appSurface,
+          title: Text(l10n.deleteFileTitle, style: TextStyle(color: appText)),
+          content: Text(
+            l10n.deleteFileBody(item.name),
+            style: TextStyle(color: appSubtext),
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.redAccent),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
             ),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                l10n.delete,
+                style: const TextStyle(color: Colors.redAccent),
+              ),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed == true) {
@@ -201,7 +205,13 @@ class _ImageViewerState extends State<ImageViewer>
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error deleting ${item.name}: $e')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(
+                  context,
+                )!.errorDeletingFile(item.name, e.toString()),
+              ),
+            ),
           );
         }
       }
@@ -270,25 +280,26 @@ class _ImageViewerState extends State<ImageViewer>
     final item = _items[_currentIndex];
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Permanently'),
-        content: Text(
-          'Are you sure you want to permanently delete "${item.name}"? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Delete Permanently',
-              style: TextStyle(color: Colors.redAccent),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          title: Text(l10n.deleteServerFileTitle),
+          content: Text(l10n.deleteServerFileBody(item.name)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
             ),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                l10n.deletePermanently,
+                style: const TextStyle(color: Colors.redAccent),
+              ),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed == true) {
@@ -313,7 +324,13 @@ class _ImageViewerState extends State<ImageViewer>
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error deleting ${item.name}: $e')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(
+                  context,
+                )!.errorDeletingFile(item.name, e.toString()),
+              ),
+            ),
           );
         }
       }
@@ -443,12 +460,14 @@ class _ImageViewerState extends State<ImageViewer>
                           children: [
                             _ActionButton(
                               icon: Icons.restore,
-                              label: 'Restore',
+                              label: AppLocalizations.of(context)!.restore,
                               onPressed: _restoreCurrentFile,
                             ),
                             _ActionButton(
                               icon: Icons.delete_forever,
-                              label: 'Delete Permanently',
+                              label: AppLocalizations.of(
+                                context,
+                              )!.deletePermanently,
                               onPressed: _deletePermanentlyCurrentFile,
                             ),
                           ],
@@ -458,29 +477,29 @@ class _ImageViewerState extends State<ImageViewer>
                           children: [
                             _ActionButton(
                               icon: Icons.upload,
-                              label: 'Upload',
+                              label: AppLocalizations.of(context)!.upload,
                               onPressed: _uploadCurrentFile,
                             ),
                             _ActionButton(
                               icon: Icons.edit,
-                              label: 'Rename',
+                              label: AppLocalizations.of(context)!.rename,
                               onPressed: _renameCurrentFile,
                               enabled: widget.onRenameItem != null,
                             ),
                             _ActionButton(
                               icon: Icons.delete,
-                              label: 'Delete',
+                              label: AppLocalizations.of(context)!.delete,
                               onPressed: _deleteCurrentFile,
                             ),
                             _ActionButton(
                               icon: Icons.drive_file_move,
-                              label: 'Add to folder',
+                              label: AppLocalizations.of(context)!.addToFolder,
                               onPressed: _addCurrentFileToFolder,
                               enabled: widget.onAddToFolderItem != null,
                             ),
                             _ActionButton(
                               icon: Icons.share,
-                              label: 'Share',
+                              label: AppLocalizations.of(context)!.share,
                               onPressed: _shareCurrentFile,
                             ),
                           ],
@@ -559,7 +578,9 @@ class _RemoteImageView extends StatefulWidget {
 class _RemoteImageViewState extends State<_RemoteImageView> {
   File? _file;
   bool _isLoading = false;
-  String? _error;
+  bool _noFetchHandler = false;
+  bool _loadFailed = false;
+  String? _customError;
 
   @override
   void initState() {
@@ -593,7 +614,7 @@ class _RemoteImageViewState extends State<_RemoteImageView> {
     if (widget.onFetch == null) {
       if (mounted) {
         setState(() {
-          _error = "No fetch handler configured";
+          _noFetchHandler = true;
         });
       }
       return;
@@ -602,7 +623,9 @@ class _RemoteImageViewState extends State<_RemoteImageView> {
     if (mounted) {
       setState(() {
         _isLoading = true;
-        _error = null;
+        _noFetchHandler = false;
+        _loadFailed = false;
+        _customError = null;
       });
     }
 
@@ -616,7 +639,7 @@ class _RemoteImageViewState extends State<_RemoteImageView> {
           _file = file;
           _isLoading = false;
           if (file == null) {
-            _error = "Failed to load image";
+            _loadFailed = true;
           }
         });
       }
@@ -624,7 +647,7 @@ class _RemoteImageViewState extends State<_RemoteImageView> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _error = e.toString();
+          _customError = e.toString();
         });
       }
     }
@@ -636,14 +659,24 @@ class _RemoteImageViewState extends State<_RemoteImageView> {
       return Image.file(_file!, fit: BoxFit.contain, gaplessPlayback: true);
     }
 
+    final l10n = AppLocalizations.of(context)!;
+    String? errorMessage;
+    if (_noFetchHandler) {
+      errorMessage = l10n.imageViewerNoFetchHandler;
+    } else if (_loadFailed) {
+      errorMessage = l10n.imageViewerFailedToLoad;
+    } else if (_customError != null) {
+      errorMessage = _customError;
+    }
+
     return Stack(
       alignment: Alignment.center,
       children: [
         if (widget.placeholder != null) widget.placeholder!,
         if (_isLoading)
           const CircularProgressIndicator(color: Colors.white)
-        else if (_error != null)
-          Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+        else if (errorMessage != null)
+          Text(errorMessage, style: const TextStyle(color: Colors.redAccent)),
       ],
     );
   }

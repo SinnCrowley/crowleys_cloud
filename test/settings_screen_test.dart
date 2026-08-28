@@ -23,6 +23,7 @@ import 'package:crowleys_cloud/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'test_helpers.dart';
 
 class _FakeBiometricAuthService extends BiometricAuthService {
   _FakeBiometricAuthService(this.available);
@@ -67,8 +68,8 @@ void main() {
             ];
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: SettingsScreen(
+        wrapWithLocalization(
+          SettingsScreen(
             serverManager: manager,
             biometricAuthService: _FakeBiometricAuthService(false),
           ),
@@ -98,8 +99,8 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: SettingsScreen(
+      wrapWithLocalization(
+        SettingsScreen(
           serverManager: manager,
           biometricAuthService: _FakeBiometricAuthService(true),
         ),
@@ -134,8 +135,8 @@ void main() {
           ..servers = [profile];
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: SettingsScreen(
+      wrapWithLocalization(
+        SettingsScreen(
           serverManager: manager,
           biometricAuthService: _FakeBiometricAuthService(false),
         ),
@@ -168,8 +169,8 @@ void main() {
           ..servers = [profile];
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: SettingsScreen(
+      wrapWithLocalization(
+        SettingsScreen(
           serverManager: manager,
           biometricAuthService: _FakeBiometricAuthService(false),
         ),
@@ -210,8 +211,8 @@ void main() {
           ..servers = [profile];
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: SettingsScreen(
+      wrapWithLocalization(
+        SettingsScreen(
           serverManager: manager,
           biometricAuthService: _FakeBiometricAuthService(false),
         ),
@@ -250,8 +251,8 @@ void main() {
           ..servers = [profile];
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: SettingsScreen(
+      wrapWithLocalization(
+        SettingsScreen(
           serverManager: manager,
           biometricAuthService: _FakeBiometricAuthService(false),
           localFolderPicker: (_) async => '/storage/emulated/0/Documents',
@@ -294,8 +295,8 @@ void main() {
           ..servers = [profile];
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: SettingsScreen(
+      wrapWithLocalization(
+        SettingsScreen(
           serverManager: manager,
           biometricAuthService: _FakeBiometricAuthService(false),
         ),
@@ -336,8 +337,8 @@ void main() {
           ..servers = [home, backup];
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: SettingsScreen(
+      wrapWithLocalization(
+        SettingsScreen(
           serverManager: manager,
           biometricAuthService: _FakeBiometricAuthService(false),
         ),
@@ -354,6 +355,57 @@ void main() {
 
     expect(manager.servers.map((server) => server.id), ['backup']);
     expect(manager.activeServer?.id, 'backup');
+  });
+
+  testWidgets('renders localized storage root and dropdown options in Russian', (
+    tester,
+  ) async {
+    await _useTallScreen(tester);
+    final manager =
+        ActiveServerManager(
+            store: ServerStore(),
+            authService: AuthService(secretStore: InMemorySecretStore()),
+          )
+          ..activeServer = ServerProfile(
+            id: 'srv',
+            displayName: 'Server 1',
+            baseUrl: 'http://localhost',
+            authMode: 'login',
+            lastUsedAt: DateTime.now().toUtc(),
+            syncPrefs: const {
+              'syncEnabled': true,
+              'syncFolders': ['/storage/emulated/0'],
+            },
+          )
+          ..servers = [
+            ServerProfile(
+              id: 'srv',
+              displayName: 'Server 1',
+              baseUrl: 'http://localhost',
+              authMode: 'login',
+              lastUsedAt: DateTime.now().toUtc(),
+              syncPrefs: const {
+                'syncEnabled': true,
+                'syncFolders': ['/storage/emulated/0'],
+              },
+            ),
+          ];
+
+    await tester.pumpWidget(
+      wrapWithLocalization(
+        SettingsScreen(
+          serverManager: manager,
+          biometricAuthService: _FakeBiometricAuthService(false),
+        ),
+        locale: const Locale('ru'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify Russian section titles and localized storage root
+    expect(find.text('Хранилище'), findsWidgets);
+    expect(find.text('Резервное копирование и синхронизация'), findsOneWidget);
+    expect(find.text('Хранилище и кеш'), findsOneWidget);
   });
 }
 

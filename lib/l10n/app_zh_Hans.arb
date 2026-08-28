@@ -1,0 +1,2654 @@
+{
+  "@@locale": "zh_Hans",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "确定",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "取消",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "保存",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "删除",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "重命名",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "关闭",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "重试",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "加载中...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "确认",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "错误",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "错误：{message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "未知",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "上传",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "下载",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "分享",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "复制",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "移动",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "还原",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "应用",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "创建",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "清除",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "添加",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "移除",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "编辑",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "切换",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "搜索",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "名称",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "日期",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "大小",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "类型",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "升序",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "降序",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "全部",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "图片",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "照片",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "视频",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "音频",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "文档",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "压缩包",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "已共享",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "其他",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "其他文件",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "未找到文件。",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "此文件夹中没有文件。",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "此操作无法撤销。",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "两次输入的密码不一致。",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "本地文件",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "服务器文件",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "设置",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "回收站",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "本地",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "服务器",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "添加服务器",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "未配置服务器。",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "请在设置中添加服务器。",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "添加您的第一个服务器以继续。",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "尚未配置服务器。",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "Crowley's Cloud 设置",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "连接",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "正在连接...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "已连接",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "已断开连接",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "切换服务器",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "选择其他服务器",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "切换服务器？",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "将活动服务器切换为 \"{serverName}\"？",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "选择服务器",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "需要身份验证",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "登录以访问 {serverName} 上的文件",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "使用密码登录",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "使用生物识别",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "正在打开登录...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "服务器连接失败",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "无法连接到活动服务器。",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "无法连接到 {serverName}。",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "搜索...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "搜索文件...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "搜索服务器文件...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "搜索回收站...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "需要存储权限",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "授予权限",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "权限已被拒绝。请在设置中授予存储访问权限。",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "浏览和选择文件夹需要“所有文件访问”管理权限。",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "执行同步需要存储访问权限。",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "可用更新：v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "点击查看更新内容",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "查看",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "发现新版本",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "版本 {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "当前：v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "最新：v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "更新内容：",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "GitHub",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "未提供更新说明。",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "稍后",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "下载 APK",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "更新",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "共享链接",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "通过链接分享",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "在服务器中共享",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "有效期（天）",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "永久有效",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "1 天",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "7 天",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "30 天",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "90 天",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "180 天",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "365 天",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "创建链接",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "共享链接已复制到剪贴板！",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "复制共享链接失败：{error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "无法分享此类文件。",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "创建共享失败：{error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "新建文件夹",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "文件夹名称",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "新建文件夹",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "文件夹已创建。",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "创建文件夹失败：{error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "正在创建文件夹...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "重命名",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "新名称",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "输入新名称",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "重命名成功。",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "重命名失败：{error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "移动到",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "移动到：{path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "移至此处",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "移动失败：{error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "已移动到文件夹。",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "复制失败：{error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "选择文件夹",
+  "@selectFolder": {
+    "description": "Folder picker dialog title"
+  },
+  "useThisFolder": "使用此文件夹",
+  "@useThisFolder": {
+    "description": "Button to confirm selected folder"
+  },
+  "storageRoot": "存储",
+  "@storageRoot": {
+    "description": "Root breadcrumb label for local storage"
+  },
+  "serverRoot": "根目录",
+  "@serverRoot": {
+    "description": "Root breadcrumb label for server storage"
+  },
+  "deleteNItemsTitle": "删除 {count} 个项目？",
+  "@deleteNItemsTitle": {
+    "description": "Delete confirmation dialog title with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "删除文件？",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirmation dialog title"
+  },
+  "deleteFilesBody": "确定要删除选中的 {count} 个项目吗？此操作无法撤销。",
+  "@deleteFilesBody": {
+    "description": "Delete files confirmation body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "永久删除",
+  "@deletePermanently": {
+    "description": "Delete permanently action button"
+  },
+  "deletePermanentlyTitle": "永久删除？",
+  "@deletePermanentlyTitle": {
+    "description": "Delete permanently confirmation title"
+  },
+  "deletePermanentlyBody": "{filename} 将被永久删除。",
+  "@deletePermanentlyBody": {
+    "description": "Delete permanently confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "删除文件？",
+  "@deleteFileTitle": {
+    "description": "Delete single file confirmation title"
+  },
+  "deleteFileBody": "确定要删除 {filename} 吗？此操作无法撤销。",
+  "@deleteFileBody": {
+    "description": "Delete single file confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "永久删除",
+  "@deleteServerFileTitle": {
+    "description": "Delete server file confirmation title"
+  },
+  "deleteServerFileBody": "确定要永久删除 \"{filename}\" 吗？此操作无法撤销。",
+  "@deleteServerFileBody": {
+    "description": "Delete server file confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "取消共享项目？",
+  "@unshareItemsTitle": {
+    "description": "Unshare items dialog title"
+  },
+  "unshareItemsBody": "确定要取消共享选中的 {count} 个项目吗？这将把它们从“已共享”文件夹中移除。",
+  "@unshareItemsBody": {
+    "description": "Unshare items dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "取消共享",
+  "@unshare": {
+    "description": "Unshare action button"
+  },
+  "moveToTrash": "移至回收站",
+  "@moveToTrash": {
+    "description": "Move to trash action button"
+  },
+  "movedToTrash": "已移至回收站。",
+  "@movedToTrash": {
+    "description": "Snackbar when single item moved to trash"
+  },
+  "movedNItemsToTrash": "已将 {count} 个项目移至回收站。",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar when multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "移至回收站失败：{error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move to trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "已删除 {count} 个项目。",
+  "@deletedNItems": {
+    "description": "Snackbar when items are deleted",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "删除失败：{error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "删除失败：{error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on single item delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "已删除 {filename}。",
+  "@deletedFilename": {
+    "description": "Snackbar on single file deletion",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "无法打开文件",
+  "@failedToOpenFile": {
+    "description": "Snackbar when opening a file fails"
+  },
+  "fileDownloadFailed": "下载失败：{error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "正在下载...",
+  "@downloading": {
+    "description": "Download progress indicator"
+  },
+  "downloadingFile": "正在下载文件...",
+  "@downloadingFile": {
+    "description": "Download progress indicator with text"
+  },
+  "downloadComplete": "下载完成：{filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download complete",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "下载失败：{error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "无法下载预览",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar on preview download failure"
+  },
+  "uploadComplete": "上传完成：{filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload complete",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "上传失败：{error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "无法选择文件",
+  "@failedToPickFiles": {
+    "description": "Snackbar on file picker failure"
+  },
+  "uploadedNItems": "已上传 {count} 个文件",
+  "@uploadedNItems": {
+    "description": "Snackbar when multiple items uploaded",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "链接已复制到剪贴板。",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on copy link success"
+  },
+  "failedToCopyLink": "复制链接失败：{error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on copy link failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "正在全选...",
+  "@selectingAll": {
+    "description": "Progress state while selecting all files"
+  },
+  "allItemsSelected": "已选中所有项目。",
+  "@allItemsSelected": {
+    "description": "Snackbar when all files are selected"
+  },
+  "failedToLoadSearchResults": "加载搜索结果失败",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar when search fails"
+  },
+  "shareNotSupportedForType": "此类文件不支持共享。",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar when file type cannot be shared"
+  },
+  "nSelected": "已选择 {count} 项",
+  "@nSelected": {
+    "description": "Selection counter in app bar",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "未选择服务器",
+  "@noServerSelected": {
+    "description": "Error banner when no server is chosen"
+  },
+  "pleaseConnectToServerFirst": "请先连接到服务器。",
+  "@pleaseConnectToServerFirst": {
+    "description": "Error banner subtitle"
+  },
+  "signInRequired": "需要登录",
+  "@signInRequired": {
+    "description": "Sign-in prompt title"
+  },
+  "pleaseSignInToServer": "请先登录到 {serverName}。",
+  "@pleaseSignInToServer": {
+    "description": "Sign-in prompt subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "正在连接到服务器...",
+  "@connectingToServer": {
+    "description": "Loading state during connection"
+  },
+  "connectedToServer": "已连接到 {serverName}。",
+  "@connectedToServer": {
+    "description": "Snackbar on successful server connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "连接失败：{error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "无法连接：{error}",
+  "@failedToConnect": {
+    "description": "Snackbar on failed connection attempt",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "身份验证失败：{error}",
+  "@authFailed": {
+    "description": "Snackbar on auth failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "身份验证失败。请重试。",
+  "@authFailedGeneric": {
+    "description": "Snackbar on generic auth failure"
+  },
+  "biometricLoginFailed": "生物识别登录失败：{error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "生物识别登录失败。",
+  "@biometricLoginFailedGeneric": {
+    "description": "Snackbar on generic biometric failure"
+  },
+  "noServerSessionToken": "无服务器会话令牌。请重新进行服务器验证。",
+  "@noServerSessionToken": {
+    "description": "Error when session token is missing"
+  },
+  "failedToSaveServer": "保存服务器失败：{error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on save server failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "添加到文件夹",
+  "@addToFolder": {
+    "description": "Button to add files to current folder"
+  },
+  "loginTabLabel": "登录",
+  "@loginTabLabel": {
+    "description": "Auth screen tab: login"
+  },
+  "registerTabLabel": "注册",
+  "@registerTabLabel": {
+    "description": "Auth screen tab: register"
+  },
+  "welcomeBack": "欢迎回来",
+  "@welcomeBack": {
+    "description": "Auth screen card title for login"
+  },
+  "signInToContinue": "登录以继续",
+  "@signInToContinue": {
+    "description": "Auth screen card subtitle for login"
+  },
+  "createAccount": "创建账户",
+  "@createAccount": {
+    "description": "Auth screen card title for register"
+  },
+  "joinTheServer": "加入服务器",
+  "@joinTheServer": {
+    "description": "Auth screen card subtitle for register"
+  },
+  "usernameLabel": "用户名",
+  "@usernameLabel": {
+    "description": "Username field label"
+  },
+  "usernameHint": "输入您的用户名",
+  "@usernameHint": {
+    "description": "Username field hint"
+  },
+  "passwordLabel": "密码",
+  "@passwordLabel": {
+    "description": "Password field label"
+  },
+  "passwordHint": "输入您的密码",
+  "@passwordHint": {
+    "description": "Password field hint"
+  },
+  "showPassword": "显示密码",
+  "@showPassword": {
+    "description": "Tooltip for show password icon"
+  },
+  "hidePassword": "隐藏密码",
+  "@hidePassword": {
+    "description": "Tooltip for hide password icon"
+  },
+  "confirmPassword": "确认密码",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "登录",
+  "@logIn": {
+    "description": "Log In submit button"
+  },
+  "loggingIn": "正在登录...",
+  "@loggingIn": {
+    "description": "Log In button loading state"
+  },
+  "registering": "正在注册...",
+  "@registering": {
+    "description": "Register button loading state"
+  },
+  "forgotPassword": "忘记密码？",
+  "@forgotPassword": {
+    "description": "Forgot password link button"
+  },
+  "doNotHaveAccount": "没有账户？切换到注册。",
+  "@doNotHaveAccount": {
+    "description": "Switch to register tab hint"
+  },
+  "alreadyHaveAccount": "已有账户？切换到登录。",
+  "@alreadyHaveAccount": {
+    "description": "Switch to login tab hint"
+  },
+  "usernameCannotBeEmpty": "用户名不能为空。",
+  "@usernameCannotBeEmpty": {
+    "description": "Username validation error"
+  },
+  "passwordCannotBeEmpty": "密码不能为空。",
+  "@passwordCannotBeEmpty": {
+    "description": "Password validation error"
+  },
+  "usernameInvalid": "用户名须为 3–32 个字符，包含字母、数字、_ 或 -。",
+  "@usernameInvalid": {
+    "description": "Username regex validation error"
+  },
+  "passwordTooShort": "密码长度至少为 8 个字符。",
+  "@passwordTooShort": {
+    "description": "Password length validation error"
+  },
+  "loginFailed": "登录失败：{error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "注册失败：{error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "重置密码",
+  "@resetPasswordTitle": {
+    "description": "Reset password dialog/screen title"
+  },
+  "enterResetCodeTitle": "输入重置码",
+  "@enterResetCodeTitle": {
+    "description": "Reset password step 2 title"
+  },
+  "resetPasswordStep1Body": "输入您的用户名。6 位确认码将输出到服务器日志/控制台。",
+  "@resetPasswordStep1Body": {
+    "description": "Reset password step 1 instructions"
+  },
+  "resetPasswordStep2Body": "确认码已发送到服务器控制台。请输入 6 位代码和您的新密码。",
+  "@resetPasswordStep2Body": {
+    "description": "Reset password step 2 instructions"
+  },
+  "resetCodeLabel": "重置验证码",
+  "@resetCodeLabel": {
+    "description": "Reset code text field label"
+  },
+  "resetCodeHint": "输入 6 位验证码",
+  "@resetCodeHint": {
+    "description": "Reset code text field hint"
+  },
+  "newPasswordLabel": "新密码",
+  "@newPasswordLabel": {
+    "description": "New password text field label"
+  },
+  "newPasswordHint": "输入新密码",
+  "@newPasswordHint": {
+    "description": "New password text field hint"
+  },
+  "passwordResetSuccessfully": "密码重置成功！",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "用户名是必填项。",
+  "@usernameIsRequired": {
+    "description": "Validation: username is required for reset"
+  },
+  "codeAndPasswordRequired": "验证码和新密码均为必填项。",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "请求重置失败。请检查服务器 URL。",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request error"
+  },
+  "failedToResetPassword": "重置密码失败。请检查验证码。",
+  "@failedToResetPassword": {
+    "description": "Snackbar on password reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "请先输入服务器 URL。",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Validation: server URL needed before reset"
+  },
+  "sendCode": "发送验证码",
+  "@sendCode": {
+    "description": "Button to request reset code"
+  },
+  "settingsTitle": "设置",
+  "@settingsTitle": {
+    "description": "AppBar title for settings screen"
+  },
+  "sectionBackupSync": "备份与同步",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "存储与缓存",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "安全与行为",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security"
+  },
+  "sectionAboutUpdates": "关于与更新",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "外观与自定义",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "未配置服务器",
+  "@noServersConfiguredSync": {
+    "description": "Sync settings subtitle when no servers"
+  },
+  "addServerBeforeSync": "请在配置同步前添加服务器。",
+  "@addServerBeforeSync": {
+    "description": "Sync settings prompt when no servers"
+  },
+  "selectServerToConfigureSync": "选择要配置同步的服务器。",
+  "@selectServerToConfigureSync": {
+    "description": "Sync settings server selector subtitle"
+  },
+  "activeServerSuffix": " · 当前活动",
+  "@activeServerSuffix": {
+    "description": "Suffix for active server in sync selector"
+  },
+  "folderAndCategorySync": "文件夹与分类同步",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle tile title"
+  },
+  "keepCategoriesSynced": "使选定的本地分类或文件夹与此服务器保持同步。",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle tile subtitle"
+  },
+  "addServerBeforeSyncEnable": "请在启用同步前添加服务器。",
+  "@addServerBeforeSyncEnable": {
+    "description": "Snackbar when enabling sync with no server"
+  },
+  "onlyOnWifi": "仅在 Wi-Fi 下",
+  "@onlyOnWifi": {
+    "description": "Sync constraint switch label"
+  },
+  "onlyWhileCharging": "仅在充电时",
+  "@onlyWhileCharging": {
+    "description": "Sync constraint switch label"
+  },
+  "serverTargetDirectory": "服务器目标目录",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory tile title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Sync target directory text field hint"
+  },
+  "synchronizationFrequency": "同步频率",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency tile title"
+  },
+  "syncNow": "立即同步",
+  "@syncNow": {
+    "description": "Sync now action button"
+  },
+  "syncing": "正在同步...",
+  "@syncing": {
+    "description": "Syncing state label"
+  },
+  "categoriesToSynchronize": "要同步的分类",
+  "@categoriesToSynchronize": {
+    "description": "Category sync selector tile title"
+  },
+  "noCategoriesSelected": "未选择分类。",
+  "@noCategoriesSelected": {
+    "description": "Category sync subtitle when none selected"
+  },
+  "nCategoriesSelected": "已选择 {count} 个分类",
+  "@nCategoriesSelected": {
+    "description": "Category sync subtitle with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "要同步的文件夹",
+  "@foldersToSynchronize": {
+    "description": "Folder sync selector tile title"
+  },
+  "noCustomFolders": "未配置自定义文件夹。",
+  "@noCustomFolders": {
+    "description": "Folder sync subtitle when none configured"
+  },
+  "nFolders": "{count} 个文件夹",
+  "@nFolders": {
+    "description": "Folder sync subtitle with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "添加文件夹",
+  "@addFolder": {
+    "description": "Button to add a folder to sync"
+  },
+  "removeFolder": "移除文件夹",
+  "@removeFolder": {
+    "description": "Tooltip to remove a folder from sync"
+  },
+  "removeServer": "删除服务器",
+  "@removeServer": {
+    "description": "Button to remove a server configuration"
+  },
+  "syncFreqEvery15Min": "每 15 分钟",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: 15 minutes"
+  },
+  "syncFreqEvery30Min": "每 30 分钟",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: 30 minutes"
+  },
+  "syncFreqEvery1Hour": "每小时",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: 1 hour"
+  },
+  "syncFreqEveryNHours": "每 {hours} 小时",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency option: N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "每 {minutes} 分钟",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency option: N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "每天",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "选择同步频率",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency dialog title"
+  },
+  "cacheSize": "缓存大小",
+  "@cacheSize": {
+    "description": "Cache size tile title"
+  },
+  "refreshTooltip": "刷新",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh cache button"
+  },
+  "cacheLimit": "缓存限制",
+  "@cacheLimit": {
+    "description": "Cache limit tile title"
+  },
+  "downloadPath": "下载路径",
+  "@downloadPath": {
+    "description": "Download path tile title"
+  },
+  "defaultDownloadFolder": "默认 CrowleysCloud 文件夹",
+  "@defaultDownloadFolder": {
+    "description": "Download path subtitle when using default"
+  },
+  "clearCache": "清除缓存",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "清除缓存？",
+  "@clearCacheTitle": {
+    "description": "Clear cache dialog title"
+  },
+  "clearCacheBody": "这将移除本地缩略图和已缓存的服务器目录列表。",
+  "@clearCacheBody": {
+    "description": "Clear cache dialog body"
+  },
+  "downloadPathDialogTitle": "下载路径",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path dialog text field hint"
+  },
+  "useDefault": "使用默认",
+  "@useDefault": {
+    "description": "Button to reset download path to default"
+  },
+  "serverTargetDirDialogTitle": "服务器目标目录",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "需要登录",
+  "@requireLogin": {
+    "description": "Require login setting tile title"
+  },
+  "biometricLogin": "生物识别登录",
+  "@biometricLogin": {
+    "description": "Biometric login switch tile title"
+  },
+  "biometricLoginSubtitle": "允许使用生物识别和已保存的凭据登录。",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login switch tile subtitle"
+  },
+  "biometricsNotAvailable": "此设备上无法使用生物识别。",
+  "@biometricsNotAvailable": {
+    "description": "Biometrics unavailable subtitle"
+  },
+  "showHiddenFiles": "显示隐藏文件",
+  "@showHiddenFiles": {
+    "description": "Show hidden files tile title"
+  },
+  "showHiddenFilesSubtitle": "显示以点开头的文件和文件夹。",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files tile subtitle"
+  },
+  "changePassword": "修改密码",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "修改 {serverName} 上的密码。",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle with server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "修改密码前请先添加服务器。",
+  "@addServerBeforeChangePassword": {
+    "description": "Change password subtitle when no server"
+  },
+  "deleteUserAccount": "删除用户账户",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "删除该用户及其所有私有云文件。",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "删除账户？",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirmation dialog title"
+  },
+  "deleteAccountBody": "这将永久删除您在 {serverName} 上的账户，并移除您私有云文件夹中存储的所有文件。此操作无法撤销。",
+  "@deleteAccountBody": {
+    "description": "Delete account confirmation body with server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "删除账户",
+  "@deleteAccountButton": {
+    "description": "Delete account action button label"
+  },
+  "changePasswordDialogTitle": "修改密码",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "新密码",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "确认密码",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "输入新密码。",
+  "@enterNewPassword": {
+    "description": "Change password instructions"
+  },
+  "passwordUpdated": "密码已更新。",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "修改密码失败：{error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "修改密码失败。",
+  "@passwordChangeFailedGeneric": {
+    "description": "Snackbar on generic password change failure"
+  },
+  "accountDeleted": "账户已删除。",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "删除账户失败：{error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "删除账户失败。",
+  "@accountDeletionFailedGeneric": {
+    "description": "Snackbar on generic account deletion failure"
+  },
+  "checkForUpdates": "检查更新",
+  "@checkForUpdates": {
+    "description": "Check for updates tile title"
+  },
+  "checkingForUpdates": "正在检查 GitHub Releases...",
+  "@checkingForUpdates": {
+    "description": "Check for updates subtitle while querying"
+  },
+  "versionLabel": "版本 {version}",
+  "@versionLabel": {
+    "description": "Version display in about section",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "Crowley's Cloud 已是最新版本 (v{version})。",
+  "@appIsUpToDate": {
+    "description": "Update check result: app is current",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "检查更新失败。请稍后重试。",
+  "@updateCheckFailed": {
+    "description": "Update check result: failure"
+  },
+  "themeModeTitle": "主题模式",
+  "@themeModeTitle": {
+    "description": "Theme mode selector title"
+  },
+  "themeDark": "深色",
+  "@themeDark": {
+    "description": "Theme option: dark"
+  },
+  "themeLight": "浅色",
+  "@themeLight": {
+    "description": "Theme option: light"
+  },
+  "themeCustom": "自定义",
+  "@themeCustom": {
+    "description": "Theme option: custom"
+  },
+  "themeDarkFull": "深色主题",
+  "@themeDarkFull": {
+    "description": "Theme option long: dark theme"
+  },
+  "themeLightFull": "浅色主题",
+  "@themeLightFull": {
+    "description": "Theme option long: light theme"
+  },
+  "themeCustomFull": "自定义主题",
+  "@themeCustomFull": {
+    "description": "Theme option long: custom theme"
+  },
+  "accentColor": "强调色",
+  "@accentColor": {
+    "description": "Accent color setting label"
+  },
+  "primaryAccentColor": "主要强调色",
+  "@primaryAccentColor": {
+    "description": "Primary accent color tile title"
+  },
+  "selectAccentColor": "选择强调色",
+  "@selectAccentColor": {
+    "description": "Select accent color dialog title"
+  },
+  "backgroundColor": "背景颜色",
+  "@backgroundColor": {
+    "description": "Custom theme: background color"
+  },
+  "surfaceColor": "表面颜色",
+  "@surfaceColor": {
+    "description": "Custom theme: surface color"
+  },
+  "textColor": "文字颜色",
+  "@textColor": {
+    "description": "Custom theme: text color"
+  },
+  "subtextColor": "副文本颜色",
+  "@subtextColor": {
+    "description": "Custom theme: subtext color"
+  },
+  "borderColor": "边框颜色",
+  "@borderColor": {
+    "description": "Custom theme: border color"
+  },
+  "fontSizeScale": "字体缩放比例",
+  "@fontSizeScale": {
+    "description": "Font size scale setting label"
+  },
+  "selectColor": "选择 {title}",
+  "@selectColor": {
+    "description": "Color picker dialog title with slot name",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "要同步的分类",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Categories to sync dialog title"
+  },
+  "categoriesToSyncBody": "选择一个或多个分类。您可以全部不选。",
+  "@categoriesToSyncBody": {
+    "description": "Categories to sync dialog body"
+  },
+  "syncCategorySectionMedia": "媒体",
+  "@syncCategorySectionMedia": {
+    "description": "Category section header: media"
+  },
+  "syncCategorySectionAudioDocs": "音频与文档",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Category section header: audio & documents"
+  },
+  "syncCategorySectionOther": "其他",
+  "@syncCategorySectionOther": {
+    "description": "Category section header: other"
+  },
+  "clearAll": "全部清除",
+  "@clearAll": {
+    "description": "Clear all button in sync categories dialog"
+  },
+  "noSyncHasRunYet": "尚未运行过同步。",
+  "@noSyncHasRunYet": {
+    "description": "Last sync status when never run"
+  },
+  "lastRunAt": "上次运行于 {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "已同步 {uploaded} 项，跳过 {skipped} 项。",
+  "@syncResultSuccess": {
+    "description": "Sync outcome: success summary",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "未选择要同步的文件。",
+  "@syncResultNoFiles": {
+    "description": "Sync outcome: no files selected"
+  },
+  "syncResultPartial": "已同步 {uploaded} 项，失败 {failed} 项。",
+  "@syncResultPartial": {
+    "description": "Sync outcome: partial success summary",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "同步前请先登录。",
+  "@syncResultAuthRequired": {
+    "description": "Sync outcome: auth required"
+  },
+  "syncResultUnreachable": "服务器不可达。连接已断开。",
+  "@syncResultUnreachable": {
+    "description": "Sync outcome: server unreachable"
+  },
+  "syncResultFailed": "同步失败。",
+  "@syncResultFailed": {
+    "description": "Sync outcome: generic failure"
+  },
+  "serverSetupAddServer": "添加服务器",
+  "@serverSetupAddServer": {
+    "description": "Title for the Add Server setup flow"
+  },
+  "serverSetupCardTitle": "连接服务器",
+  "@serverSetupCardTitle": {
+    "description": "Card title on server setup page"
+  },
+  "serverSetupCardSubtitle": "添加您的家庭文件服务器并登录。",
+  "@serverSetupCardSubtitle": {
+    "description": "Card subtitle on server setup page"
+  },
+  "serverSetupSubmitButton": "保存服务器",
+  "@serverSetupSubmitButton": {
+    "description": "Save server submit button"
+  },
+  "serverNameLabel": "服务器名称",
+  "@serverNameLabel": {
+    "description": "Server name input label"
+  },
+  "serverNameHint": "家庭 NAS",
+  "@serverNameHint": {
+    "description": "Server name placeholder hint"
+  },
+  "baseUrlLabel": "基本 URL",
+  "@baseUrlLabel": {
+    "description": "Server base URL input label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Server base URL placeholder hint"
+  },
+  "allFieldsRequired": "所有字段均为必填项。",
+  "@allFieldsRequired": {
+    "description": "Validation message when required fields are empty"
+  },
+  "localFilesTitle": "本地文件",
+  "@localFilesTitle": {
+    "description": "AppBar title for local files browser"
+  },
+  "serverFilesTitle": "服务器文件",
+  "@serverFilesTitle": {
+    "description": "AppBar title for server files browser"
+  },
+  "restoreItemsTitle": "还原项目",
+  "@restoreItemsTitle": {
+    "description": "Restore confirmation dialog title"
+  },
+  "restoreItemsBody": "确定要还原 {count} 个项目吗？",
+  "@restoreItemsBody": {
+    "description": "Restore confirmation dialog body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "永久删除",
+  "@permanentlyDeleteTitle": {
+    "description": "Permanent delete dialog title"
+  },
+  "permanentlyDeleteBody": "确定要永久删除 {count} 个项目吗？此操作无法撤销。",
+  "@permanentlyDeleteBody": {
+    "description": "Permanent delete dialog body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "回收站为空。",
+  "@trashIsEmpty": {
+    "description": "Empty state message for trash screen"
+  },
+  "trashRetentionInfo": "回收站中的项目会在 {days} 天后自动删除。",
+  "@trashRetentionInfo": {
+    "description": "Info message about trash retention policy",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "删除日期",
+  "@deletionDate": {
+    "description": "Column header / label for deletion timestamp"
+  },
+  "deletePermanentlyAction": "永久删除",
+  "@deletePermanentlyAction": {
+    "description": "Action sheet option to delete permanently"
+  },
+  "conflictFileAlreadyExists": "文件已存在",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "冲突 {current} / {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog counter badge",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "名为 ",
+  "@conflictAFileNamed": {
+    "description": "Prefix text in conflict dialog"
+  },
+  "conflictAlreadyExistsAt": " 的文件已存在于 ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Middle text in conflict dialog between name and path"
+  },
+  "conflictAlreadyExistsInFolder": " 的文件已存在于此文件夹中。",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Suffix text in conflict dialog when path is not displayed"
+  },
+  "conflictInFolder": "在文件夹中",
+  "@conflictInFolder": {
+    "description": "Conflict dialog badge for existing file"
+  },
+  "conflictFromTrash": "来自回收站",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog badge for restoring file"
+  },
+  "conflictExisting": "现有文件",
+  "@conflictExisting": {
+    "description": "Conflict dialog badge for existing item"
+  },
+  "conflictNewUpload": "新上传",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog badge for incoming upload"
+  },
+  "conflictSizeLabel": "大小：{size}",
+  "@conflictSizeLabel": {
+    "description": "File size label in conflict card",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "日期：{date}",
+  "@conflictDateLabel": {
+    "description": "File date label in conflict card",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "删除时间：{date}",
+  "@conflictDeletedLabel": {
+    "description": "File deletion date label in conflict card",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "应用到剩余 {count} 个冲突",
+  "@conflictApplyToRemaining": {
+    "description": "Checkbox to apply conflict decision to remaining",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "保留所有副本",
+  "@conflictKeepAllCopies": {
+    "description": "Batch button to keep copies for all conflicts"
+  },
+  "conflictOverwriteAll": "全部覆盖",
+  "@conflictOverwriteAll": {
+    "description": "Batch button to overwrite all conflicts"
+  },
+  "conflictRestoreAllAsCopies": "全部恢复为副本",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Batch button to restore all as copies"
+  },
+  "conflictRestoreAsCopy": "恢复为副本",
+  "@conflictRestoreAsCopy": {
+    "description": "Single-item button to restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "覆盖所有剩余文件",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Button to overwrite all remaining conflicts"
+  },
+  "conflictSkipAll": "全部跳过",
+  "@conflictSkipAll": {
+    "description": "Button to skip all conflicts"
+  },
+  "conflictSkipAllRemaining": "跳过所有剩余文件",
+  "@conflictSkipAllRemaining": {
+    "description": "Button to skip all remaining conflicts"
+  },
+  "conflictSkip": "跳过",
+  "@conflictSkip": {
+    "description": "Button to skip single conflict"
+  },
+  "conflictOverwrite": "覆盖",
+  "@conflictOverwrite": {
+    "description": "Button to overwrite single file"
+  },
+  "transfersTitle": "传输",
+  "@transfersTitle": {
+    "description": "AppBar title for transfers screen"
+  },
+  "transferResume": "继续",
+  "@transferResume": {
+    "description": "Action to resume paused transfer"
+  },
+  "transferPause": "暂停",
+  "@transferPause": {
+    "description": "Action to pause running transfer"
+  },
+  "transferCancel": "取消",
+  "@transferCancel": {
+    "description": "Action to cancel transfer"
+  },
+  "transferResumeAll": "全部继续",
+  "@transferResumeAll": {
+    "description": "Action to resume all transfers"
+  },
+  "transferPauseAll": "全部暂停",
+  "@transferPauseAll": {
+    "description": "Action to pause all transfers"
+  },
+  "transferCancelAll": "全部取消",
+  "@transferCancelAll": {
+    "description": "Action to cancel all transfers"
+  },
+  "transferCancelFile": "取消文件",
+  "@transferCancelFile": {
+    "description": "Action to cancel single file transfer"
+  },
+  "noTransfers": "没有进行中的传输。",
+  "@noTransfers": {
+    "description": "Empty state when no transfers exist"
+  },
+  "transferStatusQueued": "排队中",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "进行中",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "已暂停",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "已完成",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "失败",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "已取消",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "预设主题",
+  "@themePresetsSection": {
+    "description": "Header for theme presets section"
+  },
+  "themeCustomPaletteSection": "自定义调色板",
+  "@themeCustomPaletteSection": {
+    "description": "Header for custom color palette section"
+  },
+  "themeHexRgbLabel": "HEX RGB 代码",
+  "@themeHexRgbLabel": {
+    "description": "Color picker HEX input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Color picker HEX input placeholder"
+  },
+  "imageViewerNoFetchHandler": "未配置图像获取处理程序",
+  "@imageViewerNoFetchHandler": {
+    "description": "Error when image viewer lacks network/local fetch handler"
+  },
+  "imageViewerFailedToLoad": "无法加载图像",
+  "@imageViewerFailedToLoad": {
+    "description": "Error when image fails to load in viewer"
+  },
+  "errorDeletingFile": "删除 {filename} 失败：{error}",
+  "@errorDeletingFile": {
+    "description": "Error message when file deletion fails in viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "读取文件失败：{error}",
+  "@errorReadingFile": {
+    "description": "Error message when text file read fails in viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "后台同步",
+  "@syncChannelName": {
+    "description": "Notification channel name for background file synchronization"
+  },
+  "syncChannelDescription": "显示后台文件同步的状态。",
+  "@syncChannelDescription": {
+    "description": "Notification channel description for background sync"
+  },
+  "storageStatsTitle": "存储统计",
+  "@storageStatsTitle": {
+    "description": "Title for storage statistics card/section"
+  },
+  "storageStatsUsedSpace": "已用空间",
+  "@storageStatsUsedSpace": {
+    "description": "Label for used storage space"
+  },
+  "storageStatsTotalFiles": "文件总数",
+  "@storageStatsTotalFiles": {
+    "description": "Label for total file count in storage stats"
+  },
+  "storageStatsNItems": "{count} 个项目",
+  "@storageStatsNItems": {
+    "description": "File count display in storage stats",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "用户 #{userId}",
+  "@userFallback": {
+    "description": "Fallback display name when username is empty",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "请验证身份以解锁 Crowley's Cloud 保存的凭据。",
+  "@biometricUnlockReason": {
+    "description": "Localized reason string presented in system biometric prompt"
+  },
+  "tokenLifetimeEveryOpen": "每次打开应用",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime setting option: re-authenticate on every app launch"
+  },
+  "tokenLifetimeOneHour": "1 小时后",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime setting option: 1 hour"
+  },
+  "tokenLifetime1Hour": "1 小时后",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime setting option: 1 hour (compact)"
+  },
+  "tokenLifetimeOneDay": "1 天后",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime setting option: 1 day"
+  },
+  "tokenLifetime1Day": "1 天后",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime setting option: 1 day (compact)"
+  },
+  "tokenLifetimeOneWeek": "1 周后",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime setting option: 1 week"
+  },
+  "tokenLifetime1Week": "1 周后",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime setting option: 1 week (compact)"
+  },
+  "tokenLifetimeOneMonth": "1 个月后",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime setting option: 1 month"
+  },
+  "tokenLifetime1Month": "1 个月后",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime setting option: 1 month (compact)"
+  },
+  "tokenLifetimeThreeMonths": "3 个月后",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime setting option: 3 months"
+  },
+  "tokenLifetime3Months": "3 个月后",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime setting option: 3 months (compact)"
+  },
+  "tokenLifetimeNever": "在此设备上从不",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime setting option: never expire"
+  },
+  "cacheLimitUnlimited": "无限制",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit setting option: no limit"
+  },
+  "syncCategoryOtherFiles": "其他文件",
+  "@syncCategoryOtherFiles": {
+    "description": "Category name for other/uncategorized files in sync settings"
+  },
+  "internalStorage": "内部存储",
+  "@internalStorage": {
+    "description": "Display name for device internal storage root"
+  },
+  "localStorageRootName": "内部存储",
+  "@localStorageRootName": {
+    "description": "Display name for local root breadcrumb when path is empty"
+  },
+  "syncNotificationSyncingWith": "正在与 {serverName} 同步",
+  "@syncNotificationSyncingWith": {
+    "description": "Notification content text when sync is actively running",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "与 {serverName} 的同步已暂停",
+  "@syncNotificationPausedTitle": {
+    "description": "Notification title when sync is paused due to constraints",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "服务器不可达。后台同步已暂停，直到打开应用程序。",
+  "@syncNotificationUnreachableBody": {
+    "description": "Notification body when sync paused due to network/server unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "需要身份验证。请打开应用程序以登录。",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Notification body when sync paused due to expired credentials"
+  },
+  "syncNotificationFailedTitle": "与 {serverName} 的同步失败",
+  "@syncNotificationFailedTitle": {
+    "description": "Notification title when sync fails with an error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "同步过程中发生错误。",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Notification body for generic sync error"
+  },
+  "syncNotificationCompleteTitle": "与 {serverName} 的同步已完成",
+  "@syncNotificationCompleteTitle": {
+    "description": "Notification title when background sync finishes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "同步完成。",
+  "@syncNotificationCompleteBody": {
+    "description": "Notification body for successful sync completion"
+  },
+  "syncStatusConnecting": "正在连接到服务器...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress step: connecting to server"
+  },
+  "syncStatusConnectionLost": "无法连接到 {serverName}。连接已断开。",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error: connection lost with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "无法连接到 {serverName}。连接已断开。",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync result error: server unreachable with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "正在扫描设备上的文件...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress step: scanning local filesystem"
+  },
+  "syncStatusNoFilesFound": "未找到要同步的文件。",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync status: no local files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "未选择要同步的文件。",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync status: no categories or folders selected"
+  },
+  "syncStatusCalculatingChecksum": "正在计算校验和 ({current}/{total})：{filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress step: hashing local file for change detection",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "正在检查服务器上的重复文件...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress step: checking file index on server"
+  },
+  "syncStatusSyncingFile": "正在同步 ({current}/{total})：{filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress step: uploading single file",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "正在完成同步...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress step: finalizing batch"
+  },
+  "showingCachedFiles": "正在显示缓存的文件。",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying cached file listing offline"
+  },
+  "showingCachedFilesRefreshFailed": "正在显示缓存的文件。刷新失败。",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when server refresh fails and cached listing is shown"
+  },
+  "downloadCanceled": "下载已取消。",
+  "@downloadCanceled": {
+    "description": "Snackbar notification when a file download is canceled"
+  },
+  "downloadedNFilesToPath": "已将 {count} 个文件下载到 {path}",
+  "@downloadedNFilesToPath": {
+    "description": "Notification when multiple files are downloaded successfully to a path",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "已下载 {downloaded} 个文件，失败 {failed} 个：{detail}",
+  "@downloadedNFilesFailedM": {
+    "description": "Notification when some batch downloads succeeded and some failed",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "已下载 {count} 个文件，失败 {failed} 个：{error}",
+  "@downloadedNFilesWithFailures": {
+    "description": "Notification when some batch downloads failed with an error message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "已创建 {count} 个共享链接。",
+  "@createdNShareLinks": {
+    "description": "Notification when multiple public share links are generated",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "无法创建共享链接。",
+  "@failedToCreateShareLinks": {
+    "description": "Error notification when creating batch share links fails"
+  },
+  "alreadyInSharedScope": "已在共享范围内。",
+  "@alreadyInSharedScope": {
+    "description": "Notification when item is already shared in server scope"
+  },
+  "sharedNItemsInServer": "已在服务器中共享 {count} 个项目。",
+  "@sharedNItemsInServer": {
+    "description": "Notification when multiple items are shared within the server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "已共享 {count} 个项目，失败 {failed} 个。",
+  "@sharedNItemsWithFailures": {
+    "description": "Notification when some server shares succeeded and some failed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "已共享 {shared} 个项目，失败 {failed} 个。",
+  "@sharedNItemsFailedM": {
+    "description": "Notification with counts of shared vs failed items",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "文件夹名称不能为空。",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is left blank"
+  },
+  "folderAlreadyExists": "同名文件夹已存在。",
+  "@folderAlreadyExists": {
+    "description": "Validation error when folder name already exists in target directory"
+  },
+  "folderCreationOnlyInAllFiles": "只能在“全部文件”中创建文件夹。",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Error when attempting to create folder within a filtered category view"
+  },
+  "currentDirectoryUnavailable": "当前目录不可用。",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when active directory path does not exist or cannot be accessed"
+  },
+  "nothingSelected": "未选择任何项目。",
+  "@nothingSelected": {
+    "description": "Message shown when an action is triggered with zero selected items"
+  },
+  "destinationFolderDoesNotExist": "目标文件夹不存在。",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination folder is not found"
+  },
+  "cannotMoveFolderIntoItself": "无法将文件夹 \"{name}\" 移动到其自身内部。",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when attempting to move a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "移动 {name} 失败：{error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a specific file or folder fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "已移动 {count} 个项目。",
+  "@movedNItems": {
+    "description": "Notification when multiple items are moved successfully",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "已移动 {count} 个项目，失败 {failed} 个。",
+  "@movedNItemsWithFailures": {
+    "description": "Notification when some item moves succeeded and some failed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "已移动 {moved} 个项目，失败 {failed} 个。",
+  "@movedNItemsFailedM": {
+    "description": "Notification with counts of moved vs failed items",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "移动所选项目失败。",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic error when batch move operation fails"
+  },
+  "noFilesWereMoved": "未移动任何文件。",
+  "@noFilesWereMoved": {
+    "description": "Notice when a move operation completed without moving any items"
+  },
+  "renamedOldToNew": "已将 \"{oldName}\" 重命名为 \"{newName}\"。",
+  "@renamedOldToNew": {
+    "description": "Notification when file/folder is renamed showing old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "已将 \"{oldName}\" 重命名为 \"{newName}\"。",
+  "@renamedFileFromTo": {
+    "description": "Notification when file is renamed from old to new name",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "重命名 \"{name}\" 失败 ({statusCode})。",
+  "@failedToRenameWithStatus": {
+    "description": "Error when rename fails with HTTP status code",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "重命名 \"{name}\" 失败 ({statusCode})。",
+  "@failedToRenameFileWithCode": {
+    "description": "Error when file rename fails with HTTP status code",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "重命名 \"{name}\" 失败：{error}",
+  "@failedToRenameWithError": {
+    "description": "Error message when rename fails with detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "重命名 \"{name}\" 失败：{error}",
+  "@failedToRenameFile": {
+    "description": "Error message when file rename fails with detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "重命名失败：同名文件或文件夹已存在。",
+  "@renameConflictAlreadyExists": {
+    "description": "Error when rename target name collides with existing item"
+  },
+  "renameFailedAlreadyExists": "重命名失败：同名文件或文件夹已存在。",
+  "@renameFailedAlreadyExists": {
+    "description": "Error when renaming fails because target already exists"
+  },
+  "failedToCreateFolderWithCode": "创建文件夹失败 (代码 {statusCode})。",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error when folder creation fails with HTTP status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "已删除 {deleted} 个项目，失败 {failed} 个。",
+  "@deletedNItemsFailedM": {
+    "description": "Notification with counts of deleted vs failed items",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}%  {completed}/{total} 个文件",
+  "@transferSummaryFiles": {
+    "description": "Overall transfers header showing percent and file count progress",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}%  {completed}/{total} 个文件",
+  "@transferSummaryProgress": {
+    "description": "Transfers screen progress summary line",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "下载失败",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failure notification title"
+  },
+  "uploadedNItemsWithFailures": "已上传 {uploaded} 个项目，失败 {failed} 个",
+  "@uploadedNItemsWithFailures": {
+    "description": "Notification when batch upload finishes with partial errors",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "已上传 {uploaded} 个项目，失败 {failed} 个。",
+  "@uploadedNItemsFailedM": {
+    "description": "Notification with counts of uploaded vs failed items",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": "，失败 {count} 个",
+  "@uploadSummaryFailedCount": {
+    "description": "Appended clause to transfer summary when failures occur",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}：本地路径为空",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}：本地路径为空",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "文件夹上传失败",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "文件夹上传失败",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "未找到本地文件",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "未找到本地文件",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "没有活动的会话令牌",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "没有活动的会话令牌",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "服务器已断开连接",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "服务器已断开连接",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "服务器不可达。",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "服务器不可达。",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "未找到本地文件夹",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "扫描文件夹失败",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "创建文件夹失败 (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "响应中缺少访问令牌",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "响应中缺少刷新令牌",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "没有可用的已保存凭据",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "没有可用的刷新令牌",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "没有可用的活动会话",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "没有可用的已保存用户名",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "尚未发布任何版本。",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "语言",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

@@ -17,7 +17,12 @@
  * Zero-dependency Fetch Client with automatic Bearer token injection and 401 Refresh Retry.
  */
 import { authStore } from '../stores/auth.js';
+import { i18n } from '../stores/i18n.js';
 import { get } from 'svelte/store';
+
+export function apiMessage(key, params = null) {
+  return i18n.format(key, params);
+}
 
 export class ApiError extends Error {
   constructor(status, message, data = null) {
@@ -35,7 +40,7 @@ export function resetClientAuthState() {
   isRefreshing = false;
   failedQueue.forEach((prom) => {
     try {
-      prom.reject(new ApiError(401, 'Session reset'));
+      prom.reject(new ApiError(401, apiMessage('api.session_reset')));
     } catch (e) {}
   });
   failedQueue = [];
@@ -73,7 +78,9 @@ async function parseResponse(response, responseType = null) {
     }
     const errorMsg = (errorBody && typeof errorBody === 'object' && errorBody.error)
       ? errorBody.error
-      : (typeof errorBody === 'string' && errorBody ? errorBody : response.statusText);
+      : (typeof errorBody === 'string' && errorBody
+        ? errorBody
+        : apiMessage('api.http_error', { status: response.status }));
     throw new ApiError(response.status, errorMsg, errorBody);
   }
 
@@ -126,7 +133,10 @@ export async function apiFetch(endpoint, options = {}) {
   try {
     response = await fetch(url, fetchOptions);
   } catch (err) {
-    throw new ApiError(0, `Network failure: ${err.message}`);
+    throw new ApiError(
+      0,
+      apiMessage('api.network_failure', { message: err.message }),
+    );
   }
 
   // Handle 401 Token Refresh retry
@@ -147,9 +157,9 @@ export async function apiFetch(endpoint, options = {}) {
 
     if (!currentRefreshToken) {
       isRefreshing = false;
-      processQueue(new ApiError(401, 'Session expired'), null);
+      processQueue(new ApiError(401, apiMessage('api.session_expired')), null);
       authStore.clearSession();
-      throw new ApiError(401, 'Session expired');
+      throw new ApiError(401, apiMessage('api.session_expired'));
     }
 
     try {
@@ -160,7 +170,7 @@ export async function apiFetch(endpoint, options = {}) {
       });
 
       if (!refreshRes.ok) {
-        throw new Error('Refresh failed');
+        throw new Error(apiMessage('api.refresh_failed'));
       }
 
       const refreshData = await refreshRes.json();
@@ -180,7 +190,7 @@ export async function apiFetch(endpoint, options = {}) {
       processQueue(refreshErr, null);
       isRefreshing = false;
       authStore.clearSession();
-      throw new ApiError(401, 'Session expired. Please log in again.');
+      throw new ApiError(401, apiMessage('api.session_expired_login'));
     }
   }
 

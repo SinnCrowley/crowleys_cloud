@@ -39,6 +39,7 @@ import 'package:crowleys_cloud/server_store.dart';
 import 'package:crowleys_cloud/sync_scheduler.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:crowleys_cloud/transfer_widgets.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -61,11 +62,44 @@ void main() async {
   runApp(const CrowleysCloudApp());
 }
 
-class CrowleysCloudApp extends StatelessWidget {
+class CrowleysCloudApp extends StatefulWidget {
   const CrowleysCloudApp({super.key});
 
   @override
+  State<CrowleysCloudApp> createState() => _CrowleysCloudAppState();
+}
+
+class _CrowleysCloudAppState extends State<CrowleysCloudApp> {
+  Locale? _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    AppSettingsService().localeCode().then((code) {
+      if (mounted && code != null) setState(() => _locale = _parseLocale(code));
+    });
+  }
+
+  Future<void> _setLocale(Locale? locale) async {
+    await AppSettingsService().setLocaleCode(locale?.toLanguageTag());
+    if (mounted) setState(() => _locale = locale);
+  }
+
+  Locale _parseLocale(String code) {
+    final parts = code.split('-');
+    return parts.length == 2
+        ? Locale.fromSubtags(
+            languageCode: parts.first,
+            scriptCode: parts.last == 'Hans' ? parts.last : null,
+            countryCode: parts.last == 'BR' ? parts.last : null,
+          )
+        : Locale(code);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Note: AppLocalizations requires Localizations widget which is built by MaterialApp.
+    // If we are passing title, MaterialApp takes a localized title, but we can't use AppLocalizations.of(context) until we are inside MaterialApp, unless we use onGenerateTitle.
     return ValueListenableBuilder<AppThemeData>(
       valueListenable: AppTheme.notifier,
       builder: (context, appTheme, _) {
@@ -80,7 +114,10 @@ class CrowleysCloudApp extends StatelessWidget {
             : appTheme.fontFamily;
 
         return MaterialApp(
-          title: 'Crowley\'s Cloud',
+          locale: _locale,
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           debugShowCheckedModeBanner: false,
           theme: baseTheme.copyWith(
             scaffoldBackgroundColor: appTheme.background,
@@ -111,7 +148,7 @@ class CrowleysCloudApp extends StatelessWidget {
               child: child!,
             );
           },
-          home: const MainScreen(),
+          home: MainScreen(onLocaleChanged: _setLocale),
         );
       },
     );
@@ -189,12 +226,13 @@ class _ActiveServerAuthDialogState extends State<_ActiveServerAuthDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Dialog(
       backgroundColor: appSurface,
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
       child: SingleChildScrollView(
         child: AuthCard(
-          title: 'Sign In',
+          title: l10n.logIn,
           subtitle: widget.active.displayName,
           initialMode: AuthMode.login,
           usernameController: _usernameController,
@@ -233,7 +271,9 @@ class _UploadPlan {
 }
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({super.key, this.onLocaleChanged});
+
+  final Future<void> Function(Locale? locale)? onLocaleChanged;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -333,6 +373,27 @@ class _MainScreenState extends State<MainScreen> {
     super.dispose();
   }
 
+  String _getLocalizedCategoryName(String name, AppLocalizations l10n) {
+    switch (name) {
+      case 'All files':
+        return l10n.allFiles;
+      case 'Photos':
+        return l10n.categoryPhotos;
+      case 'Videos':
+        return l10n.categoryVideos;
+      case 'Audio':
+        return l10n.categoryAudio;
+      case 'Documents':
+        return l10n.categoryDocuments;
+      case 'Other':
+        return l10n.categoryOther;
+      case 'Shared':
+        return l10n.categoryShared;
+      default:
+        return name;
+    }
+  }
+
   void _disposeLocalController() {
     if (_localController != null) {
       _localController!.disposeController();
@@ -409,6 +470,7 @@ class _MainScreenState extends State<MainScreen> {
           settingsService: _appSettingsService,
           biometricAuthService: _biometricAuthService,
           syncScheduler: _syncScheduler,
+          onLocaleChanged: widget.onLocaleChanged,
         ),
       ),
     );
@@ -420,10 +482,16 @@ class _MainScreenState extends State<MainScreen> {
   void _reportActiveServerConnectionError([String? message]) {
     final active = _serverManager.activeServer;
     if (active == null) return;
-    _serverManager.reportConnectionError(serverId: active.id, message: message);
+    final l10n = mounted ? AppLocalizations.of(context) : null;
+    _serverManager.reportConnectionError(
+      serverId: active.id,
+      message: message,
+      l10n: l10n,
+    );
   }
 
   Future<void> _openAddServerFlow() async {
+    final l10n = AppLocalizations.of(context)!;
     final setupResult = await Navigator.of(context).push<ServerSetupResult>(
       MaterialPageRoute(
         builder: (_) =>
@@ -437,9 +505,9 @@ class _MainScreenState extends State<MainScreen> {
       await _serverManager.markAuthed(setupResult.profile.id);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to save server: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.failedToSaveServer(e.toString()))),
+      );
     }
     if (!mounted) return;
     setState(() {});
@@ -460,23 +528,24 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<bool> _confirmServerSwitch(String serverName) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text('Switch server?', style: TextStyle(color: appText)),
+        title: Text(l10n.switchServerTitle, style: TextStyle(color: appText)),
         content: Text(
-          'Switch active server to "$serverName"?',
+          l10n.switchServerBody(serverName),
           style: TextStyle(color: appSubtext),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Switch'),
+            child: Text(l10n.switchLabel),
           ),
         ],
       ),
@@ -604,6 +673,7 @@ class _MainScreenState extends State<MainScreen> {
     required AuthMode mode,
     String? email,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     if (username.isEmpty || password.isEmpty) return false;
 
     try {
@@ -618,17 +688,15 @@ class _MainScreenState extends State<MainScreen> {
       await _serverManager.markAuthed(activeId);
     } on AuthException catch (e) {
       if (!mounted) return false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Authentication failed: ${e.message}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.authFailed(e.message))));
       return false;
     } catch (_) {
       if (!mounted) return false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Authentication failed. Please try again.'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.authFailedGeneric)));
       return false;
     }
     return true;
@@ -638,9 +706,10 @@ class _MainScreenState extends State<MainScreen> {
     ServerProfile active, {
     bool reportFailure = true,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final unlocked = await _biometricAuthService
-          .unlockSavedCredentials()
+          .unlockSavedCredentials(localizedReason: l10n.biometricUnlockReason)
           .timeout(const Duration(seconds: 10), onTimeout: () => false);
       if (!unlocked) return false;
 
@@ -653,7 +722,7 @@ class _MainScreenState extends State<MainScreen> {
       if (!mounted) return false;
       if (reportFailure) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Biometric login failed: ${e.message}')),
+          SnackBar(content: Text(l10n.biometricLoginFailed(e.message))),
         );
       }
       return false;
@@ -661,7 +730,7 @@ class _MainScreenState extends State<MainScreen> {
       if (!mounted) return false;
       if (reportFailure) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Biometric login failed.')),
+          SnackBar(content: Text(l10n.biometricLoginFailedGeneric)),
         );
       }
       return false;
@@ -670,6 +739,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _chooseOtherServerFromExisting() async {
+    final l10n = AppLocalizations.of(context)!;
     final activeId = _serverManager.activeServer?.id;
     final otherServers = _serverManager.servers
         .where((server) => server.id != activeId)
@@ -680,7 +750,7 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text('Choose server', style: TextStyle(color: appText)),
+        title: Text(l10n.chooseServer, style: TextStyle(color: appText)),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -706,7 +776,7 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
         ],
       ),
@@ -822,6 +892,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _uploadLocalItems(List<FileItem> items) async {
+    final l10n = AppLocalizations.of(context)!;
     final activeServer = _serverManager.activeServer;
     if (activeServer == null) return;
     var token = await _serverManager.authService.readAccessToken(
@@ -829,11 +900,9 @@ class _MainScreenState extends State<MainScreen> {
     );
     if (token == null || token.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No server session token. Re-authenticate server.'),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.noServerSessionToken)));
       }
       return;
     }
@@ -914,7 +983,7 @@ class _MainScreenState extends State<MainScreen> {
         final localPath = itemPaths[i];
         if (localPath.isEmpty) {
           failed.add(item.name);
-          failDetails.add('${item.name}: local path is empty');
+          failDetails.add(l10n.uploadErrorLocalPathEmpty(item.name));
           continue;
         }
 
@@ -940,6 +1009,7 @@ class _MainScreenState extends State<MainScreen> {
             initialToken: token,
             rootDirectory: Directory(localPath),
             rootRemotePrefix: item.name,
+            l10n: l10n,
           );
           token = directoryResult.token;
           if (directoryResult.ok) {
@@ -950,11 +1020,11 @@ class _MainScreenState extends State<MainScreen> {
             _transferManager.failItem(
               transferItem,
               directoryResult.error.isEmpty
-                  ? 'Directory upload failed'
+                  ? l10n.directoryUploadFailed
                   : directoryResult.error,
             );
-            if (_isDisconnectedOperationError(directoryResult.error)) {
-              _reportActiveServerConnectionError('Server is unreachable.');
+            if (_isDisconnectedOperationError(directoryResult.error, l10n)) {
+              _reportActiveServerConnectionError(l10n.serverIsUnreachable);
               return;
             }
             failed.add(item.name);
@@ -974,13 +1044,14 @@ class _MainScreenState extends State<MainScreen> {
             localFile: file,
             remotePath: p.basename(localPath),
             transferItem: transferItem,
+            l10n: l10n,
           );
           token = result.token;
           if (result.ok) {
             uploaded.add(item.name);
           } else {
-            if (_isDisconnectedOperationError(result.error)) {
-              _reportActiveServerConnectionError('Server is unreachable.');
+            if (_isDisconnectedOperationError(result.error, l10n)) {
+              _reportActiveServerConnectionError(l10n.serverIsUnreachable);
               return;
             }
             failed.add(item.name);
@@ -993,22 +1064,25 @@ class _MainScreenState extends State<MainScreen> {
     } on TransferCanceledException {
       return;
     } on SocketException {
-      _reportActiveServerConnectionError('Server is unreachable.');
+      _reportActiveServerConnectionError(l10n.serverIsUnreachable);
       return;
     } on HttpException {
-      _reportActiveServerConnectionError('Server is unreachable.');
+      _reportActiveServerConnectionError(l10n.serverIsUnreachable);
       return;
     } on http.ClientException {
-      _reportActiveServerConnectionError('Server is unreachable.');
+      _reportActiveServerConnectionError(l10n.serverIsUnreachable);
       return;
     } finally {
       client.close();
     }
     if (!mounted) return;
-    final msg =
-        'Uploaded ${uploaded.length} item(s)'
-        '${failed.isNotEmpty ? ', failed ${failed.length}' : ''}.'
-        '${failDetails.isNotEmpty ? '\n${failDetails.first}' : ''}';
+    var msg = l10n.uploadedNItems(uploaded.length);
+    if (failed.isNotEmpty) {
+      msg += l10n.uploadSummaryFailedCount(failed.length);
+    }
+    if (failDetails.isNotEmpty) {
+      msg += '\n${failDetails.first}';
+    }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     if (uploaded.isNotEmpty) {
       await _serverController?.invalidateCurrentDirectory(reloadAfter: true);
@@ -1024,9 +1098,14 @@ class _MainScreenState extends State<MainScreen> {
     required File localFile,
     required String remotePath,
     required TransferItem transferItem,
+    required AppLocalizations l10n,
   }) async {
     if (!await localFile.exists()) {
-      return (ok: false, token: initialToken, error: 'local file not found');
+      return (
+        ok: false,
+        token: initialToken,
+        error: l10n.uploadErrorLocalFileNotFound,
+      );
     }
 
     final uri = Uri.parse(base)
@@ -1034,7 +1113,7 @@ class _MainScreenState extends State<MainScreen> {
         .replace(queryParameters: {'scope': 'private', 'path': remotePath});
     var token = initialToken;
     if (token == null || token.isEmpty) {
-      return (ok: false, token: token, error: 'no session token');
+      return (ok: false, token: token, error: l10n.uploadErrorNoSessionToken);
     }
 
     http.StreamedResponse response;
@@ -1054,15 +1133,15 @@ class _MainScreenState extends State<MainScreen> {
     } on TransferItemCanceledException {
       rethrow;
     } on SocketException {
-      _transferManager.failItem(transferItem, 'server disconnected');
-      return (ok: false, token: token, error: 'server disconnected');
+      _transferManager.failItem(transferItem, l10n.serverDisconnected);
+      return (ok: false, token: token, error: l10n.serverDisconnected);
     } on HttpException {
-      _transferManager.failItem(transferItem, 'server disconnected');
-      return (ok: false, token: token, error: 'server disconnected');
+      _transferManager.failItem(transferItem, l10n.serverDisconnected);
+      return (ok: false, token: token, error: l10n.serverDisconnected);
     } on http.ClientException {
       if (_transferManager.isCanceled) throw TransferCanceledException();
-      _transferManager.failItem(transferItem, 'server disconnected');
-      return (ok: false, token: token, error: 'server disconnected');
+      _transferManager.failItem(transferItem, l10n.serverDisconnected);
+      return (ok: false, token: token, error: l10n.serverDisconnected);
     }
 
     if (response.statusCode == 401) {
@@ -1092,15 +1171,15 @@ class _MainScreenState extends State<MainScreen> {
         } on TransferItemCanceledException {
           rethrow;
         } on SocketException {
-          _transferManager.failItem(transferItem, 'server disconnected');
-          return (ok: false, token: token, error: 'server disconnected');
+          _transferManager.failItem(transferItem, l10n.serverDisconnected);
+          return (ok: false, token: token, error: l10n.serverDisconnected);
         } on HttpException {
-          _transferManager.failItem(transferItem, 'server disconnected');
-          return (ok: false, token: token, error: 'server disconnected');
+          _transferManager.failItem(transferItem, l10n.serverDisconnected);
+          return (ok: false, token: token, error: l10n.serverDisconnected);
         } on http.ClientException {
           if (_transferManager.isCanceled) throw TransferCanceledException();
-          _transferManager.failItem(transferItem, 'server disconnected');
-          return (ok: false, token: token, error: 'server disconnected');
+          _transferManager.failItem(transferItem, l10n.serverDisconnected);
+          return (ok: false, token: token, error: l10n.serverDisconnected);
         }
       }
     }
@@ -1110,8 +1189,8 @@ class _MainScreenState extends State<MainScreen> {
       return (ok: true, token: token, error: '');
     }
     if (_isConnectionUnavailableStatus(response.statusCode)) {
-      _transferManager.failItem(transferItem, 'server disconnected');
-      return (ok: false, token: token, error: 'server disconnected');
+      _transferManager.failItem(transferItem, l10n.serverDisconnected);
+      return (ok: false, token: token, error: l10n.serverDisconnected);
     }
     final body = await response.stream.bytesToString();
     _transferManager.failItem(transferItem, 'HTTP ${response.statusCode}');
@@ -1166,12 +1245,13 @@ class _MainScreenState extends State<MainScreen> {
     required String? initialToken,
     required Directory rootDirectory,
     required String rootRemotePrefix,
+    required AppLocalizations l10n,
   }) async {
     if (!await rootDirectory.exists()) {
       return (
         ok: false,
         token: initialToken,
-        error: 'local directory not found',
+        error: l10n.uploadErrorLocalDirectoryNotFound,
       );
     }
     final directories = <String>[];
@@ -1199,7 +1279,9 @@ class _MainScreenState extends State<MainScreen> {
       return (
         ok: false,
         token: initialToken,
-        error: e.message.isEmpty ? 'failed to scan directory' : e.message,
+        error: e.message.isEmpty
+            ? l10n.uploadErrorFailedToScanDirectory
+            : e.message,
       );
     }
 
@@ -1211,6 +1293,7 @@ class _MainScreenState extends State<MainScreen> {
       activeServerBaseUrl: activeServerBaseUrl,
       initialToken: token,
       remotePath: rootRemotePrefix,
+      l10n: l10n,
     );
     token = rootCreate.token;
     if (!rootCreate.ok) {
@@ -1225,6 +1308,7 @@ class _MainScreenState extends State<MainScreen> {
         activeServerBaseUrl: activeServerBaseUrl,
         initialToken: token,
         remotePath: p.join(rootRemotePrefix, relDir),
+        l10n: l10n,
       );
       token = createDirResult.token;
       if (!createDirResult.ok) {
@@ -1258,6 +1342,7 @@ class _MainScreenState extends State<MainScreen> {
           localFile: plan.file,
           remotePath: plan.remotePath,
           transferItem: plan.transferItem!,
+          l10n: l10n,
         );
         token = fileResult.token;
         if (!fileResult.ok) {
@@ -1277,10 +1362,11 @@ class _MainScreenState extends State<MainScreen> {
     required String activeServerBaseUrl,
     required String? initialToken,
     required String remotePath,
+    required AppLocalizations l10n,
   }) async {
     var token = initialToken;
     if (token == null || token.isEmpty) {
-      return (ok: false, token: token, error: 'no session token');
+      return (ok: false, token: token, error: l10n.uploadErrorNoSessionToken);
     }
 
     final uri = Uri.parse(base)
@@ -1294,11 +1380,11 @@ class _MainScreenState extends State<MainScreen> {
         body: const [],
       );
     } on SocketException {
-      return (ok: false, token: token, error: 'server disconnected');
+      return (ok: false, token: token, error: l10n.serverDisconnected);
     } on HttpException {
-      return (ok: false, token: token, error: 'server disconnected');
+      return (ok: false, token: token, error: l10n.serverDisconnected);
     } on http.ClientException {
-      return (ok: false, token: token, error: 'server disconnected');
+      return (ok: false, token: token, error: l10n.serverDisconnected);
     }
     if (response.statusCode == 401) {
       try {
@@ -1318,11 +1404,11 @@ class _MainScreenState extends State<MainScreen> {
             body: const [],
           );
         } on SocketException {
-          return (ok: false, token: token, error: 'server disconnected');
+          return (ok: false, token: token, error: l10n.serverDisconnected);
         } on HttpException {
-          return (ok: false, token: token, error: 'server disconnected');
+          return (ok: false, token: token, error: l10n.serverDisconnected);
         } on http.ClientException {
-          return (ok: false, token: token, error: 'server disconnected');
+          return (ok: false, token: token, error: l10n.serverDisconnected);
         }
       }
     }
@@ -1330,19 +1416,24 @@ class _MainScreenState extends State<MainScreen> {
       return (ok: true, token: token, error: '');
     }
     if (_isConnectionUnavailableStatus(response.statusCode)) {
-      return (ok: false, token: token, error: 'server disconnected');
+      return (ok: false, token: token, error: l10n.serverDisconnected);
     }
     final body = response.body.trim();
     return (
       ok: false,
       token: token,
-      error:
-          'folder create HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
+      error: body.isEmpty
+          ? l10n.uploadErrorFolderCreateHttp(response.statusCode)
+          : '${l10n.uploadErrorFolderCreateHttp(response.statusCode)} $body',
     );
   }
 
-  bool _isDisconnectedOperationError(String error) {
-    return error.toLowerCase().contains('server disconnected');
+  bool _isDisconnectedOperationError(String error, [AppLocalizations? l10n]) {
+    final lower = error.toLowerCase();
+    return lower.contains('server disconnected') ||
+        (l10n != null &&
+            (error == l10n.serverDisconnected ||
+                error == l10n.serverDisconnectedStatus));
   }
 
   bool _isConnectionUnavailableStatus(int statusCode) {
@@ -1402,6 +1493,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (!_serverManager.isReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -1409,7 +1501,7 @@ class _MainScreenState extends State<MainScreen> {
     if (_serverManager.requiresSetup) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Crowley\'s Cloud setup'),
+          title: Text(l10n.crowleysCloudSetup),
           backgroundColor: appSurface,
         ),
         body: Center(
@@ -1419,18 +1511,18 @@ class _MainScreenState extends State<MainScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'No servers configured yet.',
+                  l10n.noServersConfiguredYet,
                   style: TextStyle(color: appText, fontSize: 18),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Add your first server to continue.',
+                  l10n.addFirstServerHint,
                   style: TextStyle(color: appSubtext),
                 ),
                 const SizedBox(height: 20),
                 FilledButton(
                   onPressed: _openAddServerFlow,
-                  child: const Text('Add server'),
+                  child: Text(l10n.addServer),
                 ),
               ],
             ),
@@ -1447,7 +1539,7 @@ class _MainScreenState extends State<MainScreen> {
       final active = _serverManager.activeServer!;
       return Scaffold(
         appBar: AppBar(
-          title: Text('Authenticate: ${active.displayName}'),
+          title: Text(l10n.authenticationRequired),
           backgroundColor: appSurface,
         ),
         body: Center(
@@ -1466,7 +1558,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        'Authentication required',
+                        l10n.authenticationRequired,
                         style: TextStyle(
                           color: appText,
                           fontSize: 20,
@@ -1475,7 +1567,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Sign in to access files on ${active.displayName}',
+                        l10n.signInToAccess(active.displayName),
                         style: TextStyle(color: appSubtext),
                         textAlign: TextAlign.center,
                       ),
@@ -1504,7 +1596,7 @@ class _MainScreenState extends State<MainScreen> {
                             }
                           },
                           icon: const Icon(Icons.login),
-                          label: const Text('Sign In with Password'),
+                          label: Text(l10n.signInWithPassword),
                           style: FilledButton.styleFrom(
                             backgroundColor: appAccent,
                             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1531,7 +1623,7 @@ class _MainScreenState extends State<MainScreen> {
                               }
                             },
                             icon: const Icon(Icons.fingerprint),
-                            label: const Text('Use Biometrics'),
+                            label: Text(l10n.useBiometrics),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: appText,
                               side: BorderSide(color: appBorder),
@@ -1549,7 +1641,7 @@ class _MainScreenState extends State<MainScreen> {
                           onPressed: _chooseOtherServerFromExisting,
                           icon: Icon(Icons.swap_horiz, color: appAccent),
                           label: Text(
-                            'Switch Server',
+                            l10n.switchServer,
                             style: TextStyle(
                               color: appAccent,
                               fontWeight: FontWeight.w600,
@@ -1565,12 +1657,12 @@ class _MainScreenState extends State<MainScreen> {
                       const CircularProgressIndicator(),
                       const SizedBox(height: 16),
                       Text(
-                        'Authentication required',
+                        l10n.authenticationRequired,
                         style: TextStyle(color: appText, fontSize: 18),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Opening sign in...',
+                        l10n.openingSignIn,
                         style: TextStyle(color: appSubtext),
                       ),
                     ],
@@ -1587,7 +1679,7 @@ class _MainScreenState extends State<MainScreen> {
       );
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Server connection failed'),
+          title: Text(l10n.serverConnectionFailed),
           backgroundColor: appSurface,
         ),
         body: Center(
@@ -1598,8 +1690,8 @@ class _MainScreenState extends State<MainScreen> {
               children: [
                 Text(
                   active == null
-                      ? 'Unable to connect to the active server.'
-                      : 'Unable to connect to ${active.displayName}.',
+                      ? l10n.unableToConnectToServer
+                      : l10n.unableToConnectTo(active.displayName),
                   style: TextStyle(color: appText, fontSize: 18),
                   textAlign: TextAlign.center,
                 ),
@@ -1614,7 +1706,7 @@ class _MainScreenState extends State<MainScreen> {
                   width: double.infinity,
                   child: FilledButton(
                     onPressed: _retryStartupValidation,
-                    child: const Text('Retry'),
+                    child: Text(l10n.retry),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1624,7 +1716,7 @@ class _MainScreenState extends State<MainScreen> {
                     onPressed: hasOtherServers
                         ? _chooseOtherServerFromExisting
                         : null,
-                    child: const Text('Choose other server'),
+                    child: Text(l10n.chooseOtherServer),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1632,7 +1724,7 @@ class _MainScreenState extends State<MainScreen> {
                   width: double.infinity,
                   child: OutlinedButton(
                     onPressed: _openAddServerFlow,
-                    child: const Text('Add server'),
+                    child: Text(l10n.addServer),
                   ),
                 ),
               ],
@@ -1744,7 +1836,7 @@ class _MainScreenState extends State<MainScreen> {
                         focusNode: _searchFocusNode,
                         onChanged: _onSearchChanged,
                         decoration: InputDecoration(
-                          hintText: 'Search...',
+                          hintText: l10n.searchHint,
                           hintStyle: TextStyle(color: appSubtext),
                           border: InputBorder.none,
                           isDense: true,
@@ -1872,7 +1964,7 @@ class _MainScreenState extends State<MainScreen> {
                     ListTile(
                       leading: Icon(Icons.add, color: appSubtext),
                       title: Text(
-                        'Add server',
+                        l10n.addServer,
                         style: TextStyle(color: appText),
                       ),
                       onTap: () async {
@@ -1883,7 +1975,10 @@ class _MainScreenState extends State<MainScreen> {
                     Divider(color: appBorder),
                     ListTile(
                       leading: Icon(Icons.folder, color: appSubtext),
-                      title: Text('Local', style: TextStyle(color: appText)),
+                      title: Text(
+                        l10n.navLocal,
+                        style: TextStyle(color: appText),
+                      ),
                       selected: _selectedModeIndex == 0,
                       onTap: () {
                         setState(() {
@@ -1895,7 +1990,10 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                     ListTile(
                       leading: Icon(Icons.cloud, color: appSubtext),
-                      title: Text('Server', style: TextStyle(color: appText)),
+                      title: Text(
+                        l10n.navServer,
+                        style: TextStyle(color: appText),
+                      ),
                       selected: _selectedModeIndex == 1,
                       onTap: () {
                         setState(() {
@@ -1908,7 +2006,10 @@ class _MainScreenState extends State<MainScreen> {
                     if (_serverManager.activeServer != null)
                       ListTile(
                         leading: Icon(Icons.delete_outline, color: appSubtext),
-                        title: Text('Trash', style: TextStyle(color: appText)),
+                        title: Text(
+                          l10n.navTrash,
+                          style: TextStyle(color: appText),
+                        ),
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.push(
@@ -1941,7 +2042,10 @@ class _MainScreenState extends State<MainScreen> {
                     Divider(color: appBorder),
                     ListTile(
                       leading: Icon(Icons.settings, color: appSubtext),
-                      title: Text('Settings', style: TextStyle(color: appText)),
+                      title: Text(
+                        l10n.navSettings,
+                        style: TextStyle(color: appText),
+                      ),
                       onTap: () async {
                         Navigator.pop(context);
                         await _openSettingsPage();
@@ -1976,14 +2080,14 @@ class _MainScreenState extends State<MainScreen> {
                     });
                     await _clearSearchAndResetFilterForCurrentMode();
                   },
-                  items: const [
+                  items: [
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.folder),
-                      label: 'Local',
+                      icon: const Icon(Icons.folder),
+                      label: l10n.navLocalFiles,
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.cloud),
-                      label: 'Server',
+                      icon: const Icon(Icons.cloud),
+                      label: l10n.navServerFiles,
                     ),
                   ],
                 ),
@@ -2007,6 +2111,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildServerCategoryGrid() {
+    final l10n = AppLocalizations.of(context)!;
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _serverCategories.length,
@@ -2052,7 +2157,7 @@ class _MainScreenState extends State<MainScreen> {
                 Icon(category.icon, color: appSubtext, size: 40),
                 const SizedBox(height: 12),
                 Text(
-                  category.name,
+                  _getLocalizedCategoryName(category.name, l10n),
                   style: TextStyle(color: appText, fontSize: 16),
                 ),
               ],
@@ -2064,6 +2169,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildLocalCategoryGrid() {
+    final l10n = AppLocalizations.of(context)!;
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _allCategories.length,
@@ -2089,7 +2195,7 @@ class _MainScreenState extends State<MainScreen> {
                 Icon(category.icon, color: appSubtext, size: 40),
                 const SizedBox(height: 12),
                 Text(
-                  category.name,
+                  _getLocalizedCategoryName(category.name, l10n),
                   style: TextStyle(color: appText, fontSize: 16),
                 ),
               ],

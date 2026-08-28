@@ -29,6 +29,7 @@ class AppSettingsService {
       'settings.requireBiometricOnLaunch';
   static const downloadDirectoryPathKey = 'settings.downloadDirectoryPath';
   static const tokenLifetimeKey = 'settings.tokenLifetime';
+  static const localeKey = 'settings.locale';
 
   SharedPreferences? _prefs;
 
@@ -80,6 +81,20 @@ class AppSettingsService {
 
   Future<void> setTokenLifetime(TokenLifetimeOption value) async {
     await (await _store).setString(tokenLifetimeKey, value.id);
+  }
+
+  Future<String?> localeCode() async {
+    final code = (await _store).getString(localeKey);
+    return code == null || code.isEmpty ? null : code;
+  }
+
+  Future<void> setLocaleCode(String? code) async {
+    final prefs = await _store;
+    if (code == null || code.isEmpty) {
+      await prefs.remove(localeKey);
+      return;
+    }
+    await prefs.setString(localeKey, code);
   }
 
   Future<int> cacheMaxBytes() async {

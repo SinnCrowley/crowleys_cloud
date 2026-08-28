@@ -1,0 +1,2654 @@
+{
+  "@@locale": "it",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "Annulla",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "Salva",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "Elimina",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "Rinomina",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "Chiudi",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "Riprova",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "Caricamento...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "Conferma",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "Errore",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "Errore: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "Sconosciuto",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "Carica",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "Scarica",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "Condividi",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "Copia",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "Sposta",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "Ripristina",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "Applica",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "Crea",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "Cancella",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "Aggiungi",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "Rimuovi",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "Modifica",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "Cambia",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "Cerca",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "Nome",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "Data",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "Dimensione",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "Tipo",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "Crescente",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "Decrescente",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "Tutti",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "Immagini",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "Foto",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "Video",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "Audio",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "Documenti",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "Archivi",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "Condivisi",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "Altro",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "Altri file",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "Nessun file trovato.",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "Nessun file in questa cartella.",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "Questa azione non può essere annullata.",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "Le password non corrispondono.",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "File locali",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "File del server",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "Impostazioni",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "Cestino",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "Locale",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "Server",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "Aggiungi server",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "Nessun server configurato.",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "Aggiungi un server nelle impostazioni.",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "Aggiungi il tuo primo server per continuare.",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "Non è ancora configurato alcun server.",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "Configurazione di Crowley's Cloud",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "Connetti",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "Connessione in corso...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "Connesso",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "Disconnesso",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "Cambia server",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "Scegli un altro server",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "Cambiare server?",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "Passare il server attivo a «{serverName}»?",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "Scegli server",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "Autenticazione richiesta",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "Accedi per visualizzare i file su {serverName}",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "Accedi con password",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "Usa dati biometrici",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "Apertura dell’accesso...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "Connessione al server non riuscita",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "Impossibile connettersi al server attivo.",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "Impossibile connettersi a {serverName}.",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "Cerca...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "Cerca file...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "Cerca file del server...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "Cerca nel cestino...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "Autorizzazione di archiviazione richiesta",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "Concedi autorizzazione",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "Autorizzazione negata. Concedi l’accesso all’archiviazione nelle impostazioni.",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "L’autorizzazione a gestire l’archiviazione è richiesta per sfogliare e selezionare cartelle.",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "Per la sincronizzazione sono richieste autorizzazioni di archiviazione.",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "Aggiornamento disponibile: v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "Tocca per vedere le novità",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "Visualizza",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "Aggiornamento disponibile",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "Versione {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "Attuale: v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "Nuova: v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "Novità:",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "GitHub",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "Nessuna nota di rilascio disponibile.",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "Più tardi",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "Scarica APK",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "Aggiorna",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "Link di condivisione",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "Condividi tramite link",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "Condividi sul server",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "Scadenza (giorni)",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "Mai",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "1 giorno",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "7 giorni",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "30 giorni",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "90 giorni",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "180 giorni",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "365 giorni",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "Crea link",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "Link di condivisione copiato negli appunti!",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "Impossibile copiare il link di condivisione: {error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "Questo tipo di file non può essere condiviso.",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "Impossibile creare la condivisione: {error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "Crea cartella",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "Nome cartella",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "Nuova cartella",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "Cartella creata.",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "Impossibile creare la cartella: {error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "Creazione cartella...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "Rinomina",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "Nuovo nome",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "Inserisci nuovo nome",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "Rinominato correttamente.",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "Ridenominazione non riuscita: {error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "Sposta in",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "Sposta in: {path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "Sposta qui",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "Spostamento non riuscito: {error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "Spostato nella cartella.",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "Copia non riuscita: {error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "Seleziona cartella",
+  "@selectFolder": {
+    "description": "Folder picker AppBar title"
+  },
+  "useThisFolder": "Usa questa cartella",
+  "@useThisFolder": {
+    "description": "FAB label to confirm folder selection"
+  },
+  "storageRoot": "Archiviazione",
+  "@storageRoot": {
+    "description": "Root label in local file breadcrumb"
+  },
+  "serverRoot": "radice",
+  "@serverRoot": {
+    "description": "Root label in server file breadcrumb"
+  },
+  "deleteNItemsTitle": "Eliminare {count} elementi?",
+  "@deleteNItemsTitle": {
+    "description": "Bulk delete dialog title",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "Eliminare file?",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirm dialog title"
+  },
+  "deleteFilesBody": "Vuoi davvero eliminare i {count} elementi selezionati? Questa azione non può essere annullata.",
+  "@deleteFilesBody": {
+    "description": "Delete files confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "Elimina definitivamente",
+  "@deletePermanently": {
+    "description": "Permanent delete action/button label"
+  },
+  "deletePermanentlyTitle": "Eliminare definitivamente?",
+  "@deletePermanentlyTitle": {
+    "description": "Permanent delete confirm dialog title"
+  },
+  "deletePermanentlyBody": "{filename} verrà eliminato definitivamente.",
+  "@deletePermanentlyBody": {
+    "description": "Permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "Eliminare file?",
+  "@deleteFileTitle": {
+    "description": "Single file delete confirm dialog title"
+  },
+  "deleteFileBody": "Vuoi davvero eliminare {filename}? Questa azione non può essere annullata.",
+  "@deleteFileBody": {
+    "description": "Single file delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "Elimina definitivamente",
+  "@deleteServerFileTitle": {
+    "description": "Server permanent delete confirm dialog title"
+  },
+  "deleteServerFileBody": "Vuoi davvero eliminare definitivamente «{filename}»? Questa azione non può essere annullata.",
+  "@deleteServerFileBody": {
+    "description": "Server permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "Rimuovere la condivisione degli elementi?",
+  "@unshareItemsTitle": {
+    "description": "Unshare confirm dialog title"
+  },
+  "unshareItemsBody": "Vuoi davvero rimuovere la condivisione dei {count} elementi selezionati? Verranno rimossi dalla cartella Condivisi.",
+  "@unshareItemsBody": {
+    "description": "Unshare confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "Rimuovi condivisione",
+  "@unshare": {
+    "description": "Unshare button label"
+  },
+  "moveToTrash": "Sposta nel cestino",
+  "@moveToTrash": {
+    "description": "Move to trash action label"
+  },
+  "movedToTrash": "Spostato nel cestino.",
+  "@movedToTrash": {
+    "description": "Snackbar on single item moved to trash"
+  },
+  "movedNItemsToTrash": "{count} elementi spostati nel cestino.",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar on multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "Impossibile spostare nel cestino: {error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move-to-trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "{count} elementi eliminati.",
+  "@deletedNItems": {
+    "description": "Snackbar on bulk delete success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "Eliminazione non riuscita: {error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "Eliminazione non riuscita: {error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on server delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "{filename} eliminato.",
+  "@deletedFilename": {
+    "description": "Snackbar on single file delete success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "Impossibile aprire il file",
+  "@failedToOpenFile": {
+    "description": "Snackbar when file can't be opened"
+  },
+  "fileDownloadFailed": "Download del file non riuscito: {error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on file download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "Download in corso...",
+  "@downloading": {
+    "description": "Snackbar while downloading"
+  },
+  "downloadingFile": "Download del file in corso...",
+  "@downloadingFile": {
+    "description": "Loading text while downloading a file for preview"
+  },
+  "downloadComplete": "Download completato: {filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "Download non riuscito: {error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "Impossibile scaricare l’anteprima del file",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar when preview download fails"
+  },
+  "uploadComplete": "Caricamento completato: {filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "Caricamento non riuscito: {error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "Impossibile selezionare i file",
+  "@failedToPickFiles": {
+    "description": "Snackbar when file picker fails"
+  },
+  "uploadedNItems": "{count} elemento/i caricato/i",
+  "@uploadedNItems": {
+    "description": "Snackbar on batch upload success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "Link copiato negli appunti.",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on link copy"
+  },
+  "failedToCopyLink": "Impossibile copiare il link: {error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on link copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "Selezione di tutti gli elementi...",
+  "@selectingAll": {
+    "description": "Snackbar while selecting all items"
+  },
+  "allItemsSelected": "Tutti gli elementi selezionati.",
+  "@allItemsSelected": {
+    "description": "Snackbar when all items are selected"
+  },
+  "failedToLoadSearchResults": "Impossibile caricare i risultati della ricerca",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar on search failure"
+  },
+  "shareNotSupportedForType": "La condivisione non è supportata per questo tipo di file.",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar for unsupported share"
+  },
+  "nSelected": "{count} selezionati",
+  "@nSelected": {
+    "description": "Selection header: N items selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "Nessun server selezionato",
+  "@noServerSelected": {
+    "description": "Snackbar when no server is active"
+  },
+  "pleaseConnectToServerFirst": "Connettiti prima a un server.",
+  "@pleaseConnectToServerFirst": {
+    "description": "Snackbar prompt to connect"
+  },
+  "signInRequired": "Accesso richiesto",
+  "@signInRequired": {
+    "description": "Snackbar when sign-in is needed"
+  },
+  "pleaseSignInToServer": "Accedi prima a {serverName}.",
+  "@pleaseSignInToServer": {
+    "description": "Snackbar prompting to sign in",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "Connessione al server...",
+  "@connectingToServer": {
+    "description": "Snackbar while connecting"
+  },
+  "connectedToServer": "Connesso a {serverName}.",
+  "@connectedToServer": {
+    "description": "Snackbar on successful connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "Connessione non riuscita: {error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "Impossibile connettersi: {error}",
+  "@failedToConnect": {
+    "description": "Snackbar on connect failure (alt)",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "Autenticazione non riuscita: {error}",
+  "@authFailed": {
+    "description": "Snackbar on authentication failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "Autenticazione non riuscita. Riprova.",
+  "@authFailedGeneric": {
+    "description": "Generic auth failure snackbar"
+  },
+  "biometricLoginFailed": "Accesso biometrico non riuscito: {error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "Accesso biometrico non riuscito.",
+  "@biometricLoginFailedGeneric": {
+    "description": "Generic biometric failure snackbar"
+  },
+  "noServerSessionToken": "Nessun token di sessione del server. Autentica nuovamente il server.",
+  "@noServerSessionToken": {
+    "description": "Snackbar when session token is missing"
+  },
+  "failedToSaveServer": "Impossibile salvare il server: {error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on server save failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "Aggiungi alla cartella",
+  "@addToFolder": {
+    "description": "Context menu action: add to folder"
+  },
+  "loginTabLabel": "Accedi",
+  "@loginTabLabel": {
+    "description": "Auth tab: log in"
+  },
+  "registerTabLabel": "Registrati",
+  "@registerTabLabel": {
+    "description": "Auth tab: register"
+  },
+  "welcomeBack": "Bentornato",
+  "@welcomeBack": {
+    "description": "Auth login card title"
+  },
+  "signInToContinue": "Accedi per continuare",
+  "@signInToContinue": {
+    "description": "Auth login card subtitle"
+  },
+  "createAccount": "Crea account",
+  "@createAccount": {
+    "description": "Auth register card title"
+  },
+  "joinTheServer": "Unisciti al server",
+  "@joinTheServer": {
+    "description": "Auth register card subtitle"
+  },
+  "usernameLabel": "Nome utente",
+  "@usernameLabel": {
+    "description": "Username text field label"
+  },
+  "usernameHint": "Inserisci il tuo nome utente",
+  "@usernameHint": {
+    "description": "Username text field hint"
+  },
+  "passwordLabel": "Password",
+  "@passwordLabel": {
+    "description": "Password text field label"
+  },
+  "passwordHint": "Inserisci la tua password",
+  "@passwordHint": {
+    "description": "Password text field hint"
+  },
+  "showPassword": "Mostra password",
+  "@showPassword": {
+    "description": "Tooltip for show password button"
+  },
+  "hidePassword": "Nascondi password",
+  "@hidePassword": {
+    "description": "Tooltip for hide password button"
+  },
+  "confirmPassword": "Conferma password",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "Accedi",
+  "@logIn": {
+    "description": "Login button label"
+  },
+  "loggingIn": "Accesso in corso...",
+  "@loggingIn": {
+    "description": "Login loading state"
+  },
+  "registering": "Registrazione in corso...",
+  "@registering": {
+    "description": "Register loading state"
+  },
+  "forgotPassword": "Password dimenticata?",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  "doNotHaveAccount": "Non hai un account? Passa alla registrazione.",
+  "@doNotHaveAccount": {
+    "description": "Auth footer for login mode"
+  },
+  "alreadyHaveAccount": "Hai già un account? Passa all’accesso.",
+  "@alreadyHaveAccount": {
+    "description": "Auth footer for register mode"
+  },
+  "usernameCannotBeEmpty": "Il nome utente non può essere vuoto.",
+  "@usernameCannotBeEmpty": {
+    "description": "Validation: empty username"
+  },
+  "passwordCannotBeEmpty": "La password non può essere vuota.",
+  "@passwordCannotBeEmpty": {
+    "description": "Validation: empty password"
+  },
+  "usernameInvalid": "Il nome utente deve contenere 3–32 caratteri: lettere, numeri, _ o -.",
+  "@usernameInvalid": {
+    "description": "Validation: invalid username format"
+  },
+  "passwordTooShort": "La password deve contenere almeno 8 caratteri.",
+  "@passwordTooShort": {
+    "description": "Validation: password too short"
+  },
+  "loginFailed": "Accesso non riuscito: {error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "Registrazione non riuscita: {error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "Reimposta password",
+  "@resetPasswordTitle": {
+    "description": "Forgot password dialog title step 1"
+  },
+  "enterResetCodeTitle": "Inserisci il codice di reimpostazione",
+  "@enterResetCodeTitle": {
+    "description": "Forgot password dialog title step 2"
+  },
+  "resetPasswordStep1Body": "Inserisci il nome utente. Il codice di verifica a 6 cifre verrà mostrato nei registri o nella console del server.",
+  "@resetPasswordStep1Body": {
+    "description": "Forgot password step 1 instruction"
+  },
+  "resetPasswordStep2Body": "Il codice di verifica è stato mostrato nella console del server. Inserisci il codice a 6 cifre e la nuova password.",
+  "@resetPasswordStep2Body": {
+    "description": "Forgot password step 2 instruction"
+  },
+  "resetCodeLabel": "Codice di reimpostazione",
+  "@resetCodeLabel": {
+    "description": "Reset code field label"
+  },
+  "resetCodeHint": "Inserisci il codice a 6 cifre",
+  "@resetCodeHint": {
+    "description": "Reset code field hint"
+  },
+  "newPasswordLabel": "Nuova password",
+  "@newPasswordLabel": {
+    "description": "New password field label"
+  },
+  "newPasswordHint": "Inserisci nuova password",
+  "@newPasswordHint": {
+    "description": "New password field hint"
+  },
+  "passwordResetSuccessfully": "Password reimpostata correttamente!",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "Il nome utente è obbligatorio.",
+  "@usernameIsRequired": {
+    "description": "Validation: username required for reset"
+  },
+  "codeAndPasswordRequired": "Il codice e la nuova password sono obbligatori.",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "Impossibile richiedere la reimpostazione. Verifica l’URL del server.",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request failure"
+  },
+  "failedToResetPassword": "Impossibile reimpostare la password. Controlla il codice.",
+  "@failedToResetPassword": {
+    "description": "Snackbar on reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "Inserisci prima l’URL del server.",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Snackbar when server URL is missing"
+  },
+  "sendCode": "Invia codice",
+  "@sendCode": {
+    "description": "Send reset code button label"
+  },
+  "settingsTitle": "Impostazioni",
+  "@settingsTitle": {
+    "description": "Settings screen AppBar title"
+  },
+  "sectionBackupSync": "Backup e sincronizzazione",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "Archiviazione e cache",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "Sicurezza e comportamento",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security & behavior"
+  },
+  "sectionAboutUpdates": "Informazioni e aggiornamenti",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "Aspetto e personalizzazione",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "Nessun server configurato",
+  "@noServersConfiguredSync": {
+    "description": "Sync section tile title when no servers"
+  },
+  "addServerBeforeSync": "Aggiungi un server prima di configurare la sincronizzazione.",
+  "@addServerBeforeSync": {
+    "description": "Sync section hint when no servers"
+  },
+  "selectServerToConfigureSync": "Seleziona un server per configurarne le impostazioni di sincronizzazione.",
+  "@selectServerToConfigureSync": {
+    "description": "Sync section instruction"
+  },
+  "activeServerSuffix": "· attivo",
+  "@activeServerSuffix": {
+    "description": "Suffix label for active server in list"
+  },
+  "folderAndCategorySync": "Sincronizzazione di cartelle e categorie",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle title"
+  },
+  "keepCategoriesSynced": "Mantieni sincronizzate con questo server le categorie o cartelle locali selezionate.",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle subtitle"
+  },
+  "addServerBeforeSyncEnable": "Aggiungi un server prima di abilitare la sincronizzazione.",
+  "@addServerBeforeSyncEnable": {
+    "description": "Sync toggle disabled subtitle"
+  },
+  "onlyOnWifi": "Solo tramite Wi-Fi",
+  "@onlyOnWifi": {
+    "description": "Sync preference: only on Wi-Fi"
+  },
+  "onlyWhileCharging": "Solo durante la ricarica",
+  "@onlyWhileCharging": {
+    "description": "Sync preference: only while charging"
+  },
+  "serverTargetDirectory": "Cartella di destinazione sul server",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory setting title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Hint text for server target directory"
+  },
+  "synchronizationFrequency": "Frequenza di sincronizzazione",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency setting title"
+  },
+  "syncNow": "Sincronizza ora",
+  "@syncNow": {
+    "description": "Manual sync button label"
+  },
+  "syncing": "Sincronizzazione in corso...",
+  "@syncing": {
+    "description": "Loading state for sync button"
+  },
+  "categoriesToSynchronize": "Categorie da sincronizzare",
+  "@categoriesToSynchronize": {
+    "description": "Sync categories tile title"
+  },
+  "noCategoriesSelected": "Nessuna categoria selezionata.",
+  "@noCategoriesSelected": {
+    "description": "Sync categories empty state"
+  },
+  "nCategoriesSelected": "{count} selezionati",
+  "@nCategoriesSelected": {
+    "description": "N categories selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "Cartelle da sincronizzare",
+  "@foldersToSynchronize": {
+    "description": "Sync folders tile title"
+  },
+  "noCustomFolders": "Nessuna cartella personalizzata configurata.",
+  "@noCustomFolders": {
+    "description": "Sync folders empty state"
+  },
+  "nFolders": "{count} cartella/e",
+  "@nFolders": {
+    "description": "N folders selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "Aggiungi cartella",
+  "@addFolder": {
+    "description": "Tooltip for add folder button"
+  },
+  "removeFolder": "Rimuovi cartella",
+  "@removeFolder": {
+    "description": "Tooltip for remove folder button"
+  },
+  "removeServer": "Rimuovi server",
+  "@removeServer": {
+    "description": "Tooltip for remove server button"
+  },
+  "syncFreqEvery15Min": "Ogni 15 minuti",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: every 15 min"
+  },
+  "syncFreqEvery30Min": "Ogni 30 minuti",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: every 30 min"
+  },
+  "syncFreqEvery1Hour": "Ogni ora",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: every hour"
+  },
+  "syncFreqEveryNHours": "Ogni {hours} ore",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency: every N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "Ogni {minutes} minuti",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency: every N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "Ogni giorno",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "Scegli la frequenza di sincronizzazione",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency picker dialog title"
+  },
+  "cacheSize": "Dimensione cache",
+  "@cacheSize": {
+    "description": "Cache size setting tile title"
+  },
+  "refreshTooltip": "Aggiorna",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh button"
+  },
+  "cacheLimit": "Limite cache",
+  "@cacheLimit": {
+    "description": "Cache limit dropdown label"
+  },
+  "downloadPath": "Percorso di download",
+  "@downloadPath": {
+    "description": "Download path setting title"
+  },
+  "defaultDownloadFolder": "Cartella CrowleysCloud predefinita",
+  "@defaultDownloadFolder": {
+    "description": "Fallback label for default download folder"
+  },
+  "clearCache": "Svuota cache",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "Svuotare la cache?",
+  "@clearCacheTitle": {
+    "description": "Clear cache confirm dialog title"
+  },
+  "clearCacheBody": "Rimuove miniature locali ed elenchi del server memorizzati nella cache.",
+  "@clearCacheBody": {
+    "description": "Clear cache confirm dialog body"
+  },
+  "downloadPathDialogTitle": "Percorso di download",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path hint text"
+  },
+  "useDefault": "Usa predefinito",
+  "@useDefault": {
+    "description": "Use default path button in download path dialog"
+  },
+  "serverTargetDirDialogTitle": "Cartella di destinazione sul server",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "Richiedi accesso",
+  "@requireLogin": {
+    "description": "Require login dropdown label"
+  },
+  "biometricLogin": "Accesso biometrico",
+  "@biometricLogin": {
+    "description": "Biometric login toggle title"
+  },
+  "biometricLoginSubtitle": "Consenti l’accesso con credenziali salvate tramite biometria.",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login toggle subtitle"
+  },
+  "biometricsNotAvailable": "La biometria non è disponibile su questo dispositivo.",
+  "@biometricsNotAvailable": {
+    "description": "Subtitle when biometrics unavailable"
+  },
+  "showHiddenFiles": "Mostra file nascosti",
+  "@showHiddenFiles": {
+    "description": "Show hidden files toggle title"
+  },
+  "showHiddenFilesSubtitle": "Mostra file e cartelle che iniziano con un punto.",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files toggle subtitle"
+  },
+  "changePassword": "Cambia password",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "Aggiorna la password per {serverName}.",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "Aggiungi un server prima di cambiare la password.",
+  "@addServerBeforeChangePassword": {
+    "description": "Subtitle when no server for password change"
+  },
+  "deleteUserAccount": "Elimina account utente",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "Elimina l’utente e tutti i file cloud privati.",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "Eliminare l’account?",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirm dialog title"
+  },
+  "deleteAccountBody": "Elimina definitivamente l’account su {serverName} e tutti i file nella cartella cloud privata. Questa azione non può essere annullata.",
+  "@deleteAccountBody": {
+    "description": "Delete account confirm dialog body",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "Elimina account",
+  "@deleteAccountButton": {
+    "description": "Delete account confirm button"
+  },
+  "changePasswordDialogTitle": "Cambia password",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "Nuova password",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "Conferma password",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "Inserisci una nuova password.",
+  "@enterNewPassword": {
+    "description": "Validation: new password is required"
+  },
+  "passwordUpdated": "Password aggiornata.",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "Modifica della password non riuscita: {error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "Modifica della password non riuscita.",
+  "@passwordChangeFailedGeneric": {
+    "description": "Generic password change failure snackbar"
+  },
+  "accountDeleted": "Account eliminato.",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "Eliminazione dell’account non riuscita: {error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "Eliminazione dell’account non riuscita.",
+  "@accountDeletionFailedGeneric": {
+    "description": "Generic account deletion failure snackbar"
+  },
+  "checkForUpdates": "Controlla aggiornamenti",
+  "@checkForUpdates": {
+    "description": "Update check tile title"
+  },
+  "checkingForUpdates": "Controllo delle versioni di GitHub...",
+  "@checkingForUpdates": {
+    "description": "Update check loading state"
+  },
+  "versionLabel": "Versione {version}",
+  "@versionLabel": {
+    "description": "Version label in settings",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "Crowley's Cloud è aggiornato (v{version}).",
+  "@appIsUpToDate": {
+    "description": "Snackbar when app is up to date",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "Impossibile controllare gli aggiornamenti. Riprova più tardi.",
+  "@updateCheckFailed": {
+    "description": "Snackbar on update check failure"
+  },
+  "themeModeTitle": "Modalità tema",
+  "@themeModeTitle": {
+    "description": "Theme mode tile title"
+  },
+  "themeDark": "Scuro",
+  "@themeDark": {
+    "description": "Dark theme option"
+  },
+  "themeLight": "Chiaro",
+  "@themeLight": {
+    "description": "Light theme option"
+  },
+  "themeCustom": "Personalizzato",
+  "@themeCustom": {
+    "description": "Custom theme option"
+  },
+  "themeDarkFull": "Tema scuro",
+  "@themeDarkFull": {
+    "description": "Dark theme option (full label)"
+  },
+  "themeLightFull": "Tema chiaro",
+  "@themeLightFull": {
+    "description": "Light theme option (full label)"
+  },
+  "themeCustomFull": "Tema personalizzato",
+  "@themeCustomFull": {
+    "description": "Custom theme option (full label)"
+  },
+  "accentColor": "Colore accento",
+  "@accentColor": {
+    "description": "Accent color tile title"
+  },
+  "primaryAccentColor": "Colore accento principale",
+  "@primaryAccentColor": {
+    "description": "Accent color tile subtitle"
+  },
+  "selectAccentColor": "Seleziona colore accento",
+  "@selectAccentColor": {
+    "description": "Accent color picker dialog title"
+  },
+  "backgroundColor": "Colore sfondo",
+  "@backgroundColor": {
+    "description": "Background color tile"
+  },
+  "surfaceColor": "Colore superficie",
+  "@surfaceColor": {
+    "description": "Surface color tile"
+  },
+  "textColor": "Colore testo",
+  "@textColor": {
+    "description": "Text color tile"
+  },
+  "subtextColor": "Colore testo secondario",
+  "@subtextColor": {
+    "description": "Subtext color tile"
+  },
+  "borderColor": "Colore bordo",
+  "@borderColor": {
+    "description": "Border color tile"
+  },
+  "fontSizeScale": "Scala dimensione carattere",
+  "@fontSizeScale": {
+    "description": "Font size scale tile title"
+  },
+  "selectColor": "Seleziona {title}",
+  "@selectColor": {
+    "description": "Color picker dialog title (dynamic)",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "Categorie da sincronizzare",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Sync categories dialog title"
+  },
+  "categoriesToSyncBody": "Scegli una o più categorie. Puoi anche lasciare tutto deselezionato.",
+  "@categoriesToSyncBody": {
+    "description": "Sync categories dialog body"
+  },
+  "syncCategorySectionMedia": "Elementi multimediali",
+  "@syncCategorySectionMedia": {
+    "description": "Sync categories section: media"
+  },
+  "syncCategorySectionAudioDocs": "Audio e documenti",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Sync categories section: audio & docs"
+  },
+  "syncCategorySectionOther": "Altro",
+  "@syncCategorySectionOther": {
+    "description": "Sync categories section: other"
+  },
+  "clearAll": "Cancella tutto",
+  "@clearAll": {
+    "description": "Clear all button in categories dialog"
+  },
+  "noSyncHasRunYet": "Non è stata ancora eseguita alcuna sincronizzazione.",
+  "@noSyncHasRunYet": {
+    "description": "Label when no sync has executed"
+  },
+  "lastRunAt": "Ultima esecuzione: {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "{uploaded} sincronizzati, {skipped} ignorati.",
+  "@syncResultSuccess": {
+    "description": "Sync result snackbar: success",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "Nessun file selezionato per la sincronizzazione.",
+  "@syncResultNoFiles": {
+    "description": "Sync result: no files"
+  },
+  "syncResultPartial": "{uploaded} sincronizzati, {failed} non riusciti.",
+  "@syncResultPartial": {
+    "description": "Sync result snackbar: partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "Accedi prima della sincronizzazione.",
+  "@syncResultAuthRequired": {
+    "description": "Sync result: auth required"
+  },
+  "syncResultUnreachable": "Server non raggiungibile. Connessione persa.",
+  "@syncResultUnreachable": {
+    "description": "Sync result: server unreachable"
+  },
+  "syncResultFailed": "Sincronizzazione non riuscita.",
+  "@syncResultFailed": {
+    "description": "Sync result: generic failure"
+  },
+  "serverSetupAddServer": "Aggiungi server",
+  "@serverSetupAddServer": {
+    "description": "Server setup screen AppBar title"
+  },
+  "serverSetupCardTitle": "Connetti server",
+  "@serverSetupCardTitle": {
+    "description": "Server setup auth card title"
+  },
+  "serverSetupCardSubtitle": "Aggiungi il tuo server di file e accedi.",
+  "@serverSetupCardSubtitle": {
+    "description": "Server setup auth card subtitle"
+  },
+  "serverSetupSubmitButton": "Salva server",
+  "@serverSetupSubmitButton": {
+    "description": "Server setup auth card submit button"
+  },
+  "serverNameLabel": "Nome server",
+  "@serverNameLabel": {
+    "description": "Server name field label"
+  },
+  "serverNameHint": "NAS domestico",
+  "@serverNameHint": {
+    "description": "Server name field hint"
+  },
+  "baseUrlLabel": "Base URL",
+  "@baseUrlLabel": {
+    "description": "Base URL field label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Base URL field hint"
+  },
+  "allFieldsRequired": "Tutti i campi sono obbligatori.",
+  "@allFieldsRequired": {
+    "description": "Validation: all fields required"
+  },
+  "localFilesTitle": "File locali",
+  "@localFilesTitle": {
+    "description": "Local file browser AppBar title"
+  },
+  "serverFilesTitle": "File del server",
+  "@serverFilesTitle": {
+    "description": "Server file browser AppBar title"
+  },
+  "restoreItemsTitle": "Ripristina elementi",
+  "@restoreItemsTitle": {
+    "description": "Trash restore confirm dialog title"
+  },
+  "restoreItemsBody": "Vuoi davvero ripristinare {count} elemento/i?",
+  "@restoreItemsBody": {
+    "description": "Trash restore confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "Elimina definitivamente",
+  "@permanentlyDeleteTitle": {
+    "description": "Trash permanent delete confirm dialog title"
+  },
+  "permanentlyDeleteBody": "Vuoi davvero eliminare definitivamente {count} elemento/i? Questa azione non può essere annullata.",
+  "@permanentlyDeleteBody": {
+    "description": "Trash permanent delete confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "Il cestino è vuoto.",
+  "@trashIsEmpty": {
+    "description": "Trash empty state message"
+  },
+  "trashRetentionInfo": "Gli elementi nel cestino vengono eliminati automaticamente dopo {days} giorni.",
+  "@trashRetentionInfo": {
+    "description": "Trash retention info banner",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "Data di eliminazione",
+  "@deletionDate": {
+    "description": "Sort option: deletion date (trash)"
+  },
+  "deletePermanentlyAction": "Elimina definitivamente",
+  "@deletePermanentlyAction": {
+    "description": "Action bar label for permanent delete in trash"
+  },
+  "conflictFileAlreadyExists": "Il file esiste già",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "Conflitto {current} di {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog subtitle",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "Un file denominato ",
+  "@conflictAFileNamed": {
+    "description": "Conflict dialog body text span prefix"
+  },
+  "conflictAlreadyExistsAt": " esiste già in ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Conflict dialog body text span (restore)"
+  },
+  "conflictAlreadyExistsInFolder": " esiste già in questa cartella.",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Conflict dialog body text span (upload)"
+  },
+  "conflictInFolder": "Nella cartella",
+  "@conflictInFolder": {
+    "description": "Conflict dialog column header: existing file in folder"
+  },
+  "conflictFromTrash": "Dal cestino",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog column header: file from trash"
+  },
+  "conflictExisting": "Esistente",
+  "@conflictExisting": {
+    "description": "Conflict dialog column header: existing upload file"
+  },
+  "conflictNewUpload": "Nuovo caricamento",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog column header: new uploaded file"
+  },
+  "conflictSizeLabel": "Dimensione: {size}",
+  "@conflictSizeLabel": {
+    "description": "Conflict dialog size data label",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "Data: {date}",
+  "@conflictDateLabel": {
+    "description": "Conflict dialog date data label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "Eliminato: {date}",
+  "@conflictDeletedLabel": {
+    "description": "Conflict dialog deleted-at label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "Applica ai {count} conflitti rimanenti",
+  "@conflictApplyToRemaining": {
+    "description": "Conflict dialog apply-to-all checkbox label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "Mantieni tutte le copie",
+  "@conflictKeepAllCopies": {
+    "description": "Conflict action: keep all copies"
+  },
+  "conflictOverwriteAll": "Sovrascrivi tutto",
+  "@conflictOverwriteAll": {
+    "description": "Conflict action: overwrite all"
+  },
+  "conflictRestoreAllAsCopies": "Ripristina tutto come copie",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Restore conflict action: restore all as copies"
+  },
+  "conflictRestoreAsCopy": "Ripristina come copia",
+  "@conflictRestoreAsCopy": {
+    "description": "Restore conflict action: restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "Sovrascrivi tutti i rimanenti",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Conflict action: overwrite all remaining"
+  },
+  "conflictSkipAll": "Ignora tutto",
+  "@conflictSkipAll": {
+    "description": "Upload conflict action: skip all"
+  },
+  "conflictSkipAllRemaining": "Ignora tutti i rimanenti",
+  "@conflictSkipAllRemaining": {
+    "description": "Upload conflict action: skip all remaining"
+  },
+  "conflictSkip": "Ignora",
+  "@conflictSkip": {
+    "description": "Upload conflict action: skip"
+  },
+  "conflictOverwrite": "Sovrascrivi",
+  "@conflictOverwrite": {
+    "description": "Conflict action: overwrite single"
+  },
+  "transfersTitle": "Trasferimenti",
+  "@transfersTitle": {
+    "description": "Transfers page AppBar title"
+  },
+  "transferResume": "Riprendi",
+  "@transferResume": {
+    "description": "Transfer resume button tooltip"
+  },
+  "transferPause": "Pausa",
+  "@transferPause": {
+    "description": "Transfer pause button tooltip"
+  },
+  "transferCancel": "Annulla",
+  "@transferCancel": {
+    "description": "Transfer cancel button tooltip"
+  },
+  "transferResumeAll": "Riprendi tutto",
+  "@transferResumeAll": {
+    "description": "Resume all transfers button tooltip"
+  },
+  "transferPauseAll": "Metti tutto in pausa",
+  "@transferPauseAll": {
+    "description": "Pause all transfers button tooltip"
+  },
+  "transferCancelAll": "Annulla tutto",
+  "@transferCancelAll": {
+    "description": "Cancel all transfers button tooltip"
+  },
+  "transferCancelFile": "Annulla file",
+  "@transferCancelFile": {
+    "description": "Cancel individual transfer button tooltip"
+  },
+  "noTransfers": "Nessun trasferimento.",
+  "@noTransfers": {
+    "description": "Empty state in transfers page"
+  },
+  "transferStatusQueued": "In coda",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "In corso",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "In pausa",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "Completato",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "Non riuscito",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "Annullato",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "Preimpostazioni",
+  "@themePresetsSection": {
+    "description": "Theme customizer section header: presets"
+  },
+  "themeCustomPaletteSection": "Tavolozza personalizzata",
+  "@themeCustomPaletteSection": {
+    "description": "Theme customizer section header: custom palette"
+  },
+  "themeHexRgbLabel": "Codice HEX RGB",
+  "@themeHexRgbLabel": {
+    "description": "Theme customizer hex input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Theme customizer hex input hint"
+  },
+  "imageViewerNoFetchHandler": "Nessun gestore di recupero configurato",
+  "@imageViewerNoFetchHandler": {
+    "description": "Image viewer internal error text"
+  },
+  "imageViewerFailedToLoad": "Impossibile caricare l’immagine",
+  "@imageViewerFailedToLoad": {
+    "description": "Image viewer image load error text"
+  },
+  "errorDeletingFile": "Errore nell’eliminazione di {filename}: {error}",
+  "@errorDeletingFile": {
+    "description": "Snackbar on file delete error in image viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "Errore nella lettura del file: {error}",
+  "@errorReadingFile": {
+    "description": "Error text when file cannot be read in text viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "Sincronizzazione in background",
+  "@syncChannelName": {
+    "description": "Android notification channel name"
+  },
+  "syncChannelDescription": "Mostra lo stato della sincronizzazione dei file in background.",
+  "@syncChannelDescription": {
+    "description": "Android notification channel description"
+  },
+  "storageStatsTitle": "Statistiche archiviazione",
+  "@storageStatsTitle": {
+    "description": "Storage statistics sheet title / tooltip"
+  },
+  "storageStatsUsedSpace": "Spazio utilizzato",
+  "@storageStatsUsedSpace": {
+    "description": "Storage stats: used space label"
+  },
+  "storageStatsTotalFiles": "File totali",
+  "@storageStatsTotalFiles": {
+    "description": "Storage stats: total files label"
+  },
+  "storageStatsNItems": "{count} elementi",
+  "@storageStatsNItems": {
+    "description": "Storage stats: item count label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "Utente #{userId}",
+  "@userFallback": {
+    "description": "Fallback label for unknown user",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "Sblocca le credenziali salvate per Crowley's Cloud.",
+  "@biometricUnlockReason": {
+    "description": "Biometric authentication prompt reason"
+  },
+  "tokenLifetimeEveryOpen": "A ogni apertura dell’app",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime option: every app launch"
+  },
+  "tokenLifetimeOneHour": "Dopo 1 ora",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime option: 1 hour"
+  },
+  "tokenLifetime1Hour": "Dopo 1 ora",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime option: 1 hour (alias)"
+  },
+  "tokenLifetimeOneDay": "Dopo 1 giorno",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime option: 1 day"
+  },
+  "tokenLifetime1Day": "Dopo 1 giorno",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime option: 1 day (alias)"
+  },
+  "tokenLifetimeOneWeek": "Dopo 1 settimana",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime option: 1 week"
+  },
+  "tokenLifetime1Week": "Dopo 1 settimana",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime option: 1 week (alias)"
+  },
+  "tokenLifetimeOneMonth": "Dopo 1 mese",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime option: 1 month"
+  },
+  "tokenLifetime1Month": "Dopo 1 mese",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime option: 1 month (alias)"
+  },
+  "tokenLifetimeThreeMonths": "Dopo 3 mesi",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime option: 3 months"
+  },
+  "tokenLifetime3Months": "Dopo 3 mesi",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime option: 3 months (alias)"
+  },
+  "tokenLifetimeNever": "Mai su questo dispositivo",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime option: never expires on device"
+  },
+  "cacheLimitUnlimited": "Illimitato",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit option: unlimited"
+  },
+  "syncCategoryOtherFiles": "Altri file",
+  "@syncCategoryOtherFiles": {
+    "description": "Label for other files category in sync settings"
+  },
+  "internalStorage": "Memoria interna",
+  "@internalStorage": {
+    "description": "Label for device internal storage root in display path"
+  },
+  "localStorageRootName": "Memoria interna",
+  "@localStorageRootName": {
+    "description": "Display name for root internal storage directory"
+  },
+  "syncNotificationSyncingWith": "Sincronizzazione con {serverName}",
+  "@syncNotificationSyncingWith": {
+    "description": "Background sync notification title when syncing starts",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "Sincronizzazione con {serverName} in pausa",
+  "@syncNotificationPausedTitle": {
+    "description": "Background sync notification title when sync is paused",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "Il server non è raggiungibile. Sincronizzazione in background sospesa finché l’app non viene aperta.",
+  "@syncNotificationUnreachableBody": {
+    "description": "Background sync notification body when server is unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "Autenticazione richiesta. Apri l’app per accedere.",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Background sync notification body when authentication fails"
+  },
+  "syncNotificationFailedTitle": "Sincronizzazione con {serverName} non riuscita",
+  "@syncNotificationFailedTitle": {
+    "description": "Background sync notification title on error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "Si è verificato un errore durante la sincronizzazione.",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Background sync notification body generic error fallback"
+  },
+  "syncNotificationCompleteTitle": "Sincronizzazione con {serverName} completata",
+  "@syncNotificationCompleteTitle": {
+    "description": "Background sync notification title when sync completes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "Sincronizzazione completata.",
+  "@syncNotificationCompleteBody": {
+    "description": "Background sync notification body on completion"
+  },
+  "syncStatusConnecting": "Connessione al server...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress status message when connecting"
+  },
+  "syncStatusConnectionLost": "Impossibile connettersi a {serverName}. Connessione persa.",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error message when connection is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "Impossibile connettersi a {serverName}. Connessione persa.",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync error when connection to specific server is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "Analisi dei file sul dispositivo...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress status message when scanning device files"
+  },
+  "syncStatusNoFilesFound": "Nessun file trovato da sincronizzare.",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync progress status message when no files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "Nessun file selezionato per la sincronizzazione.",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync error message when no sync categories or folders are configured"
+  },
+  "syncStatusCalculatingChecksum": "Calcolo del checksum ({current}/{total}): {filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress status message while hashing candidates",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "Ricerca di duplicati sul server...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress status message while querying server duplicates"
+  },
+  "syncStatusSyncingFile": "Sincronizzazione ({current}/{total}): {filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress status message while uploading files",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "Completamento della sincronizzazione...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress status message on finalizing sync run"
+  },
+  "showingCachedFiles": "Visualizzazione dei file in cache.",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying offline cached files"
+  },
+  "showingCachedFilesRefreshFailed": "Visualizzazione dei file in cache. Aggiornamento non riuscito.",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when cache is shown and network refresh failed"
+  },
+  "downloadCanceled": "Download annullato.",
+  "@downloadCanceled": {
+    "description": "Snackbar on download cancellation"
+  },
+  "downloadedNFilesToPath": "{count} file scaricato/i in {path}",
+  "@downloadedNFilesToPath": {
+    "description": "Snackbar on successful file download to specific folder",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "{downloaded} file scaricato/i, {failed} non riuscito/i: {detail}",
+  "@downloadedNFilesFailedM": {
+    "description": "Snackbar on partial download failure",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "{count} file scaricato/i, {failed} non riuscito/i: {error}",
+  "@downloadedNFilesWithFailures": {
+    "description": "Snackbar on partial download failure with error",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "{count} link di condivisione creato/i.",
+  "@createdNShareLinks": {
+    "description": "Snackbar on successful share links creation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "Impossibile creare i link di condivisione.",
+  "@failedToCreateShareLinks": {
+    "description": "Snackbar when share link creation fails"
+  },
+  "alreadyInSharedScope": "Già nell’ambito condiviso.",
+  "@alreadyInSharedScope": {
+    "description": "Snackbar warning when file is already shared"
+  },
+  "sharedNItemsInServer": "{count} elemento/i condiviso/i sul server.",
+  "@sharedNItemsInServer": {
+    "description": "Snackbar on sharing items in server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "{count} elemento/i condiviso/i, {failed} non riuscito/i.",
+  "@sharedNItemsWithFailures": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "{shared} elemento/i condiviso/i, {failed} non riuscito/i.",
+  "@sharedNItemsFailedM": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "Il nome della cartella non può essere vuoto.",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is empty"
+  },
+  "folderAlreadyExists": "La cartella esiste già.",
+  "@folderAlreadyExists": {
+    "description": "Error when created folder name already exists"
+  },
+  "folderCreationOnlyInAllFiles": "La creazione di cartelle è disponibile solo in Tutti i file.",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Snackbar when folder creation is attempted outside All Files"
+  },
+  "currentDirectoryUnavailable": "La cartella corrente non è disponibile.",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when current browsing directory is not available"
+  },
+  "nothingSelected": "Nessun elemento selezionato.",
+  "@nothingSelected": {
+    "description": "Notice when batch operation is invoked with no selection"
+  },
+  "destinationFolderDoesNotExist": "La cartella di destinazione non esiste.",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination directory is missing"
+  },
+  "cannotMoveFolderIntoItself": "Impossibile spostare la cartella «{name}» al suo interno.",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when moving a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "Impossibile spostare {name}: {error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a single item fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "{count} elemento/i spostato/i.",
+  "@movedNItems": {
+    "description": "Snackbar on moving multiple items",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "{count} elemento/i spostato/i, {failed} non riuscito/i.",
+  "@movedNItemsWithFailures": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "{moved} elemento/i spostato/i, {failed} non riuscito/i.",
+  "@movedNItemsFailedM": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "Impossibile spostare gli elementi selezionati.",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic failure message when moving selected items fails"
+  },
+  "noFilesWereMoved": "Nessun file è stato spostato.",
+  "@noFilesWereMoved": {
+    "description": "Notice when all files in a move operation were skipped"
+  },
+  "renamedOldToNew": "«{oldName}» è stato rinominato in «{newName}».",
+  "@renamedOldToNew": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "«{oldName}» è stato rinominato in «{newName}».",
+  "@renamedFileFromTo": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "Impossibile rinominare «{name}» ({statusCode}).",
+  "@failedToRenameWithStatus": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "Impossibile rinominare «{name}» ({statusCode}).",
+  "@failedToRenameFileWithCode": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "Impossibile rinominare «{name}»: {error}",
+  "@failedToRenameWithError": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "Impossibile rinominare «{name}»: {error}",
+  "@failedToRenameFile": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "Impossibile rinominare: esiste già un file o una cartella con questo nome.",
+  "@renameConflictAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "renameFailedAlreadyExists": "Impossibile rinominare: esiste già un file o una cartella con questo nome.",
+  "@renameFailedAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "failedToCreateFolderWithCode": "Impossibile creare la cartella ({statusCode}).",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error message when server folder creation fails with status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "{deleted} elemento/i eliminato/i, {failed} non riuscito/i.",
+  "@deletedNItemsFailedM": {
+    "description": "Notice on partial batch delete failure",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}%  {completed}/{total} file",
+  "@transferSummaryFiles": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}%  {completed}/{total} file",
+  "@transferSummaryProgress": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "Download non riuscito",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failed text"
+  },
+  "uploadedNItemsWithFailures": "{uploaded} elemento/i caricato/i, {failed} non riuscito/i",
+  "@uploadedNItemsWithFailures": {
+    "description": "Upload summary with failed item count",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "{uploaded} elemento/i caricato/i, {failed} non riuscito/i.",
+  "@uploadedNItemsFailedM": {
+    "description": "Notice on batch upload with partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": ", {count} non riuscito/i",
+  "@uploadSummaryFailedCount": {
+    "description": "Suffix for upload summary message indicating failure count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}: il percorso locale è vuoto",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}: il percorso locale è vuoto",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "Caricamento della cartella non riuscito",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "Caricamento della cartella non riuscito",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "File locale non trovato",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "File locale non trovato",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "Nessun token di sessione attivo",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "Nessun token di sessione attivo",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "Server disconnesso",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "Server disconnesso",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "Il server non è raggiungibile.",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "Il server non è raggiungibile.",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "Cartella locale non trovata",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "Impossibile analizzare la cartella",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "Creazione della cartella non riuscita (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "Token di accesso mancante nella risposta",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "Token di aggiornamento mancante nella risposta",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "Nessuna credenziale salvata disponibile",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "Nessun token di aggiornamento disponibile",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "Nessuna sessione attiva disponibile",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "Nessun nome utente salvato disponibile",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "Nessuna versione pubblicata finora.",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "Lingua",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

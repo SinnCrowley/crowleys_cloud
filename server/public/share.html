@@ -1044,6 +1044,129 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     let mediaList = [];
     let currentLightboxIdx = -1;
 
+    // Internationalization (i18n) dictionaries
+    const dictionaries = {
+      en: {
+        share_title: "Shared Link",
+        search_placeholder: "Filter files...",
+        toggle_view: "Toggle Grid / List View",
+        toggle_theme: "Toggle Light / Dark Mode",
+        download: "Download",
+        download_all_zip: "Download All (.zip)",
+        download_file: "Download ({size})",
+        fullscreen: "Fullscreen",
+        loading_resource: "Loading shared resource...",
+        loading_files: "Loading files...",
+        loading_content: "Loading content...",
+        loading_preview: "Loading preview content...",
+        error_text_preview: "Error loading text preview.",
+        error_load_resource: "Failed to load shared resource",
+        error_network: "Network error connecting to server",
+        preview: "Preview",
+        text_preview: "Text Preview",
+        close: "Close (Esc)",
+        prev: "Previous (←)",
+        next: "Next (→)",
+        copied: "Copied to clipboard!",
+        empty_title: "This directory is empty",
+        empty_sub: "No files found matching your criteria",
+        type: "Type",
+        name: "Name",
+        size: "Size",
+        modified: "Modified",
+        action: "Action",
+        folder: "Folder",
+        document: "DOCUMENT"
+      },
+      ru: {
+        share_title: "Общая ссылка",
+        search_placeholder: "Фильтр файлов...",
+        toggle_view: "Сетка / Список",
+        toggle_theme: "Переключить тему",
+        download: "Скачать",
+        download_all_zip: "Скачать всё (.zip)",
+        download_file: "Скачать ({size})",
+        fullscreen: "Во весь экран",
+        loading_resource: "Загрузка ресурса...",
+        loading_files: "Загрузка файлов...",
+        loading_content: "Загрузка содержимого...",
+        loading_preview: "Загрузка предпросмотра...",
+        error_text_preview: "Ошибка загрузки предпросмотра.",
+        error_load_resource: "Не удалось загрузить ресурс",
+        error_network: "Ошибка сети при подключении к серверу",
+        preview: "Просмотр",
+        text_preview: "Текстовый просмотр",
+        close: "Закрыть (Esc)",
+        prev: "Предыдущий (←)",
+        next: "Следующий (→)",
+        copied: "Скопировано в буфер обмена!",
+        empty_title: "В этой папке пусто",
+        empty_sub: "Файлы по вашему запросу не найдены",
+        type: "Тип",
+        name: "Имя",
+        size: "Размер",
+        modified: "Изменен",
+        action: "Действие",
+        folder: "Папка",
+        document: "ДОКУМЕНТ"
+      }
+    };
+
+    function detectSystemLanguage() {
+      if (typeof navigator !== 'undefined') {
+        const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+        if (navLang.startsWith('ru') || navLang.startsWith('be') || navLang.startsWith('uk') || navLang.startsWith('kk')) {
+          return 'ru';
+        }
+      }
+      return 'en';
+    }
+
+    function getActiveLanguage() {
+      const saved = localStorage.getItem('cc_language') || localStorage.getItem('cc_share_lang') || 'system';
+      if (saved === 'ru' || saved === 'en') return saved;
+      return detectSystemLanguage();
+    }
+
+    const currentLocale = getActiveLanguage();
+
+    function t(key, params = null) {
+      const dict = dictionaries[currentLocale] || dictionaries.en;
+      let text = dict[key] || dictionaries.en[key] || key;
+      if (params && typeof params === 'object') {
+        Object.keys(params).forEach(k => {
+          text = text.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]);
+        });
+      }
+      return text;
+    }
+
+    function updateStaticTexts() {
+      document.title = `Crowley's Cloud - ${t('share_title')}`;
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.placeholder = t('search_placeholder');
+      const layoutToggleBtn = document.getElementById('layoutToggleBtn');
+      if (layoutToggleBtn) layoutToggleBtn.title = t('toggle_view');
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      if (themeToggleBtn) themeToggleBtn.title = t('toggle_theme');
+      const lightboxTitle = document.getElementById('lightboxTitle');
+      if (lightboxTitle) lightboxTitle.textContent = t('preview');
+      const lightboxDownloadBtn = document.getElementById('lightboxDownloadBtn');
+      if (lightboxDownloadBtn) lightboxDownloadBtn.title = t('download');
+      const lightboxCloseBtn = document.getElementById('lightboxCloseBtn');
+      if (lightboxCloseBtn) lightboxCloseBtn.title = t('close');
+      const lightboxPrevBtn = document.getElementById('lightboxPrevBtn');
+      if (lightboxPrevBtn) lightboxPrevBtn.title = t('prev');
+      const lightboxNextBtn = document.getElementById('lightboxNextBtn');
+      if (lightboxNextBtn) lightboxNextBtn.title = t('next');
+      const textModalTitle = document.getElementById('textModalTitle');
+      if (textModalTitle) textModalTitle.textContent = t('text_preview');
+      const textModalDownloadBtn = document.getElementById('textModalDownloadBtn');
+      if (textModalDownloadBtn) textModalDownloadBtn.title = t('download');
+      const textModalCloseBtn = document.getElementById('textModalCloseBtn');
+      if (textModalCloseBtn) textModalCloseBtn.title = t('close');
+    }
+
     // Material Icon mapping helper matching FileGrid & FileList
     function getMaterialIcon(file) {
       if (!file) return 'insert_drive_file';
@@ -1107,12 +1230,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     }
 
     initTheme();
+    updateStaticTexts();
 
     function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2500);
+      const tEl = document.getElementById('toast');
+      tEl.textContent = msg || t('copied');
+      tEl.classList.add('show');
+      setTimeout(() => tEl.classList.remove('show'), 2500);
     }
 
     // Data Fetching
@@ -1122,7 +1246,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       appMain.innerHTML = `
         <div class="spinner-container">
           <div class="spinner"></div>
-          <p class="text-sub">Loading files...</p>
+          <p class="text-sub">${t('loading_files')}</p>
         </div>
       `;
 
@@ -1131,13 +1255,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         const resp = await fetch(url);
         if (!resp.ok) {
           const err = await resp.json();
-          showError(err.error || 'Failed to load shared resource');
+          showError(err.error || t('error_load_resource'));
           return;
         }
         shareData = await resp.json();
         renderView();
       } catch (e) {
-        showError('Network error connecting to server');
+        showError(t('error_network'));
       }
     }
 
@@ -1195,7 +1319,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
       if (!shareData.isFolder && currentRelPath === '') {
         mainDownloadBtn.href = `/s/${token}/raw?download=1`;
-        downloadBtnText.textContent = 'Download';
+        downloadBtnText.textContent = t('download');
 
         renderSingleFileView(shareData.files[0] || {
           name: shareData.rootName,
@@ -1208,7 +1332,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       }
 
       mainDownloadBtn.href = `/s/${token}/zip?p=${encodeURIComponent(currentRelPath)}`;
-      downloadBtnText.textContent = 'Download All (.zip)';
+      downloadBtnText.textContent = t('download_all_zip');
 
       filteredFiles = shareData.files || [];
       mediaList = filteredFiles.filter(f => {
@@ -1258,8 +1382,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         container.innerHTML = `
           <div class="empty-state">
             <span class="material-symbols-outlined empty-icon">folder_open</span>
-            <h3 class="empty-title">This directory is empty</h3>
-            <p class="empty-sub">No files found matching your criteria</p>
+            <h3 class="empty-title">${t('empty_title')}</h3>
+            <p class="empty-sub">${t('empty_sub')}</p>
           </div>
         `;
         return;
@@ -1276,11 +1400,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         let listHtml = `
           <div class="list-container">
             <div class="list-header">
-              <span>Type</span>
-              <span>Name</span>
-              <span style="text-align:right;">Size</span>
-              <span style="text-align:right;">Modified</span>
-              <span style="text-align:right;">Action</span>
+              <span>${t('type')}</span>
+              <span>${t('name')}</span>
+              <span style="text-align:right;">${t('size')}</span>
+              <span style="text-align:right;">${t('modified')}</span>
+              <span style="text-align:right;">${t('action')}</span>
             </div>
         `;
         filteredFiles.forEach(file => {
@@ -1317,9 +1441,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <div class="grid-item-info">
             <div class="grid-item-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</div>
             <div class="grid-item-meta-row">
-              <span class="grid-item-meta">${file.isDir ? 'Folder' : formatSize(file.size)}</span>
+              <span class="grid-item-meta">${file.isDir ? t('folder') : formatSize(file.size)}</span>
               ${!file.isDir ? `
-                <a href="${downloadUrl}" onclick="event.stopPropagation()" class="grid-item-action-btn" title="Download">
+                <a href="${downloadUrl}" onclick="event.stopPropagation()" class="grid-item-action-btn" title="${t('download')}">
                   <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
                 </a>
               ` : ''}
@@ -1347,7 +1471,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <div class="list-date">${formatDate(file.modifiedAt)}</div>
           <div class="list-action">
             ${!file.isDir ? `
-              <a href="${downloadUrl}" onclick="event.stopPropagation()" class="grid-item-action-btn" title="Download">
+              <a href="${downloadUrl}" onclick="event.stopPropagation()" class="grid-item-action-btn" title="${t('download')}">
                 <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
               </a>
             ` : ''}
@@ -1369,7 +1493,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         isMedia = true;
         mediaList = [file];
         mediaStageHtml = `
-          <div class="preview-stage" onclick="openLightbox(0)" title="Click to view fullscreen">
+          <div class="preview-stage" onclick="openLightbox(0)" title="${t('fullscreen')}">
             <img src="${rawUrl}" alt="${escapeHtml(file.name)}">
           </div>`;
       } else if (category === 'video') {
@@ -1387,13 +1511,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           </div>`;
       } else if (category === 'text') {
         fetchTextPreview(rawUrl);
-        mediaStageHtml = `<div class="code-container" id="codePreview">Loading preview content...</div>`;
+        mediaStageHtml = `<div class="code-container" id="codePreview">${t('loading_preview')}</div>`;
       } else {
         const ext = file.name.includes('.') ? file.name.split('.').pop().toUpperCase() : 'FILE';
         mediaStageHtml = `
           <div class="generic-file-box">
             <span class="material-symbols-outlined generic-icon">${getMaterialIcon(file)}</span>
-            <div class="file-badge">${escapeHtml(ext)} DOCUMENT</div>
+            <div class="file-badge">${escapeHtml(ext)} ${t('document')}</div>
           </div>`;
       }
 
@@ -1404,12 +1528,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <div class="showcase-actions">
             <a href="${downloadUrl}" class="btn btn-primary">
               <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
-              Download (${formatSize(file.size)})
+              ${t('download_file', { size: formatSize(file.size) })}
             </a>
             ${isMedia ? `
               <button class="btn btn-secondary" onclick="openLightbox(0)">
                 <span class="material-symbols-outlined" style="font-size: 18px;">fullscreen</span>
-                Fullscreen
+                ${t('fullscreen')}
               </button>
             ` : ''}
           </div>
@@ -1425,7 +1549,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         if (el) el.textContent = text;
       } catch (e) {
         const el = document.getElementById('codePreview');
-        if (el) el.textContent = 'Error loading text preview.';
+        if (el) el.textContent = t('error_text_preview');
       }
     }
 
@@ -1437,7 +1561,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
       title.textContent = file.name;
       downloadBtn.href = `/s/${token}/raw?download=1${file.relPath ? '&p=' + encodeURIComponent(file.relPath) : ''}`;
-      content.textContent = 'Loading content...';
+      content.textContent = t('loading_content');
       modal.classList.add('active');
 
       const rawUrl = `/s/${token}/raw${file.relPath ? '?p=' + encodeURIComponent(file.relPath) : ''}`;
@@ -1446,7 +1570,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         const text = await resp.text();
         content.textContent = text;
       } catch (e) {
-        content.textContent = 'Error loading text preview.';
+        content.textContent = t('error_text_preview');
       }
     }
 
@@ -1544,7 +1668,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     function formatDate(ts) {
       if (!ts) return '--';
       const d = new Date(ts * 1000);
-      return isNaN(d.getTime()) ? '--' : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      return isNaN(d.getTime()) ? '--' : d.toLocaleDateString(currentLocale === 'ru' ? 'ru-RU' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
     function escapeHtml(str) {

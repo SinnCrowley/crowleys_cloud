@@ -20,6 +20,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
+import 'package:crowleys_cloud/l10n/localization_fallback.dart';
 import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/restore_conflict_dialog.dart';
 import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
@@ -110,7 +111,11 @@ class TrashBrowserController extends ChangeNotifier {
         headers: {'Accept': 'application/x-protobuf'},
       );
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('Server error ${response.statusCode}');
+        throw Exception(
+            platformAppLocalizations().connectionFailed(
+            'Server error ${response.statusCode}',
+          ),
+        );
       }
 
       final contentType = response.headers['content-type'] ?? '';
@@ -202,7 +207,11 @@ class TrashBrowserController extends ChangeNotifier {
         'overwrite': overwrite,
       });
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('Server error ${response.statusCode}');
+        throw Exception(
+            platformAppLocalizations().connectionFailed(
+            'Server error ${response.statusCode}',
+          ),
+        );
       }
       selectedFiles.clear();
     } catch (e) {
@@ -241,7 +250,11 @@ class TrashBrowserController extends ChangeNotifier {
           'overwrite': true,
         });
         if (resp.statusCode < 200 || resp.statusCode >= 300) {
-          throw Exception('Server error ${resp.statusCode}');
+          throw Exception(
+              platformAppLocalizations().connectionFailed(
+              'Server error ${resp.statusCode}',
+            ),
+          );
         }
       }
       if (copyIds.isNotEmpty) {
@@ -250,7 +263,11 @@ class TrashBrowserController extends ChangeNotifier {
           'overwrite': false,
         });
         if (resp.statusCode < 200 || resp.statusCode >= 300) {
-          throw Exception('Server error ${resp.statusCode}');
+          throw Exception(
+              platformAppLocalizations().connectionFailed(
+              'Server error ${resp.statusCode}',
+            ),
+          );
         }
       }
 
@@ -273,7 +290,11 @@ class TrashBrowserController extends ChangeNotifier {
       final uri = _apiUri('/trash');
       final response = await _authorizedDeleteJson(uri, {'ids': ids});
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('Server error ${response.statusCode}');
+        throw Exception(
+            platformAppLocalizations().connectionFailed(
+            'Server error ${response.statusCode}',
+          ),
+        );
       }
       selectedFiles.clear();
     } catch (e) {

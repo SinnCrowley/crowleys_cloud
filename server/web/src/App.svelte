@@ -40,6 +40,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { filesApi } from './api/files.js';
   import { refreshStats } from './stores/stats.js';
   import { shareApi } from './api/share.js';
+  import { t, i18n } from './stores/i18n.js';
 
   // Destructure stores for template binding
   const { scope, currentPath, entries, searchQuery, sortOption, filterType, selectedPaths, isLoading, error } = filesStore;
@@ -302,12 +303,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         const allCompleted = q.length > 0 && q.every((t) => t.status === 'completed');
 
         if (hasPaused) {
-          showToast('File transfers paused.', 'info');
+          showToast(i18n.format('toasts.transfers_paused'), 'info');
         } else {
           if (hasCancelled && !allCompleted) {
-            showToast('File transfers cancelled.', 'warning');
+            showToast(i18n.format('toasts.transfers_cancelled'), 'warning');
           } else if (allCompleted) {
-            showToast('All active file transfers completed successfully.', 'success');
+            showToast(i18n.format('toasts.transfers_done'), 'success');
           }
 
           // Auto-clear finished/cancelled items and close drawer/island after 4 seconds
@@ -456,9 +457,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         } else {
           try {
             await filesApi.downloadFile({ scope: $scope, path: item.path, filename: item.name });
-            showToast(`Started downloading ${item.name}`, 'success');
+            showToast(i18n.format('toasts.download_started', { name: item.name }), 'success');
           } catch (err) {
-            showToast(err.message || 'Failed to download file', 'error');
+            showToast(err.message || i18n.format('toasts.download_failed'), 'error');
           }
         }
       }
@@ -481,11 +482,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       if (item) {
         try {
           await filesApi.deleteFile({ scope: $scope, path: item.path });
-          showToast(`Moved ${item.name} to trash.`, 'success');
+          showToast(i18n.format('toasts.item_moved_to_trash', { name: item.name }), 'success');
           filesStore.loadDirectory();
           refreshStats();
         } catch (err) {
-          showToast(err.message || 'Failed to delete item', 'error');
+          showToast(err.message || i18n.format('toasts.item_delete_failed'), 'error');
         }
       }
     } else if (type === 'refresh') {
@@ -508,24 +509,24 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     const targetPath = $currentPath ? `${$currentPath}/${name}` : name;
     try {
       await filesApi.createFolder({ scope: $scope, path: targetPath });
-      showToast(`Created folder "${name}"`, 'success');
+      showToast(i18n.format('toasts.folder_created_named', { name }), 'success');
       filesStore.loadDirectory();
     } catch (err) {
-      showToast(err.message || 'Failed to create folder', 'error');
+      showToast(err.message || i18n.format('toasts.folder_create_failed'), 'error');
     }
   }
 
   async function handleDownloadZip(item) {
     try {
-      showToast(`Preparing ZIP archive for ${item ? item.name : 'folder'}...`, 'info');
+      showToast(i18n.format('toasts.zip_preparing', { name: item ? item.name : i18n.format('common.folder') }), 'info');
       await filesApi.downloadZip({
         scope: $scope,
         path: item ? item.path : '',
         filename: item ? `${item.name}.zip` : 'folder.zip'
       });
-      showToast('ZIP archive downloaded successfully', 'success');
+      showToast(i18n.format('toasts.zip_downloaded'), 'success');
     } catch (err) {
-      showToast(err.message || 'Failed to download ZIP archive', 'error');
+      showToast(err.message || i18n.format('toasts.zip_download_failed'), 'error');
     }
   }
 
@@ -533,10 +534,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     try {
       const nextState = !item.is_shared;
       await filesApi.toggleServerShared({ path: item.path, isShared: nextState });
-      showToast(nextState ? `Shared "${item.name}" in server` : `Unshared "${item.name}" in server`, 'success');
+      showToast(nextState ? i18n.format('toasts.shared_named', { name: item.name }) : i18n.format('toasts.unshared_named', { name: item.name }), 'success');
       filesStore.loadDirectory();
     } catch (err) {
-      showToast(err.message || 'Failed to update server share status', 'error');
+      showToast(err.message || i18n.format('toasts.share_status_failed'), 'error');
     }
   }
 
@@ -547,14 +548,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       const shareUrl = `${host}/s/${res.token}`;
       shareModal = { file: item, url: shareUrl };
     } catch (err) {
-      showToast(err.message || 'Failed to generate share link', 'error');
+      showToast(err.message || i18n.format('toasts.share_link_failed'), 'error');
     }
   }
 
   function copyShareUrl() {
     if (!shareModal) return;
     navigator.clipboard.writeText(shareModal.url);
-    showToast('Public link copied to clipboard!', 'success');
+    showToast(i18n.format('toasts.copied_link'), 'success');
     shareModal = null;
   }
 
@@ -567,10 +568,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
     try {
       await filesApi.renameFile({ scope: $scope, path: file.path, newName: trimmed });
-      showToast(`Renamed ${file.name} to ${trimmed}.`, 'success');
+      showToast(i18n.format('toasts.renamed_named', { oldName: file.name, newName: trimmed }), 'success');
       filesStore.loadDirectory();
     } catch (err) {
-      showToast(err.message || 'Failed to rename item', 'error');
+      showToast(err.message || i18n.format('toasts.rename_failed'), 'error');
     }
   }
 
@@ -592,18 +593,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     try {
       if (isMovingBatch) {
         await filesStore.moveSelected(destFolder);
-        showToast(`Moved ${targetPaths.length} items to "${destFolder || 'Root'}"`, 'success');
+        showToast(i18n.format('toasts.items_moved_to', { count: targetPaths.length, dest: destFolder || i18n.format('common.root') }), 'success');
       } else {
         // Move single context menu item
         const singleItem = folderPickerTargetItems[0];
         if (singleItem) {
           await filesApi.moveFile({ scope: $scope, srcPath: singleItem.path, destFolder });
-          showToast(`Moved "${singleItem.name}" to "${destFolder || 'Root'}"`, 'success');
+          showToast(i18n.format('toasts.item_moved_to', { name: singleItem.name, dest: destFolder || i18n.format('common.root') }), 'success');
           filesStore.loadDirectory();
         }
       }
     } catch (err) {
-      showToast(err.message || 'Failed to move items', 'error');
+      showToast(err.message || i18n.format('toasts.move_failed'), 'error');
     }
   }
 
@@ -620,15 +621,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     });
 
     if (validPaths.length === 0) {
-      showToast('Items are already in the target folder.', 'info');
+      showToast(i18n.format('toasts.already_in_target'), 'info');
       return;
     }
 
     const currentParent = $currentPath;
     const isMovingUp = destFolder === (currentParent.includes('/') ? currentParent.substring(0, currentParent.lastIndexOf('/')) : '');
-    let targetName = 'Root';
+    let targetName = i18n.format('common.root');
     if (isMovingUp && currentParent !== '') {
-      targetName = 'Parent Folder';
+      targetName = i18n.format('files.parent_folder');
     } else if (destFolder) {
       targetName = destFolder.split('/').pop();
     }
@@ -657,11 +658,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
     filesStore.clearSelection();
     if (failCount === 0) {
-      showToast(`Moved ${successCount} item${successCount > 1 ? 's' : ''} to "${targetName}"`, 'success');
+      showToast(i18n.format('toasts.items_moved_to_named', { count: successCount, dest: targetName }), 'success');
     } else if (successCount > 0) {
-      showToast(`Moved ${successCount} items, ${failCount} failed: ${lastError}`, 'info');
+      showToast(i18n.format('toasts.items_moved_to_named', { count: successCount, dest: targetName }), 'info');
     } else {
-      showToast(lastError ? `Failed to move items: ${lastError}` : 'Failed to move items.', 'error');
+      showToast(lastError ? `${i18n.format('toasts.move_failed')}: ${lastError}` : i18n.format('toasts.move_failed'), 'error');
     }
     await filesStore.loadDirectory();
   }
@@ -677,7 +678,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     const foldersToDownload = selectedEntries.filter((item) => item.is_dir);
 
     if (filesToDownload.length > 0) {
-      showToast(`Starting batch download of ${filesToDownload.length} files...`, 'success');
+      showToast(i18n.format('toasts.batch_download_started', { count: filesToDownload.length }), 'success');
       for (const item of filesToDownload) {
         try {
           await filesApi.downloadFile({ scope: $scope, path: item.path, filename: item.name });
@@ -698,7 +699,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     if (selectedEntries.length === 0) return;
 
     filesStore.clearSelection();
-    showToast(`Sharing ${selectedEntries.length} items in server...`, 'info');
+    showToast(i18n.format('toasts.batch_sharing', { count: selectedEntries.length }), 'info');
     let successCount = 0;
     for (const item of selectedEntries) {
       try {
@@ -709,7 +710,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       }
     }
     if (successCount > 0) {
-      showToast(`Shared ${successCount} items in server.`, 'success');
+      showToast(i18n.format('toasts.batch_shared', { count: successCount }), 'success');
       filesStore.loadDirectory();
       refreshStats();
     }
@@ -719,12 +720,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     const selectedPathsArray = Array.from($selectedPaths);
     const selectedEntries = $entries.filter((item) => selectedPathsArray.includes(item.path) && item.is_owner !== false);
     if (selectedEntries.length === 0) {
-      showToast('You can only unshare items that you own.', 'info');
+      showToast(i18n.format('toasts.unshare_only_owned'), 'info');
       return;
     }
 
     filesStore.clearSelection();
-    showToast(`Unsharing ${selectedEntries.length} items...`, 'info');
+    showToast(i18n.format('toasts.batch_unsharing', { count: selectedEntries.length }), 'info');
     let successCount = 0;
     for (const item of selectedEntries) {
       try {
@@ -735,7 +736,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       }
     }
     if (successCount > 0) {
-      showToast(`Unshared ${successCount} items from server.`, 'success');
+      showToast(i18n.format('toasts.batch_unshared', { count: successCount }), 'success');
       filesStore.loadDirectory();
       refreshStats();
     }
@@ -821,11 +822,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <!-- Extended FAB for Folder Creation in bottom-right corner -->
       <button
         class="floating-action-btn"
-        title="Create New Folder"
+        title={$t('modals.create_folder.title')}
         on:click={openNewFolderModal}
       >
         <span class="material-symbols-outlined" style="margin-right: 8px;">create_new_folder</span>
-        <span>New Folder</span>
+        <span>{$t('files.create_new_folder')}</span>
       </button>
 
       <main class="main-content">
@@ -834,7 +835,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         {/if}
 
         {#if $isLoading}
-          <div class="loading-state text-sub">Loading files...</div>
+          <div class="loading-state text-sub">{$t('common.loading')}</div>
         {:else if layoutMode === 'grid'}
           <FileGrid
             items={$entries}
@@ -946,13 +947,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         authStore.setSession(e.detail);
         isAuthOpen = false;
         filesStore.loadDirectory();
-        showToast('Logged in successfully!', 'success');
+        showToast(i18n.format('modals.auth.login_success'), 'success');
       }}
       on:authenticated={(e) => {
         authStore.setSession(e.detail);
         isAuthOpen = false;
         filesStore.loadDirectory();
-        showToast('Logged in successfully!', 'success');
+        showToast(i18n.format('modals.auth.login_success'), 'success');
       }}
     />
   {/if}
@@ -961,12 +962,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   {#if shareModal}
     <div class="modal-backdrop" on:click|self={() => (shareModal = null)}>
       <div class="dialog-card">
-        <h3 class="text-title">Share Link Created</h3>
-        <p class="text-sub">Public download link for {shareModal.file.name}:</p>
+        <h3 class="text-title">{$t('modals.share.title')}</h3>
+        <p class="text-sub">{$t('modals.share.subtitle')}: {shareModal.file.name}</p>
         <input type="text" class="form-input text-code" readonly value={shareModal.url} />
         <div class="dialog-actions">
-          <button class="btn btn-secondary" on:click={() => (shareModal = null)}>Close</button>
-          <button class="btn btn-primary" on:click={copyShareUrl}>📋 Copy Link</button>
+          <button class="btn btn-secondary" on:click={() => (shareModal = null)}>{$t('common.close')}</button>
+          <button class="btn btn-primary" on:click={copyShareUrl}>📋 {$t('modals.share.copy_link')}</button>
         </div>
       </div>
     </div>
@@ -976,7 +977,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   {#if renameModal}
     <div class="modal-backdrop" on:click|self={() => (renameModal = null)}>
       <div class="dialog-card">
-        <h3 class="text-title">Rename Item</h3>
+        <h3 class="text-title">{$t('modals.rename.title')}</h3>
         <input
           type="text"
           class="form-input text-body"
@@ -984,8 +985,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           on:keydown={(e) => e.key === 'Enter' && handleRenameSubmit()}
         />
         <div class="dialog-actions">
-          <button class="btn btn-secondary" on:click={() => (renameModal = null)}>Cancel</button>
-          <button class="btn btn-primary" on:click={handleRenameSubmit}>Rename</button>
+          <button class="btn btn-secondary" on:click={() => (renameModal = null)}>{$t('common.cancel')}</button>
+          <button class="btn btn-primary" on:click={handleRenameSubmit}>{$t('modals.rename.rename_btn')}</button>
         </div>
       </div>
     </div>
@@ -995,17 +996,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   {#if newFolderModal}
     <div class="modal-backdrop" on:click|self={() => (newFolderModal = false)}>
       <div class="dialog-card">
-        <h3 class="text-title">Create Folder</h3>
+        <h3 class="text-title">{$t('modals.create_folder.title')}</h3>
         <input
           type="text"
           class="form-input text-body"
-          placeholder="New folder name"
+          placeholder={$t('modals.create_folder.placeholder')}
           bind:value={newFolderName}
           on:keydown={(e) => e.key === 'Enter' && handleCreateFolderSubmit()}
         />
         <div class="dialog-actions">
-          <button class="btn btn-secondary" on:click={() => (newFolderModal = false)}>Cancel</button>
-          <button class="btn btn-primary" on:click={handleCreateFolderSubmit}>Create</button>
+          <button class="btn btn-secondary" on:click={() => (newFolderModal = false)}>{$t('common.cancel')}</button>
+          <button class="btn btn-primary" on:click={handleCreateFolderSubmit}>{$t('modals.create_folder.create_btn')}</button>
         </div>
       </div>
     </div>
@@ -1015,13 +1016,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   {#if confirmMoveModal}
     <div class="modal-backdrop" on:click|self={() => (confirmMoveModal = null)}>
       <div class="dialog-card">
-        <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">Move Items</h3>
+        <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">{$t('modals.move.title')}</h3>
         <p class="text-sub" style="margin: 0; line-height: 1.5;">
-          Are you sure you want to move {confirmMoveModal.validPaths.length === 1 ? `"${confirmMoveModal.validPaths[0].split('/').pop()}"` : `${confirmMoveModal.validPaths.length} items`} to <strong>"{confirmMoveModal.targetName}"</strong>?
+          {confirmMoveModal.validPaths.length === 1 ? `"${confirmMoveModal.validPaths[0].split('/').pop()}"` : $t('common.items', { count: confirmMoveModal.validPaths.length })} -> <strong>"{confirmMoveModal.targetName}"</strong>
         </p>
         <div class="dialog-actions" style="margin-top: 8px;">
-          <button class="btn btn-secondary" on:click={() => (confirmMoveModal = null)}>Cancel</button>
-          <button class="btn btn-primary" on:click={executeConfirmedMove}>Move</button>
+          <button class="btn btn-secondary" on:click={() => (confirmMoveModal = null)}>{$t('common.cancel')}</button>
+          <button class="btn btn-primary" on:click={executeConfirmedMove}>{$t('common.move')}</button>
         </div>
       </div>
     </div>

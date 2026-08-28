@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import { apiGet, apiPost, apiDelete } from './client.js';
+import { apiGet, apiPost, apiDelete, apiMessage } from './client.js';
 import { get } from 'svelte/store';
 import { authStore } from '../stores/auth.js';
 
@@ -111,7 +111,7 @@ export const filesApi = {
             const refreshToken = get(authStore.refreshToken);
             if (!refreshToken) {
               authStore.clearSession();
-              reject(new Error('Upload failed with status 401'));
+              reject(new Error(apiMessage('api.upload_failed_status', { status: 401 })));
               return;
             }
 
@@ -123,7 +123,7 @@ export const filesApi = {
 
             if (!refreshRes.ok) {
               authStore.clearSession();
-              reject(new Error('Upload failed with status 401'));
+              reject(new Error(apiMessage('api.upload_failed_status', { status: 401 })));
               return;
             }
 
@@ -137,14 +137,14 @@ export const filesApi = {
             resolve(retryResult);
           } catch (err) {
             authStore.clearSession();
-            reject(new Error('Upload failed with status 401'));
+            reject(new Error(apiMessage('api.upload_failed_status', { status: 401 })));
           }
         } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
+          reject(new Error(apiMessage('api.upload_failed_status', { status: xhr.status })));
         }
       };
 
-      xhr.onerror = () => reject(new Error('Network upload error'));
+      xhr.onerror = () => reject(new Error(apiMessage('api.network_upload')));
       xhr.send(file);
     });
   },
@@ -188,14 +188,16 @@ export const filesApi = {
         } else {
           try {
             const data = JSON.parse(xhr.responseText);
-            reject(new Error(data.error || `Batch upload failed (${xhr.status})`));
+            reject(new Error(
+              data.error || apiMessage('api.batch_upload_failed', { status: xhr.status }),
+            ));
           } catch (e) {
-            reject(new Error(`Batch upload failed (${xhr.status})`));
+            reject(new Error(apiMessage('api.batch_upload_failed', { status: xhr.status })));
           }
         }
       };
 
-      xhr.onerror = () => reject(new Error('Network batch upload error'));
+      xhr.onerror = () => reject(new Error(apiMessage('api.network_batch_upload')));
       xhr.send(formData);
     });
   },

@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/shared/utils/byte_formatter.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:flutter/material.dart';
@@ -55,7 +56,9 @@ class TransferBottomBar extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            manager.summaryLabel,
+                            manager.formatSummary(
+                              AppLocalizations.of(context)!,
+                            ),
                             style: TextStyle(
                               color: appText,
                               fontWeight: FontWeight.w600,
@@ -72,7 +75,9 @@ class TransferBottomBar extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: manager.isPaused ? 'Resume' : 'Pause',
+                      tooltip: manager.isPaused
+                          ? AppLocalizations.of(context)!.transferResume
+                          : AppLocalizations.of(context)!.transferPause,
                       icon: Icon(
                         manager.isPaused ? Icons.play_arrow : Icons.pause,
                         color: appText,
@@ -82,7 +87,7 @@ class TransferBottomBar extends StatelessWidget {
                           : null,
                     ),
                     IconButton(
-                      tooltip: 'Cancel',
+                      tooltip: AppLocalizations.of(context)!.transferCancel,
                       icon: Icon(Icons.close, color: appText),
                       onPressed: manager.hasActiveTransfers
                           ? manager.cancelAll
@@ -117,17 +122,19 @@ class TransferPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             backgroundColor: appSurface,
-            title: const Text('Transfers'),
+            title: Text(AppLocalizations.of(context)!.transfersTitle),
             actions: [
               IconButton(
-                tooltip: manager.isPaused ? 'Resume all' : 'Pause all',
+                tooltip: manager.isPaused
+                    ? AppLocalizations.of(context)!.transferResumeAll
+                    : AppLocalizations.of(context)!.transferPauseAll,
                 icon: Icon(manager.isPaused ? Icons.play_arrow : Icons.pause),
                 onPressed: manager.hasActiveTransfers
                     ? manager.togglePause
                     : null,
               ),
               IconButton(
-                tooltip: 'Cancel all',
+                tooltip: AppLocalizations.of(context)!.transferCancelAll,
                 icon: const Icon(Icons.close),
                 onPressed: manager.hasActiveTransfers
                     ? () => _cancelAndClose(context)
@@ -136,7 +143,7 @@ class TransferPage extends StatelessWidget {
             ],
           ),
           body: manager.items.isEmpty
-              ? const Center(child: Text('No transfers.'))
+              ? Center(child: Text(AppLocalizations.of(context)!.noTransfers))
               : ListView.separated(
                   itemCount: manager.items.length,
                   separatorBuilder: (_, _) =>
@@ -161,7 +168,7 @@ class TransferPage extends StatelessWidget {
                         children: [
                           Text(
                             '${_formatBytes(item.transferredBytes)} / ${_formatBytes(item.totalBytes)}'
-                            '  ${_statusLabel(item.status)}',
+                            '  ${_statusLabel(context, item.status)}',
                             style: TextStyle(color: appSubtext),
                           ),
                           const SizedBox(height: 6),
@@ -192,8 +199,12 @@ class TransferPage extends StatelessWidget {
                               children: [
                                 IconButton(
                                   tooltip: manager.isPaused
-                                      ? 'Resume'
-                                      : 'Pause',
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.transferResume
+                                      : AppLocalizations.of(
+                                          context,
+                                        )!.transferPause,
                                   icon: Icon(
                                     manager.isPaused
                                         ? Icons.play_arrow
@@ -202,7 +213,9 @@ class TransferPage extends StatelessWidget {
                                   onPressed: manager.togglePause,
                                 ),
                                 IconButton(
-                                  tooltip: 'Cancel file',
+                                  tooltip: AppLocalizations.of(
+                                    context,
+                                  )!.transferCancelFile,
                                   icon: const Icon(Icons.close),
                                   onPressed: () => manager.cancelItem(item),
                                 ),
@@ -223,14 +236,15 @@ class TransferPage extends StatelessWidget {
   }
 }
 
-String _statusLabel(TransferStatus status) {
+String _statusLabel(BuildContext context, TransferStatus status) {
+  final l10n = AppLocalizations.of(context)!;
   return switch (status) {
-    TransferStatus.queued => 'Queued',
-    TransferStatus.running => 'Running',
-    TransferStatus.paused => 'Paused',
-    TransferStatus.completed => 'Completed',
-    TransferStatus.failed => 'Failed',
-    TransferStatus.canceled => 'Canceled',
+    TransferStatus.queued => l10n.transferStatusQueued,
+    TransferStatus.running => l10n.transferStatusRunning,
+    TransferStatus.paused => l10n.transferStatusPaused,
+    TransferStatus.completed => l10n.transferStatusCompleted,
+    TransferStatus.failed => l10n.transferStatusFailed,
+    TransferStatus.canceled => l10n.transferStatusCanceled,
   };
 }
 

@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'test_helpers.dart';
 
 void main() {
   group('AppUpdateService.isVersionNewer', () {
@@ -188,16 +189,16 @@ void main() {
         currentVersion: '1.0.0',
         latestVersion: '1.2.0',
         latestReleaseName: 'v1.2.0 - Major Overhaul',
-        releaseNotes: '### Changes\n- Feature A\n- Feature B\n\n*Item in italics*',
-        htmlUrl: 'https://github.com/SinnCrowley/crowleys_cloud/releases/tag/v1.2.0',
+        releaseNotes:
+            '### Changes\n- Feature A\n- Feature B\n\n*Item in italics*',
+        htmlUrl:
+            'https://github.com/SinnCrowley/crowleys_cloud/releases/tag/v1.2.0',
         apkUrl: 'https://example.com/app.apk',
       );
 
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: AppUpdateDialog(updateInfo: updateInfo),
-          ),
+        wrapWithLocalization(
+          const Scaffold(body: AppUpdateDialog(updateInfo: updateInfo)),
         ),
       );
 
@@ -209,6 +210,50 @@ void main() {
       expect(find.text('Download APK'), findsOneWidget);
       expect(find.text('Later'), findsOneWidget);
       expect(find.text('GitHub'), findsOneWidget);
+    });
+
+    testWidgets('renders localized release notes fallback in Russian', (
+      tester,
+    ) async {
+      const updateInfo = AppUpdateInfo(
+        hasUpdate: true,
+        currentVersion: '1.0.0',
+        latestVersion: '1.2.0',
+        releaseNotes: 'No release notes provided.',
+        htmlUrl:
+            'https://github.com/SinnCrowley/crowleys_cloud/releases/tag/v1.2.0',
+      );
+
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          const Scaffold(body: AppUpdateDialog(updateInfo: updateInfo)),
+          locale: const Locale('ru'),
+        ),
+      );
+
+      expect(find.text('Примечания к выпуску не предоставлены.'), findsOneWidget);
+    });
+
+    testWidgets('renders localized no releases published fallback in Russian', (
+      tester,
+    ) async {
+      const updateInfo = AppUpdateInfo(
+        hasUpdate: false,
+        currentVersion: '1.0.0',
+        latestVersion: '1.0.0',
+        releaseNotes: 'No releases published yet.',
+        htmlUrl:
+            'https://github.com/SinnCrowley/crowleys_cloud/releases',
+      );
+
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          const Scaffold(body: AppUpdateDialog(updateInfo: updateInfo)),
+          locale: const Locale('ru'),
+        ),
+      );
+
+      expect(find.text('Выпуски пока не опубликованы.'), findsOneWidget);
     });
   });
 }

@@ -20,7 +20,8 @@ import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/asset_size_cache.dart';
-import 'package:flutter/foundation.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
+import 'package:flutter/widgets.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -644,42 +645,61 @@ class FileBrowserController extends ChangeNotifier {
     }
   }
 
-  Future<String?> createFolder(String name) async {
+  AppLocalizations _getL10n([AppLocalizations? l10n]) {
+    if (l10n != null) return l10n;
+    try {
+      final locale = WidgetsBinding.instance.platformDispatcher.locale;
+      if (AppLocalizations.supportedLocales.any(
+        (loc) => loc.languageCode == locale.languageCode,
+      )) {
+        return lookupAppLocalizations(Locale(locale.languageCode));
+      }
+    } catch (_) {}
+    return lookupAppLocalizations(const Locale('en'));
+  }
+
+  Future<String?> createFolder(String name, [AppLocalizations? l10n]) async {
+    final local = _getL10n(l10n);
     if (category.name != 'All files') {
-      return 'Folder creation is only available in All files.';
+      return local.folderCreationOnlyInAllFiles;
     }
     if (directoryHistory.isEmpty) {
-      return 'Current directory is unavailable.';
+      return local.currentDirectoryUnavailable;
     }
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
-      return 'Folder name cannot be empty.';
+      return local.folderNameCannotBeEmpty;
     }
 
     final target = Directory('${directoryHistory.last.path}/$trimmed');
     if (await target.exists()) {
-      return 'Folder already exists.';
+      return local.folderAlreadyExists;
     }
     try {
       await target.create(recursive: true);
       await reload();
       return null;
     } catch (e) {
-      return 'Failed to create folder: $e';
+      return local.failedToCreateFolder(e.toString());
     }
   }
 
-  Future<String?> createFolderAtPath(String parentPath, String name) async {
+  Future<String?> createFolderAtPath(
+    String parentPath,
+    String name, [
+    AppLocalizations? l10n,
+  ]) async {
+    final local = _getL10n(l10n);
     final trimmed = name.trim();
-    if (trimmed.isEmpty) return 'Folder name cannot be empty.';
+    if (trimmed.isEmpty) return local.folderNameCannotBeEmpty;
     final target = Directory('$parentPath/$trimmed');
-    if (await target.exists()) return 'Folder already exists.';
+    if (await target.exists()) return local.folderAlreadyExists;
     try {
       await target.create(recursive: true);
       await reload();
       return null;
     } catch (e) {
-      return 'Failed to create folder: $e';
+      return local.failedToCreateFolder(e.toString());
     }
   }
 
@@ -698,11 +718,15 @@ class FileBrowserController extends ChangeNotifier {
     }
   }
 
-  Future<String?> moveSelectedToFolder(String destinationPath) async {
-    if (selectedFiles.isEmpty) return 'Nothing selected.';
+  Future<String?> moveSelectedToFolder(
+    String destinationPath, [
+    AppLocalizations? l10n,
+  ]) async {
+    final local = _getL10n(l10n);
+    if (selectedFiles.isEmpty) return local.nothingSelected;
     final destination = Directory(destinationPath);
     if (!await destination.exists()) {
-      return 'Destination folder does not exist.';
+      return local.destinationFolderDoesNotExist;
     }
 
     final selected = selectedFiles.toList();
@@ -729,7 +753,7 @@ class FileBrowserController extends ChangeNotifier {
       if (item.isDirectory &&
           destinationPath.startsWith('$srcPath${Platform.pathSeparator}')) {
         failed++;
-        firstError ??= 'Cannot move folder "$name" into itself.';
+        firstError ??= local.cannotMoveFolderIntoItself(name);
         continue;
       }
 
@@ -742,7 +766,7 @@ class FileBrowserController extends ChangeNotifier {
         moved++;
       } catch (e) {
         failed++;
-        firstError ??= 'Failed to move $name: $e';
+        firstError ??= local.failedToMoveItem(name, e.toString());
       }
     }
 
@@ -752,16 +776,21 @@ class FileBrowserController extends ChangeNotifier {
     }
 
     if (failed > 0) {
-      if (moved > 0) return 'Moved $moved item(s), failed $failed.';
-      return firstError ?? 'Failed to move selected items.';
+      if (moved > 0) return local.movedNItemsFailedM(moved, failed);
+      return firstError ?? local.failedToMoveSelectedItems;
     }
     if (moved == 0 && skipped > 0) {
-      return 'No files were moved.';
+      return local.noFilesWereMoved;
     }
     return null;
   }
 
-  Future<bool> renameItem(FileItem item, String newName) async {
+  Future<bool> renameItem(
+    FileItem item,
+    String newName, [
+    AppLocalizations? l10n,
+  ]) async {
+    final local = _getL10n(l10n);
     final trimmed = newName.trim();
     if (trimmed.isEmpty || trimmed == item.name) return false;
 
@@ -773,8 +802,7 @@ class FileBrowserController extends ChangeNotifier {
 
     if (await File(targetPath).exists() ||
         await Directory(targetPath).exists()) {
-      operationMessage =
-          'Failed to rename: A file or folder with that name already exists.';
+      operationMessage = local.renameConflictAlreadyExists;
       notifyListeners();
       return false;
     }
@@ -787,12 +815,15 @@ class FileBrowserController extends ChangeNotifier {
       } else {
         await File(itemPath).rename(targetPath);
       }
-      operationMessage = 'Renamed "${item.name}" to "$trimmed".';
+      operationMessage = local.renamedOldToNew(item.name, trimmed);
       selectedFiles.clear();
       await reload();
       return true;
     } catch (e) {
-      operationMessage = 'Failed to rename "${item.name}": $e';
+      operationMessage = local.failedToRenameWithError(
+        item.name,
+        e.toString(),
+      );
       notifyListeners();
       return false;
     }

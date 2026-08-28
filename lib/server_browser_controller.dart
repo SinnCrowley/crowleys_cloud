@@ -20,6 +20,8 @@ import 'dart:io';
 import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/cache_service.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
+import 'package:crowleys_cloud/l10n/localization_fallback.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
@@ -27,6 +29,7 @@ import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:crowleys_cloud/shared/proto/dir_entry.pb.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -255,7 +258,7 @@ class ServerBrowserController extends ChangeNotifier {
       if (selectedType != 'all') {
         files.removeWhere((item) => item.isDir);
       }
-      operationMessage = cached.isStale ? 'Showing cached files.' : null;
+      operationMessage = cached.isStale ? _getL10n().showingCachedFiles : null;
       renderedCachedData = true;
       notifyListeners();
     }
@@ -274,7 +277,11 @@ class ServerBrowserController extends ChangeNotifier {
       final response = await _authorizedGet(uri);
       if (opId != _opId) return;
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('Server error ${response.statusCode}');
+        throw Exception(
+          platformAppLocalizations().connectionFailed(
+            'Server error ${response.statusCode}',
+          ),
+        );
       }
 
       final payload = jsonDecode(response.body) as Map<String, Object?>;
@@ -306,7 +313,7 @@ class ServerBrowserController extends ChangeNotifier {
       if (opId != _opId) return;
       error = e.toString();
       if (renderedCachedData) {
-        operationMessage = 'Showing cached files. Refresh failed.';
+        operationMessage = _getL10n().showingCachedFilesRefreshFailed;
       }
     } finally {
       if (opId == _opId) {
@@ -374,7 +381,21 @@ class ServerBrowserController extends ChangeNotifier {
     ).replace(queryParameters: {'scope': scope, 'path': item.path});
   }
 
-  Future<void> downloadSelectedFiles() async {
+  AppLocalizations _getL10n([AppLocalizations? l10n]) {
+    if (l10n != null) return l10n;
+    try {
+      final locale = WidgetsBinding.instance.platformDispatcher.locale;
+      if (AppLocalizations.supportedLocales.any(
+        (loc) => loc.languageCode == locale.languageCode,
+      )) {
+        return lookupAppLocalizations(Locale(locale.languageCode));
+      }
+    } catch (_) {}
+    return lookupAppLocalizations(const Locale('en'));
+  }
+
+  Future<void> downloadSelectedFiles([AppLocalizations? l10n]) async {
+    final local = _getL10n(l10n);
     operationMessage = null;
     final downloadRoot = await _downloadRoot();
     final failed = <String>[];
@@ -420,30 +441,35 @@ class ServerBrowserController extends ChangeNotifier {
         }
       }
     } on TransferCanceledException {
-      operationMessage = 'Download canceled.';
+      operationMessage = local.downloadCanceled;
       selectedFiles.clear();
       notifyListeners();
       return;
     }
     final downloaded = plans.length - failed.length;
-    final displayPath = _formatDisplayPath(downloadRoot.path);
+    final displayPath = _formatDisplayPath(downloadRoot.path, local);
     operationMessage = failed.isEmpty
-        ? 'Downloaded $downloaded file(s) to $displayPath'
-        : 'Downloaded $downloaded file(s), failed ${failed.length}: ${failed.first}';
+        ? local.downloadedNFilesToPath(downloaded, displayPath)
+        : local.downloadedNFilesFailedM(
+            downloaded,
+            failed.length,
+            failed.first,
+          );
     selectedFiles.clear();
     notifyListeners();
   }
 
-  String _formatDisplayPath(String path) {
+  String _formatDisplayPath(String path, [AppLocalizations? l10n]) {
     const androidPrefix = '/storage/emulated/0';
     if (path.startsWith(androidPrefix)) {
       final sub = path.substring(androidPrefix.length);
-      return sub.isEmpty ? 'Internal Storage' : sub;
+      return sub.isEmpty ? _getL10n(l10n).storageRoot : sub;
     }
     return path;
   }
 
-  Future<void> deleteSelectedFiles() async {
+  Future<void> deleteSelectedFiles([AppLocalizations? l10n]) async {
+    final local = _getL10n(l10n);
     operationMessage = null;
     var deleted = 0;
     var failed = 0;
@@ -468,13 +494,14 @@ class ServerBrowserController extends ChangeNotifier {
       }
     }
     operationMessage = failed == 0
-        ? 'Deleted $deleted item(s).'
-        : 'Deleted $deleted item(s), failed $failed.';
+        ? local.deletedNItems(deleted)
+        : local.deletedNItemsFailedM(deleted, failed);
     selectedFiles.clear();
     notifyListeners();
   }
 
-  Future<void> shareSelectedFiles() async {
+  Future<void> shareSelectedFiles([AppLocalizations? l10n]) async {
+    final local = _getL10n(l10n);
     operationMessage = null;
     final sharedLinks = <String>[];
     for (final item in selectedFiles.toList()) {
@@ -495,19 +522,20 @@ class ServerBrowserController extends ChangeNotifier {
     }
     if (sharedLinks.isNotEmpty) {
       await SharePlus.instance.share(ShareParams(text: sharedLinks.join('\n')));
-      operationMessage = 'Created ${sharedLinks.length} share link(s).';
+      operationMessage = local.createdNShareLinks(sharedLinks.length);
     } else {
-      operationMessage = 'Failed to create share link(s).';
+      operationMessage = local.failedToCreateShareLinks;
     }
     selectedFiles.clear();
     notifyListeners();
   }
 
-  Future<void> shareSelectedInServer() async {
+  Future<void> shareSelectedInServer([AppLocalizations? l10n]) async {
+    final local = _getL10n(l10n);
     operationMessage = null;
     if (selectedFiles.isEmpty) return;
     if (scope == 'shared') {
-      operationMessage = 'Already in shared scope.';
+      operationMessage = local.alreadyInSharedScope;
       notifyListeners();
       return;
     }
@@ -529,20 +557,25 @@ class ServerBrowserController extends ChangeNotifier {
     await _invalidateDirectory(scope: 'shared', path: '');
 
     operationMessage = failed == 0
-        ? 'Shared $shared item(s) in server.'
-        : 'Shared $shared item(s), failed $failed.';
+        ? local.sharedNItemsInServer(shared)
+        : local.sharedNItemsFailedM(shared, failed);
     selectedFiles.clear();
     notifyListeners();
   }
 
-  Future<void> createFolder(String name) async {
-    await createFolderAtPath(currentPath, name);
+  Future<void> createFolder(String name, [AppLocalizations? l10n]) async {
+    await createFolderAtPath(currentPath, name, l10n);
   }
 
-  Future<void> createFolderAtPath(String parentPath, String name) async {
+  Future<void> createFolderAtPath(
+    String parentPath,
+    String name, [
+    AppLocalizations? l10n,
+  ]) async {
+    final local = _getL10n(l10n);
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
-      operationMessage = 'Folder name cannot be empty.';
+      operationMessage = local.folderNameCannotBeEmpty;
       notifyListeners();
       return;
     }
@@ -554,12 +587,13 @@ class ServerBrowserController extends ChangeNotifier {
     ).replace(queryParameters: {'scope': scope, 'path': targetPath});
     final response = await _authorizedPostBytes(uri, const []);
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      operationMessage = 'Folder created.';
       await _invalidateDirectory(scope: scope, path: parentPath);
       await reload();
+      operationMessage = local.folderCreated;
+      notifyListeners();
       return;
     }
-    operationMessage = 'Failed to create folder (${response.statusCode}).';
+    operationMessage = local.failedToCreateFolderWithCode(response.statusCode);
     notifyListeners();
   }
 
@@ -572,7 +606,11 @@ class ServerBrowserController extends ChangeNotifier {
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
   }
 
-  Future<void> moveSelectedToFolder(String destinationPath) async {
+  Future<void> moveSelectedToFolder(
+    String destinationPath, [
+    AppLocalizations? l10n,
+  ]) async {
+    final local = _getL10n(l10n);
     operationMessage = null;
     if (selectedFiles.isEmpty) return;
 
@@ -607,14 +645,20 @@ class ServerBrowserController extends ChangeNotifier {
         failed++;
       }
     }
-    operationMessage = failed == 0
-        ? 'Moved $moved item(s).'
-        : 'Moved $moved item(s), failed $failed.';
     selectedFiles.clear();
     await reload();
+    operationMessage = failed == 0
+        ? local.movedNItems(moved)
+        : local.movedNItemsFailedM(moved, failed);
+    notifyListeners();
   }
 
-  Future<bool> renameItem(ServerFileItem item, String newName) async {
+  Future<bool> renameItem(
+    ServerFileItem item,
+    String newName, [
+    AppLocalizations? l10n,
+  ]) async {
+    final local = _getL10n(l10n);
     final trimmed = newName.trim();
     if (trimmed.isEmpty || trimmed == item.name) return false;
 
@@ -627,13 +671,16 @@ class ServerBrowserController extends ChangeNotifier {
 
     final response = await _authorizedPostBytes(uri, const []);
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      operationMessage = 'Renamed "${item.name}" to "$trimmed".';
       await _invalidateDirectory(scope: scope, path: dirPath);
       await reload();
+      operationMessage = local.renamedOldToNew(item.name, trimmed);
+      notifyListeners();
       return true;
     }
-    operationMessage =
-        'Failed to rename "${item.name}" (${response.statusCode}).';
+    operationMessage = local.failedToRenameWithStatus(
+      item.name,
+      response.statusCode,
+    );
     notifyListeners();
     return false;
   }
@@ -894,7 +941,10 @@ class ServerBrowserController extends ChangeNotifier {
       rethrow;
     } catch (_) {
       if (transferItem != null) {
-        transferManager?.failItem(transferItem, 'Download failed');
+        transferManager?.failItem(
+          transferItem,
+          platformAppLocalizations().downloadFailedGeneric,
+        );
       }
       return false;
     }

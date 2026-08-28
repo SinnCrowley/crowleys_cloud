@@ -19,10 +19,12 @@ import 'dart:io';
 import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/cache_service.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_browser_controller.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -414,6 +416,152 @@ void main() {
     expect(controller.accountStats, isNotNull);
     expect(controller.accountStats!['total_size'], 1024);
     expect(controller.accountStats!['total_count'], 5);
+    controller.disposeController();
+    controller.dispose();
+  });
+
+  test('createFolderAtPath preserves operationMessage across reload', () async {
+    final l10nEn = lookupAppLocalizations(const Locale('en'));
+    final l10nRu = lookupAppLocalizations(const Locale('ru'));
+
+    final store = InMemorySecretStore();
+    await store.saveTokens(
+      serverId: 'srv',
+      accessToken: 'token',
+      refreshToken: 'refresh',
+    );
+
+    final client = MockClient((request) async {
+      if (request.url.path == '/api/folders') {
+        if (request.url.queryParameters['path'] == 'fail') {
+          return http.Response('error', 500);
+        }
+        return http.Response('{"ok": true}', 200);
+      }
+      return http.Response(jsonEncode({'entries': []}), 200);
+    });
+
+    final controller = _controller(store: store, client: client);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    // Success EN
+    await controller.createFolderAtPath('', 'MyFolder', l10nEn);
+    expect(controller.operationMessage, l10nEn.folderCreated);
+
+    // Success RU
+    await controller.createFolderAtPath('', 'МояПапка', l10nRu);
+    expect(controller.operationMessage, l10nRu.folderCreated);
+
+    // Failure EN
+    await controller.createFolderAtPath('', 'fail', l10nEn);
+    expect(
+      controller.operationMessage,
+      l10nEn.failedToCreateFolderWithCode(500),
+    );
+
+    controller.disposeController();
+    controller.dispose();
+  });
+
+  test(
+    'moveSelectedToFolder preserves operationMessage across reload',
+    () async {
+      final l10nEn = lookupAppLocalizations(const Locale('en'));
+      final l10nRu = lookupAppLocalizations(const Locale('ru'));
+
+      final store = InMemorySecretStore();
+      await store.saveTokens(
+        serverId: 'srv',
+        accessToken: 'token',
+        refreshToken: 'refresh',
+      );
+
+      final item = _serverItem(name: 'file1.txt', path: 'file1.txt');
+
+      final client = MockClient((request) async {
+        if (request.url.path == '/api/files') {
+          if (request.method == 'GET') {
+            return http.Response('content', 200);
+          }
+          if (request.method == 'POST') {
+            return http.Response('ok', 200);
+          }
+          if (request.method == 'DELETE') {
+            return http.Response('deleted', 200);
+          }
+        }
+        return http.Response(jsonEncode({'entries': []}), 200);
+      });
+
+      final controller = _controller(store: store, client: client);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      controller.toggleSelection(item);
+      expect(controller.selectedFiles, contains(item));
+
+      await controller.moveSelectedToFolder('destination', l10nEn);
+      expect(controller.operationMessage, l10nEn.movedNItems(1));
+      expect(controller.selectedFiles, isEmpty);
+
+      controller.toggleSelection(item);
+      await controller.moveSelectedToFolder('destination', l10nRu);
+      expect(controller.operationMessage, l10nRu.movedNItems(1));
+
+      controller.disposeController();
+      controller.dispose();
+    },
+  );
+
+  test('renameItem preserves operationMessage across reload', () async {
+    final l10nEn = lookupAppLocalizations(const Locale('en'));
+    final l10nRu = lookupAppLocalizations(const Locale('ru'));
+
+    final store = InMemorySecretStore();
+    await store.saveTokens(
+      serverId: 'srv',
+      accessToken: 'token',
+      refreshToken: 'refresh',
+    );
+
+    final item = _serverItem(name: 'old_name.txt', path: 'old_name.txt');
+
+    final client = MockClient((request) async {
+      if (request.url.path == '/api/files/move') {
+        if (request.url.queryParameters['dest'] == 'conflict.txt') {
+          return http.Response('conflict', 409);
+        }
+        return http.Response('ok', 200);
+      }
+      return http.Response(jsonEncode({'entries': []}), 200);
+    });
+
+    final controller = _controller(store: store, client: client);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    // Success EN
+    final okEn = await controller.renameItem(item, 'new_name.txt', l10nEn);
+    expect(okEn, isTrue);
+    expect(
+      controller.operationMessage,
+      l10nEn.renamedOldToNew('old_name.txt', 'new_name.txt'),
+    );
+
+    // Success RU
+    final okRu = await controller.renameItem(item, 'новое_имя.txt', l10nRu);
+    expect(okRu, isTrue);
+    expect(
+      controller.operationMessage,
+      l10nRu.renamedOldToNew('old_name.txt', 'новое_имя.txt'),
+    );
+
+    // Failure EN
+    final failEn = await controller.renameItem(item, 'conflict.txt', l10nEn);
+    expect(failEn, isFalse);
+    expect(
+      controller.operationMessage,
+      l10nEn.failedToRenameWithStatus('old_name.txt', 409),
+    );
+
     controller.disposeController();
     controller.dispose();
   });

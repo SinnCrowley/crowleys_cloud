@@ -16,9 +16,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import { filesApi } from '../api/files.js';
+  import { t } from '../stores/i18n.js';
 
   export let scope = 'private';
-  export let title = 'Select Destination Folder';
+  export let title = '';
   export let currentPath = '';
 
   const dispatch = createEventDispatcher();
@@ -30,6 +31,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let showNewFolderInput = false;
   let newFolderName = '';
 
+  $: modalTitle = title || $t('modals.move.title');
   $: pathSegments = folderPath ? folderPath.split('/').filter(Boolean) : [];
 
   async function loadFolders() {
@@ -98,8 +100,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <div class="modal-backdrop" on:click|self={handleClose}>
   <div class="folder-picker-card">
     <div class="picker-header">
-      <h3 class="picker-title text-title">{title}</h3>
-      <button class="btn-icon" on:click={handleClose} title="Close">
+      <h3 class="picker-title text-title">{modalTitle}</h3>
+      <button class="btn-icon" on:click={handleClose} title={$t('common.close')}>
         <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
       </button>
     </div>
@@ -112,7 +114,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         style="display: inline-flex; align-items: center;"
       >
         <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">home</span>
-        Root
+        {$t('common.root')}
       </button>
       {#each pathSegments as segment, index}
         <span class="crumb-separator">/</span>
@@ -135,14 +137,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <span class="folder-icon" style="display: flex; align-items: center;">
             <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-sub);">arrow_upward</span>
           </span>
-          <span class="folder-name text-body">.. (Up one level)</span>
+          <span class="folder-name text-body">.. ({$t('files.up_folder')})</span>
         </div>
       {/if}
 
       {#if isLoading}
-        <div class="loading-state text-sub">Loading folders...</div>
+        <div class="loading-state text-sub">{$t('common.loading')}</div>
       {:else if subfolders.length === 0}
-        <div class="empty-state-picker text-sub">No subfolders here</div>
+        <div class="empty-state-picker text-sub">{$t('modals.move.no_subfolders')}</div>
       {:else}
         {#each subfolders as folder}
           <div
@@ -166,12 +168,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <input
           type="text"
           class="form-input text-body"
-          placeholder="New folder name..."
+          placeholder={$t('modals.create_folder.placeholder')}
           bind:value={newFolderName}
           on:keydown={(e) => e.key === 'Enter' && handleCreateFolder()}
         />
-        <button class="btn btn-primary" on:click={handleCreateFolder}>Create</button>
-        <button class="btn btn-secondary" on:click={() => (showNewFolderInput = false)}>Cancel</button>
+        <button class="btn btn-primary" on:click={handleCreateFolder}>{$t('common.ok')}</button>
+        <button class="btn btn-secondary" on:click={() => (showNewFolderInput = false)}>{$t('common.cancel')}</button>
       </div>
     {/if}
 
@@ -180,13 +182,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         class="btn btn-secondary"
         on:click={() => (showNewFolderInput = !showNewFolderInput)}
       >
-        + New Folder
+        + {$t('context_menu.new_folder')}
       </button>
 
       <div class="footer-actions">
-        <button class="btn btn-secondary" on:click={handleClose}>Cancel</button>
+        <button class="btn btn-secondary" on:click={handleClose}>{$t('common.cancel')}</button>
         <button class="btn btn-primary" on:click={handleSelect}>
-          Move Here ({folderPath || 'Root'})
+          {$t('modals.move.move_here_btn')} ({folderPath || $t('common.root')})
         </button>
       </div>
     </div>

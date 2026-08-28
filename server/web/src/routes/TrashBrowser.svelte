@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { onMount, createEventDispatcher } from 'svelte';
   import { trashApi } from '../api/trash.js';
   import { filesApi } from '../api/files.js';
+  import { t, i18n } from '../stores/i18n.js';
   import RestoreConflictModal from '../components/RestoreConflictModal.svelte';
   import MediaPreviewModal from '../components/MediaPreviewModal.svelte';
 
@@ -130,7 +131,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       await trashApi.restoreTrash(ids, false);
       selectedIds.clear();
       selectedIds = selectedIds;
-      dispatch('toast', { message: `Successfully restored ${ids.length} item(s).`, type: 'success' });
+      dispatch('toast', { message: i18n.format('toasts.items_restored', { count: ids.length }), type: 'success' });
       await loadTrash();
     } catch (err) {
       dispatch('toast', { message: err.message || 'Failed to restore items', type: 'error' });
@@ -164,7 +165,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
       selectedIds.clear();
       selectedIds = selectedIds;
-      dispatch('toast', { message: `Successfully restored ${allIds.length} item(s).`, type: 'success' });
+      dispatch('toast', { message: i18n.format('toasts.items_restored', { count: allIds.length }), type: 'success' });
       await loadTrash();
     } catch (err) {
       dispatch('toast', { message: err.message || 'Failed to restore items', type: 'error' });
@@ -177,8 +178,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     if (ids.length === 0) return;
     confirmDeleteModal = {
       ids,
-      title: 'Delete Permanently',
-      message: `Are you sure you want to permanently delete ${ids.length} item(s)? This action cannot be undone.`
+      title: i18n.format('trash.confirm_delete_selected_title'),
+      message: i18n.format('trash.confirm_delete_selected_msg', { count: ids.length })
     };
   }
 
@@ -186,8 +187,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     if (trashEntries.length === 0) return;
     confirmDeleteModal = {
       ids: trashEntries.map((e) => e.id),
-      title: 'Empty Trash Bin',
-      message: 'Are you sure you want to permanently delete all items in the trash bin? This action cannot be undone.'
+      title: i18n.format('trash.confirm_empty_title'),
+      message: i18n.format('trash.confirm_empty_msg')
     };
   }
 
@@ -198,7 +199,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     isLoading = true;
     try {
       await trashApi.deleteTrash(ids);
-      dispatch('toast', { message: `Permanently deleted ${ids.length} item(s).`, type: 'success' });
+      dispatch('toast', { message: i18n.format('toasts.items_deleted_permanently', { count: ids.length }), type: 'success' });
       await loadTrash();
     } catch (err) {
       dispatch('toast', { message: err.message || 'Failed to delete items', type: 'error' });
@@ -278,12 +279,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <div class="trash-wrapper">
   <div class="canvas-header">
     <div class="canvas-header-info">
-      <h2>Trash Bin</h2>
+      <h2>{$t('trash.title')}</h2>
       <p>
         {#if trashRetentionDays === -1}
-          Items in trash are retained indefinitely until manually emptied.
+          {$t('common.never')}
         {:else}
-          Items in trash are automatically deleted after {trashRetentionDays} days.
+          {$t('trash.retention_note', { days: trashRetentionDays })}
         {/if}
       </p>
     </div>
@@ -295,7 +296,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         on:click={requestEmptyTrash}
       >
         <span class="material-symbols-outlined">delete_sweep</span>
-        Empty Trash
+        {$t('trash.empty_trash')}
       </button>
     </div>
   </div>
@@ -305,12 +306,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   {/if}
 
   {#if isLoading}
-    <div class="loading-state text-sub">Loading trash...</div>
+    <div class="loading-state text-sub">{$t('common.loading')}</div>
   {:else if filteredEntries.length === 0}
     <div class="empty-state">
       <span class="material-symbols-outlined empty-icon">delete_sweep</span>
-      <h3 class="empty-title text-title">Trash is empty</h3>
-      <p class="empty-sub text-sub">Deleted files will appear here before permanent erasure.</p>
+      <h3 class="empty-title text-title">{searchQuery ? $t('trash.no_results', { query: searchQuery }) : $t('trash.empty_title')}</h3>
+      <p class="empty-sub text-sub">{searchQuery ? '' : $t('trash.empty_sub')}</p>
     </div>
   {:else if layoutMode === 'grid'}
     <div class="trash-grid-container">
@@ -336,18 +337,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <div class="trash-grid-info">
             <div class="trash-grid-name" title={item.name}>{item.name}</div>
             <div class="trash-grid-footer">
-              <span class="trash-grid-size text-sub">{item.is_dir ? 'Folder' : formatSize(item.size)}</span>
+              <span class="trash-grid-size text-sub">{item.is_dir ? $t('common.folder') : formatSize(item.size)}</span>
               <div class="trash-grid-actions" on:click|stopPropagation>
                 <button
                   class="btn-icon card-action-btn"
-                  title="Restore item"
+                  title={$t('trash.restore')}
                   on:click={() => handleRestore([item.id])}
                 >
                   <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-success)">restore</span>
                 </button>
                 <button
                   class="btn-icon card-action-btn"
-                  title="Delete permanently"
+                  title={$t('trash.delete_forever')}
                   on:click={() => requestDelete([item.id])}
                 >
                   <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-danger)">delete_forever</span>
@@ -371,11 +372,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             <span class="checkbox-indicator"></span>
           </label>
         </div>
-        <div class="col-name">Name</div>
-        <div class="col-path">Original Location</div>
-        <div class="col-date">Date Deleted</div>
-        <div class="col-size">Size</div>
-        <div class="col-actions">Actions</div>
+        <div class="col-name">{$t('common.name')}</div>
+        <div class="col-path">{$t('trash.original_location')}</div>
+        <div class="col-date">{$t('trash.deleted_date')}</div>
+        <div class="col-size">{$t('common.size')}</div>
+        <div class="col-actions">{$t('common.actions')}</div>
       </div>
 
       <div class="trash-list-container">
@@ -423,14 +424,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             <div class="col-actions cell-content" on:click|stopPropagation>
               <button
                 class="btn-icon restore-single-btn"
-                title="Restore item"
+                title={$t('trash.restore')}
                 on:click={() => handleRestore([item.id])}
               >
                 <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-success)">restore</span>
               </button>
               <button
                 class="btn-icon delete-single-btn"
-                title="Delete permanently"
+                title={$t('trash.delete_forever')}
                 on:click={() => requestDelete([item.id])}
               >
                 <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-danger)">delete_forever</span>
@@ -447,25 +448,25 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 {#if selectedIds.size > 0}
   <div class="selection-action-bar">
     <div class="selection-info text-body">
-      <span class="count-badge">{selectedIds.size}</span> selected
+      <span class="count-badge">{selectedIds.size}</span>
+      <span>{$t('common.selected')}</span>
     </div>
 
     <div class="selection-buttons">
-      <button class="btn btn-secondary" on:click={() => handleRestore(Array.from(selectedIds))}>
+      <button class="btn btn-secondary action-btn text-body" on:click={() => handleRestore(Array.from(selectedIds))}>
         <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-success)">restore</span>
-        Restore Selected
+        {$t('trash.restore_selected', { count: selectedIds.size })}
       </button>
 
-      <button class="btn btn-secondary danger-btn" on:click={() => requestDelete(Array.from(selectedIds))}>
+      <button class="btn btn-secondary action-btn text-body danger-btn" on:click={() => requestDelete(Array.from(selectedIds))}>
         <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-danger)">delete_forever</span>
-        Delete Selected
+        {$t('trash.delete_selected', { count: selectedIds.size })}
       </button>
 
       <button
-        class="btn-icon"
+        class="btn-icon close-btn"
         on:click={() => { selectedIds.clear(); selectedIds = selectedIds; }}
-        title="Deselect all"
-        style="display: flex; align-items: center; justify-content: center;"
+        title={$t('common.deselect_all')}
       >
         <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
       </button>
@@ -482,8 +483,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         {confirmDeleteModal.message}
       </p>
       <div class="dialog-actions" style="display: flex; justify-content: flex-end; gap: var(--spacing-sm); margin-top: 16px;">
-        <button class="btn btn-secondary" on:click={() => (confirmDeleteModal = null)}>Cancel</button>
-        <button class="btn btn-primary danger-btn" on:click={confirmDeleteAction}>Delete Permanently</button>
+        <button class="btn btn-secondary" on:click={() => (confirmDeleteModal = null)}>{$t('common.cancel')}</button>
+        <button class="btn btn-primary danger-btn" on:click={confirmDeleteAction}>{$t('trash.delete_forever')}</button>
       </div>
     </div>
   </div>
@@ -772,7 +773,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .file-type-icon {
     font-size: 20px;
-    margin-right: 12px;
     color: var(--accent-color);
     flex-shrink: 0;
   }
@@ -781,35 +781,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     font-size: 14px;
     font-weight: 600;
     color: var(--text-main);
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .col-path {
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
-  .restore-single-btn, .delete-single-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .restore-single-btn:hover {
-    background-color: rgba(76, 175, 80, 0.15);
-  }
-
-  .delete-single-btn:hover {
-    background-color: rgba(244, 67, 54, 0.15);
-  }
-
-  /* Selection action bar styles matching SelectionActionBar.svelte */
+  /* Selection action bar styles for trash multi-selection */
   .selection-action-bar {
     position: fixed;
     bottom: 24px;
@@ -847,6 +824,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     font-size: 15px;
     font-weight: 600;
     color: var(--text-main);
+    white-space: nowrap;
   }
 
   .count-badge {
@@ -858,7 +836,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     font-weight: 700;
   }
 
-  .action-buttons {
+  .selection-buttons {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -869,6 +847,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     font-size: 14px;
     font-weight: 700;
     border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
   }
 
   .close-btn {
@@ -876,33 +858,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     height: 32px;
     border-radius: var(--radius-full);
     color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
 
   .close-btn:hover {
     background-color: var(--bg-surface-hover);
     color: var(--accent-color);
-  }
-
-  .dialog-card {
-    width: 100%;
-    max-width: 440px;
-    background-color: var(--bg-surface);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-card);
-    padding: var(--spacing-xl);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-  }
-
-  @media (max-width: 768px) {
-    .trash-table-row {
-      grid-template-columns: 48px 1fr 80px;
-    }
-    .col-path, .col-date, .col-size {
-      display: none;
-    }
   }
 </style>

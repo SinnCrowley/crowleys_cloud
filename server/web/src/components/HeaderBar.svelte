@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <script>
   import { createEventDispatcher, onDestroy } from 'svelte';
   import { authStore } from '../stores/auth.js';
+  import { t } from '../stores/i18n.js';
   import CustomSelect from './CustomSelect.svelte';
 
   export let searchQuery = '';
@@ -55,11 +56,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     if (searchTimeout) clearTimeout(searchTimeout);
   });
 
-  const sortOptions = [
-    { value: 'name', label: 'Name' },
-    { value: 'date', label: 'Date' },
-    { value: 'size', label: 'Size' },
-    { value: 'type', label: 'Type' }
+  $: sortOptions = [
+    { value: 'name', label: $t('nav.sort_name') },
+    { value: 'date', label: $t('nav.sort_date') },
+    { value: 'size', label: $t('nav.sort_size') },
+    { value: 'type', label: $t('nav.sort_type') }
   ];
 
   function handleSortChange(e) {
@@ -81,7 +82,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <header class="header-bar">
   <!-- Mobile Menu Toggle & App Name -->
   <div class="mobile-toggle-section">
-    <button class="btn-icon mobile-menu-btn" on:click={toggleSidebarMobile} title="Toggle menu">
+    <button class="btn-icon mobile-menu-btn" on:click={toggleSidebarMobile} title={$t('nav.toggle_menu')}>
       <span class="material-symbols-outlined">menu</span>
     </button>
     <img src="/logo_horizontal.png" alt="Crowley's Cloud Logo" class="mobile-brand-logo" />
@@ -94,7 +95,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <input
         type="text"
         class="search-pill text-body"
-        placeholder="Search files, folders, extensions..."
+        placeholder={$t('nav.search_placeholder')}
         value={searchQuery}
         on:input={handleSearchInput}
         on:keydown={handleSearchKeydown}
@@ -104,7 +105,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           type="button"
           class="btn-icon clear-search-btn"
           on:click={clearSearch}
-          title="Clear search"
+          title={$t('nav.clear_search')}
         >
           <span class="material-symbols-outlined">close</span>
         </button>
@@ -118,7 +119,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     {#if currentRoute === 'files' || currentRoute === 'trash'}
       <button
         class="btn-icon header-action-btn"
-        title="Toggle Grid / List View"
+        title={$t('nav.toggle_view')}
         on:click={() => dispatch('toggleLayout')}
       >
         <span class="material-symbols-outlined">
@@ -128,7 +129,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
       <!-- Sort Column Selector -->
       <div class="sort-select-container">
-        <span class="sort-label text-caption">Sort by:</span>
+        <span class="sort-label text-caption">{$t('nav.sort_by')}</span>
         <CustomSelect
           bind:value={sortBy}
           options={sortOptions}
@@ -139,7 +140,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <!-- Sort Order Toggle -->
       <button
         class="btn-icon header-action-btn"
-        title="Toggle Sort Direction"
+        title={$t('nav.toggle_sort_direction')}
         on:click={() => dispatch('toggleSortOrder')}
       >
         <span class="material-symbols-outlined">
@@ -153,7 +154,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     <!-- Theme Mode Toggle -->
     <button
       class="btn-icon header-action-btn"
-      title="Toggle Light / Dark Mode"
+      title={$t('nav.toggle_theme')}
       on:click={() => dispatch('toggleTheme')}
     >
       <span class="material-symbols-outlined">
@@ -163,14 +164,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
     <!-- Authentication Username Button (No Avatar) -->
     {#if isAuthenticated}
-      <button class="username-btn text-body" on:click={() => dispatch('openAuth')} title="Logged in as {$user?.username || 'User'}">
+      <button class="username-btn text-body" on:click={() => dispatch('openAuth')} title={$t('modals.auth.logged_in_as', { username: $user?.username || $t('nav.user') })}>
         <span class="material-symbols-outlined username-icon">person</span>
-        <span class="username-text">{$user?.username || 'User'}</span>
+        <span class="username-text">{$user?.username || $t('nav.user')}</span>
       </button>
     {:else}
       <button class="btn btn-primary" on:click={() => dispatch('openAuth')}>
         <span class="material-symbols-outlined" style="font-size: 18px;">login</span>
-        Sign In
+        {$t('nav.sign_in')}
       </button>
     {/if}
   </div>
@@ -305,20 +306,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     color: var(--text-sub);
     font-size: 12px;
     font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    user-select: none;
   }
 
   .sort-select-container {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    flex-shrink: 0;
   }
 
   .sort-select-container :global(.custom-select-wrapper) {
+    width: 140px;
     max-width: 140px;
+    flex-shrink: 0;
   }
 
   .sort-select-container :global(.custom-select-trigger) {
     height: 36px;
+    padding: 0 12px;
   }
 
   .header-divider {
@@ -326,6 +334,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     height: 20px;
     background-color: var(--border-color);
     margin: 0 4px;
+    flex-shrink: 0;
   }
 
   .username-btn {

@@ -19,6 +19,7 @@ import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/upload_conflict_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_helpers.dart';
 
 void main() {
   final tempDir = Directory.systemTemp.createTempSync('cc_conflict_test_');
@@ -65,8 +66,8 @@ void main() {
     UploadConflictResolution? result;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
+      wrapWithLocalization(
+        Scaffold(
           body: Builder(
             builder: (context) => ElevatedButton(
               onPressed: () async {
@@ -108,8 +109,8 @@ void main() {
     UploadConflictResolution? result;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
+      wrapWithLocalization(
+        Scaffold(
           body: Builder(
             builder: (context) => ElevatedButton(
               onPressed: () async {
@@ -147,8 +148,8 @@ void main() {
     UploadConflictResolution? result;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
+      wrapWithLocalization(
+        Scaffold(
           body: Builder(
             builder: (context) => ElevatedButton(
               onPressed: () async {
@@ -191,8 +192,8 @@ void main() {
     UploadConflictResolution? result;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
+      wrapWithLocalization(
+        Scaffold(
           body: Builder(
             builder: (context) => ElevatedButton(
               onPressed: () async {

@@ -35,8 +35,10 @@ class BiometricAuthService {
   }
 
   /// Triggers a biometric prompt to authorize unlocking saved credentials.
-  Future<bool> unlockSavedCredentials() async {
-    return _authenticate('Unlock saved credentials for Crowley\'s Cloud.');
+  Future<bool> unlockSavedCredentials({String? localizedReason}) async {
+    return _authenticate(
+      localizedReason ?? 'Unlock saved credentials for Crowley\'s Cloud.',
+    );
   }
 
   /// Internal helper invoking native device biometrics with fallback protection.

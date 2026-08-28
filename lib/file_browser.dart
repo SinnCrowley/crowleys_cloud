@@ -26,6 +26,7 @@ import 'package:crowleys_cloud/shared/widgets/selection_action_bar.dart';
 import 'package:crowleys_cloud/shared/widgets/selection_header_bar.dart';
 import 'package:crowleys_cloud/smart_thumbnail.dart';
 import 'package:flutter/material.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -130,27 +131,30 @@ class _FileBrowserScreenState extends State<FileBrowser> {
   Future<void> _deleteSelectedFiles() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: appSurface,
-        title: Text('Delete Files?', style: TextStyle(color: appText)),
-        content: Text(
-          'Are you sure you want to delete ${_controller.selectedFiles.length} selected items? This action cannot be undone.',
-          style: TextStyle(color: appSubtext),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          backgroundColor: appSurface,
+          title: Text(l10n.deleteFilesTitle, style: TextStyle(color: appText)),
+          content: Text(
+            l10n.deleteFilesBody(_controller.selectedFiles.length),
+            style: TextStyle(color: appSubtext),
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.redAccent),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
             ),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                l10n.delete,
+                style: const TextStyle(color: Colors.redAccent),
+              ),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed == true) {
@@ -175,9 +179,10 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     if (name == null) return;
     final error = await _controller.createFolder(name);
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(error ?? 'Folder created.')));
+    ).showSnackBar(SnackBar(content: Text(error ?? l10n.folderCreated)));
   }
 
   Future<String?> _pickLocalFolder() async {
@@ -212,37 +217,39 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     if (destination == null) return;
     final error = await _controller.moveSelectedToFolder(destination);
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(error ?? 'Moved to folder.')));
+    ).showSnackBar(SnackBar(content: Text(error ?? l10n.movedToFolder)));
   }
 
   Future<void> _renameItem(FileItem item) async {
     final newName = await showDialog<String>(
       context: context,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         final controller = TextEditingController(text: item.name);
         return AlertDialog(
           backgroundColor: appSurface,
-          title: Text('Rename', style: TextStyle(color: appText)),
+          title: Text(l10n.renameDialogTitle, style: TextStyle(color: appText)),
           content: TextField(
             controller: controller,
             autofocus: true,
             style: TextStyle(color: appText),
             decoration: InputDecoration(
-              hintText: 'Enter new name',
+              hintText: l10n.enterNewName,
               hintStyle: TextStyle(color: appSubtext),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () =>
                   Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('Rename'),
+              child: Text(l10n.rename),
             ),
           ],
         );
@@ -252,8 +259,10 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     if (newName == null || newName.isEmpty || newName == item.name) return;
     final ok = await _controller.renameItem(item, newName);
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     final msg =
-        _controller.operationMessage ?? (ok ? 'Renamed' : 'Failed to rename');
+        _controller.operationMessage ??
+        (ok ? l10n.renamedSuccessfully : l10n.renameFailed(''));
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
@@ -261,65 +270,70 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     showModalBottomSheet(
       context: context,
       backgroundColor: appSurface,
-      builder: (_) => Wrap(
-        children: [
-          ListTile(
-            leading: Icon(Icons.edit, color: appSubtext),
-            title: Text('Rename', style: TextStyle(color: appText)),
-            onTap: () async {
-              Navigator.pop(context);
-              await _renameItem(item);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.upload, color: appSubtext),
-            title: Text('Upload', style: TextStyle(color: appText)),
-            onTap: () async {
-              Navigator.pop(context);
-              await _uploadItems([item]);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.delete, color: appSubtext),
-            title: Text('Delete', style: TextStyle(color: appText)),
-            onTap: () async {
-              Navigator.pop(context);
-              _controller.toggleSelection(item);
-              await _deleteSelectedFiles();
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.share, color: appSubtext),
-            title: Text('Share', style: TextStyle(color: appText)),
-            onTap: () async {
-              Navigator.pop(context);
-              _controller.toggleSelection(item);
-              await _controller.shareSelectedFiles();
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.drive_file_move, color: appSubtext),
-            title: Text('Add to folder', style: TextStyle(color: appText)),
-            onTap: () async {
-              Navigator.pop(context);
-              _controller.toggleSelection(item);
-              await _addSelectedToFolder();
-            },
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Wrap(
+          children: [
+            ListTile(
+              leading: Icon(Icons.edit, color: appSubtext),
+              title: Text(l10n.rename, style: TextStyle(color: appText)),
+              onTap: () async {
+                Navigator.pop(context);
+                await _renameItem(item);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.upload, color: appSubtext),
+              title: Text(l10n.upload, style: TextStyle(color: appText)),
+              onTap: () async {
+                Navigator.pop(context);
+                await _uploadItems([item]);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete, color: appSubtext),
+              title: Text(l10n.delete, style: TextStyle(color: appText)),
+              onTap: () async {
+                Navigator.pop(context);
+                _controller.toggleSelection(item);
+                await _deleteSelectedFiles();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.share, color: appSubtext),
+              title: Text(l10n.share, style: TextStyle(color: appText)),
+              onTap: () async {
+                Navigator.pop(context);
+                _controller.toggleSelection(item);
+                await _controller.shareSelectedFiles();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.drive_file_move, color: appSubtext),
+              title: Text(l10n.addToFolder, style: TextStyle(color: appText)),
+              onTap: () async {
+                Navigator.pop(context);
+                _controller.toggleSelection(item);
+                await _addSelectedToFolder();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
   List<({String label, String path})> _buildMainBreadcrumbItems(
+    BuildContext context,
     String rootPath,
     String currentPath,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final separator = Platform.pathSeparator;
     if (currentPath == rootPath ||
         currentPath.startsWith('$rootPath$separator')) {
       final items = <({String label, String path})>[
-        (label: 'Storage', path: rootPath),
+        (label: l10n.storageRoot, path: rootPath),
       ];
       final relativePath = currentPath == rootPath
           ? ''
@@ -356,7 +370,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
       return const SizedBox.shrink();
     }
     final rootPath = _controller.directoryHistory.first.path;
-    final items = _buildMainBreadcrumbItems(rootPath, currentDir.path);
+    final items = _buildMainBreadcrumbItems(context, rootPath, currentDir.path);
     return BreadcrumbBar(
       items: items,
       onItemTap: (path) => _controller.navigateToDirectory(Directory(path)),
@@ -430,6 +444,7 @@ class _HeaderControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (controller.isSelectionMode) {
       return SelectionHeaderBar(
         selectedCount: controller.selectedFiles.length,
@@ -448,7 +463,7 @@ class _HeaderControls extends StatelessWidget {
             FilledButton.icon(
               onPressed: onCreateFolder,
               icon: const Icon(Icons.create_new_folder),
-              label: const Text('New folder'),
+              label: Text(l10n.newFolder),
             ),
           const Spacer(),
           Container(
@@ -468,16 +483,24 @@ class _HeaderControls extends StatelessWidget {
                     dropdownColor: appSurface,
                     style: TextStyle(color: appText),
                     icon: Icon(Icons.arrow_drop_down, color: appSubtext),
-                    items: SortBy.values
-                        .map(
-                          (v) => DropdownMenuItem(
-                            value: v,
-                            child: Text(
-                              v.name[0].toUpperCase() + v.name.substring(1),
-                            ),
-                          ),
-                        )
-                        .toList(),
+                    items: SortBy.values.map((v) {
+                      String label;
+                      switch (v) {
+                        case SortBy.name:
+                          label = l10n.name;
+                          break;
+                        case SortBy.date:
+                          label = l10n.date;
+                          break;
+                        case SortBy.size:
+                          label = l10n.size;
+                          break;
+                        case SortBy.type:
+                          label = l10n.type;
+                          break;
+                      }
+                      return DropdownMenuItem(value: v, child: Text(label));
+                    }).toList(),
                     onChanged: (v) {
                       if (v != null) {
                         controller.updateSortBy(v);
@@ -643,10 +666,13 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
     await _reload();
   }
 
-  List<({String label, String path})> _buildBreadcrumbItems() {
+  List<({String label, String path})> _buildBreadcrumbItems(
+    BuildContext context,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isUnderNavigationRoot(_currentPath)) {
       final items = <({String label, String path})>[
-        (label: 'Storage', path: _navigationRootPath),
+        (label: l10n.storageRoot, path: _navigationRootPath),
       ];
       final basePrefix = '$_navigationRootPath${Platform.pathSeparator}';
       final relativePath = _currentPath == _navigationRootPath
@@ -686,8 +712,8 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
     return items;
   }
 
-  Widget _buildBreadcrumb() {
-    final items = _buildBreadcrumbItems();
+  Widget _buildBreadcrumb(BuildContext context) {
+    final items = _buildBreadcrumbItems(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -724,32 +750,11 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
   }
 
   Future<void> _createFolder() async {
-    final input = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: appSurface,
-        title: Text('Create Folder', style: TextStyle(color: appText)),
-        content: TextField(
-          controller: input,
-          autofocus: true,
-          style: TextStyle(color: appText),
-          decoration: InputDecoration(
-            hintText: 'Folder name',
-            hintStyle: TextStyle(color: appSubtext),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, input.text),
-            child: const Text('Create'),
-          ),
-        ],
-      ),
+    final name = await CreateFolderDialog.show(
+      context,
+      backgroundColor: appSurface,
+      textColor: appText,
+      hintColor: appSubtext,
     );
     if (name == null) return;
     final error = await widget.controller.createFolderAtPath(
@@ -757,16 +762,18 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
       name,
     );
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(error ?? 'Folder created.')));
+    ).showSnackBar(SnackBar(content: Text(error ?? l10n.folderCreated)));
     await _reload();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Folder')),
+      appBar: AppBar(title: Text(l10n.selectFolder)),
       body: Column(
         children: [
           Padding(
@@ -781,7 +788,7 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
                 FilledButton.icon(
                   onPressed: _createFolder,
                   icon: const Icon(Icons.create_new_folder),
-                  label: const Text('New folder'),
+                  label: Text(l10n.newFolder),
                 ),
                 const Spacer(),
                 Container(
@@ -801,17 +808,27 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
                           dropdownColor: appSurface,
                           style: TextStyle(color: appText),
                           icon: Icon(Icons.arrow_drop_down, color: appSubtext),
-                          items: SortBy.values
-                              .map(
-                                (v) => DropdownMenuItem(
-                                  value: v,
-                                  child: Text(
-                                    v.name[0].toUpperCase() +
-                                        v.name.substring(1),
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                          items: SortBy.values.map((v) {
+                            String label;
+                            switch (v) {
+                              case SortBy.name:
+                                label = l10n.name;
+                                break;
+                              case SortBy.date:
+                                label = l10n.date;
+                                break;
+                              case SortBy.size:
+                                label = l10n.size;
+                                break;
+                              case SortBy.type:
+                                label = l10n.type;
+                                break;
+                            }
+                            return DropdownMenuItem(
+                              value: v,
+                              child: Text(label),
+                            );
+                          }).toList(),
                           onChanged: (v) {
                             if (v == null) return;
                             setState(() => _sortBy = v);
@@ -848,7 +865,7 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          _buildBreadcrumb(),
+          _buildBreadcrumb(context),
           const SizedBox(height: 8),
           Expanded(
             child: _loading
@@ -923,7 +940,7 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
         foregroundColor: Colors.white,
         onPressed: () => Navigator.pop(context, _currentPath),
         icon: const Icon(Icons.check),
-        label: const Text('Use this folder'),
+        label: Text(l10n.useThisFolder),
       ),
     );
   }
@@ -946,14 +963,17 @@ class _FileListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (controller.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
     if (controller.error != null) {
-      return Center(child: Text('Error: ${controller.error}'));
+      return Center(
+        child: Text(l10n.errorWithMessage(controller.error.toString())),
+      );
     }
     if (controller.files.isEmpty) {
-      return const Center(child: Text('No files found.'));
+      return Center(child: Text(l10n.noFilesFound));
     }
 
     return Scrollbar(
@@ -1132,6 +1152,7 @@ class _SelectionActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SelectionActionBar(
       backgroundColor: appSurface,
       textColor: appText,
@@ -1140,25 +1161,29 @@ class _SelectionActionBar extends StatelessWidget {
         if (onRename != null)
           SelectionAction(
             icon: Icons.edit,
-            label: 'Rename',
+            label: l10n.rename,
             onPressed: onRename!,
           ),
         SelectionAction(
           icon: Icons.upload,
-          label: 'Upload',
+          label: l10n.upload,
           onPressed: onUpload,
         ),
         SelectionAction(
           icon: Icons.delete,
-          label: 'Delete',
+          label: l10n.delete,
           onPressed: onDelete,
         ),
         SelectionAction(
           icon: Icons.drive_file_move,
-          label: 'Add to folder',
+          label: l10n.addToFolder,
           onPressed: onAddToFolder,
         ),
-        SelectionAction(icon: Icons.share, label: 'Share', onPressed: onShare),
+        SelectionAction(
+          icon: Icons.share,
+          label: l10n.share,
+          onPressed: onShare,
+        ),
       ],
     );
   }

@@ -1,0 +1,2654 @@
+{
+  "@@locale": "id",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "Batal",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "Simpan",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "Hapus",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "Ganti Nama",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "Tutup",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "Coba Lagi",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "Memuat...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "Konfirmasi",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "Kesalahan",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "Kesalahan: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "Tidak diketahui",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "Unggah",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "Unduh",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "Bagikan",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "Salin",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "Pindahkan",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "Pulihkan",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "Terapkan",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "Buat",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "Bersihkan",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "Tambah",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "Hapus",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "Edit",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "Beralih",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "Cari",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "Nama",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "Tanggal",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "Ukuran",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "Jenis",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "Naik",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "Turun",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "Semua",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "Gambar",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "Foto",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "Video",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "Audio",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "Dokumen",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "Arsip",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "Dibagikan",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "Lainnya",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "Berkas Lainnya",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "Berkas tidak ditemukan.",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "Tidak ada berkas di folder ini.",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "Tindakan ini tidak dapat dibatalkan.",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "Kata sandi tidak cocok.",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "Lokal",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "Server",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "Pengaturan",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "Sampah",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "Lokal",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "Server",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "Tambah Server",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "Belum ada server yang dikonfigurasi.",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "Tambahkan server di Pengaturan.",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "Tambahkan server pertama Anda untuk melanjutkan.",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "Belum ada server yang dikonfigurasi.",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "Penyiapan Crowley's Cloud",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "Hubungkan",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "Menghubungkan...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "Terhubung",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "Terputus",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "Beralih Server",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "Pilih Server Lain",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "Beralih Server?",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "Beralih server aktif ke \"{serverName}\"?",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "Pilih Server",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "Autentikasi Diperlukan",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "Masuk untuk mengakses berkas di {serverName}",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "Masuk dengan Kata Sandi",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "Gunakan Biometrik",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "Membuka proses masuk...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "Koneksi Server Gagal",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "Tidak dapat terhubung ke server aktif.",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "Tidak dapat terhubung ke {serverName}.",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "Cari...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "Cari berkas...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "Cari berkas server...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "Cari di sampah...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "Izin Penyimpanan Diperlukan",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "Beri Izin",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "Izin ditolak. Silakan berikan izin akses penyimpanan di Pengaturan.",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "Izin Kelola Penyimpanan diperlukan untuk menelusuri dan memilih folder.",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "Izin penyimpanan diperlukan untuk melakukan sinkronisasi.",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "Pembaruan Tersedia: v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "Ketuk untuk melihat yang baru",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "Lihat",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "Pembaruan Tersedia",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "Versi {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "Saat ini: v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "Terbaru: v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "Yang baru:",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "GitHub",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "Tidak ada catatan rilis yang disediakan.",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "Nanti",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "Unduh APK",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "Perbarui",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "Tautan Berbagi",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "Bagikan lewat Tautan",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "Bagikan di Server",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "Kedaluwarsa (hari)",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "Tidak pernah",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "1 hari",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "7 hari",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "30 hari",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "90 hari",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "180 hari",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "365 hari",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "Buat Tautan",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "Tautan berbagi disalin ke papan klip!",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "Gagal menyalin tautan berbagi: {error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "Jenis berkas ini tidak dapat dibagikan.",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "Gagal membuat berbagi: {error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "Buat Folder",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "Nama folder",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "Folder Baru",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "Folder dibuat.",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "Gagal membuat folder: {error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "Membuat folder...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "Ganti Nama",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "Nama baru",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "Masukkan nama baru",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "Berhasil diganti nama.",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "Gagal mengganti nama: {error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "Pindahkan ke",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "Pindahkan ke: {path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "Pindahkan ke Sini",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "Gagal memindahkan: {error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "Dipindahkan ke folder.",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "Gagal menyalin: {error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "Pilih Folder",
+  "@selectFolder": {
+    "description": "Folder picker dialog title"
+  },
+  "useThisFolder": "Gunakan Folder Ini",
+  "@useThisFolder": {
+    "description": "Button to confirm selected folder"
+  },
+  "storageRoot": "Penyimpanan",
+  "@storageRoot": {
+    "description": "Root breadcrumb label for local storage"
+  },
+  "serverRoot": "root",
+  "@serverRoot": {
+    "description": "Root breadcrumb label for server storage"
+  },
+  "deleteNItemsTitle": "Hapus {count} item?",
+  "@deleteNItemsTitle": {
+    "description": "Delete confirmation dialog title with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "Hapus berkas?",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirmation dialog title"
+  },
+  "deleteFilesBody": "Apakah Anda yakin ingin menghapus {count} item yang dipilih? Tindakan ini tidak dapat dibatalkan.",
+  "@deleteFilesBody": {
+    "description": "Delete files confirmation body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "Hapus Permanen",
+  "@deletePermanently": {
+    "description": "Delete permanently action button"
+  },
+  "deletePermanentlyTitle": "Hapus Permanen?",
+  "@deletePermanentlyTitle": {
+    "description": "Delete permanently confirmation title"
+  },
+  "deletePermanentlyBody": "{filename} akan dihapus secara permanen.",
+  "@deletePermanentlyBody": {
+    "description": "Delete permanently confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "Hapus berkas?",
+  "@deleteFileTitle": {
+    "description": "Delete single file confirmation title"
+  },
+  "deleteFileBody": "Apakah Anda yakin ingin menghapus {filename}? Tindakan ini tidak dapat dibatalkan.",
+  "@deleteFileBody": {
+    "description": "Delete single file confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "Hapus Permanen",
+  "@deleteServerFileTitle": {
+    "description": "Delete server file confirmation title"
+  },
+  "deleteServerFileBody": "Apakah Anda yakin ingin menghapus \"{filename}\" secara permanen? Tindakan ini tidak dapat dibatalkan.",
+  "@deleteServerFileBody": {
+    "description": "Delete server file confirmation body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "Batalkan Berbagi Item?",
+  "@unshareItemsTitle": {
+    "description": "Unshare items dialog title"
+  },
+  "unshareItemsBody": "Apakah Anda yakin ingin membatalkan berbagi {count} item yang dipilih? Item tersebut akan dihapus dari folder Dibagikan.",
+  "@unshareItemsBody": {
+    "description": "Unshare items dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "Batal Berbagi",
+  "@unshare": {
+    "description": "Unshare action button"
+  },
+  "moveToTrash": "Pindahkan ke Sampah",
+  "@moveToTrash": {
+    "description": "Move to trash action button"
+  },
+  "movedToTrash": "Dipindahkan ke sampah.",
+  "@movedToTrash": {
+    "description": "Snackbar when single item moved to trash"
+  },
+  "movedNItemsToTrash": "Memindahkan {count} item ke sampah.",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar when multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "Gagal memindahkan ke sampah: {error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move to trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "Menghapus {count} item.",
+  "@deletedNItems": {
+    "description": "Snackbar when items are deleted",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "Gagal menghapus: {error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "Gagal menghapus item: {error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on single item delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "Menghapus {filename}.",
+  "@deletedFilename": {
+    "description": "Snackbar on single file deletion",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "Tidak dapat membuka berkas",
+  "@failedToOpenFile": {
+    "description": "Snackbar when opening a file fails"
+  },
+  "fileDownloadFailed": "Unduhan berkas gagal: {error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "Mengunduh...",
+  "@downloading": {
+    "description": "Download progress indicator"
+  },
+  "downloadingFile": "Mengunduh berkas...",
+  "@downloadingFile": {
+    "description": "Download progress indicator with text"
+  },
+  "downloadComplete": "Unduhan selesai: {filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download complete",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "Unduhan gagal: {error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "Tidak dapat mengunduh pratinjau",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar on preview download failure"
+  },
+  "uploadComplete": "Unggahan selesai: {filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload complete",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "Unggahan gagal: {error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "Tidak dapat memilih berkas",
+  "@failedToPickFiles": {
+    "description": "Snackbar on file picker failure"
+  },
+  "uploadedNItems": "Mengunggah {count} berkas",
+  "@uploadedNItems": {
+    "description": "Snackbar when multiple items uploaded",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "Tautan disalin ke papan klip.",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on copy link success"
+  },
+  "failedToCopyLink": "Gagal menyalin tautan: {error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on copy link failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "Memilih semua...",
+  "@selectingAll": {
+    "description": "Progress state while selecting all files"
+  },
+  "allItemsSelected": "Semua item dipilih.",
+  "@allItemsSelected": {
+    "description": "Snackbar when all files are selected"
+  },
+  "failedToLoadSearchResults": "Gagal memuat hasil pencarian",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar when search fails"
+  },
+  "shareNotSupportedForType": "Berbagi tidak didukung untuk jenis berkas ini.",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar when file type cannot be shared"
+  },
+  "nSelected": "{count} dipilih",
+  "@nSelected": {
+    "description": "Selection counter in app bar",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "Tidak ada server yang dipilih",
+  "@noServerSelected": {
+    "description": "Error banner when no server is chosen"
+  },
+  "pleaseConnectToServerFirst": "Harap hubungkan ke server terlebih dahulu.",
+  "@pleaseConnectToServerFirst": {
+    "description": "Error banner subtitle"
+  },
+  "signInRequired": "Masuk Diperlukan",
+  "@signInRequired": {
+    "description": "Sign-in prompt title"
+  },
+  "pleaseSignInToServer": "Harap masuk ke {serverName} terlebih dahulu.",
+  "@pleaseSignInToServer": {
+    "description": "Sign-in prompt subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "Menghubungkan ke server...",
+  "@connectingToServer": {
+    "description": "Loading state during connection"
+  },
+  "connectedToServer": "Terhubung ke {serverName}.",
+  "@connectedToServer": {
+    "description": "Snackbar on successful server connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "Koneksi gagal: {error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "Tidak dapat terhubung: {error}",
+  "@failedToConnect": {
+    "description": "Snackbar on failed connection attempt",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "Autentikasi gagal: {error}",
+  "@authFailed": {
+    "description": "Snackbar on auth failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "Autentikasi gagal. Silakan coba lagi.",
+  "@authFailedGeneric": {
+    "description": "Snackbar on generic auth failure"
+  },
+  "biometricLoginFailed": "Masuk dengan biometrik gagal: {error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric failure with error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "Masuk dengan biometrik gagal.",
+  "@biometricLoginFailedGeneric": {
+    "description": "Snackbar on generic biometric failure"
+  },
+  "noServerSessionToken": "Tidak ada token sesi server. Silakan autentikasi ulang dengan server.",
+  "@noServerSessionToken": {
+    "description": "Error when session token is missing"
+  },
+  "failedToSaveServer": "Gagal menyimpan server: {error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on save server failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "Tambah ke Folder",
+  "@addToFolder": {
+    "description": "Button to add files to current folder"
+  },
+  "loginTabLabel": "Masuk",
+  "@loginTabLabel": {
+    "description": "Auth screen tab: login"
+  },
+  "registerTabLabel": "Daftar",
+  "@registerTabLabel": {
+    "description": "Auth screen tab: register"
+  },
+  "welcomeBack": "Selamat Datang Kembali",
+  "@welcomeBack": {
+    "description": "Auth screen card title for login"
+  },
+  "signInToContinue": "Masuk untuk melanjutkan",
+  "@signInToContinue": {
+    "description": "Auth screen card subtitle for login"
+  },
+  "createAccount": "Buat Akun",
+  "@createAccount": {
+    "description": "Auth screen card title for register"
+  },
+  "joinTheServer": "Bergabung dengan server",
+  "@joinTheServer": {
+    "description": "Auth screen card subtitle for register"
+  },
+  "usernameLabel": "Nama Pengguna",
+  "@usernameLabel": {
+    "description": "Username field label"
+  },
+  "usernameHint": "Masukkan nama pengguna Anda",
+  "@usernameHint": {
+    "description": "Username field hint"
+  },
+  "passwordLabel": "Kata Sandi",
+  "@passwordLabel": {
+    "description": "Password field label"
+  },
+  "passwordHint": "Masukkan kata sandi Anda",
+  "@passwordHint": {
+    "description": "Password field hint"
+  },
+  "showPassword": "Tampilkan kata sandi",
+  "@showPassword": {
+    "description": "Tooltip for show password icon"
+  },
+  "hidePassword": "Sembunyikan kata sandi",
+  "@hidePassword": {
+    "description": "Tooltip for hide password icon"
+  },
+  "confirmPassword": "Konfirmasi Kata Sandi",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "Masuk",
+  "@logIn": {
+    "description": "Log In submit button"
+  },
+  "loggingIn": "Sedang masuk...",
+  "@loggingIn": {
+    "description": "Log In button loading state"
+  },
+  "registering": "Mendaftar...",
+  "@registering": {
+    "description": "Register button loading state"
+  },
+  "forgotPassword": "Lupa Kata Sandi?",
+  "@forgotPassword": {
+    "description": "Forgot password link button"
+  },
+  "doNotHaveAccount": "Belum punya akun? Beralih ke Daftar.",
+  "@doNotHaveAccount": {
+    "description": "Switch to register tab hint"
+  },
+  "alreadyHaveAccount": "Sudah punya akun? Beralih ke Masuk.",
+  "@alreadyHaveAccount": {
+    "description": "Switch to login tab hint"
+  },
+  "usernameCannotBeEmpty": "Nama pengguna tidak boleh kosong.",
+  "@usernameCannotBeEmpty": {
+    "description": "Username validation error"
+  },
+  "passwordCannotBeEmpty": "Kata sandi tidak boleh kosong.",
+  "@passwordCannotBeEmpty": {
+    "description": "Password validation error"
+  },
+  "usernameInvalid": "Nama pengguna harus berupa 3-32 huruf, angka, _, atau -.",
+  "@usernameInvalid": {
+    "description": "Username regex validation error"
+  },
+  "passwordTooShort": "Kata sandi harus minimal 8 karakter.",
+  "@passwordTooShort": {
+    "description": "Password length validation error"
+  },
+  "loginFailed": "Gagal masuk: {error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "Pendaftaran gagal: {error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "Atur Ulang Kata Sandi",
+  "@resetPasswordTitle": {
+    "description": "Reset password dialog/screen title"
+  },
+  "enterResetCodeTitle": "Masukkan Kode Atur Ulang",
+  "@enterResetCodeTitle": {
+    "description": "Reset password step 2 title"
+  },
+  "resetPasswordStep1Body": "Masukkan nama pengguna Anda. Kode verifikasi 6 digit akan dicetak ke log/konsol server.",
+  "@resetPasswordStep1Body": {
+    "description": "Reset password step 1 instructions"
+  },
+  "resetPasswordStep2Body": "Kode verifikasi telah dicetak ke konsol server. Masukkan kode 6 digit dan kata sandi baru Anda.",
+  "@resetPasswordStep2Body": {
+    "description": "Reset password step 2 instructions"
+  },
+  "resetCodeLabel": "Kode Atur Ulang",
+  "@resetCodeLabel": {
+    "description": "Reset code text field label"
+  },
+  "resetCodeHint": "Masukkan kode 6 digit",
+  "@resetCodeHint": {
+    "description": "Reset code text field hint"
+  },
+  "newPasswordLabel": "Kata Sandi Baru",
+  "@newPasswordLabel": {
+    "description": "New password text field label"
+  },
+  "newPasswordHint": "Masukkan kata sandi baru",
+  "@newPasswordHint": {
+    "description": "New password text field hint"
+  },
+  "passwordResetSuccessfully": "Kata sandi berhasil diatur ulang!",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "Nama pengguna wajib diisi.",
+  "@usernameIsRequired": {
+    "description": "Validation: username is required for reset"
+  },
+  "codeAndPasswordRequired": "Kode dan kata sandi baru diperlukan.",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "Gagal meminta atur ulang. Periksa URL server Anda.",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request error"
+  },
+  "failedToResetPassword": "Gagal mengatur ulang kata sandi. Periksa kode Anda.",
+  "@failedToResetPassword": {
+    "description": "Snackbar on password reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "Harap masukkan URL server terlebih dahulu.",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Validation: server URL needed before reset"
+  },
+  "sendCode": "Kirim Kode",
+  "@sendCode": {
+    "description": "Button to request reset code"
+  },
+  "settingsTitle": "Pengaturan",
+  "@settingsTitle": {
+    "description": "AppBar title for settings screen"
+  },
+  "sectionBackupSync": "Cadangkan & Sinkronkan",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "Penyimpanan & Cache",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "Keamanan & Perilaku",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security"
+  },
+  "sectionAboutUpdates": "Tentang & Pembaruan",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "Tampilan & Kustomisasi",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "Belum ada server yang dikonfigurasi",
+  "@noServersConfiguredSync": {
+    "description": "Sync settings subtitle when no servers"
+  },
+  "addServerBeforeSync": "Tambahkan server sebelum mengonfigurasi sinkronisasi.",
+  "@addServerBeforeSync": {
+    "description": "Sync settings prompt when no servers"
+  },
+  "selectServerToConfigureSync": "Pilih server untuk mengonfigurasi sinkronisasi.",
+  "@selectServerToConfigureSync": {
+    "description": "Sync settings server selector subtitle"
+  },
+  "activeServerSuffix": " · aktif",
+  "@activeServerSuffix": {
+    "description": "Suffix for active server in sync selector"
+  },
+  "folderAndCategorySync": "Sinkronisasi Folder & Kategori",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle tile title"
+  },
+  "keepCategoriesSynced": "Jaga agar kategori atau folder lokal yang dipilih tetap tersinkronisasi dengan server ini.",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle tile subtitle"
+  },
+  "addServerBeforeSyncEnable": "Tambahkan server sebelum mengaktifkan sinkronisasi.",
+  "@addServerBeforeSyncEnable": {
+    "description": "Snackbar when enabling sync with no server"
+  },
+  "onlyOnWifi": "Hanya di Wi-Fi",
+  "@onlyOnWifi": {
+    "description": "Sync constraint switch label"
+  },
+  "onlyWhileCharging": "Hanya Saat Mengisi Daya",
+  "@onlyWhileCharging": {
+    "description": "Sync constraint switch label"
+  },
+  "serverTargetDirectory": "Direktori Target Server",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory tile title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Sync target directory text field hint"
+  },
+  "synchronizationFrequency": "Frekuensi Sinkronisasi",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency tile title"
+  },
+  "syncNow": "Sinkronkan Sekarang",
+  "@syncNow": {
+    "description": "Sync now action button"
+  },
+  "syncing": "Menyinkronkan...",
+  "@syncing": {
+    "description": "Syncing state label"
+  },
+  "categoriesToSynchronize": "Kategori untuk Disinkronkan",
+  "@categoriesToSynchronize": {
+    "description": "Category sync selector tile title"
+  },
+  "noCategoriesSelected": "Tidak ada kategori yang dipilih.",
+  "@noCategoriesSelected": {
+    "description": "Category sync subtitle when none selected"
+  },
+  "nCategoriesSelected": "{count} dipilih",
+  "@nCategoriesSelected": {
+    "description": "Category sync subtitle with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "Folder untuk Disinkronkan",
+  "@foldersToSynchronize": {
+    "description": "Folder sync selector tile title"
+  },
+  "noCustomFolders": "Belum ada folder kustom yang dikonfigurasi.",
+  "@noCustomFolders": {
+    "description": "Folder sync subtitle when none configured"
+  },
+  "nFolders": "{count} folder",
+  "@nFolders": {
+    "description": "Folder sync subtitle with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "Tambah Folder",
+  "@addFolder": {
+    "description": "Button to add a folder to sync"
+  },
+  "removeFolder": "Hapus Folder",
+  "@removeFolder": {
+    "description": "Tooltip to remove a folder from sync"
+  },
+  "removeServer": "Hapus Server",
+  "@removeServer": {
+    "description": "Button to remove a server configuration"
+  },
+  "syncFreqEvery15Min": "Setiap 15 menit",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: 15 minutes"
+  },
+  "syncFreqEvery30Min": "Setiap 30 menit",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: 30 minutes"
+  },
+  "syncFreqEvery1Hour": "Setiap jam",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: 1 hour"
+  },
+  "syncFreqEveryNHours": "Setiap {hours} jam",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency option: N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "Setiap {minutes} menit",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency option: N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "Setiap hari",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "Pilih Frekuensi Sinkronisasi",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency dialog title"
+  },
+  "cacheSize": "Ukuran Cache",
+  "@cacheSize": {
+    "description": "Cache size tile title"
+  },
+  "refreshTooltip": "Segarkan",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh cache button"
+  },
+  "cacheLimit": "Batas Cache",
+  "@cacheLimit": {
+    "description": "Cache limit tile title"
+  },
+  "downloadPath": "Jalur Unduhan",
+  "@downloadPath": {
+    "description": "Download path tile title"
+  },
+  "defaultDownloadFolder": "Folder CrowleysCloud default",
+  "@defaultDownloadFolder": {
+    "description": "Download path subtitle when using default"
+  },
+  "clearCache": "Bersihkan Cache",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "Bersihkan Cache?",
+  "@clearCacheTitle": {
+    "description": "Clear cache dialog title"
+  },
+  "clearCacheBody": "Tindakan ini akan menghapus gambar mini lokal dan daftar server yang di-cache.",
+  "@clearCacheBody": {
+    "description": "Clear cache dialog body"
+  },
+  "downloadPathDialogTitle": "Jalur Unduhan",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path dialog text field hint"
+  },
+  "useDefault": "Gunakan Default",
+  "@useDefault": {
+    "description": "Button to reset download path to default"
+  },
+  "serverTargetDirDialogTitle": "Direktori Target Server",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "Wajibkan Masuk",
+  "@requireLogin": {
+    "description": "Require login setting tile title"
+  },
+  "biometricLogin": "Masuk dengan Biometrik",
+  "@biometricLogin": {
+    "description": "Biometric login switch tile title"
+  },
+  "biometricLoginSubtitle": "Izinkan masuk dengan kredensial tersimpan menggunakan biometrik.",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login switch tile subtitle"
+  },
+  "biometricsNotAvailable": "Biometrik tidak tersedia di perangkat ini.",
+  "@biometricsNotAvailable": {
+    "description": "Biometrics unavailable subtitle"
+  },
+  "showHiddenFiles": "Tampilkan Berkas Tersembunyi",
+  "@showHiddenFiles": {
+    "description": "Show hidden files tile title"
+  },
+  "showHiddenFilesSubtitle": "Tampilkan berkas dan folder yang diawali dengan titik.",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files tile subtitle"
+  },
+  "changePassword": "Ubah Kata Sandi",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "Ubah kata sandi untuk {serverName}.",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle with server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "Tambahkan server sebelum mengubah kata sandi.",
+  "@addServerBeforeChangePassword": {
+    "description": "Change password subtitle when no server"
+  },
+  "deleteUserAccount": "Hapus Akun Pengguna",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "Hapus pengguna dan semua berkas cloud pribadi.",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "Hapus Akun?",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirmation dialog title"
+  },
+  "deleteAccountBody": "Tindakan ini akan menghapus akun Anda di {serverName} secara permanen dan menghapus semua berkas yang disimpan di folder cloud pribadi Anda. Tindakan ini tidak dapat dibatalkan.",
+  "@deleteAccountBody": {
+    "description": "Delete account confirmation body with server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "Hapus Akun",
+  "@deleteAccountButton": {
+    "description": "Delete account action button label"
+  },
+  "changePasswordDialogTitle": "Ubah Kata Sandi",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "Kata Sandi Baru",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "Konfirmasi Kata Sandi",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "Masukkan kata sandi baru Anda.",
+  "@enterNewPassword": {
+    "description": "Change password instructions"
+  },
+  "passwordUpdated": "Kata sandi diperbarui.",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "Gagal mengubah kata sandi: {error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "Gagal mengubah kata sandi.",
+  "@passwordChangeFailedGeneric": {
+    "description": "Snackbar on generic password change failure"
+  },
+  "accountDeleted": "Akun dihapus.",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "Gagal menghapus akun: {error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "Gagal menghapus akun.",
+  "@accountDeletionFailedGeneric": {
+    "description": "Snackbar on generic account deletion failure"
+  },
+  "checkForUpdates": "Periksa Pembaruan",
+  "@checkForUpdates": {
+    "description": "Check for updates tile title"
+  },
+  "checkingForUpdates": "Memeriksa GitHub Releases...",
+  "@checkingForUpdates": {
+    "description": "Check for updates subtitle while querying"
+  },
+  "versionLabel": "Versi {version}",
+  "@versionLabel": {
+    "description": "Version display in about section",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "Crowley's Cloud sudah merupakan versi terbaru (v{version}).",
+  "@appIsUpToDate": {
+    "description": "Update check result: app is current",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "Gagal memeriksa pembaruan. Silakan coba lagi nanti.",
+  "@updateCheckFailed": {
+    "description": "Update check result: failure"
+  },
+  "themeModeTitle": "Mode Tema",
+  "@themeModeTitle": {
+    "description": "Theme mode selector title"
+  },
+  "themeDark": "Gelap",
+  "@themeDark": {
+    "description": "Theme option: dark"
+  },
+  "themeLight": "Terang",
+  "@themeLight": {
+    "description": "Theme option: light"
+  },
+  "themeCustom": "Kustom",
+  "@themeCustom": {
+    "description": "Theme option: custom"
+  },
+  "themeDarkFull": "Tema Gelap",
+  "@themeDarkFull": {
+    "description": "Theme option long: dark theme"
+  },
+  "themeLightFull": "Tema Terang",
+  "@themeLightFull": {
+    "description": "Theme option long: light theme"
+  },
+  "themeCustomFull": "Tema Kustom",
+  "@themeCustomFull": {
+    "description": "Theme option long: custom theme"
+  },
+  "accentColor": "Warna Aksen",
+  "@accentColor": {
+    "description": "Accent color setting label"
+  },
+  "primaryAccentColor": "Warna Aksen Utama",
+  "@primaryAccentColor": {
+    "description": "Primary accent color tile title"
+  },
+  "selectAccentColor": "Pilih Warna Aksen",
+  "@selectAccentColor": {
+    "description": "Select accent color dialog title"
+  },
+  "backgroundColor": "Warna Latar Belakang",
+  "@backgroundColor": {
+    "description": "Custom theme: background color"
+  },
+  "surfaceColor": "Warna Permukaan",
+  "@surfaceColor": {
+    "description": "Custom theme: surface color"
+  },
+  "textColor": "Warna Teks",
+  "@textColor": {
+    "description": "Custom theme: text color"
+  },
+  "subtextColor": "Warna Subteks",
+  "@subtextColor": {
+    "description": "Custom theme: subtext color"
+  },
+  "borderColor": "Warna Batas",
+  "@borderColor": {
+    "description": "Custom theme: border color"
+  },
+  "fontSizeScale": "Skala Ukuran Font",
+  "@fontSizeScale": {
+    "description": "Font size scale setting label"
+  },
+  "selectColor": "Pilih {title}",
+  "@selectColor": {
+    "description": "Color picker dialog title with slot name",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "Kategori untuk Disinkronkan",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Categories to sync dialog title"
+  },
+  "categoriesToSyncBody": "Pilih satu atau beberapa kategori. Anda juga dapat membatalkan pilihan semua.",
+  "@categoriesToSyncBody": {
+    "description": "Categories to sync dialog body"
+  },
+  "syncCategorySectionMedia": "Media",
+  "@syncCategorySectionMedia": {
+    "description": "Category section header: media"
+  },
+  "syncCategorySectionAudioDocs": "Audio & Dokumen",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Category section header: audio & documents"
+  },
+  "syncCategorySectionOther": "Lainnya",
+  "@syncCategorySectionOther": {
+    "description": "Category section header: other"
+  },
+  "clearAll": "Bersihkan Semua",
+  "@clearAll": {
+    "description": "Clear all button in sync categories dialog"
+  },
+  "noSyncHasRunYet": "Belum ada sinkronisasi yang berjalan.",
+  "@noSyncHasRunYet": {
+    "description": "Last sync status when never run"
+  },
+  "lastRunAt": "Terakhir berjalan {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "Menyinkronkan {uploaded}, melewati {skipped}.",
+  "@syncResultSuccess": {
+    "description": "Sync outcome: success summary",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "Tidak ada berkas yang dipilih untuk disinkronkan.",
+  "@syncResultNoFiles": {
+    "description": "Sync outcome: no files selected"
+  },
+  "syncResultPartial": "Menyinkronkan {uploaded}, gagal {failed}.",
+  "@syncResultPartial": {
+    "description": "Sync outcome: partial success summary",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "Masuk sebelum menyinkronkan.",
+  "@syncResultAuthRequired": {
+    "description": "Sync outcome: auth required"
+  },
+  "syncResultUnreachable": "Tidak dapat menjangkau server. Sambungan terputus.",
+  "@syncResultUnreachable": {
+    "description": "Sync outcome: server unreachable"
+  },
+  "syncResultFailed": "Sinkronisasi gagal.",
+  "@syncResultFailed": {
+    "description": "Sync outcome: generic failure"
+  },
+  "serverSetupAddServer": "Tambah Server",
+  "@serverSetupAddServer": {
+    "description": "Title for the Add Server setup flow"
+  },
+  "serverSetupCardTitle": "Hubungkan Server",
+  "@serverSetupCardTitle": {
+    "description": "Card title on server setup page"
+  },
+  "serverSetupCardSubtitle": "Tambahkan server berkas rumah Anda dan masuk.",
+  "@serverSetupCardSubtitle": {
+    "description": "Card subtitle on server setup page"
+  },
+  "serverSetupSubmitButton": "Simpan Server",
+  "@serverSetupSubmitButton": {
+    "description": "Save server submit button"
+  },
+  "serverNameLabel": "Nama Server",
+  "@serverNameLabel": {
+    "description": "Server name input label"
+  },
+  "serverNameHint": "NAS Rumah",
+  "@serverNameHint": {
+    "description": "Server name placeholder hint"
+  },
+  "baseUrlLabel": "URL Dasar",
+  "@baseUrlLabel": {
+    "description": "Server base URL input label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Server base URL placeholder hint"
+  },
+  "allFieldsRequired": "Semua bidang wajib diisi.",
+  "@allFieldsRequired": {
+    "description": "Validation message when required fields are empty"
+  },
+  "localFilesTitle": "Berkas Lokal",
+  "@localFilesTitle": {
+    "description": "AppBar title for local files browser"
+  },
+  "serverFilesTitle": "Berkas Server",
+  "@serverFilesTitle": {
+    "description": "AppBar title for server files browser"
+  },
+  "restoreItemsTitle": "Pulihkan Item",
+  "@restoreItemsTitle": {
+    "description": "Restore confirmation dialog title"
+  },
+  "restoreItemsBody": "Apakah Anda yakin ingin memulihkan {count} item?",
+  "@restoreItemsBody": {
+    "description": "Restore confirmation dialog body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "Hapus Permanen",
+  "@permanentlyDeleteTitle": {
+    "description": "Permanent delete dialog title"
+  },
+  "permanentlyDeleteBody": "Apakah Anda yakin ingin menghapus {count} item secara permanen? Tindakan ini tidak dapat dibatalkan.",
+  "@permanentlyDeleteBody": {
+    "description": "Permanent delete dialog body with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "Sampah kosong.",
+  "@trashIsEmpty": {
+    "description": "Empty state message for trash screen"
+  },
+  "trashRetentionInfo": "Item di sampah akan dihapus secara otomatis setelah {days} hari.",
+  "@trashRetentionInfo": {
+    "description": "Info message about trash retention policy",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "Tanggal Penghapusan",
+  "@deletionDate": {
+    "description": "Column header / label for deletion timestamp"
+  },
+  "deletePermanentlyAction": "Hapus Secara Permanen",
+  "@deletePermanentlyAction": {
+    "description": "Action sheet option to delete permanently"
+  },
+  "conflictFileAlreadyExists": "Berkas Sudah Ada",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "Konflik {current} / {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog counter badge",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "Berkas bernama ",
+  "@conflictAFileNamed": {
+    "description": "Prefix text in conflict dialog"
+  },
+  "conflictAlreadyExistsAt": " sudah ada di ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Middle text in conflict dialog between name and path"
+  },
+  "conflictAlreadyExistsInFolder": " sudah ada di folder ini.",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Suffix text in conflict dialog when path is not displayed"
+  },
+  "conflictInFolder": "Di Dalam Folder",
+  "@conflictInFolder": {
+    "description": "Conflict dialog badge for existing file"
+  },
+  "conflictFromTrash": "Dari Sampah",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog badge for restoring file"
+  },
+  "conflictExisting": "Yang Ada",
+  "@conflictExisting": {
+    "description": "Conflict dialog badge for existing item"
+  },
+  "conflictNewUpload": "Unggahan Baru",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog badge for incoming upload"
+  },
+  "conflictSizeLabel": "Ukuran: {size}",
+  "@conflictSizeLabel": {
+    "description": "File size label in conflict card",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "Tanggal: {date}",
+  "@conflictDateLabel": {
+    "description": "File date label in conflict card",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "Dihapus: {date}",
+  "@conflictDeletedLabel": {
+    "description": "File deletion date label in conflict card",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "Terapkan ke {count} konflik yang tersisa",
+  "@conflictApplyToRemaining": {
+    "description": "Checkbox to apply conflict decision to remaining",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "Simpan Semua Salinan",
+  "@conflictKeepAllCopies": {
+    "description": "Batch button to keep copies for all conflicts"
+  },
+  "conflictOverwriteAll": "Timpa Semua",
+  "@conflictOverwriteAll": {
+    "description": "Batch button to overwrite all conflicts"
+  },
+  "conflictRestoreAllAsCopies": "Pulihkan Semua sebagai Salinan",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Batch button to restore all as copies"
+  },
+  "conflictRestoreAsCopy": "Pulihkan sebagai Salinan",
+  "@conflictRestoreAsCopy": {
+    "description": "Single-item button to restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "Timpa Semua yang Tersisa",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Button to overwrite all remaining conflicts"
+  },
+  "conflictSkipAll": "Lewati Semua",
+  "@conflictSkipAll": {
+    "description": "Button to skip all conflicts"
+  },
+  "conflictSkipAllRemaining": "Lewati Semua yang Tersisa",
+  "@conflictSkipAllRemaining": {
+    "description": "Button to skip all remaining conflicts"
+  },
+  "conflictSkip": "Lewati",
+  "@conflictSkip": {
+    "description": "Button to skip single conflict"
+  },
+  "conflictOverwrite": "Timpa",
+  "@conflictOverwrite": {
+    "description": "Button to overwrite single file"
+  },
+  "transfersTitle": "Transfer",
+  "@transfersTitle": {
+    "description": "AppBar title for transfers screen"
+  },
+  "transferResume": "Lanjutkan",
+  "@transferResume": {
+    "description": "Action to resume paused transfer"
+  },
+  "transferPause": "Jeda",
+  "@transferPause": {
+    "description": "Action to pause running transfer"
+  },
+  "transferCancel": "Batal",
+  "@transferCancel": {
+    "description": "Action to cancel transfer"
+  },
+  "transferResumeAll": "Lanjutkan Semua",
+  "@transferResumeAll": {
+    "description": "Action to resume all transfers"
+  },
+  "transferPauseAll": "Jeda Semua",
+  "@transferPauseAll": {
+    "description": "Action to pause all transfers"
+  },
+  "transferCancelAll": "Batalkan Semua",
+  "@transferCancelAll": {
+    "description": "Action to cancel all transfers"
+  },
+  "transferCancelFile": "Batalkan Berkas",
+  "@transferCancelFile": {
+    "description": "Action to cancel single file transfer"
+  },
+  "noTransfers": "Tidak ada transfer.",
+  "@noTransfers": {
+    "description": "Empty state when no transfers exist"
+  },
+  "transferStatusQueued": "Dalam antrean",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "Berjalan",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "Dijeda",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "Selesai",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "Gagal",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "Dibatalkan",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "Preset",
+  "@themePresetsSection": {
+    "description": "Header for theme presets section"
+  },
+  "themeCustomPaletteSection": "Palet Kustom",
+  "@themeCustomPaletteSection": {
+    "description": "Header for custom color palette section"
+  },
+  "themeHexRgbLabel": "Kode HEX RGB",
+  "@themeHexRgbLabel": {
+    "description": "Color picker HEX input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Color picker HEX input placeholder"
+  },
+  "imageViewerNoFetchHandler": "Pengendali pengambilan gambar tidak dikonfigurasi",
+  "@imageViewerNoFetchHandler": {
+    "description": "Error when image viewer lacks network/local fetch handler"
+  },
+  "imageViewerFailedToLoad": "Gagal memuat gambar",
+  "@imageViewerFailedToLoad": {
+    "description": "Error when image fails to load in viewer"
+  },
+  "errorDeletingFile": "Gagal menghapus {filename}: {error}",
+  "@errorDeletingFile": {
+    "description": "Error message when file deletion fails in viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "Gagal membaca berkas: {error}",
+  "@errorReadingFile": {
+    "description": "Error message when text file read fails in viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "Sinkronisasi Latar Belakang",
+  "@syncChannelName": {
+    "description": "Notification channel name for background file synchronization"
+  },
+  "syncChannelDescription": "Menampilkan status sinkronisasi berkas latar belakang.",
+  "@syncChannelDescription": {
+    "description": "Notification channel description for background sync"
+  },
+  "storageStatsTitle": "Statistik Penyimpanan",
+  "@storageStatsTitle": {
+    "description": "Title for storage statistics card/section"
+  },
+  "storageStatsUsedSpace": "Ruang Digunakan",
+  "@storageStatsUsedSpace": {
+    "description": "Label for used storage space"
+  },
+  "storageStatsTotalFiles": "Total Berkas",
+  "@storageStatsTotalFiles": {
+    "description": "Label for total file count in storage stats"
+  },
+  "storageStatsNItems": "{count} item",
+  "@storageStatsNItems": {
+    "description": "File count display in storage stats",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "Pengguna #{userId}",
+  "@userFallback": {
+    "description": "Fallback display name when username is empty",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "Buka kunci kredensial tersimpan untuk Crowley's Cloud.",
+  "@biometricUnlockReason": {
+    "description": "Localized reason string presented in system biometric prompt"
+  },
+  "tokenLifetimeEveryOpen": "Setiap buka aplikasi",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime setting option: re-authenticate on every app launch"
+  },
+  "tokenLifetimeOneHour": "Setelah 1 jam",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime setting option: 1 hour"
+  },
+  "tokenLifetime1Hour": "Setelah 1 jam",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime setting option: 1 hour (compact)"
+  },
+  "tokenLifetimeOneDay": "Setelah 1 hari",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime setting option: 1 day"
+  },
+  "tokenLifetime1Day": "Setelah 1 hari",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime setting option: 1 day (compact)"
+  },
+  "tokenLifetimeOneWeek": "Setelah 1 minggu",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime setting option: 1 week"
+  },
+  "tokenLifetime1Week": "Setelah 1 minggu",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime setting option: 1 week (compact)"
+  },
+  "tokenLifetimeOneMonth": "Setelah 1 bulan",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime setting option: 1 month"
+  },
+  "tokenLifetime1Month": "Setelah 1 bulan",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime setting option: 1 month (compact)"
+  },
+  "tokenLifetimeThreeMonths": "Setelah 3 bulan",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime setting option: 3 months"
+  },
+  "tokenLifetime3Months": "Setelah 3 bulan",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime setting option: 3 months (compact)"
+  },
+  "tokenLifetimeNever": "Tidak pernah di perangkat ini",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime setting option: never expire"
+  },
+  "cacheLimitUnlimited": "Tak terbatas",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit setting option: no limit"
+  },
+  "syncCategoryOtherFiles": "Berkas Lainnya",
+  "@syncCategoryOtherFiles": {
+    "description": "Category name for other/uncategorized files in sync settings"
+  },
+  "internalStorage": "Penyimpanan Internal",
+  "@internalStorage": {
+    "description": "Display name for device internal storage root"
+  },
+  "localStorageRootName": "Penyimpanan Internal",
+  "@localStorageRootName": {
+    "description": "Display name for local root breadcrumb when path is empty"
+  },
+  "syncNotificationSyncingWith": "Menyinkronkan dengan {serverName}",
+  "@syncNotificationSyncingWith": {
+    "description": "Notification content text when sync is actively running",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "Sinkronisasi dengan {serverName} dijeda",
+  "@syncNotificationPausedTitle": {
+    "description": "Notification title when sync is paused due to constraints",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "Tidak dapat menjangkau server. Sinkronisasi latar belakang dijeda hingga Anda membuka aplikasi.",
+  "@syncNotificationUnreachableBody": {
+    "description": "Notification body when sync paused due to network/server unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "Autentikasi diperlukan. Buka aplikasi untuk masuk.",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Notification body when sync paused due to expired credentials"
+  },
+  "syncNotificationFailedTitle": "Sinkronisasi dengan {serverName} gagal",
+  "@syncNotificationFailedTitle": {
+    "description": "Notification title when sync fails with an error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "Terjadi kesalahan selama sinkronisasi.",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Notification body for generic sync error"
+  },
+  "syncNotificationCompleteTitle": "Sinkronisasi dengan {serverName} selesai",
+  "@syncNotificationCompleteTitle": {
+    "description": "Notification title when background sync finishes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "Sinkronisasi selesai.",
+  "@syncNotificationCompleteBody": {
+    "description": "Notification body for successful sync completion"
+  },
+  "syncStatusConnecting": "Menghubungkan ke server...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress step: connecting to server"
+  },
+  "syncStatusConnectionLost": "Tidak dapat terhubung ke {serverName}. Sambungan terputus.",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error: connection lost with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "Tidak dapat terhubung ke {serverName}. Sambungan terputus.",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync result error: server unreachable with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "Memindai berkas di perangkat...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress step: scanning local filesystem"
+  },
+  "syncStatusNoFilesFound": "Tidak ada berkas yang ditemukan untuk disinkronkan.",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync status: no local files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "Tidak ada berkas yang dipilih untuk disinkronkan.",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync status: no categories or folders selected"
+  },
+  "syncStatusCalculatingChecksum": "Menghitung checksum ({current}/{total}): {filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress step: hashing local file for change detection",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "Memeriksa duplikat di server...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress step: checking file index on server"
+  },
+  "syncStatusSyncingFile": "Menyinkronkan ({current}/{total}): {filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress step: uploading single file",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "Menyelesaikan sinkronisasi...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress step: finalizing batch"
+  },
+  "showingCachedFiles": "Menampilkan berkas yang di-cache.",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying cached file listing offline"
+  },
+  "showingCachedFilesRefreshFailed": "Menampilkan berkas yang di-cache. Gagal menyegarkan.",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when server refresh fails and cached listing is shown"
+  },
+  "downloadCanceled": "Unduhan dibatalkan.",
+  "@downloadCanceled": {
+    "description": "Snackbar notification when a file download is canceled"
+  },
+  "downloadedNFilesToPath": "Mengunduh {count} berkas ke {path}",
+  "@downloadedNFilesToPath": {
+    "description": "Notification when multiple files are downloaded successfully to a path",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "Mengunduh {downloaded} berkas, {failed} gagal: {detail}",
+  "@downloadedNFilesFailedM": {
+    "description": "Notification when some batch downloads succeeded and some failed",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "Mengunduh {count} berkas, {failed} gagal: {error}",
+  "@downloadedNFilesWithFailures": {
+    "description": "Notification when some batch downloads failed with an error message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "Membuat {count} tautan berbagi.",
+  "@createdNShareLinks": {
+    "description": "Notification when multiple public share links are generated",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "Tidak dapat membuat tautan berbagi.",
+  "@failedToCreateShareLinks": {
+    "description": "Error notification when creating batch share links fails"
+  },
+  "alreadyInSharedScope": "Sudah berada dalam cakupan bersama.",
+  "@alreadyInSharedScope": {
+    "description": "Notification when item is already shared in server scope"
+  },
+  "sharedNItemsInServer": "Membagikan {count} item di server.",
+  "@sharedNItemsInServer": {
+    "description": "Notification when multiple items are shared within the server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "Membagikan {count} item, {failed} gagal.",
+  "@sharedNItemsWithFailures": {
+    "description": "Notification when some server shares succeeded and some failed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "Membagikan {shared} item, {failed} gagal.",
+  "@sharedNItemsFailedM": {
+    "description": "Notification with counts of shared vs failed items",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "Nama folder tidak boleh kosong.",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is left blank"
+  },
+  "folderAlreadyExists": "Folder dengan nama tersebut sudah ada.",
+  "@folderAlreadyExists": {
+    "description": "Validation error when folder name already exists in target directory"
+  },
+  "folderCreationOnlyInAllFiles": "Pembuatan folder hanya tersedia di 'Semua Berkas'.",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Error when attempting to create folder within a filtered category view"
+  },
+  "currentDirectoryUnavailable": "Direktori saat ini tidak tersedia.",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when active directory path does not exist or cannot be accessed"
+  },
+  "nothingSelected": "Tidak ada yang dipilih.",
+  "@nothingSelected": {
+    "description": "Message shown when an action is triggered with zero selected items"
+  },
+  "destinationFolderDoesNotExist": "Folder tujuan tidak ada.",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination folder is not found"
+  },
+  "cannotMoveFolderIntoItself": "Tidak dapat memindahkan folder \"{name}\" ke dalam dirinya sendiri.",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when attempting to move a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "Gagal memindahkan {name}: {error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a specific file or folder fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "Memindahkan {count} item.",
+  "@movedNItems": {
+    "description": "Notification when multiple items are moved successfully",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "Memindahkan {count} item, {failed} gagal.",
+  "@movedNItemsWithFailures": {
+    "description": "Notification when some item moves succeeded and some failed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "Memindahkan {moved} item, {failed} gagal.",
+  "@movedNItemsFailedM": {
+    "description": "Notification with counts of moved vs failed items",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "Gagal memindahkan item yang dipilih.",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic error when batch move operation fails"
+  },
+  "noFilesWereMoved": "Tidak ada berkas yang dipindahkan.",
+  "@noFilesWereMoved": {
+    "description": "Notice when a move operation completed without moving any items"
+  },
+  "renamedOldToNew": "Mengganti nama \"{oldName}\" menjadi \"{newName}\".",
+  "@renamedOldToNew": {
+    "description": "Notification when file/folder is renamed showing old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "Mengganti nama \"{oldName}\" menjadi \"{newName}\".",
+  "@renamedFileFromTo": {
+    "description": "Notification when file is renamed from old to new name",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "Gagal mengganti nama \"{name}\" ({statusCode}).",
+  "@failedToRenameWithStatus": {
+    "description": "Error when rename fails with HTTP status code",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "Gagal mengganti nama \"{name}\" ({statusCode}).",
+  "@failedToRenameFileWithCode": {
+    "description": "Error when file rename fails with HTTP status code",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "Gagal mengganti nama \"{name}\": {error}",
+  "@failedToRenameWithError": {
+    "description": "Error message when rename fails with detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "Gagal mengganti nama \"{name}\": {error}",
+  "@failedToRenameFile": {
+    "description": "Error message when file rename fails with detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "Gagal mengganti nama: berkas atau folder dengan nama tersebut sudah ada.",
+  "@renameConflictAlreadyExists": {
+    "description": "Error when rename target name collides with existing item"
+  },
+  "renameFailedAlreadyExists": "Gagal mengganti nama: berkas atau folder dengan nama tersebut sudah ada.",
+  "@renameFailedAlreadyExists": {
+    "description": "Error when renaming fails because target already exists"
+  },
+  "failedToCreateFolderWithCode": "Gagal membuat folder (Kode {statusCode}).",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error when folder creation fails with HTTP status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "Menghapus {deleted} item, {failed} gagal.",
+  "@deletedNItemsFailedM": {
+    "description": "Notification with counts of deleted vs failed items",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}%  {completed}/{total} berkas",
+  "@transferSummaryFiles": {
+    "description": "Overall transfers header showing percent and file count progress",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}%  {completed}/{total} berkas",
+  "@transferSummaryProgress": {
+    "description": "Transfers screen progress summary line",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "Unduhan gagal",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failure notification title"
+  },
+  "uploadedNItemsWithFailures": "Mengunggah {uploaded} item, {failed} gagal",
+  "@uploadedNItemsWithFailures": {
+    "description": "Notification when batch upload finishes with partial errors",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "Mengunggah {uploaded} item, {failed} gagal.",
+  "@uploadedNItemsFailedM": {
+    "description": "Notification with counts of uploaded vs failed items",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": ", {count} gagal",
+  "@uploadSummaryFailedCount": {
+    "description": "Appended clause to transfer summary when failures occur",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}: jalur lokal kosong",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}: jalur lokal kosong",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "Unggahan direktori gagal",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "Unggahan direktori gagal",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "Berkas lokal tidak ditemukan",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "Berkas lokal tidak ditemukan",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "Tidak ada token sesi aktif",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "Tidak ada token sesi aktif",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "Server terputus",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "Server terputus",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "Tidak dapat menjangkau server.",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "Tidak dapat menjangkau server.",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "Direktori lokal tidak ditemukan",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "Gagal memindai direktori",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "Gagal membuat folder (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "Token akses tidak ditemukan dalam respons",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "Token penyegaran tidak ditemukan dalam respons",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "Tidak ada kredensial tersimpan yang tersedia",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "Tidak ada token penyegaran yang tersedia",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "Tidak ada sesi aktif yang tersedia",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "Tidak ada nama pengguna tersimpan yang tersedia",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "Belum ada rilis yang dipublikasikan.",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "Bahasa",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

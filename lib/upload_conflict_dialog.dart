@@ -16,6 +16,7 @@
 import 'package:flutter/material.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 
 enum UploadConflictAction { overwrite, skip }
 
@@ -102,8 +103,8 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
     return '${size.toStringAsFixed(1)} ${suffixes[i]}';
   }
 
-  String _formatDate(DateTime date) {
-    if (date.millisecondsSinceEpoch == 0) return 'Unknown';
+  String _formatDate(DateTime date, AppLocalizations l10n) {
+    if (date.millisecondsSinceEpoch == 0) return l10n.unknown;
     final local = date.toLocal();
     final y = local.year;
     final m = local.month.toString().padLeft(2, '0');
@@ -176,6 +177,7 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final conflict = _currentConflict;
     final existing = conflict.existingItem;
@@ -198,13 +200,19 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'File already exists',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.conflictFileAlreadyExists,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (_isMultiConflict)
                   Text(
-                    'Conflict ${_currentIndex + 1} of ${widget.conflicts.length}',
+                    l10n.conflictNofM(
+                      _currentIndex + 1,
+                      widget.conflicts.length,
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -229,12 +237,12 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
               text: TextSpan(
                 style: theme.textTheme.bodyMedium,
                 children: [
-                  const TextSpan(text: 'A file named '),
+                  TextSpan(text: l10n.conflictAFileNamed),
                   TextSpan(
                     text: incoming.name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const TextSpan(text: ' already exists in this folder.'),
+                  TextSpan(text: l10n.conflictAlreadyExistsInFolder),
                 ],
               ),
             ),
@@ -266,9 +274,9 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 4),
-                            const Text(
-                              'Existing',
-                              style: TextStyle(
+                            Text(
+                              l10n.conflictExisting,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -277,11 +285,13 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Size: ${_formatBytes(existing.size)}',
+                          l10n.conflictSizeLabel(_formatBytes(existing.size)),
                           style: theme.textTheme.bodySmall,
                         ),
                         Text(
-                          'Date: ${_formatDate(existing.modifiedAt)}',
+                          l10n.conflictDateLabel(
+                            _formatDate(existing.modifiedAt, l10n),
+                          ),
                           style: theme.textTheme.bodySmall,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -306,9 +316,9 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 4),
-                            const Text(
-                              'New Upload',
-                              style: TextStyle(
+                            Text(
+                              l10n.conflictNewUpload,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -317,11 +327,13 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Size: ${_formatBytes(incoming.size)}',
+                          l10n.conflictSizeLabel(_formatBytes(incoming.size)),
                           style: theme.textTheme.bodySmall,
                         ),
                         Text(
-                          'Date: ${_formatDate(incoming.modifiedDate)}',
+                          l10n.conflictDateLabel(
+                            _formatDate(incoming.modifiedDate, l10n),
+                          ),
                           style: theme.textTheme.bodySmall,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -349,7 +361,7 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          'Apply to remaining $_remainingCount conflict${_remainingCount > 1 ? 's' : ''}',
+                          l10n.conflictApplyToRemaining(_remainingCount),
                           style: theme.textTheme.bodySmall,
                         ),
                       ),
@@ -365,20 +377,26 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
         if (_isMultiConflict) ...[
           OutlinedButton(
             onPressed: _handleSkipAll,
-            child: const Text('Skip All'),
+            child: Text(l10n.conflictSkipAll),
           ),
           OutlinedButton(
             onPressed: _handleOverwriteAll,
-            child: const Text('Overwrite All'),
+            child: Text(l10n.conflictOverwriteAll),
           ),
         ],
         OutlinedButton(
           onPressed: _handleSkip,
-          child: Text(_applyToAll ? 'Skip All Remaining' : 'Skip'),
+          child: Text(
+            _applyToAll ? l10n.conflictSkipAllRemaining : l10n.conflictSkip,
+          ),
         ),
         FilledButton(
           onPressed: _handleOverwrite,
-          child: Text(_applyToAll ? 'Overwrite All Remaining' : 'Overwrite'),
+          child: Text(
+            _applyToAll
+                ? l10n.conflictOverwriteAllRemaining
+                : l10n.conflictOverwrite,
+          ),
         ),
       ],
     );

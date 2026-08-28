@@ -42,6 +42,12 @@ A feature-rich, high-performance Flutter mobile application for **Crowley's Clou
    - **Visual & Icon Parity**: 1:1 identical theme matching (dark mode `#1E1E1E`, light mode `#F4F5F8`, accent `#FA5252`) and extension icon parity matching the Flutter client (`picture_as_pdf`, `description`, `table_chart`, `slideshow`, `folder_zip`, `article`).
    - **Full Feature Set**: Right-click context menus, public share link creation, folder management, interactive selection action bar, and trash browser with item restore/purge.
 
+7. **Localization**:
+   - The web client language can be changed in **Settings → Language**. The selected language is saved in the browser and synchronized between open tabs.
+   - The mobile client follows the device language settings and falls back to English when the device language is not supported.
+   - Available languages: English, Russian, Simplified Chinese, Spanish, Japanese, Brazilian Portuguese, German, Arabic, French, Korean, Hindi, Italian, Turkish, Indonesian, Vietnamese, Bengali, Persian, Ukrainian, and Polish.
+   - Arabic and Persian use a right-to-left interface. Chinese is provided in Simplified Chinese; Brazilian Portuguese is the default Portuguese variant.
+
 ---
 
 ## Project Directory Structure
@@ -170,5 +176,4 @@ This project relies on open-source frameworks and libraries:
 - **photo_manager_image_provider**, **photo_manager** (Apache 2.0)
 
 For full copyright notices and complete license texts for each dependency, see [THIRD_PARTY_LICENSES.md](file:///home/crowley/Projects/crowleys_cloud/THIRD_PARTY_LICENSES.md).
-
 

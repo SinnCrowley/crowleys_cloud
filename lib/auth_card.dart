@@ -17,6 +17,7 @@ import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:flutter/material.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 
 class AuthCard extends StatefulWidget {
   const AuthCard({
@@ -98,8 +99,10 @@ class _AuthCardState extends State<AuthCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final submitLabel =
-        widget.submitLabel ?? (_mode == AuthMode.login ? 'Log In' : 'Register');
+        widget.submitLabel ??
+        (_mode == AuthMode.login ? l10n.logIn : l10n.registerTabLabel);
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 430),
@@ -154,8 +157,8 @@ class _AuthCardState extends State<AuthCard> {
           const SizedBox(height: 18),
           _AuthTextField(
             controller: widget.usernameController,
-            label: 'Username',
-            hintText: 'Enter your username',
+            label: l10n.usernameLabel,
+            hintText: l10n.usernameHint,
             icon: Icons.person_outline,
             textInputAction: TextInputAction.next,
           ),
@@ -163,14 +166,14 @@ class _AuthCardState extends State<AuthCard> {
           const SizedBox(height: 14),
           _AuthTextField(
             controller: widget.passwordController,
-            label: 'Password',
-            hintText: 'Enter your password',
+            label: l10n.passwordLabel,
+            hintText: l10n.passwordHint,
             icon: Icons.lock_outline,
             obscureText: _obscurePassword,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _submit(),
             suffixIcon: IconButton(
-              tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+              tooltip: _obscurePassword ? l10n.showPassword : l10n.hidePassword,
               onPressed: () {
                 setState(() => _obscurePassword = !_obscurePassword);
               },
@@ -194,7 +197,7 @@ class _AuthCardState extends State<AuthCard> {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
-                  'Forgot password?',
+                  l10n.forgotPassword,
                   style: TextStyle(
                     color: appAccent,
                     fontSize: 13,
@@ -237,7 +240,7 @@ class _AuthCardState extends State<AuthCard> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Icon(Icons.fingerprint, color: appText),
-              label: Text('Use Biometrics', style: TextStyle(color: appText)),
+              label: Text(l10n.useBiometrics, style: TextStyle(color: appText)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: appText,
                 side: BorderSide(color: appBorder),
@@ -251,8 +254,8 @@ class _AuthCardState extends State<AuthCard> {
           const SizedBox(height: 14),
           Text(
             _mode == AuthMode.login
-                ? 'Do not have an account? Switch to Register.'
-                : 'Already have an account? Switch to Log In.',
+                ? l10n.doNotHaveAccount
+                : l10n.alreadyHaveAccount,
             textAlign: TextAlign.center,
             style: TextStyle(color: appSubtext, fontSize: 12),
           ),
@@ -262,11 +265,12 @@ class _AuthCardState extends State<AuthCard> {
   }
 
   void _showForgotPasswordDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final baseUrl = widget.getBaseUrl?.call();
     if (baseUrl == null || baseUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a server URL first.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.pleaseEnterServerUrlFirst)));
       return;
     }
 
@@ -288,6 +292,7 @@ class _AuthModeTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       height: 46,
       decoration: BoxDecoration(
@@ -298,12 +303,12 @@ class _AuthModeTabs extends StatelessWidget {
       child: Row(
         children: [
           _TabButton(
-            label: 'Log In',
+            label: l10n.loginTabLabel,
             selected: mode == AuthMode.login,
             onTap: () => onChanged(AuthMode.login),
           ),
           _TabButton(
-            label: 'Register',
+            label: l10n.registerTabLabel,
             selected: mode == AuthMode.register,
             onTap: () => onChanged(AuthMode.register),
           ),
@@ -437,9 +442,10 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
   }
 
   Future<void> _sendCode() async {
+    final l10n = AppLocalizations.of(context)!;
     final username = _usernameController.text.trim();
     if (username.isEmpty) {
-      setState(() => _error = 'Username is required.');
+      setState(() => _error = l10n.usernameIsRequired);
       return;
     }
 
@@ -465,19 +471,20 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
       });
     } catch (e) {
       setState(() {
-        _error = 'Failed to request reset. Verify the server URL.';
+        _error = l10n.failedToRequestReset;
         _isLoading = false;
       });
     }
   }
 
   Future<void> _resetPassword() async {
+    final l10n = AppLocalizations.of(context)!;
     final username = _usernameController.text.trim();
     final code = _codeController.text.trim();
     final password = _passwordController.text;
 
     if (code.isEmpty || password.isEmpty) {
-      setState(() => _error = 'Code and new password are required.');
+      setState(() => _error = l10n.codeAndPasswordRequired);
       return;
     }
 
@@ -495,7 +502,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
         newPassword: password,
       );
       setState(() {
-        _success = 'Password reset successfully!';
+        _success = l10n.passwordResetSuccessfully;
         _isLoading = false;
       });
       await Future.delayed(const Duration(seconds: 2));
@@ -509,7 +516,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
       });
     } catch (e) {
       setState(() {
-        _error = 'Failed to reset password. Please check the code.';
+        _error = l10n.failedToResetPassword;
         _isLoading = false;
       });
     }
@@ -517,6 +524,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       backgroundColor: appSurface,
       shape: RoundedRectangleBorder(
@@ -524,7 +532,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
         side: BorderSide(color: appBorder),
       ),
       title: Text(
-        _step == 1 ? 'Reset Password' : 'Enter Reset Code',
+        _step == 1 ? l10n.resetPasswordTitle : l10n.enterResetCodeTitle,
         style: TextStyle(color: appText, fontWeight: FontWeight.w700),
       ),
       content: _success.isNotEmpty
@@ -561,7 +569,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                   ],
                   if (_step == 1) ...[
                     Text(
-                      'Enter your username. The 6-digit verification code will be printed to the server logs/console.',
+                      l10n.resetPasswordStep1Body,
                       style: TextStyle(
                         color: appSubtext,
                         fontSize: 13,
@@ -571,14 +579,14 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                     const SizedBox(height: 16),
                     _AuthTextField(
                       controller: _usernameController,
-                      label: 'Username',
-                      hintText: 'Enter your username',
+                      label: l10n.usernameLabel,
+                      hintText: l10n.usernameHint,
                       icon: Icons.person_outline,
                     ),
                   ] else ...[
-                    const Text(
-                      'Verification code has been printed to the server console. Enter the 6-digit code and your new password.',
-                      style: TextStyle(
+                    Text(
+                      l10n.resetPasswordStep2Body,
+                      style: const TextStyle(
                         color: Colors.white60,
                         fontSize: 13,
                         height: 1.35,
@@ -587,16 +595,16 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                     const SizedBox(height: 16),
                     _AuthTextField(
                       controller: _codeController,
-                      label: 'Reset Code',
-                      hintText: 'Enter 6-digit code',
+                      label: l10n.resetCodeLabel,
+                      hintText: l10n.resetCodeHint,
                       icon: Icons.vpn_key_outlined,
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 14),
                     _AuthTextField(
                       controller: _passwordController,
-                      label: 'New Password',
-                      hintText: 'Enter new password',
+                      label: l10n.newPasswordLabel,
+                      hintText: l10n.newPasswordHint,
                       icon: Icons.lock_outline,
                       obscureText: true,
                     ),
@@ -611,7 +619,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                 onPressed: _isLoading
                     ? null
                     : () => Navigator.of(context).pop(),
-                child: Text('Cancel', style: TextStyle(color: appSubtext)),
+                child: Text(l10n.cancel, style: TextStyle(color: appSubtext)),
               ),
               FilledButton(
                 onPressed: _isLoading
@@ -631,7 +639,9 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                           color: Colors.white,
                         ),
                       )
-                    : Text(_step == 1 ? 'Send Code' : 'Reset Password'),
+                    : Text(
+                        _step == 1 ? l10n.sendCode : l10n.resetPasswordTitle,
+                      ),
               ),
             ],
     );

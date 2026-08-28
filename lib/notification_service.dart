@@ -13,7 +13,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:ui';
+
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations_en.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+AppLocalizations _resolveNotificationL10n() {
+  try {
+    final locale = PlatformDispatcher.instance.locale;
+    return lookupAppLocalizations(locale);
+  } catch (_) {
+    return AppLocalizationsEn();
+  }
+}
 
 class SyncNotificationService {
   SyncNotificationService._();
@@ -33,10 +46,14 @@ class SyncNotificationService {
 
     await _notificationsPlugin.initialize(settings: initSettings);
 
-    const channel = AndroidNotificationChannel(
+    final l10n = _resolveNotificationL10n();
+    final channelName = l10n.syncChannelName;
+    final channelDescription = l10n.syncChannelDescription;
+
+    final channel = AndroidNotificationChannel(
       'sync_channel',
-      'Background Synchronization',
-      description: 'Shows status of files syncing in the background.',
+      channelName,
+      description: channelDescription,
       importance: Importance.low,
       playSound: false,
       enableVibration: false,
@@ -60,10 +77,14 @@ class SyncNotificationService {
   }) async {
     await initialize();
 
+    final l10n = _resolveNotificationL10n();
+    final channelName = l10n.syncChannelName;
+    final channelDescription = l10n.syncChannelDescription;
+
     final androidDetails = AndroidNotificationDetails(
       'sync_channel',
-      'Background Synchronization',
-      channelDescription: 'Shows status of files syncing in the background.',
+      channelName,
+      channelDescription: channelDescription,
       importance: Importance.low,
       priority: Priority.low,
       showProgress: progress != null,
@@ -97,17 +118,21 @@ class SyncNotificationService {
       return;
     }
 
-    const androidDetails = AndroidNotificationDetails(
+    final l10n = _resolveNotificationL10n();
+    final channelName = l10n.syncChannelName;
+    final channelDescription = l10n.syncChannelDescription;
+
+    final androidDetails = AndroidNotificationDetails(
       'sync_channel',
-      'Background Synchronization',
-      channelDescription: 'Shows status of files syncing in the background.',
+      channelName,
+      channelDescription: channelDescription,
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
       ongoing: false,
       playSound: true,
     );
 
-    const details = NotificationDetails(android: androidDetails);
+    final details = NotificationDetails(android: androidDetails);
     await _notificationsPlugin.show(
       id: id,
       title: title,

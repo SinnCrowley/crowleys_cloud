@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 String colorToHex(Color color) {
@@ -121,7 +122,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
             children: [
               // Presets Header
               Text(
-                'Presets',
+                AppLocalizations.of(context)!.themePresetsSection,
                 style: TextStyle(
                   color: appSubtext,
                   fontSize: 13,
@@ -174,7 +175,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
 
               // Saturation / Value Box
               Text(
-                'Custom Palette',
+                AppLocalizations.of(context)!.themeCustomPaletteSection,
                 style: TextStyle(
                   color: appSubtext,
                   fontSize: 13,
@@ -229,9 +230,11 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
                         fontWeight: FontWeight.bold,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'HEX RGB Code',
+                        labelText: AppLocalizations.of(
+                          context,
+                        )!.themeHexRgbLabel,
                         labelStyle: TextStyle(color: appSubtext),
-                        hintText: '#FA5252',
+                        hintText: AppLocalizations.of(context)!.themeHexRgbHint,
                         hintStyle: TextStyle(color: appSubtext),
                         filled: true,
                         fillColor: appBackground,
@@ -264,7 +267,10 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: appSubtext)),
+          child: Text(
+            AppLocalizations.of(context)!.cancel,
+            style: TextStyle(color: appSubtext),
+          ),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, currentColor),
@@ -275,7 +281,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          child: const Text('Apply'),
+          child: Text(AppLocalizations.of(context)!.apply),
         ),
       ],
     );

@@ -15,6 +15,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { t } from '../stores/i18n.js';
 
   export let path = '';
 
@@ -32,11 +33,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   <button
     class="breadcrumb-item home-btn"
     on:click={() => dispatch('navigate', '')}
-    title="Home Root"
+    title={$t('files.home_root')}
     style="display: inline-flex; align-items: center;"
   >
     <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">folder</span>
-    Root
+    {$t('common.root')}
   </button>
 
   {#each segments as segment, i}

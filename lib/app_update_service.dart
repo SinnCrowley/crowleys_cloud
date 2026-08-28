@@ -15,6 +15,8 @@
 
 import 'dart:convert';
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
+import 'package:crowleys_cloud/l10n/localization_fallback.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
@@ -39,14 +41,19 @@ class AppReleaseItem {
     this.publishedAt,
   });
 
-  factory AppReleaseItem.fromJson(Map<String, dynamic> json) {
+  factory AppReleaseItem.fromJson(
+    Map<String, dynamic> json, {
+    AppLocalizations? l10n,
+  }) {
     final tagName = (json['tag_name'] as String?) ?? '';
     final name = json['name'] as String?;
-    final body = (json['body'] as String?) ?? 'No release notes provided.';
+    final body = (json['body'] as String?) ??
+        (l10n ?? platformAppLocalizations()).updateNoReleaseNotes;
     final htmlUrl = (json['html_url'] as String?) ?? '';
     final publishedAtStr = json['published_at'] as String?;
-    final publishedAt =
-        publishedAtStr != null ? DateTime.tryParse(publishedAtStr) : null;
+    final publishedAt = publishedAtStr != null
+        ? DateTime.tryParse(publishedAtStr)
+        : null;
 
     String? apkUrl;
     final assets = json['assets'] as List<dynamic>?;
@@ -54,8 +61,7 @@ class AppReleaseItem {
       for (final asset in assets) {
         if (asset is Map<String, dynamic>) {
           final assetName = (asset['name'] as String?) ?? '';
-          final downloadUrl =
-              (asset['browser_download_url'] as String?) ?? '';
+          final downloadUrl = (asset['browser_download_url'] as String?) ?? '';
           if (assetName.endsWith('.apk') && downloadUrl.isNotEmpty) {
             apkUrl = downloadUrl;
             break;
@@ -151,7 +157,10 @@ class AppUpdateService {
   }
 
   /// Checks GitHub Releases API for releases newer than [currentVersion].
-  Future<AppUpdateInfo?> checkForUpdates({http.Client? client}) async {
+  Future<AppUpdateInfo?> checkForUpdates({
+    http.Client? client,
+    AppLocalizations? l10n,
+  }) async {
     final httpClient = client ?? http.Client();
     final shouldCloseClient = client == null;
 
@@ -173,7 +182,7 @@ class AppUpdateService {
         if (decoded is List) {
           final allReleases = decoded
               .whereType<Map<String, dynamic>>()
-              .map((json) => AppReleaseItem.fromJson(json))
+              .map((json) => AppReleaseItem.fromJson(json, l10n: l10n))
               .toList();
 
           final newerReleases = allReleases
@@ -182,7 +191,10 @@ class AppUpdateService {
 
           if (newerReleases.isNotEmpty) {
             final latest = newerReleases.first;
-            final formattedChangelog = _buildChangelogMarkdown(newerReleases);
+            final formattedChangelog = _buildChangelogMarkdown(
+              newerReleases,
+              l10n,
+            );
 
             return AppUpdateInfo(
               hasUpdate: true,
@@ -196,14 +208,18 @@ class AppUpdateService {
               newReleases: newerReleases,
             );
           } else {
-            final latestKnown = allReleases.isNotEmpty ? allReleases.first : null;
+            final latestKnown = allReleases.isNotEmpty
+                ? allReleases.first
+                : null;
             return AppUpdateInfo(
               hasUpdate: false,
               currentVersion: currentVersion,
               latestVersion: latestKnown?.version ?? currentVersion,
               latestReleaseName: latestKnown?.name,
               releaseNotes: '',
-              htmlUrl: latestKnown?.htmlUrl ?? 'https://github.com/$owner/$repo/releases',
+              htmlUrl:
+                  latestKnown?.htmlUrl ??
+                  'https://github.com/$owner/$repo/releases',
             );
           }
         }
@@ -226,7 +242,8 @@ class AppUpdateService {
           hasUpdate: false,
           currentVersion: currentVersion,
           latestVersion: currentVersion,
-          releaseNotes: 'No releases published yet.',
+          releaseNotes:
+              (l10n ?? platformAppLocalizations()).updateNoReleasesPublished,
           htmlUrl: 'https://github.com/$owner/$repo/releases',
         );
       }
@@ -234,7 +251,7 @@ class AppUpdateService {
       if (latestResponse.statusCode == 200) {
         final decoded = jsonDecode(latestResponse.body);
         if (decoded is Map<String, dynamic>) {
-          final latest = AppReleaseItem.fromJson(decoded);
+          final latest = AppReleaseItem.fromJson(decoded, l10n: l10n);
           final hasUpdate = isVersionNewer(latest.version, currentVersion);
 
           return AppUpdateInfo(
@@ -262,8 +279,13 @@ class AppUpdateService {
   }
 
   /// Builds a combined markdown document when multiple new releases are found.
-  static String _buildChangelogMarkdown(List<AppReleaseItem> releases) {
-    if (releases.isEmpty) return 'No release notes provided.';
+  static String _buildChangelogMarkdown(
+    List<AppReleaseItem> releases, [
+    AppLocalizations? l10n,
+  ]) {
+    if (releases.isEmpty) {
+      return (l10n ?? platformAppLocalizations()).updateNoReleaseNotes;
+    }
     if (releases.length == 1) return releases.first.body.trim();
 
     final buffer = StringBuffer();
@@ -323,15 +345,18 @@ class AppUpdateDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final targetUrl = updateInfo.apkUrl ?? updateInfo.htmlUrl;
     final hasMultipleReleases = updateInfo.newReleases.length > 1;
 
-    final subtitleText = updateInfo.latestReleaseName != null &&
+    final subtitleText =
+        updateInfo.latestReleaseName != null &&
             updateInfo.latestReleaseName!.trim().isNotEmpty &&
-            updateInfo.latestReleaseName!.trim() != 'v${updateInfo.latestVersion}' &&
+            updateInfo.latestReleaseName!.trim() !=
+                'v${updateInfo.latestVersion}' &&
             updateInfo.latestReleaseName!.trim() != updateInfo.latestVersion
         ? updateInfo.latestReleaseName!.trim()
-        : 'Version ${updateInfo.latestVersion}';
+        : l10n.updateVersionSubtitle(updateInfo.latestVersion);
 
     return AlertDialog(
       backgroundColor: appSurface,
@@ -351,7 +376,11 @@ class AppUpdateDialog extends StatelessWidget {
               color: appAccent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.system_update_outlined, color: appAccent, size: 24),
+            child: Icon(
+              Icons.system_update_outlined,
+              color: appAccent,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -360,7 +389,7 @@ class AppUpdateDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Update Available',
+                  l10n.updateAvailableDialogTitle,
                   style: TextStyle(
                     color: appText,
                     fontSize: 18,
@@ -400,14 +429,14 @@ class AppUpdateDialog extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    'Current: v${updateInfo.currentVersion}',
+                    l10n.updateCurrentVersion(updateInfo.currentVersion),
                     style: TextStyle(color: appSubtext, fontSize: 13),
                   ),
                   const Spacer(),
                   Icon(Icons.arrow_forward, size: 14, color: appSubtext),
                   const Spacer(),
                   Text(
-                    'New: v${updateInfo.latestVersion}',
+                    l10n.updateNewVersion(updateInfo.latestVersion),
                     style: TextStyle(
                       color: appAccent,
                       fontSize: 13,
@@ -445,7 +474,7 @@ class AppUpdateDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'What\'s New:',
+                  l10n.updateWhatsNew,
                   style: TextStyle(
                     color: appText,
                     fontSize: 14,
@@ -465,7 +494,7 @@ class AppUpdateDialog extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'GitHub',
+                          l10n.updateGitHub,
                           style: TextStyle(
                             color: appAccent,
                             fontSize: 12,
@@ -494,9 +523,23 @@ class AppUpdateDialog extends StatelessWidget {
               ),
               child: SingleChildScrollView(
                 child: MarkdownBody(
-                  data: updateInfo.releaseNotes.trim().isNotEmpty
-                      ? updateInfo.releaseNotes
-                      : 'No release notes provided.',
+                  data: () {
+                    final notes = updateInfo.releaseNotes.trim();
+                    if (notes.isEmpty ||
+                        notes == l10n.updateNoReleaseNotes ||
+                        notes ==
+                            lookupAppLocalizations(const Locale('en'))
+                                .updateNoReleaseNotes) {
+                      return l10n.updateNoReleaseNotes;
+                    }
+                    if (notes == l10n.updateNoReleasesPublished ||
+                        notes ==
+                            lookupAppLocalizations(const Locale('en'))
+                                .updateNoReleasesPublished) {
+                      return l10n.updateNoReleasesPublished;
+                    }
+                    return notes;
+                  }(),
                   selectable: true,
                   onTapLink: (text, href, title) {
                     if (href != null && href.isNotEmpty) {
@@ -532,10 +575,7 @@ class AppUpdateDialog extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
-                    listBullet: TextStyle(
-                      color: appAccent,
-                      fontSize: 13,
-                    ),
+                    listBullet: TextStyle(color: appAccent, fontSize: 13),
                     code: TextStyle(
                       color: appAccent,
                       backgroundColor: appSurface,
@@ -580,7 +620,7 @@ class AppUpdateDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Later', style: TextStyle(color: appSubtext)),
+          child: Text(l10n.updateLater, style: TextStyle(color: appSubtext)),
         ),
         FilledButton.icon(
           style: FilledButton.styleFrom(
@@ -596,7 +636,11 @@ class AppUpdateDialog extends StatelessWidget {
             await AppUpdateService.launchUpdateUrl(targetUrl);
           },
           icon: const Icon(Icons.download, size: 18),
-          label: Text(updateInfo.apkUrl != null ? 'Download APK' : 'Update'),
+          label: Text(
+            updateInfo.apkUrl != null
+                ? l10n.updateDownloadApk
+                : l10n.updateInstall,
+          ),
         ),
       ],
     );

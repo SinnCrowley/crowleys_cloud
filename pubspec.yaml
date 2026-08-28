@@ -28,6 +28,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
   # System Permissions & Filesystem Access
   permission_handler: ^13.0.1      # OS permission management (storage, camera, notifications)
@@ -71,6 +74,7 @@ dev_dependencies:
   flutter_native_splash: ^2.4.1
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - assets/icon/

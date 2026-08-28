@@ -60,6 +60,20 @@ void main() {
   });
 
   test(
+    'persists an explicit language and can return to system language',
+    () async {
+      final settings = AppSettingsService();
+
+      expect(await settings.localeCode(), isNull);
+      await settings.setLocaleCode('cs');
+      expect(await settings.localeCode(), 'cs');
+
+      await settings.setLocaleCode(null);
+      expect(await settings.localeCode(), isNull);
+    },
+  );
+
+  test(
     'migrates legacy biometric app-lock setting to biometric login',
     () async {
       SharedPreferences.setMockInitialValues({

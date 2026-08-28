@@ -16,6 +16,7 @@
 import 'package:crowleys_cloud/restore_conflict_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_helpers.dart';
 
 void main() {
   final conflict1 = RestoreConflictItem(
@@ -44,8 +45,8 @@ void main() {
     RestoreConflictResolution? result;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
+      wrapWithLocalization(
+        Scaffold(
           body: Builder(
             builder: (context) => ElevatedButton(
               onPressed: () async {
@@ -83,8 +84,8 @@ void main() {
       RestoreConflictResolution? result;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
+        wrapWithLocalization(
+          Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
                 onPressed: () async {
@@ -118,8 +119,8 @@ void main() {
       RestoreConflictResolution? result;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
+        wrapWithLocalization(
+          Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
                 onPressed: () async {
@@ -158,8 +159,8 @@ void main() {
       RestoreConflictResolution? result;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
+        wrapWithLocalization(
+          Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
                 onPressed: () async {

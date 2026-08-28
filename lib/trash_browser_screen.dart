@@ -25,6 +25,7 @@ import 'package:crowleys_cloud/restore_conflict_dialog.dart';
 import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
 import 'package:crowleys_cloud/file_item.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 
 import 'package:crowleys_cloud/shared/utils/file_icon_utils.dart';
 import 'package:crowleys_cloud/shared/widgets/remote_thumbnail_widget.dart';
@@ -121,6 +122,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
       return;
     }
 
+    final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -134,9 +136,9 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
               children: [
                 CircularProgressIndicator(color: appAccent),
                 const SizedBox(width: 16),
-                const Text(
-                  'Downloading file...',
-                  style: TextStyle(color: Colors.white),
+                Text(
+                  l10n.downloadingFile,
+                  style: const TextStyle(color: Colors.white),
                 ),
               ],
             ),
@@ -156,9 +158,9 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
 
     if (temp == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to download file preview')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.failedToDownloadPreview)));
       }
       return;
     }
@@ -226,6 +228,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   }
 
   void _showSingleItemMenu(ServerFileItem item) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: appSurface,
@@ -233,7 +236,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
         children: [
           ListTile(
             leading: Icon(Icons.restore, color: appSubtext),
-            title: Text('Restore', style: TextStyle(color: appText)),
+            title: Text(l10n.restore, style: TextStyle(color: appText)),
             onTap: () async {
               Navigator.pop(context);
               setState(() {
@@ -245,7 +248,10 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
           ),
           ListTile(
             leading: Icon(Icons.delete_forever, color: appAccent),
-            title: Text('Delete permanently', style: TextStyle(color: appText)),
+            title: Text(
+              l10n.deletePermanentlyAction,
+              style: TextStyle(color: appText),
+            ),
             onTap: () async {
               Navigator.pop(context);
               setState(() {
@@ -286,24 +292,25 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
     }
 
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text('Restore items', style: TextStyle(color: appText)),
+        title: Text(l10n.restoreItemsTitle, style: TextStyle(color: appText)),
         content: Text(
-          'Are you sure you want to restore ${controller.selectedFiles.length} item(s)?',
+          l10n.restoreItemsBody(controller.selectedFiles.length),
           style: TextStyle(color: appSubtext),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: TextStyle(color: appSubtext)),
+            child: Text(l10n.cancel, style: TextStyle(color: appSubtext)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: appAccent),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Restore', style: TextStyle(color: appText)),
+            child: Text(l10n.restore, style: TextStyle(color: appText)),
           ),
         ],
       ),
@@ -318,24 +325,31 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   }
 
   Future<void> _deleteSelected() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text('Permanently delete', style: TextStyle(color: appText)),
+        title: Text(
+          l10n.permanentlyDeleteTitle,
+          style: TextStyle(color: appText),
+        ),
         content: Text(
-          'Are you sure you want to permanently delete ${controller.selectedFiles.length} item(s)? This action cannot be undone.',
+          l10n.permanentlyDeleteBody(controller.selectedFiles.length),
           style: TextStyle(color: appSubtext),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: TextStyle(color: appSubtext)),
+            child: Text(l10n.cancel, style: TextStyle(color: appSubtext)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: appAccent),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete permanently', style: TextStyle(color: appText)),
+            child: Text(
+              l10n.deletePermanentlyAction,
+              style: TextStyle(color: appText),
+            ),
           ),
         ],
       ),
@@ -356,6 +370,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isSelectionMode = controller.selectedFiles.isNotEmpty;
 
     return PopScope(
@@ -402,7 +417,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
                     focusNode: _searchFocusNode,
                     onChanged: _onSearchChanged,
                     decoration: InputDecoration(
-                      hintText: 'Search trash...',
+                      hintText: l10n.searchTrashHint,
                       hintStyle: TextStyle(color: appSubtext),
                       border: InputBorder.none,
                       isDense: true,
@@ -472,20 +487,21 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
   }
 
   Widget _buildContent() {
+    final l10n = AppLocalizations.of(context)!;
     if (controller.isLoading && controller.files.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
     if (controller.error != null) {
       return Center(
         child: Text(
-          'Error: ${controller.error}',
+          l10n.errorWithMessage(controller.error.toString()),
           style: const TextStyle(color: Colors.redAccent),
         ),
       );
     }
     if (controller.files.isEmpty) {
       return Center(
-        child: Text('Trash is empty.', style: TextStyle(color: appSubtext)),
+        child: Text(l10n.trashIsEmpty, style: TextStyle(color: appSubtext)),
       );
     }
 
@@ -729,6 +745,7 @@ class _TrashHeaderControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (controller.selectedFiles.isNotEmpty) {
       return SelectionHeaderBar(
         selectedCount: controller.selectedFiles.length,
@@ -757,7 +774,7 @@ class _TrashHeaderControls extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Items in trash are automatically deleted after ${controller.trashRetentionDays} days.',
+                  l10n.trashRetentionInfo(controller.trashRetentionDays),
                   style: TextStyle(
                     color: appSubtext,
                     fontSize: 12,
@@ -801,7 +818,13 @@ class _TrashHeaderControls extends StatelessWidget {
                                 value: v,
                                 child: Text(
                                   v.name == 'date'
-                                      ? 'Deletion Date'
+                                      ? l10n.deletionDate
+                                      : v.name == 'name'
+                                      ? l10n.name
+                                      : v.name == 'size'
+                                      ? l10n.size
+                                      : v.name == 'type'
+                                      ? l10n.type
                                       : v.name[0].toUpperCase() +
                                             v.name.substring(1),
                                 ),
@@ -856,6 +879,7 @@ class _TrashSelectionActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SelectionActionBar(
       backgroundColor: appSurface,
       textColor: appText,
@@ -863,12 +887,12 @@ class _TrashSelectionActionBar extends StatelessWidget {
       actions: [
         SelectionAction(
           icon: Icons.restore,
-          label: 'Restore',
+          label: l10n.restore,
           onPressed: onRestore,
         ),
         SelectionAction(
           icon: Icons.delete_forever,
-          label: 'Delete Permanently',
+          label: l10n.deletePermanentlyAction,
           onPressed: onDelete,
           color: Colors.red.shade400,
         ),

@@ -16,6 +16,7 @@
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:flutter/material.dart';
@@ -85,9 +86,10 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
     final password = _passwordController.text;
 
     if (name.isEmpty || url.isEmpty || username.isEmpty || password.isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('All fields are required.')));
+      ).showSnackBar(SnackBar(content: Text(l10n.allFieldsRequired)));
       return;
     }
 
@@ -129,27 +131,28 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
       _usernameController.clear();
       _passwordController.clear();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Authentication failed: ${e.message}')),
-      );
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.authFailed(e.message))));
     } catch (_) {
       _usernameController.clear();
       _passwordController.clear();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Authentication failed. Please try again.'),
-        ),
-      );
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.authFailedGeneric)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: appBackground,
       appBar: AppBar(
-        title: const Text('Add server'),
+        title: Text(l10n.serverSetupAddServer),
         backgroundColor: appSurface,
       ),
       body: Container(
@@ -159,12 +162,12 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: AuthCard(
-                title: 'Connect Server',
-                subtitle: 'Add your home file server and sign in.',
+                title: l10n.serverSetupCardTitle,
+                subtitle: l10n.serverSetupCardSubtitle,
                 initialMode: _mode,
                 usernameController: _usernameController,
                 passwordController: _passwordController,
-                submitLabel: 'Save Server',
+                submitLabel: l10n.serverSetupSubmitButton,
                 onSubmit: (mode, {email}) async {
                   _mode = mode;
                   await _submit(mode, email: email);
@@ -175,14 +178,14 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
                 extraFields: [
                   AuthInputField(
                     controller: _nameController,
-                    label: 'Server name',
-                    hintText: 'Home NAS',
+                    label: l10n.serverNameLabel,
+                    hintText: l10n.serverNameHint,
                     icon: Icons.dns_outlined,
                   ),
                   AuthInputField(
                     controller: _urlController,
-                    label: 'Base URL',
-                    hintText: 'https://cloud.example.com',
+                    label: l10n.baseUrlLabel,
+                    hintText: l10n.baseUrlHint,
                     icon: Icons.link_outlined,
                     keyboardType: TextInputType.url,
                   ),

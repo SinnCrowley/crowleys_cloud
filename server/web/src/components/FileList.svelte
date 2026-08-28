@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <script>
   import { createEventDispatcher } from 'svelte';
   import { filesApi } from '../api/files.js';
+  import { t, i18n } from '../stores/i18n.js';
 
   export let items = [];
   export let selectedItems = new Set();
@@ -178,20 +179,21 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   function createDragGhost(count) {
     const ghost = document.createElement('div');
     ghost.className = 'drag-ghost-badge';
-    ghost.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;margin-right:6px;">drive_file_move</span> Moving ${count} item${count > 1 ? 's' : ''}`;
+    ghost.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px;">drive_file_move</span><span>${i18n.format('common.items', { count })}</span>`;
     ghost.style.position = 'absolute';
-    ghost.style.top = '-9999px';
-    ghost.style.left = '-9999px';
-    ghost.style.padding = '8px 16px';
-    ghost.style.background = 'var(--accent-color, #fa5252)';
-    ghost.style.color = '#ffffff';
+    ghost.style.top = '-1000px';
+    ghost.style.left = '-1000px';
+    ghost.style.backgroundColor = 'var(--accent-color, #FA5252)';
+    ghost.style.color = '#FFFFFF';
+    ghost.style.padding = '6px 14px';
     ghost.style.borderRadius = '20px';
     ghost.style.fontWeight = '600';
     ghost.style.fontSize = '13px';
-    ghost.style.boxShadow = '0 4px 16px rgba(0,0,0,0.3)';
+    ghost.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)';
     ghost.style.display = 'flex';
     ghost.style.alignItems = 'center';
-    ghost.style.zIndex = '99999';
+    ghost.style.gap = '6px';
+    ghost.style.zIndex = '9999';
     ghost.style.pointerEvents = 'none';
     document.body.appendChild(ghost);
     return ghost;
@@ -296,7 +298,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           dirReader.readEntries(async (entries) => {
             if (!entries || entries.length === 0) {
               resolve();
-              return;
             }
             for (const childEntry of entries) {
               await traverseEntry(childEntry, relPath, results);
@@ -369,8 +370,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     <div class="drag-over-overlay">
       <div class="drag-drop-card">
         <span class="material-symbols-outlined drop-icon">cloud_upload</span>
-        <h3 class="text-title" style="margin-top: 12px;">Drop files or folders here</h3>
-        <p class="text-sub">Items will be queued for upload</p>
+        <h3 class="text-title" style="margin-top: 12px;">{$t('files.drop_to_upload')}</h3>
+        <p class="text-sub">{$t('files.drop_to_upload_sub')}</p>
       </div>
     </div>
   {/if}
@@ -378,9 +379,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   {#if items.length === 0 && !showParentItem}
     <div class="empty-state">
       <span class="material-symbols-outlined empty-icon">folder_open</span>
-      <p class="empty-title text-title">No files found</p>
+      <p class="empty-title text-title">{searchQuery ? $t('files.no_results_title') : $t('files.empty_title')}</p>
       <p class="empty-sub text-sub">
-        This directory is empty. Drag & drop files here to upload!
+        {searchQuery ? $t('files.no_results_sub', { query: searchQuery }) : $t('files.empty_sub')}
       </p>
     </div>
   {:else}
@@ -396,12 +397,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <span class="checkbox-indicator"></span>
         </label>
       </div>
-      <div class="header-col col-name">Name</div>
+      <div class="header-col col-name">{$t('common.name')}</div>
       {#if scope === 'shared'}
-        <div class="header-col col-owner">Owner</div>
+        <div class="header-col col-owner">{$t('common.owner')}</div>
       {/if}
-      <div class="header-col col-date">Date Modified</div>
-      <div class="header-col col-size">Size</div>
+      <div class="header-col col-date">{$t('common.date')}</div>
+      <div class="header-col col-size">{$t('common.size')}</div>
       <div class="header-col col-more"></div>
     </div>
 
@@ -413,7 +414,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           on:dragover={(e) => handleFolderDragOver(e, parentPath)}
           on:dragleave={(e) => handleFolderDragLeave(e, parentPath)}
           on:drop={(e) => handleFolderDrop(e, parentPath)}
-          title="Go to parent directory"
+          title={$t('files.home_root')}
         >
           <div class="col-check cell-content"></div>
           <div class="col-name cell-content">
@@ -429,7 +430,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             <div class="col-owner cell-content text-sub">--</div>
           {/if}
           <div class="col-date cell-content text-sub">--</div>
-          <div class="col-size cell-content text-sub">Folder</div>
+          <div class="col-size cell-content text-sub">{$t('common.folder')}</div>
           <div class="col-more cell-content"></div>
         </div>
       {/if}
@@ -482,7 +483,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             <div class="col-owner cell-content text-sub">
               <span class="owner-pill">
                 <span class="material-symbols-outlined owner-icon">person</span>
-                <span class="owner-text">{item.owner_name || (item.uploader_user_id ? `User #${item.uploader_user_id}` : 'Shared')}</span>
+                <span class="owner-text">{item.owner_name || (item.uploader_user_id ? `${$t('nav.user')} #${item.uploader_user_id}` : $t('nav.shared'))}</span>
               </span>
             </div>
           {/if}
@@ -495,7 +496,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <div class="col-more cell-content" on:click|stopPropagation>
             <button
               class="btn-icon list-item-more-btn"
-              title="More Actions"
+              title={$t('common.actions')}
               on:click={(e) => handleMoreClick(e, item)}
             >
               <span class="material-symbols-outlined" style="font-size: 20px;">more_vert</span>

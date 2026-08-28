@@ -15,6 +15,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { t } from '../stores/i18n.js';
 
   export let currentRoute = 'dashboard';
   export let filterType = 'all';
@@ -52,7 +53,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   <div class="sidebar-add-btn-container">
     <button class="sidebar-add-btn" on:click={handleUploadTrigger}>
       <span class="material-symbols-outlined">upload</span>
-      Upload File
+      {$t('nav.upload_file')}
     </button>
   </div>
 
@@ -62,7 +63,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('dashboard')}
     >
       <span class="material-symbols-outlined">dashboard</span>
-      <span>Dashboard</span>
+      <span>{$t('nav.dashboard')}</span>
     </button>
 
     <div class="sidebar-divider"></div>
@@ -72,7 +73,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('files', 'all', 'private')}
     >
       <span class="material-symbols-outlined">folder</span>
-      <span>All Files</span>
+      <span>{$t('nav.all_files')}</span>
     </button>
 
     <button
@@ -80,7 +81,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('files', 'photo', 'private')}
     >
       <span class="material-symbols-outlined">photo</span>
-      <span>Photos</span>
+      <span>{$t('nav.photos')}</span>
     </button>
 
     <button
@@ -88,7 +89,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('files', 'video', 'private')}
     >
       <span class="material-symbols-outlined">videocam</span>
-      <span>Videos</span>
+      <span>{$t('nav.videos')}</span>
     </button>
 
     <button
@@ -96,7 +97,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('files', 'audio', 'private')}
     >
       <span class="material-symbols-outlined">audiotrack</span>
-      <span>Audio</span>
+      <span>{$t('nav.audio')}</span>
     </button>
 
     <button
@@ -104,7 +105,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('files', 'document', 'private')}
     >
       <span class="material-symbols-outlined">description</span>
-      <span>Documents</span>
+      <span>{$t('nav.documents')}</span>
     </button>
 
     <button
@@ -112,7 +113,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('files', 'other', 'private')}
     >
       <span class="material-symbols-outlined">insert_drive_file</span>
-      <span>Other</span>
+      <span>{$t('nav.other')}</span>
     </button>
 
     <div class="sidebar-divider"></div>
@@ -122,7 +123,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('files', 'all', 'shared')}
     >
       <span class="material-symbols-outlined">group</span>
-      <span>Shared</span>
+      <span>{$t('nav.shared')}</span>
     </button>
   </nav>
 
@@ -132,7 +133,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('trash')}
     >
       <span class="material-symbols-outlined">delete</span>
-      <span>Trash</span>
+      <span>{$t('nav.trash')}</span>
     </button>
 
     <button
@@ -140,7 +141,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:click={() => selectRoute('settings')}
     >
       <span class="material-symbols-outlined">settings</span>
-      <span>Settings</span>
+      <span>{$t('nav.settings')}</span>
     </button>
   </div>
 </aside>

@@ -18,6 +18,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crowleys_cloud/secret_store.dart';
+import 'package:crowleys_cloud/l10n/localization_fallback.dart';
 import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:http/http.dart' as http;
 
@@ -93,6 +94,7 @@ class HttpAuthGateway implements AuthGateway {
   }
 
   Future<AuthResult> _postAuth(Uri uri, Map<String, Object?> payload) async {
+    final l10n = platformAppLocalizations();
     final response = await _client.post(
       uri,
       headers: const {'content-type': 'application/json'},
@@ -102,7 +104,7 @@ class HttpAuthGateway implements AuthGateway {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw AuthException(
         _extractError(response.body) ??
-            'Authentication failed (${response.statusCode}) at ${uri.toString()}',
+            l10n.authFailedGeneric,
       );
     }
 
@@ -110,10 +112,10 @@ class HttpAuthGateway implements AuthGateway {
     final accessToken = json['access_token'] as String?;
     final refreshToken = json['refresh_token'] as String?;
     if (accessToken == null || accessToken.isEmpty) {
-      throw const AuthException('Missing access token in response');
+      throw AuthException(l10n.authErrorMissingAccessToken);
     }
     if (refreshToken == null || refreshToken.isEmpty) {
-      throw const AuthException('Missing refresh token in response');
+      throw AuthException(l10n.authErrorMissingRefreshToken);
     }
     return AuthResult(accessToken: accessToken, refreshToken: refreshToken);
   }
@@ -227,7 +229,9 @@ class AuthService {
         username.isEmpty ||
         password == null ||
         password.isEmpty) {
-      throw const AuthException('No saved credentials available');
+      throw AuthException(
+        platformAppLocalizations().authErrorNoSavedCredentials,
+      );
     }
 
     await authenticate(
@@ -252,6 +256,7 @@ class AuthService {
     required String serverId,
     required String baseUrl,
   }) async {
+    final l10n = platformAppLocalizations();
     final token = await readAccessToken(serverId);
     if (token == null || token.isEmpty) {
       return const SessionCheckResult(SessionCheckStatus.noSession);
@@ -279,27 +284,27 @@ class AuthService {
       }
       return SessionCheckResult(
         SessionCheckStatus.serverError,
-        message: 'Server responded with HTTP ${response.statusCode}.',
+        message: l10n.connectionFailed('HTTP ${response.statusCode}'),
       );
     } on SocketException {
-      return const SessionCheckResult(
+      return SessionCheckResult(
         SessionCheckStatus.unreachable,
-        message: 'Server is unreachable.',
+        message: l10n.serverIsUnreachable,
       );
     } on http.ClientException {
-      return const SessionCheckResult(
+      return SessionCheckResult(
         SessionCheckStatus.unreachable,
-        message: 'Unable to reach the server.',
+        message: l10n.serverIsUnreachable,
       );
     } on TimeoutException {
-      return const SessionCheckResult(
+      return SessionCheckResult(
         SessionCheckStatus.unreachable,
-        message: 'Connection timed out.',
+        message: l10n.serverIsUnreachable,
       );
     } catch (_) {
-      return const SessionCheckResult(
+      return SessionCheckResult(
         SessionCheckStatus.unreachable,
-        message: 'Connection check failed.',
+        message: l10n.serverIsUnreachable,
       );
     }
   }
@@ -310,7 +315,7 @@ class AuthService {
   }) async {
     final refreshToken = await secretStore.readRefreshToken(serverId);
     if (refreshToken == null || refreshToken.isEmpty) {
-      throw const AuthException('No refresh token available');
+      throw AuthException(platformAppLocalizations().authErrorNoRefreshToken);
     }
 
     final result = await gateway.refresh(
@@ -392,11 +397,11 @@ class AuthService {
   }) async {
     final token = await readAccessToken(serverId);
     if (token == null || token.isEmpty) {
-      throw const AuthException('No active session available');
+      throw AuthException(platformAppLocalizations().authErrorNoActiveSession);
     }
     final username = await readLastUsername(serverId);
     if (username == null || username.isEmpty) {
-      throw const AuthException('No saved username available');
+      throw AuthException(platformAppLocalizations().authErrorNoSavedUsername);
     }
 
     await _sendAuthorizedJson(
@@ -404,7 +409,7 @@ class AuthService {
       uri: _endpoint(baseUrl, '/api/account/password'),
       token: token,
       payload: {'new_password': newPassword},
-      fallbackMessage: 'Password change failed',
+      fallbackMessage: platformAppLocalizations().passwordChangeFailedGeneric,
     );
 
     await authenticate(
@@ -422,14 +427,14 @@ class AuthService {
   }) async {
     final token = await readAccessToken(serverId);
     if (token == null || token.isEmpty) {
-      throw const AuthException('No active session available');
+      throw AuthException(platformAppLocalizations().authErrorNoActiveSession);
     }
 
     await _sendAuthorizedJson(
       method: 'DELETE',
       uri: _endpoint(baseUrl, '/api/account'),
       token: token,
-      fallbackMessage: 'Account deletion failed',
+      fallbackMessage: platformAppLocalizations().accountDeletionFailedGeneric,
     );
     await logout(serverId);
   }

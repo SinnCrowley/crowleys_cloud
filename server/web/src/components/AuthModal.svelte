@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { authApi } from '../api/auth.js';
   import { authStore } from '../stores/auth.js';
   import { filesStore } from '../stores/files.js';
+  import { t } from '../stores/i18n.js';
 
   const dispatch = createEventDispatcher();
   const { isAuthenticated, user, refreshToken } = authStore;
@@ -33,11 +34,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   async function handleSubmit() {
     errorMessage = '';
     if (!username || !password) {
-      errorMessage = 'Please fill in all required fields.';
+      errorMessage = $t('modals.auth.fill_all_fields');
       return;
     }
     if (activeTab === 'register' && password !== confirmPassword) {
-      errorMessage = 'Passwords do not match.';
+      errorMessage = $t('modals.auth.passwords_mismatch');
       return;
     }
 
@@ -62,7 +63,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       dispatch('success', payload);
       dispatch('authenticated', payload);
     } catch (err) {
-      errorMessage = err.message || 'Authentication failed. Please check your credentials.';
+      const msg = err.message || '';
+      if (msg.toLowerCase().includes('invalid credential') || msg.toLowerCase().includes('invalid username or password')) {
+        errorMessage = $t('modals.auth.invalid_credentials');
+      } else {
+        errorMessage = msg || $t('common.error');
+      }
     } finally {
       isLoading = false;
     }
@@ -91,19 +97,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   <div class="card-auth">
     <div class="auth-header">
       <h2 class="text-display">Crowley's Cloud</h2>
-      <p class="text-sub">Access your multi-server storage</p>
+      <p class="text-sub">{$t('modals.auth.access_storage')}</p>
     </div>
 
     {#if $isAuthenticated}
       <div class="account-info">
-        <p class="text-body">Logged in as: <strong>{$user?.username || 'User'}</strong></p>
+        <p class="text-body">{$t('modals.auth.logged_in_as', { username: $user?.username || $t('nav.user') })}</p>
         <button
           type="button"
           class="btn btn-danger full-width"
           disabled={isLoading}
           on:click={handleLogout}
         >
-          {isLoading ? 'Signing out...' : 'Sign Out'}
+          {isLoading ? $t('common.loading') : $t('nav.sign_out')}
         </button>
       </div>
     {:else}
@@ -113,14 +119,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           class="tab-btn {activeTab === 'login' ? 'active' : ''}"
           on:click={() => (activeTab = 'login')}
         >
-          Sign In
+          {$t('nav.sign_in')}
         </button>
         <button
           type="button"
           class="tab-btn {activeTab === 'register' ? 'active' : ''}"
           on:click={() => (activeTab = 'register')}
         >
-          Register
+          {$t('modals.auth.register_btn')}
         </button>
       </div>
 
@@ -132,7 +138,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
       <form on:submit|preventDefault={handleSubmit}>
         <div class="form-group">
-          <label class="form-label" for="serverUrl">Server URL</label>
+          <label class="form-label" for="serverUrl">{$t('modals.auth.server_url')}</label>
           <input
             id="serverUrl"
             type="text"
@@ -143,38 +149,38 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="username">Username</label>
+          <label class="form-label" for="username">{$t('modals.auth.username')}</label>
           <input
             id="username"
             type="text"
             class="form-input"
             bind:value={username}
-            placeholder="Enter username"
+            placeholder={$t('modals.auth.username_placeholder')}
             required
           />
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="password">Password</label>
+          <label class="form-label" for="password">{$t('modals.auth.password')}</label>
           <input
             id="password"
             type="password"
             class="form-input"
             bind:value={password}
-            placeholder="Enter password"
+            placeholder={$t('modals.auth.password_placeholder')}
             required
           />
         </div>
 
         {#if activeTab === 'register'}
           <div class="form-group">
-            <label class="form-label" for="confirmPassword">Confirm Password</label>
+            <label class="form-label" for="confirmPassword">{$t('modals.auth.confirm_password')}</label>
             <input
               id="confirmPassword"
               type="password"
               class="form-input"
               bind:value={confirmPassword}
-              placeholder="Confirm password"
+              placeholder={$t('modals.auth.confirm_password_placeholder')}
               required
             />
           </div>
@@ -182,7 +188,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
         <div class="auth-actions">
           <button type="submit" class="btn btn-primary full-width" disabled={isLoading}>
-            {isLoading ? 'Connecting...' : activeTab === 'login' ? 'Sign In' : 'Create Account'}
+            {isLoading ? $t('common.loading') : activeTab === 'login' ? $t('nav.sign_in') : $t('modals.auth.register_btn')}
           </button>
         </div>
       </form>

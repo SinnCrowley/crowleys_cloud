@@ -15,6 +15,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <script>
   import { transfersStore, activeCount, totalSpeed } from '../stores/transfers.js';
+  import { t } from '../stores/i18n.js';
 
   const { queue, isDrawerOpen } = transfersStore;
 
@@ -50,24 +51,24 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   <div class="transfer-bottom-bar text-body">
     <div class="transfer-summary" on:click={() => transfersStore.toggleDrawer()}>
       {#if activeItemsCount > 0}
-        <span class="active-badge">{activeItemsCount} active</span>
+        <span class="active-badge">{$t('transfers.active_count', { count: activeItemsCount })}</span>
         <span class="speed-indicator">{formatSpeed(speedBytes)}</span>
         <div class="mini-progress-bar">
           <div class="mini-progress-fill" style="width: {overallProgress}%;" />
         </div>
         <span class="progress-percent">{overallProgress}%</span>
       {:else if pausedItemsCount > 0}
-        <span class="active-badge badge-paused">{pausedItemsCount} paused</span>
+        <span class="active-badge badge-paused">{$t('transfers.paused_count', { count: pausedItemsCount })}</span>
         <div class="mini-progress-bar">
           <div class="mini-progress-fill paused-fill" style="width: {overallProgress}%;" />
         </div>
-        <span class="idle-text text-sub">Transfers paused ({overallProgress}%)</span>
+        <span class="idle-text text-sub">{$t('transfers.paused')} ({overallProgress}%)</span>
       {:else if cancelledItemsCount > 0 && completedItemsCount < totalItemsCount}
-        <span class="active-badge badge-cancelled">{cancelledItemsCount} cancelled</span>
-        <span class="idle-text text-sub">Transfers cancelled</span>
+        <span class="active-badge badge-cancelled">{$t('transfers.cancelled')}</span>
+        <span class="idle-text text-sub">{$t('transfers.cancelled')}</span>
       {:else}
-        <span class="active-badge badge-completed">Completed</span>
-        <span class="idle-text text-sub">Transfers finished</span>
+        <span class="active-badge badge-completed">{$t('transfers.completed')}</span>
+        <span class="idle-text text-sub">{$t('transfers.completed')}</span>
       {/if}
     </div>
 
@@ -75,7 +76,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       {#if hasActiveTransfers}
         <button
           class="btn-icon mini-action"
-          title={hasRunningOrQueued ? "Pause transfers" : "Resume transfers"}
+          title={hasRunningOrQueued ? $t('transfers.pause_all') : $t('transfers.resume_all')}
           on:click={() => transfersStore.togglePauseAll()}
         >
           <span class="material-symbols-outlined" style="font-size: 18px;">
@@ -85,7 +86,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
         <button
           class="btn-icon mini-action action-danger"
-          title="Cancel transfers"
+          title={$t('transfers.cancel_all')}
           on:click={() => transfersStore.cancelAll()}
         >
           <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
@@ -94,7 +95,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
       <button
         class="btn-icon mini-action"
-        title={$isDrawerOpen ? 'Close drawer' : 'Expand drawer'}
+        title={$isDrawerOpen ? $t('common.close') : $t('transfers.transfers_title')}
         on:click={() => transfersStore.toggleDrawer()}
       >
         <span class="material-symbols-outlined" style="font-size: 18px;">

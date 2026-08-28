@@ -21,6 +21,7 @@ import 'package:crowleys_cloud/file_browser_controller.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -31,8 +32,8 @@ void main() {
     bool isGridView = true,
   }) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
+      wrapWithLocalization(
+        Scaffold(
           body: FileBrowser(
             category: const FileCategory('Documents', Icons.description),
             isGridView: isGridView,

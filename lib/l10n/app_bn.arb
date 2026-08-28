@@ -1,0 +1,2654 @@
+{
+  "@@locale": "bn",
+  "appTitle": "Crowley's Cloud",
+  "@appTitle": {
+    "description": "The application name shown in the title bar and AppBar"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Generic OK button label"
+  },
+  "cancel": "বাতিল",
+  "@cancel": {
+    "description": "Generic Cancel button label"
+  },
+  "save": "সংরক্ষণ",
+  "@save": {
+    "description": "Generic Save button label"
+  },
+  "delete": "মুছুন",
+  "@delete": {
+    "description": "Generic Delete button label"
+  },
+  "rename": "নাম পরিবর্তন",
+  "@rename": {
+    "description": "Generic Rename button label"
+  },
+  "close": "বন্ধ করুন",
+  "@close": {
+    "description": "Generic Close button label"
+  },
+  "retry": "পুনরায় চেষ্টা করুন",
+  "@retry": {
+    "description": "Generic Retry button label"
+  },
+  "loading": "লোড হচ্ছে...",
+  "@loading": {
+    "description": "Generic loading placeholder"
+  },
+  "confirm": "নিশ্চিত করুন",
+  "@confirm": {
+    "description": "Generic Confirm button label"
+  },
+  "error": "ত্রুটি",
+  "@error": {
+    "description": "Generic error label"
+  },
+  "errorWithMessage": "ত্রুটি: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with detail",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "অজানা",
+  "@unknown": {
+    "description": "Fallback when a value is unknown"
+  },
+  "upload": "আপলোড",
+  "@upload": {
+    "description": "Upload action label"
+  },
+  "download": "ডাউনলোড",
+  "@download": {
+    "description": "Download action label"
+  },
+  "share": "শেয়ার",
+  "@share": {
+    "description": "Share action label"
+  },
+  "copy": "কপি",
+  "@copy": {
+    "description": "Copy action label"
+  },
+  "move": "স্থানান্তর",
+  "@move": {
+    "description": "Move action label"
+  },
+  "restore": "পুনরুদ্ধার",
+  "@restore": {
+    "description": "Restore action label"
+  },
+  "apply": "প্রয়োগ করুন",
+  "@apply": {
+    "description": "Apply button label"
+  },
+  "create": "তৈরি করুন",
+  "@create": {
+    "description": "Create button label"
+  },
+  "clear": "মুছুন",
+  "@clear": {
+    "description": "Clear button label"
+  },
+  "add": "যোগ করুন",
+  "@add": {
+    "description": "Add button label"
+  },
+  "remove": "সরান",
+  "@remove": {
+    "description": "Remove button label"
+  },
+  "edit": "সম্পাদনা করুন",
+  "@edit": {
+    "description": "Edit button label"
+  },
+  "switchLabel": "পরিবর্তন",
+  "@switchLabel": {
+    "description": "Switch action button label"
+  },
+  "search": "অনুসন্ধান",
+  "@search": {
+    "description": "Search label"
+  },
+  "name": "নাম",
+  "@name": {
+    "description": "Name sort / column option"
+  },
+  "date": "তারিখ",
+  "@date": {
+    "description": "Date sort / column option"
+  },
+  "size": "আকার",
+  "@size": {
+    "description": "Size sort / column option"
+  },
+  "type": "ধরন",
+  "@type": {
+    "description": "Type sort / column option"
+  },
+  "ascending": "ঊর্ধ্বক্রম",
+  "@ascending": {
+    "description": "Sort direction ascending"
+  },
+  "descending": "নিম্নক্রম",
+  "@descending": {
+    "description": "Sort direction descending"
+  },
+  "allFiles": "সব",
+  "@allFiles": {
+    "description": "Category filter: all files"
+  },
+  "categoryImages": "ছবি",
+  "@categoryImages": {
+    "description": "Category: images"
+  },
+  "categoryPhotos": "ছবি",
+  "@categoryPhotos": {
+    "description": "Category: photos (gallery)"
+  },
+  "categoryVideos": "ভিডিও",
+  "@categoryVideos": {
+    "description": "Category: videos"
+  },
+  "categoryAudio": "অডিও",
+  "@categoryAudio": {
+    "description": "Category: audio files"
+  },
+  "categoryDocuments": "নথি",
+  "@categoryDocuments": {
+    "description": "Category: documents"
+  },
+  "categoryArchives": "আর্কাইভ",
+  "@categoryArchives": {
+    "description": "Category: archives/zip files"
+  },
+  "categoryShared": "শেয়ার করা",
+  "@categoryShared": {
+    "description": "Category: shared files"
+  },
+  "categoryOther": "অন্যান্য",
+  "@categoryOther": {
+    "description": "Category: other files"
+  },
+  "categoryOtherFiles": "অন্যান্য ফাইল",
+  "@categoryOtherFiles": {
+    "description": "Category option: other files (long form)"
+  },
+  "noFilesFound": "কোনো ফাইল পাওয়া যায়নি।",
+  "@noFilesFound": {
+    "description": "Empty state when no files exist"
+  },
+  "noFilesInFolder": "এই ফোল্ডারে কোনো ফাইল নেই।",
+  "@noFilesInFolder": {
+    "description": "Empty state: folder is empty"
+  },
+  "thisActionCannotBeUndone": "এই কাজটি আর ফিরিয়ে আনা যাবে না।",
+  "@thisActionCannotBeUndone": {
+    "description": "Warning that an action is irreversible"
+  },
+  "passwordsDoNotMatch": "পাসওয়ার্ড দুটি মেলেনি।",
+  "@passwordsDoNotMatch": {
+    "description": "Validation error when passwords don't match"
+  },
+  "navLocalFiles": "স্থানীয় ফাইল",
+  "@navLocalFiles": {
+    "description": "Bottom nav label for local file browser"
+  },
+  "navServerFiles": "সার্ভার ফাইল",
+  "@navServerFiles": {
+    "description": "Bottom nav label for server file browser"
+  },
+  "navSettings": "সেটিংস",
+  "@navSettings": {
+    "description": "Bottom nav label for settings screen"
+  },
+  "navTrash": "ট্র্যাশ",
+  "@navTrash": {
+    "description": "Drawer nav label for trash screen"
+  },
+  "navLocal": "স্থানীয়",
+  "@navLocal": {
+    "description": "Drawer nav label for local browser"
+  },
+  "navServer": "সার্ভার",
+  "@navServer": {
+    "description": "Drawer nav label for server browser"
+  },
+  "addServer": "সার্ভার যোগ করুন",
+  "@addServer": {
+    "description": "Button label to add a new server"
+  },
+  "noServersConfigured": "কোনো সার্ভার কনফিগার করা হয়নি।",
+  "@noServersConfigured": {
+    "description": "Empty state when no servers are added"
+  },
+  "addAServerInSettings": "সেটিংস থেকে একটি সার্ভার যোগ করুন।",
+  "@addAServerInSettings": {
+    "description": "Hint below no-servers message"
+  },
+  "addFirstServerHint": "চালিয়ে যেতে আপনার প্রথম সার্ভারটি যোগ করুন।",
+  "@addFirstServerHint": {
+    "description": "Setup screen hint"
+  },
+  "noServersConfiguredYet": "এখনও কোনো সার্ভার কনফিগার করা হয়নি।",
+  "@noServersConfiguredYet": {
+    "description": "Setup screen title when no servers"
+  },
+  "crowleysCloudSetup": "Crowley's Cloud সেটআপ",
+  "@crowleysCloudSetup": {
+    "description": "AppBar title on setup screen"
+  },
+  "connect": "সংযোগ করুন",
+  "@connect": {
+    "description": "Connect button label"
+  },
+  "connecting": "সংযোগ করা হচ্ছে...",
+  "@connecting": {
+    "description": "Loading state on connect button"
+  },
+  "connected": "সংযুক্ত",
+  "@connected": {
+    "description": "Server connection status label"
+  },
+  "disconnected": "বিচ্ছিন্ন",
+  "@disconnected": {
+    "description": "Server disconnected status label"
+  },
+  "switchServer": "সার্ভার পরিবর্তন করুন",
+  "@switchServer": {
+    "description": "Button to switch to another server"
+  },
+  "chooseOtherServer": "অন্য সার্ভার বেছে নিন",
+  "@chooseOtherServer": {
+    "description": "Button to pick another server from list"
+  },
+  "switchServerTitle": "সার্ভার পরিবর্তন করবেন?",
+  "@switchServerTitle": {
+    "description": "Confirm dialog title for switching server"
+  },
+  "switchServerBody": "সক্রিয় সার্ভার কি \"{serverName}\"-এ পরিবর্তন করবেন?",
+  "@switchServerBody": {
+    "description": "Confirm dialog body for switching server",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseServer": "সার্ভার নির্বাচন করুন",
+  "@chooseServer": {
+    "description": "Dialog title for server picker"
+  },
+  "authenticationRequired": "প্রমাণীকরণ প্রয়োজন",
+  "@authenticationRequired": {
+    "description": "Screen title when sign-in is needed"
+  },
+  "signInToAccess": "{serverName}-এ ফাইল দেখতে সাইন ইন করুন",
+  "@signInToAccess": {
+    "description": "Auth screen subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "signInWithPassword": "পাসওয়ার্ড দিয়ে সাইন ইন করুন",
+  "@signInWithPassword": {
+    "description": "Button to open password sign-in"
+  },
+  "useBiometrics": "বায়োমেট্রিক ব্যবহার করুন",
+  "@useBiometrics": {
+    "description": "Button to use biometric authentication"
+  },
+  "openingSignIn": "সাইন ইন খোলা হচ্ছে...",
+  "@openingSignIn": {
+    "description": "Status while launching sign-in"
+  },
+  "serverConnectionFailed": "সার্ভার সংযোগ ব্যর্থ হয়েছে",
+  "@serverConnectionFailed": {
+    "description": "Error screen title"
+  },
+  "unableToConnectToServer": "সক্রিয় সার্ভারের সাথে সংযোগ স্থাপন করা যায়নি।",
+  "@unableToConnectToServer": {
+    "description": "Generic connection error message"
+  },
+  "unableToConnectTo": "{serverName}-এর সাথে সংযোগ স্থাপন করা যায়নি।",
+  "@unableToConnectTo": {
+    "description": "Connection error with server name",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHint": "অনুসন্ধান...",
+  "@searchHint": {
+    "description": "Generic search field hint"
+  },
+  "searchFilesHint": "ফাইল অনুসন্ধান করুন...",
+  "@searchFilesHint": {
+    "description": "File search field hint"
+  },
+  "searchServerFilesHint": "সার্ভার ফাইল অনুসন্ধান করুন...",
+  "@searchServerFilesHint": {
+    "description": "Server file search field hint"
+  },
+  "searchTrashHint": "ট্র্যাশে অনুসন্ধান করুন...",
+  "@searchTrashHint": {
+    "description": "Trash search field hint"
+  },
+  "storagePermissionRequired": "স্টোরেজের অনুমতি প্রয়োজন",
+  "@storagePermissionRequired": {
+    "description": "Permission prompt title"
+  },
+  "grantPermission": "অনুমতি দিন",
+  "@grantPermission": {
+    "description": "Button to open permission dialog"
+  },
+  "permissionDeniedOpenSettings": "অনুমতি প্রত্যাখ্যান করা হয়েছে। অনুগ্রহ করে সেটিংসে গিয়ে স্টোরেজের অনুমতি দিন।",
+  "@permissionDeniedOpenSettings": {
+    "description": "Storage permission denied message"
+  },
+  "manageStoragePermissionRequired": "ফোল্ডার ব্রাউজ এবং নির্বাচন করতে স্টোরেজ পরিচালনার অনুমতি প্রয়োজন।",
+  "@manageStoragePermissionRequired": {
+    "description": "Manage storage permission prompt"
+  },
+  "storagePermissionsRequired": "সিঙ্ক করার জন্য স্টোরেজ অনুমতি প্রয়োজন।",
+  "@storagePermissionsRequired": {
+    "description": "Sync storage permission prompt"
+  },
+  "updateAvailableTitle": "আপডেট উপলভ্য: v{version}",
+  "@updateAvailableTitle": {
+    "description": "Update banner title",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTapToSeeNew": "নতুন কী আছে দেখতে ট্যাপ করুন",
+  "@updateAvailableTapToSeeNew": {
+    "description": "Update banner subtitle"
+  },
+  "updateView": "দেখুন",
+  "@updateView": {
+    "description": "Update banner action button"
+  },
+  "updateAvailableDialogTitle": "আপডেট উপলভ্য",
+  "@updateAvailableDialogTitle": {
+    "description": "Update dialog title"
+  },
+  "updateVersionSubtitle": "সংস্করণ {version}",
+  "@updateVersionSubtitle": {
+    "description": "Fallback subtitle showing version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCurrentVersion": "বর্তমান: v{version}",
+  "@updateCurrentVersion": {
+    "description": "Update dialog current version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersion": "নতুন: v{version}",
+  "@updateNewVersion": {
+    "description": "Update dialog new version label",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateWhatsNew": "নতুন কী আছে:",
+  "@updateWhatsNew": {
+    "description": "Update dialog section header"
+  },
+  "updateGitHub": "GitHub",
+  "@updateGitHub": {
+    "description": "Link label to GitHub release page"
+  },
+  "updateNoReleaseNotes": "কোনো রিলিজ নোট দেওয়া হয়নি।",
+  "@updateNoReleaseNotes": {
+    "description": "Fallback when no release notes available"
+  },
+  "updateLater": "পরে",
+  "@updateLater": {
+    "description": "Dismiss update dialog button"
+  },
+  "updateDownloadApk": "APK ডাউনলোড করুন",
+  "@updateDownloadApk": {
+    "description": "Download APK button in update dialog"
+  },
+  "updateInstall": "আপডেট করুন",
+  "@updateInstall": {
+    "description": "Open update page button in update dialog"
+  },
+  "shareLinkTitle": "শেয়ার লিঙ্ক",
+  "@shareLinkTitle": {
+    "description": "Share link dialog title and action tile"
+  },
+  "shareViaLink": "লিঙ্কের মাধ্যমে শেয়ার করুন",
+  "@shareViaLink": {
+    "description": "Context menu action: share via link"
+  },
+  "shareInServer": "সার্ভারে শেয়ার করুন",
+  "@shareInServer": {
+    "description": "Context menu action: share in server"
+  },
+  "expiryDays": "মেয়াদ (দিন)",
+  "@expiryDays": {
+    "description": "Expiry label in share link dialog"
+  },
+  "expiryNever": "কখনও নয়",
+  "@expiryNever": {
+    "description": "Token never expires option"
+  },
+  "expiry1Day": "১ দিন",
+  "@expiry1Day": {
+    "description": "Token expires in 1 day"
+  },
+  "expiry7Days": "৭ দিন",
+  "@expiry7Days": {
+    "description": "Token expires in 7 days"
+  },
+  "expiry30Days": "৩০ দিন",
+  "@expiry30Days": {
+    "description": "Token expires in 30 days"
+  },
+  "expiry90Days": "৯০ দিন",
+  "@expiry90Days": {
+    "description": "Token expires in 90 days"
+  },
+  "expiry180Days": "১৮০ দিন",
+  "@expiry180Days": {
+    "description": "Token expires in 180 days"
+  },
+  "expiry365Days": "৩৬৫ দিন",
+  "@expiry365Days": {
+    "description": "Token expires in 365 days"
+  },
+  "createLink": "লিঙ্ক তৈরি করুন",
+  "@createLink": {
+    "description": "Create share link button label"
+  },
+  "sharedLinkCopied": "শেয়ার লিঙ্ক ক্লিপবোর্ডে কপি করা হয়েছে!",
+  "@sharedLinkCopied": {
+    "description": "Snackbar when share link is copied"
+  },
+  "failedToCopySharedLink": "শেয়ার লিঙ্ক কপি করতে ব্যর্থ হয়েছে: {error}",
+  "@failedToCopySharedLink": {
+    "description": "Snackbar when share link copy fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotShareThisFileType": "এই ধরনের ফাইল শেয়ার করা যায় না।",
+  "@cannotShareThisFileType": {
+    "description": "Snackbar for unsupported share type"
+  },
+  "failedToCreateShare": "শেয়ার তৈরি করতে ব্যর্থ হয়েছে: {error}",
+  "@failedToCreateShare": {
+    "description": "Snackbar when share creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFolderTitle": "ফোল্ডার তৈরি করুন",
+  "@newFolderTitle": {
+    "description": "Create folder dialog title"
+  },
+  "newFolderHint": "ফোল্ডারের নাম",
+  "@newFolderHint": {
+    "description": "Create folder dialog hint text"
+  },
+  "newFolder": "নতুন ফোল্ডার",
+  "@newFolder": {
+    "description": "New folder button label"
+  },
+  "folderCreated": "ফোল্ডার তৈরি হয়েছে।",
+  "@folderCreated": {
+    "description": "Snackbar on folder creation success"
+  },
+  "failedToCreateFolder": "ফোল্ডার তৈরি করতে ব্যর্থ হয়েছে: {error}",
+  "@failedToCreateFolder": {
+    "description": "Snackbar when folder creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "creatingFolder": "ফোল্ডার তৈরি হচ্ছে...",
+  "@creatingFolder": {
+    "description": "Snackbar while folder is being created"
+  },
+  "renameDialogTitle": "নাম পরিবর্তন",
+  "@renameDialogTitle": {
+    "description": "Rename dialog title"
+  },
+  "renameHint": "নতুন নাম",
+  "@renameHint": {
+    "description": "Rename text field hint"
+  },
+  "enterNewName": "নতুন নাম লিখুন",
+  "@enterNewName": {
+    "description": "Rename text field hint (file browser)"
+  },
+  "renamedSuccessfully": "নাম সফলভাবে পরিবর্তন করা হয়েছে।",
+  "@renamedSuccessfully": {
+    "description": "Snackbar on rename success"
+  },
+  "renameFailed": "নাম পরিবর্তন ব্যর্থ হয়েছে: {error}",
+  "@renameFailed": {
+    "description": "Snackbar on rename failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveDialogTitle": "এখানে স্থানান্তর করুন",
+  "@moveDialogTitle": {
+    "description": "Move dialog title prefix"
+  },
+  "moveTo": "স্থানান্তর: {path}",
+  "@moveTo": {
+    "description": "Move dialog title with path",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "moveHere": "এখানে আনুন",
+  "@moveHere": {
+    "description": "Move to current folder button"
+  },
+  "moveFailed": "স্থানান্তর ব্যর্থ হয়েছে: {error}",
+  "@moveFailed": {
+    "description": "Snackbar on move failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedToFolder": "ফোল্ডারে স্থানান্তর করা হয়েছে।",
+  "@movedToFolder": {
+    "description": "Snackbar on successful move"
+  },
+  "copyFailed": "কপি করতে ব্যর্থ হয়েছে: {error}",
+  "@copyFailed": {
+    "description": "Snackbar on copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFolder": "ফোল্ডার নির্বাচন করুন",
+  "@selectFolder": {
+    "description": "Folder picker AppBar title"
+  },
+  "useThisFolder": "এই ফোল্ডার ব্যবহার করুন",
+  "@useThisFolder": {
+    "description": "FAB label to confirm folder selection"
+  },
+  "storageRoot": "স্টোরেজ",
+  "@storageRoot": {
+    "description": "Root label in local file breadcrumb"
+  },
+  "serverRoot": "মূল",
+  "@serverRoot": {
+    "description": "Root label in server file breadcrumb"
+  },
+  "deleteNItemsTitle": "{count}টি আইটেম মুছবেন?",
+  "@deleteNItemsTitle": {
+    "description": "Bulk delete dialog title",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteFilesTitle": "ফাইলগুলো মুছবেন?",
+  "@deleteFilesTitle": {
+    "description": "Delete files confirm dialog title"
+  },
+  "deleteFilesBody": "আপনি কি নিশ্চিতভাবে {count}টি নির্বাচিত আইটেম মুছতে চান? এটি আর ফিরিয়ে আনা যাবে না।",
+  "@deleteFilesBody": {
+    "description": "Delete files confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deletePermanently": "স্থায়ীভাবে মুছুন",
+  "@deletePermanently": {
+    "description": "Permanent delete action/button label"
+  },
+  "deletePermanentlyTitle": "স্থায়ীভাবে মুছবেন?",
+  "@deletePermanentlyTitle": {
+    "description": "Permanent delete confirm dialog title"
+  },
+  "deletePermanentlyBody": "{filename} স্থায়ীভাবে মুছে ফেলা হবে।",
+  "@deletePermanentlyBody": {
+    "description": "Permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileTitle": "ফাইল মুছবেন?",
+  "@deleteFileTitle": {
+    "description": "Single file delete confirm dialog title"
+  },
+  "deleteFileBody": "আপনি কি নিশ্চিতভাবে {filename} মুছতে চান? এটি আর ফিরিয়ে আনা যাবে না।",
+  "@deleteFileBody": {
+    "description": "Single file delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteServerFileTitle": "স্থায়ীভাবে মুছুন",
+  "@deleteServerFileTitle": {
+    "description": "Server permanent delete confirm dialog title"
+  },
+  "deleteServerFileBody": "আপনি কি নিশ্চিতভাবে \"{filename}\" স্থায়ীভাবে মুছতে চান? এটি আর ফিরিয়ে আনা যাবে না।",
+  "@deleteServerFileBody": {
+    "description": "Server permanent delete confirm dialog body",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "unshareItemsTitle": "আইটেমের শেয়ার বাতিল করবেন?",
+  "@unshareItemsTitle": {
+    "description": "Unshare confirm dialog title"
+  },
+  "unshareItemsBody": "আপনি কি নিশ্চিতভাবে {count}টি নির্বাচিত আইটেমের শেয়ার বাতিল করতে চান? এটি সেগুলো শেয়ার করা ফোল্ডার থেকে সরিয়ে দেবে।",
+  "@unshareItemsBody": {
+    "description": "Unshare confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unshare": "শেয়ার বাতিল করুন",
+  "@unshare": {
+    "description": "Unshare button label"
+  },
+  "moveToTrash": "ট্র্যাশে সরান",
+  "@moveToTrash": {
+    "description": "Move to trash action label"
+  },
+  "movedToTrash": "ট্র্যাশে সরানো হয়েছে।",
+  "@movedToTrash": {
+    "description": "Snackbar on single item moved to trash"
+  },
+  "movedNItemsToTrash": "{count}টি আইটেম ট্র্যাশে সরানো হয়েছে।",
+  "@movedNItemsToTrash": {
+    "description": "Snackbar on multiple items moved to trash",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveToTrash": "ট্র্যাশে সরাতে ব্যর্থ হয়েছে: {error}",
+  "@failedToMoveToTrash": {
+    "description": "Snackbar on move-to-trash failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedNItems": "{count}টি আইটেম মুছে ফেলা হয়েছে।",
+  "@deletedNItems": {
+    "description": "Snackbar on bulk delete success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToDelete": "মুছতে ব্যর্থ হয়েছে: {error}",
+  "@failedToDelete": {
+    "description": "Snackbar on delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDeleteItem": "মুছে ফেলা ব্যর্থ হয়েছে: {error}",
+  "@failedToDeleteItem": {
+    "description": "Snackbar on server delete failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedFilename": "{filename} মুছে ফেলা হয়েছে।",
+  "@deletedFilename": {
+    "description": "Snackbar on single file delete success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToOpenFile": "ফাইল খুলতে ব্যর্থ হয়েছে",
+  "@failedToOpenFile": {
+    "description": "Snackbar when file can't be opened"
+  },
+  "fileDownloadFailed": "ফাইল ডাউনলোড ব্যর্থ হয়েছে: {error}",
+  "@fileDownloadFailed": {
+    "description": "Snackbar on file download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "ডাউনলোড হচ্ছে...",
+  "@downloading": {
+    "description": "Snackbar while downloading"
+  },
+  "downloadingFile": "ফাইল ডাউনলোড হচ্ছে...",
+  "@downloadingFile": {
+    "description": "Loading text while downloading a file for preview"
+  },
+  "downloadComplete": "ডাউনলোড সম্পূর্ণ: {filename}",
+  "@downloadComplete": {
+    "description": "Snackbar on download success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "ডাউনলোড ব্যর্থ হয়েছে: {error}",
+  "@downloadFailed": {
+    "description": "Snackbar on download failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToDownloadPreview": "ফাইলের পূর্বরূপ ডাউনলোড করতে ব্যর্থ হয়েছে",
+  "@failedToDownloadPreview": {
+    "description": "Snackbar when preview download fails"
+  },
+  "uploadComplete": "আপলোড সম্পূর্ণ: {filename}",
+  "@uploadComplete": {
+    "description": "Snackbar on upload success",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFailed": "আপলোড ব্যর্থ হয়েছে: {error}",
+  "@uploadFailed": {
+    "description": "Snackbar on upload failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToPickFiles": "ফাইল নির্বাচন করতে ব্যর্থ হয়েছে",
+  "@failedToPickFiles": {
+    "description": "Snackbar when file picker fails"
+  },
+  "uploadedNItems": "{count}টি আইটেম আপলোড করা হয়েছে",
+  "@uploadedNItems": {
+    "description": "Snackbar on batch upload success",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedLinkToClipboard": "লিঙ্ক ক্লিপবোর্ডে কপি করা হয়েছে।",
+  "@copiedLinkToClipboard": {
+    "description": "Snackbar on link copy"
+  },
+  "failedToCopyLink": "লিঙ্ক কপি করতে ব্যর্থ হয়েছে: {error}",
+  "@failedToCopyLink": {
+    "description": "Snackbar on link copy failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectingAll": "সব নির্বাচন করা হচ্ছে...",
+  "@selectingAll": {
+    "description": "Snackbar while selecting all items"
+  },
+  "allItemsSelected": "সব আইটেম নির্বাচিত হয়েছে।",
+  "@allItemsSelected": {
+    "description": "Snackbar when all items are selected"
+  },
+  "failedToLoadSearchResults": "অনুসন্ধানের ফলাফল লোড করতে ব্যর্থ হয়েছে",
+  "@failedToLoadSearchResults": {
+    "description": "Snackbar on search failure"
+  },
+  "shareNotSupportedForType": "এই ধরনের ফাইলের জন্য শেয়ার সমর্থিত নয়।",
+  "@shareNotSupportedForType": {
+    "description": "Snackbar for unsupported share"
+  },
+  "nSelected": "{count}টি নির্বাচিত",
+  "@nSelected": {
+    "description": "Selection header: N items selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noServerSelected": "কোনো সার্ভার নির্বাচিত নেই",
+  "@noServerSelected": {
+    "description": "Snackbar when no server is active"
+  },
+  "pleaseConnectToServerFirst": "অনুগ্রহ করে প্রথমে একটি সার্ভারের সাথে সংযোগ করুন।",
+  "@pleaseConnectToServerFirst": {
+    "description": "Snackbar prompt to connect"
+  },
+  "signInRequired": "সাইন ইন প্রয়োজন",
+  "@signInRequired": {
+    "description": "Snackbar when sign-in is needed"
+  },
+  "pleaseSignInToServer": "অনুগ্রহ করে প্রথমে \"{serverName}\"-এ সাইন ইন করুন।",
+  "@pleaseSignInToServer": {
+    "description": "Snackbar prompting to sign in",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToServer": "সার্ভারের সাথে সংযোগ করা হচ্ছে...",
+  "@connectingToServer": {
+    "description": "Snackbar while connecting"
+  },
+  "connectedToServer": "{serverName}-এর সাথে সংযুক্ত হয়েছে।",
+  "@connectedToServer": {
+    "description": "Snackbar on successful connection",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "সংযোগ ব্যর্থ হয়েছে: {error}",
+  "@connectionFailed": {
+    "description": "Snackbar on connection failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "সংযুক্ত হতে ব্যর্থ হয়েছে: {error}",
+  "@failedToConnect": {
+    "description": "Snackbar on connect failure (alt)",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailed": "প্রমাণীকরণ ব্যর্থ হয়েছে: {error}",
+  "@authFailed": {
+    "description": "Snackbar on authentication failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authFailedGeneric": "প্রমাণীকরণ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
+  "@authFailedGeneric": {
+    "description": "Generic auth failure snackbar"
+  },
+  "biometricLoginFailed": "বায়োমেট্রিক লগইন ব্যর্থ হয়েছে: {error}",
+  "@biometricLoginFailed": {
+    "description": "Snackbar on biometric login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricLoginFailedGeneric": "বায়োমেট্রিক লগইন ব্যর্থ হয়েছে।",
+  "@biometricLoginFailedGeneric": {
+    "description": "Generic biometric failure snackbar"
+  },
+  "noServerSessionToken": "কোনো সার্ভার সেশন টোকেন নেই। সার্ভার পুনরায় প্রমাণীকরণ করুন।",
+  "@noServerSessionToken": {
+    "description": "Snackbar when session token is missing"
+  },
+  "failedToSaveServer": "সার্ভার সংরক্ষণ করতে ব্যর্থ হয়েছে: {error}",
+  "@failedToSaveServer": {
+    "description": "Snackbar on server save failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addToFolder": "ফোল্ডারে যোগ করুন",
+  "@addToFolder": {
+    "description": "Context menu action: add to folder"
+  },
+  "loginTabLabel": "লগইন",
+  "@loginTabLabel": {
+    "description": "Auth tab: log in"
+  },
+  "registerTabLabel": "নিবন্ধন",
+  "@registerTabLabel": {
+    "description": "Auth tab: register"
+  },
+  "welcomeBack": "স্বাগতম",
+  "@welcomeBack": {
+    "description": "Auth login card title"
+  },
+  "signInToContinue": "চালিয়ে যেতে সাইন ইন করুন",
+  "@signInToContinue": {
+    "description": "Auth login card subtitle"
+  },
+  "createAccount": "অ্যাকাউন্ট তৈরি করুন",
+  "@createAccount": {
+    "description": "Auth register card title"
+  },
+  "joinTheServer": "সার্ভারে যোগ দিন",
+  "@joinTheServer": {
+    "description": "Auth register card subtitle"
+  },
+  "usernameLabel": "ব্যবহারকারীর নাম",
+  "@usernameLabel": {
+    "description": "Username text field label"
+  },
+  "usernameHint": "আপনার ব্যবহারকারীর নাম লিখুন",
+  "@usernameHint": {
+    "description": "Username text field hint"
+  },
+  "passwordLabel": "পাসওয়ার্ড",
+  "@passwordLabel": {
+    "description": "Password text field label"
+  },
+  "passwordHint": "আপনার পাসওয়ার্ড লিখুন",
+  "@passwordHint": {
+    "description": "Password text field hint"
+  },
+  "showPassword": "পাসওয়ার্ড দেখান",
+  "@showPassword": {
+    "description": "Tooltip for show password button"
+  },
+  "hidePassword": "পাসওয়ার্ড লুকান",
+  "@hidePassword": {
+    "description": "Tooltip for hide password button"
+  },
+  "confirmPassword": "পাসওয়ার্ড নিশ্চিত করুন",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "logIn": "লগ ইন করুন",
+  "@logIn": {
+    "description": "Login button label"
+  },
+  "loggingIn": "লগ ইন হচ্ছে...",
+  "@loggingIn": {
+    "description": "Login loading state"
+  },
+  "registering": "নিবন্ধন করা হচ্ছে...",
+  "@registering": {
+    "description": "Register loading state"
+  },
+  "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  "doNotHaveAccount": "অ্যাকাউন্ট নেই? নিবন্ধনে যান।",
+  "@doNotHaveAccount": {
+    "description": "Auth footer for login mode"
+  },
+  "alreadyHaveAccount": "ইতিমধ্যে একটি অ্যাকাউন্ট আছে? লগইনে যান।",
+  "@alreadyHaveAccount": {
+    "description": "Auth footer for register mode"
+  },
+  "usernameCannotBeEmpty": "ব্যবহারকারীর নাম খালি হতে পারে না।",
+  "@usernameCannotBeEmpty": {
+    "description": "Validation: empty username"
+  },
+  "passwordCannotBeEmpty": "পাসওয়ার্ড খালি হতে পারে না।",
+  "@passwordCannotBeEmpty": {
+    "description": "Validation: empty password"
+  },
+  "usernameInvalid": "ব্যবহারকারীর নাম ৩-৩২ অক্ষরের হতে হবে (বর্ণ, সংখ্যা, _ বা -)।",
+  "@usernameInvalid": {
+    "description": "Validation: invalid username format"
+  },
+  "passwordTooShort": "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।",
+  "@passwordTooShort": {
+    "description": "Validation: password too short"
+  },
+  "loginFailed": "লগইন ব্যর্থ হয়েছে: {error}",
+  "@loginFailed": {
+    "description": "Snackbar on login failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registrationFailed": "নিবন্ধন ব্যর্থ হয়েছে: {error}",
+  "@registrationFailed": {
+    "description": "Snackbar on registration failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordTitle": "পাসওয়ার্ড রিসেট করুন",
+  "@resetPasswordTitle": {
+    "description": "Forgot password dialog title step 1"
+  },
+  "enterResetCodeTitle": "রিসেট কোড লিখুন",
+  "@enterResetCodeTitle": {
+    "description": "Forgot password dialog title step 2"
+  },
+  "resetPasswordStep1Body": "আপনার ব্যবহারকারীর নাম লিখুন। ৬-সংখ্যার যাচাইকরণ কোডটি সার্ভার লগ/কনসোলে মুদ্রিত হবে।",
+  "@resetPasswordStep1Body": {
+    "description": "Forgot password step 1 instruction"
+  },
+  "resetPasswordStep2Body": "যাচাইকরণ কোডটি সার্ভার কনসোলে মুদ্রিত হয়েছে। ৬-সংখ্যার কোড এবং আপনার নতুন পাসওয়ার্ড লিখুন।",
+  "@resetPasswordStep2Body": {
+    "description": "Forgot password step 2 instruction"
+  },
+  "resetCodeLabel": "রিসেট কোড",
+  "@resetCodeLabel": {
+    "description": "Reset code field label"
+  },
+  "resetCodeHint": "৬-সংখ্যার কোড লিখুন",
+  "@resetCodeHint": {
+    "description": "Reset code field hint"
+  },
+  "newPasswordLabel": "নতুন পাসওয়ার্ড",
+  "@newPasswordLabel": {
+    "description": "New password field label"
+  },
+  "newPasswordHint": "নতুন পাসওয়ার্ড লিখুন",
+  "@newPasswordHint": {
+    "description": "New password field hint"
+  },
+  "passwordResetSuccessfully": "পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!",
+  "@passwordResetSuccessfully": {
+    "description": "Snackbar on password reset success"
+  },
+  "usernameIsRequired": "ব্যবহারকারীর নাম আবশ্যক।",
+  "@usernameIsRequired": {
+    "description": "Validation: username required for reset"
+  },
+  "codeAndPasswordRequired": "কোড এবং নতুন পাসওয়ার্ড আবশ্যক।",
+  "@codeAndPasswordRequired": {
+    "description": "Validation: code and password required"
+  },
+  "failedToRequestReset": "রিসেট অনুরোধ ব্যর্থ হয়েছে। সার্ভার URL যাচাই করুন।",
+  "@failedToRequestReset": {
+    "description": "Snackbar on reset request failure"
+  },
+  "failedToResetPassword": "পাসওয়ার্ড রিসেট করতে ব্যর্থ হয়েছে। অনুগ্রহ করে কোডটি পরীক্ষা করুন।",
+  "@failedToResetPassword": {
+    "description": "Snackbar on reset failure"
+  },
+  "pleaseEnterServerUrlFirst": "অনুগ্রহ করে প্রথমে সার্ভার URL লিখুন।",
+  "@pleaseEnterServerUrlFirst": {
+    "description": "Snackbar when server URL is missing"
+  },
+  "sendCode": "কোড পাঠান",
+  "@sendCode": {
+    "description": "Send reset code button label"
+  },
+  "settingsTitle": "সেটিংস",
+  "@settingsTitle": {
+    "description": "Settings screen AppBar title"
+  },
+  "sectionBackupSync": "ব্যাকআপ ও সিঙ্ক",
+  "@sectionBackupSync": {
+    "description": "Settings section header: backup & sync"
+  },
+  "sectionStorageCache": "স্টোরেজ ও ক্যাশে",
+  "@sectionStorageCache": {
+    "description": "Settings section header: storage & cache"
+  },
+  "sectionSecurityBehavior": "নিরাপত্তা ও আচরণ",
+  "@sectionSecurityBehavior": {
+    "description": "Settings section header: security & behavior"
+  },
+  "sectionAboutUpdates": "সম্পর্কে ও আপডেট",
+  "@sectionAboutUpdates": {
+    "description": "Settings section header: about & updates"
+  },
+  "sectionAppearance": "উপস্থিতি ও কাস্টমাইজেশন",
+  "@sectionAppearance": {
+    "description": "Settings section header: appearance"
+  },
+  "noServersConfiguredSync": "কোনো সার্ভার কনফিগার নেই",
+  "@noServersConfiguredSync": {
+    "description": "Sync section tile title when no servers"
+  },
+  "addServerBeforeSync": "সিঙ্ক কনফিগার করার আগে একটি সার্ভার যোগ করুন।",
+  "@addServerBeforeSync": {
+    "description": "Sync section hint when no servers"
+  },
+  "selectServerToConfigureSync": "সিঙ্ক সেটিংস কনফিগার করতে একটি সার্ভার নির্বাচন করুন।",
+  "@selectServerToConfigureSync": {
+    "description": "Sync section instruction"
+  },
+  "activeServerSuffix": "· সক্রিয়",
+  "@activeServerSuffix": {
+    "description": "Suffix label for active server in list"
+  },
+  "folderAndCategorySync": "ফোল্ডার ও বিভাগ সিঙ্ক",
+  "@folderAndCategorySync": {
+    "description": "Sync toggle title"
+  },
+  "keepCategoriesSynced": "নির্বাচিত স্থানীয় বিভাগ বা ফোল্ডারগুলো এই সার্ভারের সাথে সিঙ্ক রাখুন।",
+  "@keepCategoriesSynced": {
+    "description": "Sync toggle subtitle"
+  },
+  "addServerBeforeSyncEnable": "সিঙ্ক সক্ষম করার আগে একটি সার্ভার যোগ করুন।",
+  "@addServerBeforeSyncEnable": {
+    "description": "Sync toggle disabled subtitle"
+  },
+  "onlyOnWifi": "কেবলমাত্র ওয়াই-ফাই-এ",
+  "@onlyOnWifi": {
+    "description": "Sync preference: only on Wi-Fi"
+  },
+  "onlyWhileCharging": "কেবল চার্জ করার সময়",
+  "@onlyWhileCharging": {
+    "description": "Sync preference: only while charging"
+  },
+  "serverTargetDirectory": "সার্ভারের টার্গেট ডিরেক্টরি",
+  "@serverTargetDirectory": {
+    "description": "Sync target directory setting title"
+  },
+  "serverTargetDirectoryHint": "/backup/mobile_phone",
+  "@serverTargetDirectoryHint": {
+    "description": "Hint text for server target directory"
+  },
+  "synchronizationFrequency": "সিঙ্কের পুনরাবৃত্তি",
+  "@synchronizationFrequency": {
+    "description": "Sync frequency setting title"
+  },
+  "syncNow": "এখনই সিঙ্ক করুন",
+  "@syncNow": {
+    "description": "Manual sync button label"
+  },
+  "syncing": "সিঙ্ক হচ্ছে...",
+  "@syncing": {
+    "description": "Loading state for sync button"
+  },
+  "categoriesToSynchronize": "সিঙ্ক করার বিভাগসমূহ",
+  "@categoriesToSynchronize": {
+    "description": "Sync categories tile title"
+  },
+  "noCategoriesSelected": "কোনো বিভাগ নির্বাচিত হয়নি।",
+  "@noCategoriesSelected": {
+    "description": "Sync categories empty state"
+  },
+  "nCategoriesSelected": "{count}টি নির্বাচিত",
+  "@nCategoriesSelected": {
+    "description": "N categories selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersToSynchronize": "সিঙ্ক করার ফোল্ডারসমূহ",
+  "@foldersToSynchronize": {
+    "description": "Sync folders tile title"
+  },
+  "noCustomFolders": "কোনো কাস্টম ফোল্ডার কনফিগার করা হয়নি।",
+  "@noCustomFolders": {
+    "description": "Sync folders empty state"
+  },
+  "nFolders": "{count}টি ফোল্ডার",
+  "@nFolders": {
+    "description": "N folders selected label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFolder": "ফোল্ডার যোগ করুন",
+  "@addFolder": {
+    "description": "Tooltip for add folder button"
+  },
+  "removeFolder": "ফোল্ডার সরান",
+  "@removeFolder": {
+    "description": "Tooltip for remove folder button"
+  },
+  "removeServer": "সার্ভার সরান",
+  "@removeServer": {
+    "description": "Tooltip for remove server button"
+  },
+  "syncFreqEvery15Min": "প্রতি ১৫ মিনিট",
+  "@syncFreqEvery15Min": {
+    "description": "Sync frequency option: every 15 min"
+  },
+  "syncFreqEvery30Min": "প্রতি ৩০ মিনিট",
+  "@syncFreqEvery30Min": {
+    "description": "Sync frequency option: every 30 min"
+  },
+  "syncFreqEvery1Hour": "প্রতি ঘণ্টা",
+  "@syncFreqEvery1Hour": {
+    "description": "Sync frequency option: every hour"
+  },
+  "syncFreqEveryNHours": "প্রতি {hours} ঘণ্টা",
+  "@syncFreqEveryNHours": {
+    "description": "Sync frequency: every N hours",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqEveryNMin": "প্রতি {minutes} মিনিট",
+  "@syncFreqEveryNMin": {
+    "description": "Sync frequency: every N minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFreqDaily": "প্রতিদিন",
+  "@syncFreqDaily": {
+    "description": "Sync frequency option: daily"
+  },
+  "chooseSyncFrequencyTitle": "সিঙ্কের সময়কাল বেছে নিন",
+  "@chooseSyncFrequencyTitle": {
+    "description": "Sync frequency picker dialog title"
+  },
+  "cacheSize": "ক্যাশের আকার",
+  "@cacheSize": {
+    "description": "Cache size setting tile title"
+  },
+  "refreshTooltip": "রিফ্রেশ",
+  "@refreshTooltip": {
+    "description": "Tooltip for refresh button"
+  },
+  "cacheLimit": "ক্যাশ সীমা",
+  "@cacheLimit": {
+    "description": "Cache limit dropdown label"
+  },
+  "downloadPath": "ডাউনলোড পাথ",
+  "@downloadPath": {
+    "description": "Download path setting title"
+  },
+  "defaultDownloadFolder": "ডিফল্ট CrowleysCloud ফোল্ডার",
+  "@defaultDownloadFolder": {
+    "description": "Fallback label for default download folder"
+  },
+  "clearCache": "ক্যাশে মুছুন",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+  "clearCacheTitle": "ক্যাশে মুছবেন?",
+  "@clearCacheTitle": {
+    "description": "Clear cache confirm dialog title"
+  },
+  "clearCacheBody": "এটি স্থানীয় থাম্বনেইল এবং ক্যাশ করা সার্ভার তালিকা সরিয়ে ফেলবে।",
+  "@clearCacheBody": {
+    "description": "Clear cache confirm dialog body"
+  },
+  "downloadPathDialogTitle": "ডাউনলোড পাথ",
+  "@downloadPathDialogTitle": {
+    "description": "Download path dialog title"
+  },
+  "downloadPathHint": "/storage/emulated/0/CrowleysCloud",
+  "@downloadPathHint": {
+    "description": "Download path hint text"
+  },
+  "useDefault": "ডিফল্ট ব্যবহার করুন",
+  "@useDefault": {
+    "description": "Use default path button in download path dialog"
+  },
+  "serverTargetDirDialogTitle": "সার্ভারের টার্গেট ডিরেক্টরি",
+  "@serverTargetDirDialogTitle": {
+    "description": "Server target directory dialog title"
+  },
+  "requireLogin": "লগইন বাধ্যতামূলক করুন",
+  "@requireLogin": {
+    "description": "Require login dropdown label"
+  },
+  "biometricLogin": "বায়োমেট্রিক লগইন",
+  "@biometricLogin": {
+    "description": "Biometric login toggle title"
+  },
+  "biometricLoginSubtitle": "সংরক্ষিত তথ্যের মাধ্যমে বায়োমেট্রিক লগইনের অনুমতি দিন।",
+  "@biometricLoginSubtitle": {
+    "description": "Biometric login toggle subtitle"
+  },
+  "biometricsNotAvailable": "এই ডিভাইসে বায়োমেট্রিক সুবিধা নেই।",
+  "@biometricsNotAvailable": {
+    "description": "Subtitle when biometrics unavailable"
+  },
+  "showHiddenFiles": "লুকানো ফাইল দেখান",
+  "@showHiddenFiles": {
+    "description": "Show hidden files toggle title"
+  },
+  "showHiddenFilesSubtitle": "ডট দিয়ে শুরু হওয়া ফাইল ও ফোল্ডার প্রদর্শন করুন।",
+  "@showHiddenFilesSubtitle": {
+    "description": "Show hidden files toggle subtitle"
+  },
+  "changePassword": "পাসওয়ার্ড পরিবর্তন করুন",
+  "@changePassword": {
+    "description": "Change password tile title"
+  },
+  "changePasswordSubtitle": "{serverName}-এর পাসওয়ার্ড আপডেট করুন।",
+  "@changePasswordSubtitle": {
+    "description": "Change password tile subtitle",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "addServerBeforeChangePassword": "পাসওয়ার্ড পরিবর্তন করার আগে একটি সার্ভার যোগ করুন।",
+  "@addServerBeforeChangePassword": {
+    "description": "Subtitle when no server for password change"
+  },
+  "deleteUserAccount": "ব্যবহারকারী অ্যাকাউন্ট মুছুন",
+  "@deleteUserAccount": {
+    "description": "Delete account tile title"
+  },
+  "deleteUserAccountSubtitle": "ব্যবহারকারী এবং সমস্ত ব্যক্তিগত ক্লাউড ফাইল মুছে ফেলে।",
+  "@deleteUserAccountSubtitle": {
+    "description": "Delete account tile subtitle"
+  },
+  "deleteAccountTitle": "অ্যাকাউন্ট মুছবেন?",
+  "@deleteAccountTitle": {
+    "description": "Delete account confirm dialog title"
+  },
+  "deleteAccountBody": "এটি স্থায়ীভাবে {serverName}-এ আপনার অ্যাকাউন্ট মুছে ফেলবে এবং আপনার ব্যক্তিগত ক্লাউড ফোল্ডারে সংরক্ষিত সব ফাইল সরিয়ে দেবে। এটি আর ফিরিয়ে আনা যাবে না।",
+  "@deleteAccountBody": {
+    "description": "Delete account confirm dialog body",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountButton": "অ্যাকাউন্ট মুছুন",
+  "@deleteAccountButton": {
+    "description": "Delete account confirm button"
+  },
+  "changePasswordDialogTitle": "পাসওয়ার্ড পরিবর্তন",
+  "@changePasswordDialogTitle": {
+    "description": "Change password dialog title"
+  },
+  "newPasswordFieldLabel": "নতুন পাসওয়ার্ড",
+  "@newPasswordFieldLabel": {
+    "description": "New password field label in change dialog"
+  },
+  "confirmPasswordLabel": "পাসওয়ার্ড নিশ্চিত করুন",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label in change dialog"
+  },
+  "enterNewPassword": "একটি নতুন পাসওয়ার্ড লিখুন।",
+  "@enterNewPassword": {
+    "description": "Validation: new password is required"
+  },
+  "passwordUpdated": "পাসওয়ার্ড আপডেট করা হয়েছে।",
+  "@passwordUpdated": {
+    "description": "Snackbar on password change success"
+  },
+  "passwordChangeFailed": "পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে: {error}",
+  "@passwordChangeFailed": {
+    "description": "Snackbar on password change failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordChangeFailedGeneric": "পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে।",
+  "@passwordChangeFailedGeneric": {
+    "description": "Generic password change failure snackbar"
+  },
+  "accountDeleted": "অ্যাকাউন্ট মুছে ফেলা হয়েছে।",
+  "@accountDeleted": {
+    "description": "Snackbar on account deletion success"
+  },
+  "accountDeletionFailed": "অ্যাকাউন্ট মুছে ফেলা ব্যর্থ হয়েছে: {error}",
+  "@accountDeletionFailed": {
+    "description": "Snackbar on account deletion failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeletionFailedGeneric": "অ্যাকাউন্ট মুছে ফেলা ব্যর্থ হয়েছে।",
+  "@accountDeletionFailedGeneric": {
+    "description": "Generic account deletion failure snackbar"
+  },
+  "checkForUpdates": "আপডেটের জন্য পরীক্ষা করুন",
+  "@checkForUpdates": {
+    "description": "Update check tile title"
+  },
+  "checkingForUpdates": "GitHub Releases পরীক্ষা করা হচ্ছে...",
+  "@checkingForUpdates": {
+    "description": "Update check loading state"
+  },
+  "versionLabel": "সংস্করণ {version}",
+  "@versionLabel": {
+    "description": "Version label in settings",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsUpToDate": "Crowley's Cloud আপ-টু-ডেট আছে (v{version})।",
+  "@appIsUpToDate": {
+    "description": "Snackbar when app is up to date",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "আপডেট পরীক্ষা করতে ব্যর্থ হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।",
+  "@updateCheckFailed": {
+    "description": "Snackbar on update check failure"
+  },
+  "themeModeTitle": "থিম মোড",
+  "@themeModeTitle": {
+    "description": "Theme mode tile title"
+  },
+  "themeDark": "গাঢ়",
+  "@themeDark": {
+    "description": "Dark theme option"
+  },
+  "themeLight": "হালকা",
+  "@themeLight": {
+    "description": "Light theme option"
+  },
+  "themeCustom": "কাস্টম",
+  "@themeCustom": {
+    "description": "Custom theme option"
+  },
+  "themeDarkFull": "গাঢ় থিম",
+  "@themeDarkFull": {
+    "description": "Dark theme option (full label)"
+  },
+  "themeLightFull": "হালকা থিম",
+  "@themeLightFull": {
+    "description": "Light theme option (full label)"
+  },
+  "themeCustomFull": "কাস্টম থিম",
+  "@themeCustomFull": {
+    "description": "Custom theme option (full label)"
+  },
+  "accentColor": "অ্যাকসেন্ট রঙ",
+  "@accentColor": {
+    "description": "Accent color tile title"
+  },
+  "primaryAccentColor": "প্রাথমিক অ্যাকসেন্ট রঙ",
+  "@primaryAccentColor": {
+    "description": "Accent color tile subtitle"
+  },
+  "selectAccentColor": "অ্যাকসেন্ট রঙ নির্বাচন করুন",
+  "@selectAccentColor": {
+    "description": "Accent color picker dialog title"
+  },
+  "backgroundColor": "পটভূমির রঙ",
+  "@backgroundColor": {
+    "description": "Background color tile"
+  },
+  "surfaceColor": "পৃষ্ঠতলের রঙ",
+  "@surfaceColor": {
+    "description": "Surface color tile"
+  },
+  "textColor": "লেখার রঙ",
+  "@textColor": {
+    "description": "Text color tile"
+  },
+  "subtextColor": "উপ-লেখার রঙ",
+  "@subtextColor": {
+    "description": "Subtext color tile"
+  },
+  "borderColor": "সীমানার রঙ",
+  "@borderColor": {
+    "description": "Border color tile"
+  },
+  "fontSizeScale": "ফন্টের আকার",
+  "@fontSizeScale": {
+    "description": "Font size scale tile title"
+  },
+  "selectColor": "{title} নির্বাচন করুন",
+  "@selectColor": {
+    "description": "Color picker dialog title (dynamic)",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesToSyncDialogTitle": "সিঙ্ক করার বিভাগসমূহ",
+  "@categoriesToSyncDialogTitle": {
+    "description": "Sync categories dialog title"
+  },
+  "categoriesToSyncBody": "এক বা একাধিক বিভাগ বেছে নিন। সব আনচেক রাখাও বৈধ।",
+  "@categoriesToSyncBody": {
+    "description": "Sync categories dialog body"
+  },
+  "syncCategorySectionMedia": "মিডিয়া",
+  "@syncCategorySectionMedia": {
+    "description": "Sync categories section: media"
+  },
+  "syncCategorySectionAudioDocs": "অডিও ও নথি",
+  "@syncCategorySectionAudioDocs": {
+    "description": "Sync categories section: audio & docs"
+  },
+  "syncCategorySectionOther": "অন্যান্য",
+  "@syncCategorySectionOther": {
+    "description": "Sync categories section: other"
+  },
+  "clearAll": "সব মুছুন",
+  "@clearAll": {
+    "description": "Clear all button in categories dialog"
+  },
+  "noSyncHasRunYet": "এখনও কোনো সিঙ্ক চালানো হয়নি।",
+  "@noSyncHasRunYet": {
+    "description": "Label when no sync has executed"
+  },
+  "lastRunAt": "সর্বশেষ চালনা {date}",
+  "@lastRunAt": {
+    "description": "Last sync run timestamp label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultSuccess": "{uploaded}টি সিঙ্ক হয়েছে, {skipped}টি এড়িয়ে গেছে।",
+  "@syncResultSuccess": {
+    "description": "Sync result snackbar: success",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultNoFiles": "সিঙ্কের জন্য কোনো ফাইল নির্বাচিত হয়নি।",
+  "@syncResultNoFiles": {
+    "description": "Sync result: no files"
+  },
+  "syncResultPartial": "{uploaded}টি সিঙ্ক হয়েছে, {failed}টি ব্যর্থ হয়েছে।",
+  "@syncResultPartial": {
+    "description": "Sync result snackbar: partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResultAuthRequired": "সিঙ্ক করার আগে সাইন ইন করুন।",
+  "@syncResultAuthRequired": {
+    "description": "Sync result: auth required"
+  },
+  "syncResultUnreachable": "সার্ভারে পৌঁছানো যায়নি। সংযোগ বিচ্ছিন্ন হয়েছে।",
+  "@syncResultUnreachable": {
+    "description": "Sync result: server unreachable"
+  },
+  "syncResultFailed": "সিঙ্ক ব্যর্থ হয়েছে।",
+  "@syncResultFailed": {
+    "description": "Sync result: generic failure"
+  },
+  "serverSetupAddServer": "সার্ভার যোগ করুন",
+  "@serverSetupAddServer": {
+    "description": "Server setup screen AppBar title"
+  },
+  "serverSetupCardTitle": "সার্ভার সংযোগ করুন",
+  "@serverSetupCardTitle": {
+    "description": "Server setup auth card title"
+  },
+  "serverSetupCardSubtitle": "আপনার হোম ফাইল সার্ভার যোগ করুন এবং সাইন ইন করুন।",
+  "@serverSetupCardSubtitle": {
+    "description": "Server setup auth card subtitle"
+  },
+  "serverSetupSubmitButton": "সার্ভার সংরক্ষণ করুন",
+  "@serverSetupSubmitButton": {
+    "description": "Server setup auth card submit button"
+  },
+  "serverNameLabel": "সার্ভারের নাম",
+  "@serverNameLabel": {
+    "description": "Server name field label"
+  },
+  "serverNameHint": "Home NAS",
+  "@serverNameHint": {
+    "description": "Server name field hint"
+  },
+  "baseUrlLabel": "বেস URL",
+  "@baseUrlLabel": {
+    "description": "Base URL field label"
+  },
+  "baseUrlHint": "https://cloud.example.com",
+  "@baseUrlHint": {
+    "description": "Base URL field hint"
+  },
+  "allFieldsRequired": "সবগুলো ক্ষেত্র পূরণ করা আবশ্যক।",
+  "@allFieldsRequired": {
+    "description": "Validation: all fields required"
+  },
+  "localFilesTitle": "স্থানীয় ফাইল",
+  "@localFilesTitle": {
+    "description": "Local file browser AppBar title"
+  },
+  "serverFilesTitle": "সার্ভার ফাইল",
+  "@serverFilesTitle": {
+    "description": "Server file browser AppBar title"
+  },
+  "restoreItemsTitle": "আইটেম পুনরুদ্ধার করুন",
+  "@restoreItemsTitle": {
+    "description": "Trash restore confirm dialog title"
+  },
+  "restoreItemsBody": "আপনি কি নিশ্চিতভাবে {count}টি আইটেম পুনরুদ্ধার করতে চান?",
+  "@restoreItemsBody": {
+    "description": "Trash restore confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeleteTitle": "স্থায়ীভাবে মুছুন",
+  "@permanentlyDeleteTitle": {
+    "description": "Trash permanent delete confirm dialog title"
+  },
+  "permanentlyDeleteBody": "আপনি কি নিশ্চিতভাবে {count}টি আইটেম স্থায়ীভাবে মুছতে চান? এটি আর ফিরিয়ে আনা যাবে না।",
+  "@permanentlyDeleteBody": {
+    "description": "Trash permanent delete confirm dialog body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashIsEmpty": "ট্র্যাশ খালি।",
+  "@trashIsEmpty": {
+    "description": "Trash empty state message"
+  },
+  "trashRetentionInfo": "ট্র্যাশের আইটেমগুলো {days} দিন পর স্বয়ংক্রিয়ভাবে মুছে ফেলা হয়।",
+  "@trashRetentionInfo": {
+    "description": "Trash retention info banner",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deletionDate": "মুছে ফেলার তারিখ",
+  "@deletionDate": {
+    "description": "Sort option: deletion date (trash)"
+  },
+  "deletePermanentlyAction": "স্থায়ীভাবে মুছুন",
+  "@deletePermanentlyAction": {
+    "description": "Action bar label for permanent delete in trash"
+  },
+  "conflictFileAlreadyExists": "ফাইলটি ইতিমধ্যে বিদ্যমান",
+  "@conflictFileAlreadyExists": {
+    "description": "Conflict dialog title"
+  },
+  "conflictNofM": "দ্বন্দ্ব {current} / {total}",
+  "@conflictNofM": {
+    "description": "Conflict dialog subtitle",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictAFileNamed": "একটি ফাইল যার নাম ",
+  "@conflictAFileNamed": {
+    "description": "Conflict dialog body text span prefix"
+  },
+  "conflictAlreadyExistsAt": " ইতিমধ্যে বিদ্যমান আছে এখানে: ",
+  "@conflictAlreadyExistsAt": {
+    "description": "Conflict dialog body text span (restore)"
+  },
+  "conflictAlreadyExistsInFolder": " এই ফোল্ডারে ইতিমধ্যে বিদ্যমান।",
+  "@conflictAlreadyExistsInFolder": {
+    "description": "Conflict dialog body text span (upload)"
+  },
+  "conflictInFolder": "ফোল্ডারে",
+  "@conflictInFolder": {
+    "description": "Conflict dialog column header: existing file in folder"
+  },
+  "conflictFromTrash": "ট্র্যাশ থেকে",
+  "@conflictFromTrash": {
+    "description": "Conflict dialog column header: file from trash"
+  },
+  "conflictExisting": "বিদ্যমান",
+  "@conflictExisting": {
+    "description": "Conflict dialog column header: existing upload file"
+  },
+  "conflictNewUpload": "নতুন আপলোড",
+  "@conflictNewUpload": {
+    "description": "Conflict dialog column header: new uploaded file"
+  },
+  "conflictSizeLabel": "আকার: {size}",
+  "@conflictSizeLabel": {
+    "description": "Conflict dialog size data label",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDateLabel": "তারিখ: {date}",
+  "@conflictDateLabel": {
+    "description": "Conflict dialog date data label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictDeletedLabel": "মুছে ফেলার তারিখ: {date}",
+  "@conflictDeletedLabel": {
+    "description": "Conflict dialog deleted-at label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictApplyToRemaining": "বাকি দ্বন্দ্বগুলোতে প্রয়োগ করুন ({count})",
+  "@conflictApplyToRemaining": {
+    "description": "Conflict dialog apply-to-all checkbox label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictKeepAllCopies": "সব কপি রাখুন",
+  "@conflictKeepAllCopies": {
+    "description": "Conflict action: keep all copies"
+  },
+  "conflictOverwriteAll": "সব প্রতিস্থাপন করুন",
+  "@conflictOverwriteAll": {
+    "description": "Conflict action: overwrite all"
+  },
+  "conflictRestoreAllAsCopies": "সব কপি হিসেবে পুনরুদ্ধার করুন",
+  "@conflictRestoreAllAsCopies": {
+    "description": "Restore conflict action: restore all as copies"
+  },
+  "conflictRestoreAsCopy": "কপি হিসেবে পুনরুদ্ধার করুন",
+  "@conflictRestoreAsCopy": {
+    "description": "Restore conflict action: restore as copy"
+  },
+  "conflictOverwriteAllRemaining": "বাকি সব প্রতিস্থাপন করুন",
+  "@conflictOverwriteAllRemaining": {
+    "description": "Conflict action: overwrite all remaining"
+  },
+  "conflictSkipAll": "সব এড়িয়ে যান",
+  "@conflictSkipAll": {
+    "description": "Upload conflict action: skip all"
+  },
+  "conflictSkipAllRemaining": "বাকি সব এড়িয়ে যান",
+  "@conflictSkipAllRemaining": {
+    "description": "Upload conflict action: skip all remaining"
+  },
+  "conflictSkip": "এড়িয়ে যান",
+  "@conflictSkip": {
+    "description": "Upload conflict action: skip"
+  },
+  "conflictOverwrite": "প্রতিস্থাপন করুন",
+  "@conflictOverwrite": {
+    "description": "Conflict action: overwrite single"
+  },
+  "transfersTitle": "স্থানান্তর",
+  "@transfersTitle": {
+    "description": "Transfers page AppBar title"
+  },
+  "transferResume": "পুনরায় শুরু করুন",
+  "@transferResume": {
+    "description": "Transfer resume button tooltip"
+  },
+  "transferPause": "বিরতি দিন",
+  "@transferPause": {
+    "description": "Transfer pause button tooltip"
+  },
+  "transferCancel": "বাতিল করুন",
+  "@transferCancel": {
+    "description": "Transfer cancel button tooltip"
+  },
+  "transferResumeAll": "সব পুনরায় শুরু করুন",
+  "@transferResumeAll": {
+    "description": "Resume all transfers button tooltip"
+  },
+  "transferPauseAll": "সব বিরতি দিন",
+  "@transferPauseAll": {
+    "description": "Pause all transfers button tooltip"
+  },
+  "transferCancelAll": "সব বাতিল করুন",
+  "@transferCancelAll": {
+    "description": "Cancel all transfers button tooltip"
+  },
+  "transferCancelFile": "ফাইল বাতিল করুন",
+  "@transferCancelFile": {
+    "description": "Cancel individual transfer button tooltip"
+  },
+  "noTransfers": "কোনো স্থানান্তর নেই।",
+  "@noTransfers": {
+    "description": "Empty state in transfers page"
+  },
+  "transferStatusQueued": "সারিবদ্ধ",
+  "@transferStatusQueued": {
+    "description": "Transfer status: queued"
+  },
+  "transferStatusRunning": "চলছে",
+  "@transferStatusRunning": {
+    "description": "Transfer status: running"
+  },
+  "transferStatusPaused": "স্থগিত",
+  "@transferStatusPaused": {
+    "description": "Transfer status: paused"
+  },
+  "transferStatusCompleted": "সম্পন্ন",
+  "@transferStatusCompleted": {
+    "description": "Transfer status: completed"
+  },
+  "transferStatusFailed": "ব্যর্থ",
+  "@transferStatusFailed": {
+    "description": "Transfer status: failed"
+  },
+  "transferStatusCanceled": "বাতিল",
+  "@transferStatusCanceled": {
+    "description": "Transfer status: canceled"
+  },
+  "themePresetsSection": "প্রিসেট",
+  "@themePresetsSection": {
+    "description": "Theme customizer section header: presets"
+  },
+  "themeCustomPaletteSection": "কাস্টম প্যালেট",
+  "@themeCustomPaletteSection": {
+    "description": "Theme customizer section header: custom palette"
+  },
+  "themeHexRgbLabel": "HEX RGB কোড",
+  "@themeHexRgbLabel": {
+    "description": "Theme customizer hex input label"
+  },
+  "themeHexRgbHint": "#FA5252",
+  "@themeHexRgbHint": {
+    "description": "Theme customizer hex input hint"
+  },
+  "imageViewerNoFetchHandler": "কোনো ফেচ হ্যান্ডলার কনফিগার নেই",
+  "@imageViewerNoFetchHandler": {
+    "description": "Image viewer internal error text"
+  },
+  "imageViewerFailedToLoad": "ছবি লোড করতে ব্যর্থ হয়েছে",
+  "@imageViewerFailedToLoad": {
+    "description": "Image viewer image load error text"
+  },
+  "errorDeletingFile": "{filename} মুছতে ত্রুটি: {error}",
+  "@errorDeletingFile": {
+    "description": "Snackbar on file delete error in image viewer",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorReadingFile": "ফাইল পড়তে ত্রুটি: {error}",
+  "@errorReadingFile": {
+    "description": "Error text when file cannot be read in text viewer",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChannelName": "ব্যাকগ্রাউন্ড সিনক্রোনাইজেশন",
+  "@syncChannelName": {
+    "description": "Android notification channel name"
+  },
+  "syncChannelDescription": "ব্যাকগ্রাউন্ডে ফাইল সিঙ্ক হওয়ার স্থিতি দেখায়।",
+  "@syncChannelDescription": {
+    "description": "Android notification channel description"
+  },
+  "storageStatsTitle": "স্টোরেজের পরিসংখ্যান",
+  "@storageStatsTitle": {
+    "description": "Storage statistics sheet title / tooltip"
+  },
+  "storageStatsUsedSpace": "ব্যবহৃত স্থান",
+  "@storageStatsUsedSpace": {
+    "description": "Storage stats: used space label"
+  },
+  "storageStatsTotalFiles": "মোট ফাইল",
+  "@storageStatsTotalFiles": {
+    "description": "Storage stats: total files label"
+  },
+  "storageStatsNItems": "{count}টি আইটেম",
+  "@storageStatsNItems": {
+    "description": "Storage stats: item count label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userFallback": "ব্যবহারকারী #{userId}",
+  "@userFallback": {
+    "description": "Fallback label for unknown user",
+    "placeholders": {
+      "userId": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricUnlockReason": "Crowley's Cloud-এর সংরক্ষিত তথ্য আনলক করুন।",
+  "@biometricUnlockReason": {
+    "description": "Biometric authentication prompt reason"
+  },
+  "tokenLifetimeEveryOpen": "প্রতিবার অ্যাপ খোলার সময়",
+  "@tokenLifetimeEveryOpen": {
+    "description": "Token lifetime option: every app launch"
+  },
+  "tokenLifetimeOneHour": "১ ঘণ্টা পর",
+  "@tokenLifetimeOneHour": {
+    "description": "Token lifetime option: 1 hour"
+  },
+  "tokenLifetime1Hour": "১ ঘণ্টা পর",
+  "@tokenLifetime1Hour": {
+    "description": "Token lifetime option: 1 hour (alias)"
+  },
+  "tokenLifetimeOneDay": "১ দিন পর",
+  "@tokenLifetimeOneDay": {
+    "description": "Token lifetime option: 1 day"
+  },
+  "tokenLifetime1Day": "১ দিন পর",
+  "@tokenLifetime1Day": {
+    "description": "Token lifetime option: 1 day (alias)"
+  },
+  "tokenLifetimeOneWeek": "১ সপ্তাহ পর",
+  "@tokenLifetimeOneWeek": {
+    "description": "Token lifetime option: 1 week"
+  },
+  "tokenLifetime1Week": "১ সপ্তাহ পর",
+  "@tokenLifetime1Week": {
+    "description": "Token lifetime option: 1 week (alias)"
+  },
+  "tokenLifetimeOneMonth": "১ মাস পর",
+  "@tokenLifetimeOneMonth": {
+    "description": "Token lifetime option: 1 month"
+  },
+  "tokenLifetime1Month": "১ মাস পর",
+  "@tokenLifetime1Month": {
+    "description": "Token lifetime option: 1 month (alias)"
+  },
+  "tokenLifetimeThreeMonths": "৩ মাস পর",
+  "@tokenLifetimeThreeMonths": {
+    "description": "Token lifetime option: 3 months"
+  },
+  "tokenLifetime3Months": "৩ মাস পর",
+  "@tokenLifetime3Months": {
+    "description": "Token lifetime option: 3 months (alias)"
+  },
+  "tokenLifetimeNever": "এই ডিভাইসে কখনও নয়",
+  "@tokenLifetimeNever": {
+    "description": "Token lifetime option: never expires on device"
+  },
+  "cacheLimitUnlimited": "সীমাহীন",
+  "@cacheLimitUnlimited": {
+    "description": "Cache limit option: unlimited"
+  },
+  "syncCategoryOtherFiles": "অন্যান্য ফাইল",
+  "@syncCategoryOtherFiles": {
+    "description": "Label for other files category in sync settings"
+  },
+  "internalStorage": "অভ্যন্তরীণ স্টোরেজ",
+  "@internalStorage": {
+    "description": "Label for device internal storage root in display path"
+  },
+  "localStorageRootName": "অভ্যন্তরীণ স্টোরেজ",
+  "@localStorageRootName": {
+    "description": "Display name for root internal storage directory"
+  },
+  "syncNotificationSyncingWith": "{serverName}-এর সাথে সিঙ্ক হচ্ছে",
+  "@syncNotificationSyncingWith": {
+    "description": "Background sync notification title when syncing starts",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationPausedTitle": "{serverName}-এর সাথে সিঙ্ক স্থগিত",
+  "@syncNotificationPausedTitle": {
+    "description": "Background sync notification title when sync is paused",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationUnreachableBody": "সার্ভারে পৌঁছানো যায়নি। অ্যাপ খোলার আগ পর্যন্ত ব্যাকগ্রাউন্ড সিঙ্ক স্থগিত থাকবে।",
+  "@syncNotificationUnreachableBody": {
+    "description": "Background sync notification body when server is unreachable"
+  },
+  "syncNotificationAuthRequiredBody": "প্রমাণীকরণ প্রয়োজন। লগ ইন করতে অ্যাপটি খুলুন।",
+  "@syncNotificationAuthRequiredBody": {
+    "description": "Background sync notification body when authentication fails"
+  },
+  "syncNotificationFailedTitle": "{serverName}-এর সাথে সিঙ্ক ব্যর্থ হয়েছে",
+  "@syncNotificationFailedTitle": {
+    "description": "Background sync notification title on error",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationGenericErrorBody": "সিঙ্ক করার সময় একটি ত্রুটি ঘটেছে।",
+  "@syncNotificationGenericErrorBody": {
+    "description": "Background sync notification body generic error fallback"
+  },
+  "syncNotificationCompleteTitle": "{serverName}-এর সাথে সিঙ্ক সম্পূর্ণ",
+  "@syncNotificationCompleteTitle": {
+    "description": "Background sync notification title when sync completes successfully",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNotificationCompleteBody": "সিঙ্ক সম্পূর্ণ।",
+  "@syncNotificationCompleteBody": {
+    "description": "Background sync notification body on completion"
+  },
+  "syncStatusConnecting": "সার্ভারের সাথে সংযোগ করা হচ্ছে...",
+  "@syncStatusConnecting": {
+    "description": "Sync progress status message when connecting"
+  },
+  "syncStatusConnectionLost": "{serverName}-এর সাথে সংযোগ করা যায়নি। সংযোগ বিচ্ছিন্ন হয়েছে।",
+  "@syncStatusConnectionLost": {
+    "description": "Sync error message when connection is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncResultServerUnreachableWithServer": "{serverName}-এর সাথে সংযোগ করা যায়নি। সংযোগ বিচ্ছিন্ন হয়েছে।",
+  "@syncResultServerUnreachableWithServer": {
+    "description": "Sync error when connection to specific server is lost",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusScanningFiles": "ডিভাইসের ফাইলগুলো স্ক্যান করা হচ্ছে...",
+  "@syncStatusScanningFiles": {
+    "description": "Sync progress status message when scanning device files"
+  },
+  "syncStatusNoFilesFound": "সিঙ্ক করার মতো কোনো ফাইল পাওয়া যায়নি।",
+  "@syncStatusNoFilesFound": {
+    "description": "Sync progress status message when no files matched criteria"
+  },
+  "syncStatusNoFilesSelected": "সিঙ্কের জন্য কোনো ফাইল নির্বাচিত হয়নি।",
+  "@syncStatusNoFilesSelected": {
+    "description": "Sync error message when no sync categories or folders are configured"
+  },
+  "syncStatusCalculatingChecksum": "চেকসাম গণনা করা হচ্ছে ({current}/{total}): {filename}",
+  "@syncStatusCalculatingChecksum": {
+    "description": "Sync progress status message while hashing candidates",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCheckingDuplicates": "সার্ভারে ডুপ্লিকেট পরীক্ষা করা হচ্ছে...",
+  "@syncStatusCheckingDuplicates": {
+    "description": "Sync progress status message while querying server duplicates"
+  },
+  "syncStatusSyncingFile": "সিঙ্ক হচ্ছে ({current}/{total}): {filename}",
+  "@syncStatusSyncingFile": {
+    "description": "Sync progress status message while uploading files",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusCompleting": "সিঙ্ক সম্পূর্ণ করা হচ্ছে...",
+  "@syncStatusCompleting": {
+    "description": "Sync progress status message on finalizing sync run"
+  },
+  "showingCachedFiles": "ক্যাশ করা ফাইলগুলো দেখানো হচ্ছে।",
+  "@showingCachedFiles": {
+    "description": "Banner message when displaying offline cached files"
+  },
+  "showingCachedFilesRefreshFailed": "ক্যাশ করা ফাইল দেখানো হচ্ছে। রিফ্রেশ ব্যর্থ হয়েছে।",
+  "@showingCachedFilesRefreshFailed": {
+    "description": "Banner message when cache is shown and network refresh failed"
+  },
+  "downloadCanceled": "ডাউনলোড বাতিল করা হয়েছে।",
+  "@downloadCanceled": {
+    "description": "Snackbar on download cancellation"
+  },
+  "downloadedNFilesToPath": "{count}টি ফাইল {path}-এ ডাউনলোড করা হয়েছে",
+  "@downloadedNFilesToPath": {
+    "description": "Snackbar on successful file download to specific folder",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesFailedM": "{downloaded}টি ফাইল ডাউনলোড করা হয়েছে, {failed}টি ব্যর্থ হয়েছে: {detail}",
+  "@downloadedNFilesFailedM": {
+    "description": "Snackbar on partial download failure",
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadedNFilesWithFailures": "{count}টি ফাইল ডাউনলোড করা হয়েছে, {failed}টি ব্যর্থ হয়েছে: {error}",
+  "@downloadedNFilesWithFailures": {
+    "description": "Snackbar on partial download failure with error",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNShareLinks": "{count}টি শেয়ার লিঙ্ক তৈরি করা হয়েছে।",
+  "@createdNShareLinks": {
+    "description": "Snackbar on successful share links creation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToCreateShareLinks": "শেয়ার লিঙ্ক তৈরি করতে ব্যর্থ হয়েছে।",
+  "@failedToCreateShareLinks": {
+    "description": "Snackbar when share link creation fails"
+  },
+  "alreadyInSharedScope": "ইতিমধ্যে শেয়ার করা স্কোপে রয়েছে।",
+  "@alreadyInSharedScope": {
+    "description": "Snackbar warning when file is already shared"
+  },
+  "sharedNItemsInServer": "সার্ভারে {count}টি আইটেম শেয়ার করা হয়েছে।",
+  "@sharedNItemsInServer": {
+    "description": "Snackbar on sharing items in server",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsWithFailures": "সার্ভারে {count}টি আইটেম শেয়ার করা হয়েছে, {failed}টি ব্যর্থ হয়েছে।",
+  "@sharedNItemsWithFailures": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedNItemsFailedM": "সার্ভারে {shared}টি আইটেম শেয়ার করা হয়েছে, {failed}টি ব্যর্থ হয়েছে।",
+  "@sharedNItemsFailedM": {
+    "description": "Snackbar on partial server share failure",
+    "placeholders": {
+      "shared": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "folderNameCannotBeEmpty": "ফোল্ডারের নাম খালি হতে পারে না।",
+  "@folderNameCannotBeEmpty": {
+    "description": "Validation error when folder name is empty"
+  },
+  "folderAlreadyExists": "ফোল্ডারটি ইতিমধ্যে বিদ্যমান।",
+  "@folderAlreadyExists": {
+    "description": "Error when created folder name already exists"
+  },
+  "folderCreationOnlyInAllFiles": "ফোল্ডার তৈরি শুধুমাত্র সমস্ত ফাইল বিভাগে উপলব্ধ।",
+  "@folderCreationOnlyInAllFiles": {
+    "description": "Snackbar when folder creation is attempted outside All Files"
+  },
+  "currentDirectoryUnavailable": "বর্তমান ডিরেক্টরি অনুপলব্ধ।",
+  "@currentDirectoryUnavailable": {
+    "description": "Error when current browsing directory is not available"
+  },
+  "nothingSelected": "কিছুই নির্বাচিত হয়নি।",
+  "@nothingSelected": {
+    "description": "Notice when batch operation is invoked with no selection"
+  },
+  "destinationFolderDoesNotExist": "টার্গেট ফোল্ডারটি বিদ্যমান নেই।",
+  "@destinationFolderDoesNotExist": {
+    "description": "Error when move destination directory is missing"
+  },
+  "cannotMoveFolderIntoItself": "ফোল্ডার \"{name}\"-কে নিজের মধ্যে স্থানান্তর করা যাবে না।",
+  "@cannotMoveFolderIntoItself": {
+    "description": "Error when moving a folder into its own subtree",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToMoveItem": "\"{name}\" স্থানান্তর করতে ব্যর্থ হয়েছে: {error}",
+  "@failedToMoveItem": {
+    "description": "Error message when moving a single item fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "movedNItems": "{count}টি আইটেম স্থানান্তর করা হয়েছে।",
+  "@movedNItems": {
+    "description": "Snackbar on moving multiple items",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsWithFailures": "{count}টি আইটেম স্থানান্তর করা হয়েছে, {failed}টি ব্যর্থ হয়েছে।",
+  "@movedNItemsWithFailures": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "movedNItemsFailedM": "{moved}টি আইটেম স্থানান্তর করা হয়েছে, {failed}টি ব্যর্থ হয়েছে।",
+  "@movedNItemsFailedM": {
+    "description": "Snackbar on partial move failure",
+    "placeholders": {
+      "moved": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToMoveSelectedItems": "নির্বাচিত আইটেম স্থানান্তর করতে ব্যর্থ হয়েছে।",
+  "@failedToMoveSelectedItems": {
+    "description": "Generic failure message when moving selected items fails"
+  },
+  "noFilesWereMoved": "কোনো ফাইল স্থানান্তর করা হয়নি।",
+  "@noFilesWereMoved": {
+    "description": "Notice when all files in a move operation were skipped"
+  },
+  "renamedOldToNew": "\"{oldName}\"-এর নাম পরিবর্তন করে \"{newName}\" রাখা হয়েছে।",
+  "@renamedOldToNew": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "renamedFileFromTo": "\"{oldName}\"-এর নাম পরিবর্তন করে \"{newName}\" রাখা হয়েছে।",
+  "@renamedFileFromTo": {
+    "description": "Snackbar on successful rename with old and new names",
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameWithStatus": "\"{name}\"-এর নাম পরিবর্তন করতে ব্যর্থ হয়েছে ({statusCode})।",
+  "@failedToRenameWithStatus": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameFileWithCode": "\"{name}\"-এর নাম পরিবর্তন করতে ব্যর্থ হয়েছে ({statusCode})।",
+  "@failedToRenameFileWithCode": {
+    "description": "Snackbar on rename failure with HTTP status",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToRenameWithError": "\"{name}\"-এর নাম পরিবর্তন করতে ব্যর্থ হয়েছে: {error}",
+  "@failedToRenameWithError": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRenameFile": "\"{name}\"-এর নাম পরিবর্তন করতে ব্যর্থ হয়েছে: {error}",
+  "@failedToRenameFile": {
+    "description": "Snackbar on rename failure with error message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameConflictAlreadyExists": "নাম পরিবর্তন ব্যর্থ হয়েছে: ওই নামের একটি ফাইল বা ফোল্ডার ইতিমধ্যে বিদ্যমান।",
+  "@renameConflictAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "renameFailedAlreadyExists": "নাম পরিবর্তন ব্যর্থ হয়েছে: ওই নামের একটি ফাইল বা ফোল্ডার ইতিমধ্যে বিদ্যমান।",
+  "@renameFailedAlreadyExists": {
+    "description": "Validation error when target filename already exists"
+  },
+  "failedToCreateFolderWithCode": "ফোল্ডার তৈরি করতে ব্যর্থ হয়েছে ({statusCode})।",
+  "@failedToCreateFolderWithCode": {
+    "description": "Error message when server folder creation fails with status code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "deletedNItemsFailedM": "{deleted}টি আইটেম মুছে ফেলা হয়েছে, {failed}টি ব্যর্থ হয়েছে।",
+  "@deletedNItemsFailedM": {
+    "description": "Notice on partial batch delete failure",
+    "placeholders": {
+      "deleted": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryFiles": "{percent}%  {completed}/{total} ফাইল",
+  "@transferSummaryFiles": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transferSummaryProgress": "{percent}%  {completed}/{total}",
+  "@transferSummaryProgress": {
+    "description": "Summary progress label in transfer bottom bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailedGeneric": "ডাউনলোড ব্যর্থ হয়েছে",
+  "@downloadFailedGeneric": {
+    "description": "Generic download failed text"
+  },
+  "uploadedNItemsWithFailures": "{uploaded}টি আইটেম আপলোড করা হয়েছে, {failed}টি ব্যর্থ হয়েছে",
+  "@uploadedNItemsWithFailures": {
+    "description": "Upload summary with failed item count",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadedNItemsFailedM": "{uploaded}টি আইটেম আপলোড করা হয়েছে, {failed}টি ব্যর্থ হয়েছে।",
+  "@uploadedNItemsFailedM": {
+    "description": "Notice on batch upload with partial failure",
+    "placeholders": {
+      "uploaded": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadSummaryFailedCount": ", {count}টি ব্যর্থ",
+  "@uploadSummaryFailedCount": {
+    "description": "Suffix for upload summary message indicating failure count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uploadLocalPathEmpty": "{name}: স্থানীয় পাথ খালি",
+  "@uploadLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadErrorLocalPathEmpty": "{name}: স্থানীয় পাথ খালি",
+  "@uploadErrorLocalPathEmpty": {
+    "description": "Error when local file has empty path during upload",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directoryUploadFailed": "ডিরেক্টরি আপলোড ব্যর্থ হয়েছে",
+  "@directoryUploadFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "uploadDirectoryFailed": "ডিরেক্টরি আপলোড ব্যর্থ হয়েছে",
+  "@uploadDirectoryFailed": {
+    "description": "Error message when directory upload fails"
+  },
+  "localFileNotFound": "স্থানীয় ফাইল পাওয়া যায়নি",
+  "@localFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "uploadErrorLocalFileNotFound": "স্থানীয় ফাইল পাওয়া যায়নি",
+  "@uploadErrorLocalFileNotFound": {
+    "description": "Error when local file does not exist on disk"
+  },
+  "noSessionToken": "কোনো সক্রিয় সেশন টোকেন নেই",
+  "@noSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "uploadErrorNoSessionToken": "কোনো সক্রিয় সেশন টোকেন নেই",
+  "@uploadErrorNoSessionToken": {
+    "description": "Error when auth session token is missing"
+  },
+  "serverDisconnectedStatus": "সার্ভার সংযোগ বিচ্ছিন্ন হয়েছে",
+  "@serverDisconnectedStatus": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverDisconnected": "সার্ভার সংযোগ বিচ্ছিন্ন হয়েছে",
+  "@serverDisconnected": {
+    "description": "Transfer status error when server is disconnected"
+  },
+  "serverIsUnreachable": "সার্ভারে পৌঁছানো যায়নি।",
+  "@serverIsUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "serverUnreachable": "সার্ভারে পৌঁছানো যায়নি।",
+  "@serverUnreachable": {
+    "description": "Notification when network connection to server fails"
+  },
+  "uploadErrorLocalDirectoryNotFound": "স্থানীয় ডিরেক্টরি পাওয়া যায়নি",
+  "@uploadErrorLocalDirectoryNotFound": {
+    "description": "Error when local directory to upload does not exist"
+  },
+  "uploadErrorFailedToScanDirectory": "ডিরেক্টরি স্ক্যান করতে ব্যর্থ হয়েছে",
+  "@uploadErrorFailedToScanDirectory": {
+    "description": "Error when directory traversal fails"
+  },
+  "uploadErrorFolderCreateHttp": "ফোল্ডার তৈরি ব্যর্থ হয়েছে (HTTP {statusCode})",
+  "@uploadErrorFolderCreateHttp": {
+    "description": "Error when creating a folder on the server fails during upload",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorMissingAccessToken": "প্রতিক্রিয়ায় অ্যাক্সেস টোকেন অনুপস্থিত",
+  "@authErrorMissingAccessToken": {
+    "description": "Error when access token is missing from auth response"
+  },
+  "authErrorMissingRefreshToken": "প্রতিক্রিয়ায় রিফ্রেশ টোকেন অনুপস্থিত",
+  "@authErrorMissingRefreshToken": {
+    "description": "Error when refresh token is missing from auth response"
+  },
+  "authErrorNoSavedCredentials": "কোনো সংরক্ষিত তথ্য উপলব্ধ নেই",
+  "@authErrorNoSavedCredentials": {
+    "description": "Error when trying to authenticate with saved credentials but none exist"
+  },
+  "authErrorNoRefreshToken": "কোনো রিফ্রেশ টোকেন উপলব্ধ নেই",
+  "@authErrorNoRefreshToken": {
+    "description": "Error when trying to refresh session without a refresh token"
+  },
+  "authErrorNoActiveSession": "কোনো সক্রিয় সেশন উপলব্ধ নেই",
+  "@authErrorNoActiveSession": {
+    "description": "Error when performing authenticated action without active session"
+  },
+  "authErrorNoSavedUsername": "কোনো সংরক্ষিত ব্যবহারকারীর নাম নেই",
+  "@authErrorNoSavedUsername": {
+    "description": "Error when saved username is missing"
+  },
+  "updateNoReleasesPublished": "এখনও কোনো রিলিজ প্রকাশিত হয়নি।",
+  "@updateNoReleasesPublished": {
+    "description": "Message when GitHub releases API returns no releases"
+  },
+  "language": "ভাষা",
+  "@language": {
+    "description": "Label for the application language setting"
+  }
+}

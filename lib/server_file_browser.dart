@@ -23,6 +23,7 @@ import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
 import 'package:flutter/material.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:open_file/open_file.dart';
 
 import 'package:crowleys_cloud/shared/utils/byte_formatter.dart';
@@ -175,34 +176,37 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     final isSharedScope = controller.scope == 'shared';
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: appSurface,
-        title: Text(
-          isSharedScope ? 'Unshare Items?' : 'Delete Files?',
-          style: TextStyle(color: appText),
-        ),
-        content: Text(
-          isSharedScope
-              ? 'Are you sure you want to unshare $selectedCount selected items? This will remove them from the Shared folder.'
-              : 'Are you sure you want to delete $selectedCount selected items? This action cannot be undone.',
-          style: TextStyle(color: appSubtext),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          backgroundColor: appSurface,
+          title: Text(
+            isSharedScope ? l10n.unshareItemsTitle : l10n.deleteFilesTitle,
+            style: TextStyle(color: appText),
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(
-              isSharedScope ? 'Unshare' : 'Delete',
-              style: TextStyle(
-                color: isSharedScope ? appAccent : Colors.redAccent,
+          content: Text(
+            isSharedScope
+                ? l10n.unshareItemsBody(selectedCount)
+                : l10n.deleteFilesBody(selectedCount),
+            style: TextStyle(color: appSubtext),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                isSharedScope ? l10n.unshare : l10n.delete,
+                style: TextStyle(
+                  color: isSharedScope ? appAccent : Colors.redAccent,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
     if (confirmed == true) {
       await controller.deleteSelectedFiles();
@@ -230,26 +234,29 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: appSurface,
-      builder: (_) => Wrap(
-        children: [
-          ListTile(
-            leading: Icon(Icons.link, color: appSubtext),
-            title: Text('Share via link', style: TextStyle(color: appText)),
-            onTap: () async {
-              Navigator.pop(context);
-              await _shareSelectedFiles();
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.folder_shared, color: appSubtext),
-            title: Text('Share in server', style: TextStyle(color: appText)),
-            onTap: () async {
-              Navigator.pop(context);
-              await _shareSelectedInServer();
-            },
-          ),
-        ],
-      ),
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx)!;
+        return Wrap(
+          children: [
+            ListTile(
+              leading: Icon(Icons.link, color: appSubtext),
+              title: Text(l10n.shareViaLink, style: TextStyle(color: appText)),
+              onTap: () async {
+                Navigator.pop(context);
+                await _shareSelectedFiles();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.folder_shared, color: appSubtext),
+              title: Text(l10n.shareInServer, style: TextStyle(color: appText)),
+              onTap: () async {
+                Navigator.pop(context);
+                await _shareSelectedInServer();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -294,28 +301,29 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     final newName = await showDialog<String>(
       context: context,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         final controller = TextEditingController(text: item.name);
         return AlertDialog(
           backgroundColor: appSurface,
-          title: Text('Rename', style: TextStyle(color: appText)),
+          title: Text(l10n.renameDialogTitle, style: TextStyle(color: appText)),
           content: TextField(
             controller: controller,
             autofocus: true,
             style: TextStyle(color: appText),
             decoration: InputDecoration(
-              hintText: 'Enter new name',
+              hintText: l10n.enterNewName,
               hintStyle: TextStyle(color: appSubtext),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () =>
                   Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('Rename'),
+              child: Text(l10n.rename),
             ),
           ],
         );
@@ -331,77 +339,91 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     showModalBottomSheet(
       context: context,
       backgroundColor: appSurface,
-      builder: (_) => Wrap(
-        children: [
-          if (controller.scope != 'shared')
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx)!;
+        return Wrap(
+          children: [
+            if (controller.scope != 'shared')
+              ListTile(
+                leading: Icon(Icons.edit, color: appSubtext),
+                title: Text(l10n.rename, style: TextStyle(color: appText)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _renameItem(item);
+                },
+              ),
             ListTile(
-              leading: Icon(Icons.edit, color: appSubtext),
-              title: Text('Rename', style: TextStyle(color: appText)),
-              onTap: () async {
-                Navigator.pop(context);
-                await _renameItem(item);
-              },
-            ),
-          ListTile(
-            leading: Icon(Icons.download, color: appSubtext),
-            title: Text('Download', style: TextStyle(color: appText)),
-            onTap: () async {
-              Navigator.pop(context);
-              controller.toggleSelection(item);
-              await _downloadSelectedFiles();
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              controller.scope == 'shared' ? Icons.link_off : Icons.delete,
-              color: appSubtext,
-            ),
-            title: Text(
-              controller.scope == 'shared' ? 'Unshare' : 'Delete',
-              style: TextStyle(color: appText),
-            ),
-            onTap: () async {
-              Navigator.pop(context);
-              controller.toggleSelection(item);
-              await _deleteSelectedFiles();
-            },
-          ),
-          if (controller.scope != 'shared') ...[
-            ListTile(
-              leading: Icon(Icons.share, color: appSubtext),
-              title: Text('Share via link', style: TextStyle(color: appText)),
+              leading: Icon(Icons.download, color: appSubtext),
+              title: Text(l10n.download, style: TextStyle(color: appText)),
               onTap: () async {
                 Navigator.pop(context);
                 controller.toggleSelection(item);
-                await _shareSelectedFiles();
+                await _downloadSelectedFiles();
               },
             ),
             ListTile(
-              leading: Icon(Icons.folder_shared, color: appSubtext),
-              title: Text('Share in server', style: TextStyle(color: appText)),
+              leading: Icon(
+                controller.scope == 'shared' ? Icons.link_off : Icons.delete,
+                color: appSubtext,
+              ),
+              title: Text(
+                controller.scope == 'shared' ? l10n.unshare : l10n.delete,
+                style: TextStyle(color: appText),
+              ),
               onTap: () async {
                 Navigator.pop(context);
                 controller.toggleSelection(item);
-                await _shareSelectedInServer();
+                await _deleteSelectedFiles();
               },
             ),
-            ListTile(
-              leading: Icon(Icons.drive_file_move, color: appSubtext),
-              title: Text('Add to folder', style: TextStyle(color: appText)),
-              onTap: () async {
-                Navigator.pop(context);
-                controller.toggleSelection(item);
-                await _addSelectedToFolder();
-              },
-            ),
+            if (controller.scope != 'shared') ...[
+              ListTile(
+                leading: Icon(Icons.share, color: appSubtext),
+                title: Text(
+                  l10n.shareViaLink,
+                  style: TextStyle(color: appText),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+                  controller.toggleSelection(item);
+                  await _shareSelectedFiles();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.folder_shared, color: appSubtext),
+                title: Text(
+                  l10n.shareInServer,
+                  style: TextStyle(color: appText),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+                  controller.toggleSelection(item);
+                  await _shareSelectedInServer();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.drive_file_move, color: appSubtext),
+                title: Text(l10n.addToFolder, style: TextStyle(color: appText)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  controller.toggleSelection(item);
+                  await _addSelectedToFolder();
+                },
+              ),
+            ],
           ],
-        ],
-      ),
+        );
+      },
     );
   }
 
-  List<({String label, String path})> _buildMainBreadcrumbItems() {
-    final items = <({String label, String path})>[(label: 'root', path: '')];
+  List<({String label, String path})> _buildMainBreadcrumbItems(
+    BuildContext context,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = <({String label, String path})>[
+      (label: l10n.serverRoot, path: ''),
+    ];
     final segments = controller.currentPath
         .split('/')
         .where((s) => s.isNotEmpty);
@@ -413,12 +435,12 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     return items;
   }
 
-  Widget _buildMainBreadcrumb() {
+  Widget _buildMainBreadcrumb(BuildContext context) {
     if (controller.selectedType != 'all' || controller.isSelectionMode) {
       return const SizedBox.shrink();
     }
     return BreadcrumbBar(
-      items: _buildMainBreadcrumbItems(),
+      items: _buildMainBreadcrumbItems(context),
       onItemTap: controller.navigateToPath,
       backgroundColor: appSurface,
       textColor: appSubtext,
@@ -441,12 +463,12 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
             ),
             ListenableBuilder(
               listenable: controller,
-              builder: (context, _) => _buildMainBreadcrumb(),
+              builder: (context, _) => _buildMainBreadcrumb(context),
             ),
             Expanded(
               child: ListenableBuilder(
                 listenable: controller,
-                builder: (context, _) => _buildContent(),
+                builder: (context, _) => _buildContent(context),
               ),
             ),
           ],
@@ -473,15 +495,16 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (controller.isLoading && controller.files.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
     if (controller.error != null) {
-      return Center(child: Text('Error: ${controller.error}'));
+      return Center(child: Text(l10n.errorWithMessage(controller.error ?? '')));
     }
     if (controller.files.isEmpty) {
-      return const Center(child: Text('No files found.'));
+      return Center(child: Text(l10n.noFilesFound));
     }
     return Scrollbar(
       thumbVisibility: true,
@@ -589,6 +612,7 @@ class _GridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return InkWell(
       key: ValueKey(item.path),
       onTap: onTap,
@@ -625,7 +649,8 @@ class _GridItem extends StatelessWidget {
                     const SizedBox(width: 2),
                     Flexible(
                       child: Text(
-                        item.ownerName ?? 'User #${item.uploaderUserId}',
+                        item.ownerName ??
+                            l10n.userFallback(item.uploaderUserId ?? 0),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -687,6 +712,7 @@ class _ListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       key: ValueKey(item.path),
       padding: const EdgeInsets.only(bottom: 8),
@@ -711,7 +737,8 @@ class _ListItem extends StatelessWidget {
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text(
-                        item.ownerName ?? 'User #${item.uploaderUserId}',
+                        item.ownerName ??
+                            l10n.userFallback(item.uploaderUserId ?? 0),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -764,6 +791,7 @@ class _ServerHeaderControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (controller.isSelectionMode) {
       return SelectionHeaderBar(
         selectedCount: controller.selectedFiles.length,
@@ -782,7 +810,7 @@ class _ServerHeaderControls extends StatelessWidget {
             FilledButton.icon(
               onPressed: onCreateFolder,
               icon: const Icon(Icons.create_new_folder),
-              label: const Text('New folder'),
+              label: Text(l10n.newFolder),
             ),
           const Spacer(),
           Container(
@@ -807,7 +835,12 @@ class _ServerHeaderControls extends StatelessWidget {
                           (v) => DropdownMenuItem(
                             value: v,
                             child: Text(
-                              v.name[0].toUpperCase() + v.name.substring(1),
+                              switch (v) {
+                                ServerSortBy.name => l10n.name,
+                                ServerSortBy.date => l10n.date,
+                                ServerSortBy.size => l10n.size,
+                                ServerSortBy.type => l10n.type,
+                              },
                             ),
                           ),
                         )
@@ -852,7 +885,7 @@ class _ServerHeaderControls extends StatelessWidget {
             child: IconButton(
               splashRadius: 20,
               icon: Icon(Icons.bar_chart_rounded, color: appSubtext),
-              tooltip: 'Storage Statistics',
+              tooltip: l10n.storageStatsTitle,
               onPressed: () => _showStatsBottomSheet(context, controller),
             ),
           ),
@@ -876,6 +909,7 @@ void _showStatsBottomSheet(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (context) {
+      final l10n = AppLocalizations.of(context)!;
       return ListenableBuilder(
         listenable: controller,
         builder: (context, _) {
@@ -891,37 +925,37 @@ void _showStatsBottomSheet(
 
           final categories = [
             (
-              label: 'Photos',
+              label: l10n.categoryPhotos,
               icon: Icons.image,
               count: (stats['photo_count'] as num?)?.toInt() ?? 0,
               size: (stats['photo_size'] as num?)?.toInt() ?? 0,
             ),
             (
-              label: 'Videos',
+              label: l10n.categoryVideos,
               icon: Icons.movie,
               count: (stats['video_count'] as num?)?.toInt() ?? 0,
               size: (stats['video_size'] as num?)?.toInt() ?? 0,
             ),
             (
-              label: 'Audio',
+              label: l10n.categoryAudio,
               icon: Icons.audiotrack,
               count: (stats['audio_count'] as num?)?.toInt() ?? 0,
               size: (stats['audio_size'] as num?)?.toInt() ?? 0,
             ),
             (
-              label: 'Documents',
+              label: l10n.categoryDocuments,
               icon: Icons.description,
               count: (stats['document_count'] as num?)?.toInt() ?? 0,
               size: (stats['document_size'] as num?)?.toInt() ?? 0,
             ),
             (
-              label: 'Shared',
+              label: l10n.categoryShared,
               icon: Icons.group,
               count: (stats['shared_count'] as num?)?.toInt() ?? 0,
               size: (stats['shared_size'] as num?)?.toInt() ?? 0,
             ),
             (
-              label: 'Other',
+              label: l10n.categoryOther,
               icon: Icons.category,
               count: (stats['other_count'] as num?)?.toInt() ?? 0,
               size: (stats['other_size'] as num?)?.toInt() ?? 0,
@@ -940,7 +974,7 @@ void _showStatsBottomSheet(
                       Icon(Icons.cloud_queue, color: appAccent, size: 24),
                       const SizedBox(width: 10),
                       Text(
-                        'Storage Statistics',
+                        l10n.storageStatsTitle,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -971,7 +1005,7 @@ void _showStatsBottomSheet(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Used Space',
+                              l10n.storageStatsUsedSpace,
                               style: TextStyle(fontSize: 12, color: appSubtext),
                             ),
                             const SizedBox(height: 4),
@@ -990,12 +1024,12 @@ void _showStatsBottomSheet(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'Total Files',
+                              l10n.storageStatsTotalFiles,
                               style: TextStyle(fontSize: 12, color: appSubtext),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '$totalCount items',
+                              l10n.storageStatsNItems(totalCount),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -1171,8 +1205,13 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
     await _reload();
   }
 
-  List<({String label, String path})> _buildBreadcrumbItems() {
-    final items = <({String label, String path})>[(label: 'root', path: '')];
+  List<({String label, String path})> _buildBreadcrumbItems(
+    BuildContext context,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = <({String label, String path})>[
+      (label: l10n.serverRoot, path: ''),
+    ];
     final segments = _currentPath.split('/').where((s) => s.isNotEmpty);
     var current = '';
     for (final segment in segments) {
@@ -1182,8 +1221,8 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
     return items;
   }
 
-  Widget _buildBreadcrumb() {
-    final items = _buildBreadcrumbItems();
+  Widget _buildBreadcrumb(BuildContext context) {
+    final items = _buildBreadcrumbItems(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -1220,45 +1259,26 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
   }
 
   Future<void> _createFolder() async {
-    final input = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: appSurface,
-        title: Text('Create Folder', style: TextStyle(color: appText)),
-        content: TextField(
-          controller: input,
-          autofocus: true,
-          style: TextStyle(color: appText),
-          decoration: InputDecoration(
-            hintText: 'Folder name',
-            hintStyle: TextStyle(color: appSubtext),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, input.text),
-            child: const Text('Create'),
-          ),
-        ],
-      ),
+    final name = await CreateFolderDialog.show(
+      context,
+      backgroundColor: appSurface,
+      textColor: appText,
+      hintColor: appSubtext,
     );
     if (name == null) return;
     await widget.controller.createFolderAtPath(_currentPath, name);
     if (!mounted) return;
-    final msg = widget.controller.operationMessage ?? 'Folder created.';
+    final l10n = AppLocalizations.of(context)!;
+    final msg = widget.controller.operationMessage ?? l10n.folderCreated;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     await _reload();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Folder')),
+      appBar: AppBar(title: Text(l10n.selectFolder)),
       body: Column(
         children: [
           Padding(
@@ -1273,7 +1293,7 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                 FilledButton.icon(
                   onPressed: _createFolder,
                   icon: const Icon(Icons.create_new_folder),
-                  label: const Text('New folder'),
+                  label: Text(l10n.newFolder),
                 ),
                 const Spacer(),
                 Container(
@@ -1298,8 +1318,12 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                                 (v) => DropdownMenuItem(
                                   value: v,
                                   child: Text(
-                                    v.name[0].toUpperCase() +
-                                        v.name.substring(1),
+                                    switch (v) {
+                                      ServerSortBy.name => l10n.name,
+                                      ServerSortBy.date => l10n.date,
+                                      ServerSortBy.size => l10n.size,
+                                      ServerSortBy.type => l10n.type,
+                                    },
                                   ),
                                 ),
                               )
@@ -1340,7 +1364,7 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          _buildBreadcrumb(),
+          _buildBreadcrumb(context),
           const SizedBox(height: 8),
           Expanded(
             child: _loading
@@ -1415,7 +1439,7 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
         foregroundColor: Colors.white,
         onPressed: () => Navigator.pop(context, _currentPath),
         icon: const Icon(Icons.check),
-        label: const Text('Use this folder'),
+        label: Text(l10n.useThisFolder),
       ),
     );
   }
@@ -1440,6 +1464,7 @@ class _SelectionActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SelectionActionBar(
       backgroundColor: appSurface,
       textColor: appText,
@@ -1448,28 +1473,28 @@ class _SelectionActionBar extends StatelessWidget {
         if (onRename != null && scope != 'shared')
           SelectionAction(
             icon: Icons.edit,
-            label: 'Rename',
+            label: l10n.rename,
             onPressed: onRename!,
           ),
         SelectionAction(
           icon: Icons.download,
-          label: 'Download',
+          label: l10n.download,
           onPressed: onDownload,
         ),
         SelectionAction(
           icon: scope == 'shared' ? Icons.link_off : Icons.delete,
-          label: scope == 'shared' ? 'Unshare' : 'Delete',
+          label: scope == 'shared' ? l10n.unshare : l10n.delete,
           onPressed: onDelete,
         ),
         if (scope != 'shared') ...[
           SelectionAction(
             icon: Icons.drive_file_move,
-            label: 'Add to folder',
+            label: l10n.addToFolder,
             onPressed: onAddToFolder,
           ),
           SelectionAction(
             icon: Icons.share,
-            label: 'Share',
+            label: l10n.share,
             onPressed: onShare,
           ),
         ],

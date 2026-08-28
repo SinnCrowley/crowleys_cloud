@@ -18,6 +18,7 @@ import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -38,8 +39,8 @@ void main() {
 
   testWidgets('ImageViewer normal mode shows standard buttons', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: ImageViewer(
+      wrapWithLocalization(
+        ImageViewer(
           imageItems: [dummyFileItem],
           initialIndex: 0,
           isTrash: false,
@@ -64,8 +65,8 @@ void main() {
       bool restored = false;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: ImageViewer(
+        wrapWithLocalization(
+          ImageViewer(
             imageItems: [dummyFileItem],
             initialIndex: 0,
             isTrash: true,
@@ -100,8 +101,8 @@ void main() {
       bool deletedPermanently = false;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: ImageViewer(
+        wrapWithLocalization(
+          ImageViewer(
             imageItems: [dummyFileItem],
             initialIndex: 0,
             isTrash: true,
@@ -118,10 +119,7 @@ void main() {
 
       // Confirmation dialog appears (action bar button, dialog title, dialog action button)
       expect(find.text('Delete Permanently'), findsNWidgets(3));
-      expect(
-        find.textContaining('Are you sure you want to permanently delete'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('permanently'), findsOneWidget);
 
       // Tap confirm delete in dialog
       await tester.tap(find.widgetWithText(TextButton, 'Delete Permanently'));
