@@ -14,12 +14,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:convert';
+import 'dart:io';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/l10n/localization_fallback.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AppReleaseItem {
@@ -322,16 +326,124 @@ class AppUpdateService {
 
   /// Launches the update URL (either direct APK download or GitHub Release page).
   static Future<bool> launchUpdateUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final cleanUrl = url.trim();
+    if (cleanUrl.isEmpty) return false;
+    final uri = Uri.parse(cleanUrl);
+
+    try {
+      if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        return await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {}
+
+    try {
+      return await launchUrl(uri, mode: LaunchMode.platformDefault);
+    } catch (_) {
+      return false;
     }
-    return false;
+  }
+
+  /// Formats byte count into human-readable representation.
+  static String formatBytes(int bytes) {
+    if (bytes <= 0) return '0 B';
+    const suffixes = ['B', 'KB', 'MB', 'GB'];
+    var i = 0;
+    double size = bytes.toDouble();
+    while (size >= 1024 && i < suffixes.length - 1) {
+      size /= 1024;
+      i++;
+    }
+    return '${size.toStringAsFixed(size < 10 && i > 0 ? 1 : 0)} ${suffixes[i]}';
+  }
+
+  /// Downloads APK file to the device's temporary cache directory with progress reporting.
+  static Future<File> downloadApk({
+    required String url,
+    required String version,
+    required void Function(int received, int total) onProgress,
+    http.Client? client,
+    Directory? outputDirectory,
+  }) async {
+    final httpClient = client ?? http.Client();
+    final shouldCloseClient = client == null;
+
+    final tempDir = outputDirectory ?? await getTemporaryDirectory();
+    final fileName = 'crowleys_cloud_v$version.apk';
+    final targetFile = File(p.join(tempDir.path, fileName));
+
+    if (await targetFile.exists()) {
+      try {
+        await targetFile.delete();
+      } catch (_) {}
+    }
+
+    IOSink? sink;
+    try {
+      final request = http.Request('GET', Uri.parse(url.trim()));
+      request.headers['User-Agent'] = 'crowleys_cloud_app';
+      final response = await httpClient.send(request);
+
+      if (response.statusCode != 200) {
+        throw Exception('Download failed with status: ${response.statusCode}');
+      }
+
+      final total = response.contentLength ?? 0;
+      var received = 0;
+
+      sink = targetFile.openWrite();
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        received += chunk.length;
+        onProgress(received, total);
+      }
+      await sink.flush();
+      await sink.close();
+      sink = null;
+
+      return targetFile;
+    } catch (e) {
+      if (sink != null) {
+        try {
+          await sink.close();
+        } catch (_) {}
+      }
+      if (await targetFile.exists()) {
+        try {
+          await targetFile.delete();
+        } catch (_) {}
+      }
+      rethrow;
+    } finally {
+      if (shouldCloseClient) {
+        httpClient.close();
+      }
+    }
+  }
+
+  /// Launches the system package installer for the downloaded APK file.
+  static Future<OpenResult> installApk(String filePath) async {
+    try {
+      return await OpenFile.open(
+        filePath,
+        type: 'application/vnd.android.package-archive',
+      );
+    } catch (e) {
+      return OpenResult(
+        type: ResultType.error,
+        message: e.toString(),
+      );
+    }
   }
 }
 
 /// Dialog shown when a new app version is available.
-class AppUpdateDialog extends StatelessWidget {
+class AppUpdateDialog extends StatefulWidget {
   final AppUpdateInfo updateInfo;
 
   const AppUpdateDialog({super.key, required this.updateInfo});
@@ -345,19 +457,115 @@ class AppUpdateDialog extends StatelessWidget {
   }
 
   @override
+  State<AppUpdateDialog> createState() => _AppUpdateDialogState();
+}
+
+class _AppUpdateDialogState extends State<AppUpdateDialog> {
+  bool _isDownloading = false;
+  bool _isInstalling = false;
+  int _receivedBytes = 0;
+  int _totalBytes = 0;
+  String? _errorMessage;
+  http.Client? _downloadClient;
+
+  @override
+  void dispose() {
+    _downloadClient?.close();
+    super.dispose();
+  }
+
+  void _cancelDownload() {
+    _downloadClient?.close();
+    _downloadClient = null;
+    if (mounted) {
+      setState(() {
+        _isDownloading = false;
+        _isInstalling = false;
+        _receivedBytes = 0;
+        _totalBytes = 0;
+      });
+    }
+  }
+
+  Future<void> _startDownload() async {
+    final apkUrl = widget.updateInfo.apkUrl;
+    if (apkUrl == null) {
+      Navigator.of(context).pop();
+      await AppUpdateService.launchUpdateUrl(widget.updateInfo.htmlUrl);
+      return;
+    }
+
+    setState(() {
+      _isDownloading = true;
+      _isInstalling = false;
+      _errorMessage = null;
+      _receivedBytes = 0;
+      _totalBytes = 0;
+    });
+
+    final client = http.Client();
+    _downloadClient = client;
+
+    try {
+      final file = await AppUpdateService.downloadApk(
+        url: apkUrl,
+        version: widget.updateInfo.latestVersion,
+        client: client,
+        onProgress: (received, total) {
+          if (mounted) {
+            setState(() {
+              _receivedBytes = received;
+              _totalBytes = total;
+            });
+          }
+        },
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isDownloading = false;
+        _isInstalling = true;
+      });
+
+      final openResult = await AppUpdateService.installApk(file.path);
+      if (!mounted) return;
+
+      if (openResult.type == ResultType.done) {
+        Navigator.of(context).pop();
+      } else {
+        setState(() {
+          _isInstalling = false;
+          _errorMessage = openResult.message.isNotEmpty
+              ? openResult.message
+              : 'Failed to launch installer';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isDownloading = false;
+        _isInstalling = false;
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      _downloadClient = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final targetUrl = updateInfo.apkUrl ?? updateInfo.htmlUrl;
-    final hasMultipleReleases = updateInfo.newReleases.length > 1;
+    final targetUrl = widget.updateInfo.apkUrl ?? widget.updateInfo.htmlUrl;
+    final hasMultipleReleases = widget.updateInfo.newReleases.length > 1;
 
     final subtitleText =
-        updateInfo.latestReleaseName != null &&
-            updateInfo.latestReleaseName!.trim().isNotEmpty &&
-            updateInfo.latestReleaseName!.trim() !=
-                'v${updateInfo.latestVersion}' &&
-            updateInfo.latestReleaseName!.trim() != updateInfo.latestVersion
-        ? updateInfo.latestReleaseName!.trim()
-        : l10n.updateVersionSubtitle(updateInfo.latestVersion);
+        widget.updateInfo.latestReleaseName != null &&
+            widget.updateInfo.latestReleaseName!.trim().isNotEmpty &&
+            widget.updateInfo.latestReleaseName!.trim() !=
+                'v${widget.updateInfo.latestVersion}' &&
+            widget.updateInfo.latestReleaseName!.trim() != widget.updateInfo.latestVersion
+        ? widget.updateInfo.latestReleaseName!.trim()
+        : l10n.updateVersionSubtitle(widget.updateInfo.latestVersion);
 
     return AlertDialog(
       backgroundColor: appSurface,
@@ -430,14 +638,14 @@ class AppUpdateDialog extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    l10n.updateCurrentVersion(updateInfo.currentVersion),
+                    l10n.updateCurrentVersion(widget.updateInfo.currentVersion),
                     style: TextStyle(color: appSubtext, fontSize: 13),
                   ),
                   const Spacer(),
                   Icon(Icons.arrow_forward, size: 14, color: appSubtext),
                   const Spacer(),
                   Text(
-                    l10n.updateNewVersion(updateInfo.latestVersion),
+                    l10n.updateNewVersion(widget.updateInfo.latestVersion),
                     style: TextStyle(
                       color: appAccent,
                       fontSize: 13,
@@ -456,7 +664,7 @@ class AppUpdateDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '+${updateInfo.newReleases.length}',
+                        '+${widget.updateInfo.newReleases.length}',
                         style: TextStyle(
                           color: appAccent,
                           fontSize: 11,
@@ -484,7 +692,7 @@ class AppUpdateDialog extends StatelessWidget {
                 ),
                 InkWell(
                   onTap: () =>
-                      AppUpdateService.launchUpdateUrl(updateInfo.htmlUrl),
+                      AppUpdateService.launchUpdateUrl(widget.updateInfo.htmlUrl),
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -514,7 +722,7 @@ class AppUpdateDialog extends StatelessWidget {
 
             // Changelog container with Markdown rendering
             Container(
-              constraints: const BoxConstraints(maxHeight: 240),
+              constraints: const BoxConstraints(maxHeight: 200),
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
@@ -525,7 +733,7 @@ class AppUpdateDialog extends StatelessWidget {
               child: SingleChildScrollView(
                 child: MarkdownBody(
                   data: () {
-                    final notes = updateInfo.releaseNotes.trim();
+                    final notes = widget.updateInfo.releaseNotes.trim();
                     if (notes.isEmpty ||
                         notes == l10n.updateNoReleaseNotes ||
                         notes ==
@@ -617,34 +825,187 @@ class AppUpdateDialog extends StatelessWidget {
                 ),
               ),
             ),
+
+            if (_isDownloading || _isInstalling || _errorMessage != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: appBackground,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _errorMessage != null
+                        ? appAccent.withValues(alpha: 0.5)
+                        : appBorder.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_isDownloading) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(appAccent),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                l10n.downloading,
+                                style: TextStyle(
+                                  color: appText,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_totalBytes > 0)
+                            Text(
+                              '${((_receivedBytes / _totalBytes) * 100).toStringAsFixed(0)}%',
+                              style: TextStyle(
+                                color: appAccent,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: _totalBytes > 0
+                              ? _receivedBytes / _totalBytes
+                              : null,
+                          minHeight: 6,
+                          backgroundColor: appSurface,
+                          valueColor: AlwaysStoppedAnimation<Color>(appAccent),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${AppUpdateService.formatBytes(_receivedBytes)} / ${_totalBytes > 0 ? AppUpdateService.formatBytes(_totalBytes) : '...'}',
+                        style: TextStyle(color: appSubtext, fontSize: 12),
+                      ),
+                    ] else if (_isInstalling) ...[
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(appAccent),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.downloadComplete('APK'),
+                            style: TextStyle(
+                              color: appText,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else if (_errorMessage != null) ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.error_outline, size: 16, color: appAccent),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: TextStyle(color: appAccent, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.updateLater, style: TextStyle(color: appSubtext)),
-        ),
-        FilledButton.icon(
-          style: FilledButton.styleFrom(
-            backgroundColor: appAccent,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+        if (_isDownloading)
+          TextButton(
+            onPressed: _cancelDownload,
+            child: Text(l10n.cancel, style: TextStyle(color: appSubtext)),
+          )
+        else if (_isInstalling)
+          const SizedBox.shrink()
+        else if (_errorMessage != null) ...[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.updateLater, style: TextStyle(color: appSubtext)),
+          ),
+          TextButton.icon(
+            onPressed: () =>
+                AppUpdateService.launchUpdateUrl(widget.updateInfo.htmlUrl),
+            icon: const Icon(Icons.open_in_new, size: 14),
+            label: Text(l10n.updateGitHub),
+            style: TextButton.styleFrom(foregroundColor: appAccent),
+          ),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: appAccent,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: _startDownload,
+            icon: const Icon(Icons.refresh, size: 16),
+            label: Text(l10n.retry),
+          ),
+        ] else ...[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.updateLater, style: TextStyle(color: appSubtext)),
+          ),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: appAccent,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              if (widget.updateInfo.apkUrl != null) {
+                _startDownload();
+              } else {
+                Navigator.of(context).pop();
+                AppUpdateService.launchUpdateUrl(targetUrl);
+              }
+            },
+            icon: const Icon(Icons.download, size: 18),
+            label: Text(
+              widget.updateInfo.apkUrl != null
+                  ? l10n.updateDownloadApk
+                  : l10n.updateInstall,
             ),
           ),
-          onPressed: () async {
-            Navigator.of(context).pop();
-            await AppUpdateService.launchUpdateUrl(targetUrl);
-          },
-          icon: const Icon(Icons.download, size: 18),
-          label: Text(
-            updateInfo.apkUrl != null
-                ? l10n.updateDownloadApk
-                : l10n.updateInstall,
-          ),
-        ),
+        ],
       ],
     );
   }

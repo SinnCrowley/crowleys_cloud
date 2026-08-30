@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:convert';
+import 'dart:io';
 import 'package:crowleys_cloud/app_update_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -256,6 +257,85 @@ void main() {
       );
 
       expect(find.text('Выпуски пока не опубликованы.'), findsOneWidget);
+    });
+
+    testWidgets('triggers GitHub and Download actions when tapped in dialog', (
+      tester,
+    ) async {
+      const updateInfo = AppUpdateInfo(
+        hasUpdate: true,
+        currentVersion: '1.0.0',
+        latestVersion: '1.2.0',
+        latestReleaseName: 'v1.2.0',
+        releaseNotes: 'Update notes',
+        htmlUrl:
+            'https://github.com/SinnCrowley/crowleys_cloud/releases/tag/v1.2.0',
+        apkUrl:
+            'https://github.com/SinnCrowley/crowleys_cloud/releases/download/v1.2.0/app.apk',
+      );
+
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          const Scaffold(body: AppUpdateDialog(updateInfo: updateInfo)),
+        ),
+      );
+
+      // Verify buttons are present
+      final githubBtn = find.text('GitHub');
+      final downloadBtn = find.text('Download APK');
+      expect(githubBtn, findsOneWidget);
+      expect(downloadBtn, findsOneWidget);
+
+      await tester.tap(githubBtn);
+      await tester.pump();
+
+      await tester.tap(downloadBtn);
+      await tester.pump();
+      expect(find.text('Downloading...'), findsOneWidget);
+    });
+
+    test('launchUpdateUrl returns false for empty url', () async {
+      final res = await AppUpdateService.launchUpdateUrl('');
+      expect(res, isFalse);
+    });
+
+    test('formatBytes correctly formats byte sizes', () {
+      expect(AppUpdateService.formatBytes(0), equals('0 B'));
+      expect(AppUpdateService.formatBytes(500), equals('500 B'));
+      expect(AppUpdateService.formatBytes(1024), equals('1.0 KB'));
+      expect(AppUpdateService.formatBytes(1024 * 1024 * 12), equals('12 MB'));
+      expect(
+        AppUpdateService.formatBytes((1024 * 1024 * 1.5).round()),
+        equals('1.5 MB'),
+      );
+    });
+
+    test('downloadApk reports progress and writes to file', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response.bytes(
+          List<int>.filled(1000, 42),
+          200,
+          headers: {'content-length': '1000'},
+        );
+      });
+
+      var progressCalls = 0;
+      final file = await AppUpdateService.downloadApk(
+        url: 'https://example.com/test.apk',
+        version: '9.9.9',
+        client: mockClient,
+        outputDirectory: Directory.systemTemp,
+        onProgress: (received, total) {
+          progressCalls++;
+          expect(total, equals(1000));
+        },
+      );
+
+      expect(file.existsSync(), isTrue);
+      expect(file.lengthSync(), equals(1000));
+      expect(progressCalls, greaterThan(0));
+
+      await file.delete();
     });
   });
 }
