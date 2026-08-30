@@ -1113,32 +1113,52 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     };
 
     function detectSystemLanguage() {
-      if (typeof navigator !== 'undefined') {
-        const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-        if (navLang.startsWith('ru') || navLang.startsWith('be') || navLang.startsWith('uk') || navLang.startsWith('kk')) {
-          return 'ru';
+      try {
+        if (typeof navigator !== 'undefined') {
+          const candidates = (navigator.languages && navigator.languages.length > 0)
+            ? navigator.languages
+            : [navigator.language || navigator.userLanguage || ''];
+          for (const raw of candidates) {
+            if (!raw || typeof raw !== 'string') continue;
+            const tag = raw.toLowerCase().trim();
+            if (tag.startsWith('ru') || tag.startsWith('be') || tag.startsWith('kk') || tag.startsWith('uk')) {
+              return 'ru';
+            }
+            if (tag.startsWith('en')) {
+              return 'en';
+            }
+          }
         }
-      }
+      } catch (_) {}
       return 'en';
     }
 
     function getActiveLanguage() {
-      const saved = localStorage.getItem('cc_language') || localStorage.getItem('cc_share_lang') || 'system';
-      if (saved === 'ru' || saved === 'en') return saved;
-      return detectSystemLanguage();
+      try {
+        const saved = localStorage.getItem('cc_language') || localStorage.getItem('cc_share_lang') || 'system';
+        if (saved === 'ru' || saved === 'en') return saved;
+        const detected = detectSystemLanguage();
+        return (detected === 'ru' || detected === 'en') ? detected : 'en';
+      } catch (_) {
+        return 'en';
+      }
     }
 
     const currentLocale = getActiveLanguage();
 
     function t(key, params = null) {
-      const dict = dictionaries[currentLocale] || dictionaries.en;
-      let text = dict[key] || dictionaries.en[key] || key;
-      if (params && typeof params === 'object') {
-        Object.keys(params).forEach(k => {
-          text = text.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]);
-        });
+      try {
+        const dict = dictionaries[currentLocale] || dictionaries.en;
+        let text = dict[key] || (dictionaries.en && dictionaries.en[key]) || key;
+        if (params && typeof params === 'object') {
+          Object.keys(params).forEach(k => {
+            text = text.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]);
+          });
+        }
+        return text;
+      } catch (_) {
+        return (dictionaries.en && dictionaries.en[key]) || key;
       }
-      return text;
     }
 
     function updateStaticTexts() {

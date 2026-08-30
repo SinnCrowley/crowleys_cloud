@@ -44,13 +44,49 @@ export const selectableLanguages = supportedLanguages.filter((language) => !['pt
 const rtlLanguages = new Set(['ar', 'fa']);
 
 export function detectSystemLanguage() {
-  if (typeof navigator !== 'undefined') {
-    const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-    if (navLang.startsWith('ru') || navLang.startsWith('be') || navLang.startsWith('kk')) return 'ru';
-    if (navLang.startsWith('uk')) return 'uk';
-    if (navLang.startsWith('zh')) return 'zh-CN';
-    if (navLang.startsWith('pt')) return 'pt-BR';
-    for (const language of supportedLanguages) if (navLang.startsWith(language.toLowerCase())) return language;
+  try {
+    if (typeof navigator === 'undefined') return 'en';
+
+    const candidates = (navigator.languages && navigator.languages.length > 0)
+      ? navigator.languages
+      : [navigator.language || navigator.userLanguage || ''];
+
+    for (const raw of candidates) {
+      if (!raw || typeof raw !== 'string') continue;
+      const tag = raw.toLowerCase().trim();
+      if (!tag) continue;
+
+      // Specific regional / script overrides
+      if (tag === 'zh-cn' || tag === 'zh-sg' || tag === 'zh-hans' || tag.startsWith('zh-hans-') || tag.startsWith('zh-cn-')) {
+        return 'zh-CN';
+      }
+      if (tag === 'zh-tw' || tag === 'zh-hk' || tag === 'zh-mo' || tag === 'zh-hant' || tag.startsWith('zh-hant-')) {
+        return 'zh';
+      }
+      if (tag === 'pt-br' || tag.startsWith('pt-br-')) {
+        return 'pt-BR';
+      }
+      if (tag === 'pt' || tag.startsWith('pt-')) {
+        return 'pt';
+      }
+      if (tag.startsWith('ru') || tag.startsWith('be') || tag.startsWith('kk')) {
+        return 'ru';
+      }
+      if (tag.startsWith('uk')) {
+        return 'uk';
+      }
+
+      // Check exact case-insensitive match against supported languages (e.g. 'zh-CN', 'pt-BR')
+      const exactMatch = supportedLanguages.find((lang) => lang.toLowerCase() === tag);
+      if (exactMatch) return exactMatch;
+
+      // Check primary language subtag match (e.g. 'en-US' -> 'en', 'de-DE' -> 'de')
+      const primary = tag.split(/[-_]/)[0];
+      const primaryMatch = supportedLanguages.find((lang) => lang.toLowerCase() === primary);
+      if (primaryMatch) return primaryMatch;
+    }
+  } catch (_) {
+    return 'en';
   }
   return 'en';
 }
@@ -64,13 +100,23 @@ const initialSaved =
 export const languagePreference = writable(initialSaved);
 
 export const currentLocale = derived(languagePreference, ($pref) => {
-  if (supportedLanguages.includes($pref)) {
-    if (typeof document !== 'undefined') document.documentElement.dir = rtlLanguages.has($pref) ? 'rtl' : 'ltr';
-    return $pref;
+  let locale = 'en';
+  try {
+    if (supportedLanguages.includes($pref)) {
+      locale = $pref;
+    } else {
+      const detected = detectSystemLanguage();
+      locale = supportedLanguages.includes(detected) ? detected : 'en';
+    }
+  } catch (_) {
+    locale = 'en';
   }
-  const detected = detectSystemLanguage();
-  if (typeof document !== 'undefined') document.documentElement.dir = rtlLanguages.has(detected) ? 'rtl' : 'ltr';
-  return detected;
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.dir = rtlLanguages.has(locale) ? 'rtl' : 'ltr';
+    document.documentElement.lang = locale;
+  }
+  return locale;
 });
 
 let isInternalSync = false;
@@ -129,15 +175,24 @@ function formatString(template, params) {
  */
 export const t = derived(currentLocale, ($locale) => {
   return (key, params = null) => {
-    const dict = dictionaries[$locale] || dictionaries.en;
-    let text = resolveKey(dict, key);
-    if (!text && $locale !== 'en') {
-      text = resolveKey(dictionaries.en, key);
+    try {
+      const dict = dictionaries[$locale] || dictionaries.en;
+      let text = resolveKey(dict, key);
+      if (!text && $locale !== 'en') {
+        text = resolveKey(dictionaries.en, key);
+      }
+      if (!text) {
+        return key;
+      }
+      return formatString(text, params);
+    } catch (_) {
+      try {
+        const fallbackText = resolveKey(dictionaries.en, key);
+        return fallbackText ? formatString(fallbackText, params) : key;
+      } catch (_) {
+        return key;
+      }
     }
-    if (!text) {
-      return key;
-    }
-    return formatString(text, params);
   };
 });
 
@@ -159,13 +214,22 @@ export const i18n = {
   },
 
   format(key, params = null) {
-    const locale = get(currentLocale);
-    const dict = dictionaries[locale] || dictionaries.en;
-    let text = resolveKey(dict, key);
-    if (!text && locale !== 'en') {
-      text = resolveKey(dictionaries.en, key);
+    try {
+      const locale = get(currentLocale);
+      const dict = dictionaries[locale] || dictionaries.en;
+      let text = resolveKey(dict, key);
+      if (!text && locale !== 'en') {
+        text = resolveKey(dictionaries.en, key);
+      }
+      if (!text) return key;
+      return formatString(text, params);
+    } catch (_) {
+      try {
+        const fallbackText = resolveKey(dictionaries.en, key);
+        return fallbackText ? formatString(fallbackText, params) : key;
+      } catch (_) {
+        return key;
+      }
     }
-    if (!text) return key;
-    return formatString(text, params);
   }
 };
