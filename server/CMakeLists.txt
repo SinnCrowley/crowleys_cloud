@@ -16,6 +16,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # ------------------------------------------------------------------------------
 include(FetchContent)
 
+# Disable Drogon examples and tests for faster, cleaner builds
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+
 # Fetch and configure Drogon C++ Web Framework (v1.9.13)
 FetchContent_Declare(
   drogon
@@ -29,14 +33,18 @@ FetchContent_MakeAvailable(drogon)
 # - SQLite3: Embedded database engine for user accounting, index, and shares
 # - Threads: POSIX thread support for async networking and concurrency
 # - ZLIB: Zip archive compression & CRC32 calculation (ZipWriter)
+# - Protobuf: Binary serialization protocol for directory entry responses
 find_package(OpenSSL REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Protobuf REQUIRED)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(PROTOBUF REQUIRED IMPORTED_TARGET protobuf)
+if(TARGET protobuf::libprotobuf)
+  set(PROTOBUF_TARGET protobuf::libprotobuf)
+else()
+  set(PROTOBUF_TARGET ${Protobuf_LIBRARIES})
+endif()
 
 # ------------------------------------------------------------------------------
 # 2. Protobuf Code Generation Configuration
@@ -94,8 +102,12 @@ add_executable(crowleys_cloud_server
 # ------------------------------------------------------------------------------
 # 4. Include Directories & Linked Libraries
 # ------------------------------------------------------------------------------
-target_include_directories(crowleys_cloud_server PRIVATE include "${PROTO_GEN_DIR}" ${PROTOBUF_INCLUDE_DIRS} ${SQLite3_INCLUDE_DIRS})
-target_link_directories(crowleys_cloud_server PRIVATE ${PROTOBUF_LIBRARY_DIRS})
+target_include_directories(crowleys_cloud_server PRIVATE
+  include
+  "${PROTO_GEN_DIR}"
+  ${Protobuf_INCLUDE_DIRS}
+  ${SQLite3_INCLUDE_DIRS}
+)
 
 target_link_libraries(crowleys_cloud_server PRIVATE
   drogon
@@ -103,7 +115,7 @@ target_link_libraries(crowleys_cloud_server PRIVATE
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  PkgConfig::PROTOBUF
+  ${PROTOBUF_TARGET}
 )
 
 # ------------------------------------------------------------------------------
