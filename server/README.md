@@ -106,6 +106,7 @@ Configuration settings are loaded from `server/config/config.json`. Below is a b
 | `log_retention_days` | Number | `30` | Automated rotation and deletion period for server logs. |
 | `hash_files` | Boolean | `true` | If `true`, enables **Hashed Storage Layout** (files stored on disk by SHA-256 hash). |
 | `encryption_key` | String | `"aes-key"` | 256-bit AES key used to encrypt raw files inside `storage/` on disk. |
+| `trash_retention_days` | Number | `7` | Retention period in days for files in the trash before automated permanent deletion. Set to `-1` to disable automatic deletion (keep deleted files forever). |
 
 ---
 
