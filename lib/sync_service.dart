@@ -443,7 +443,8 @@ class DeviceSyncFileScanner implements SyncFileScanner {
 
   Future<String> _targetDirectory(Map<String, Object?> prefs) async {
     final raw = prefs['backupTargetDirectory'];
-    final value = raw is String &&
+    final value =
+        raw is String &&
             raw.trim().isNotEmpty &&
             raw.trim() != '/backup/localhost' &&
             raw.trim() != 'backup/localhost'

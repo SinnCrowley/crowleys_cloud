@@ -434,10 +434,7 @@ class AppUpdateService {
         type: 'application/vnd.android.package-archive',
       );
     } catch (e) {
-      return OpenResult(
-        type: ResultType.error,
-        message: e.toString(),
-      );
+      return OpenResult(type: ResultType.error, message: e.toString());
     }
   }
 }
@@ -563,7 +560,8 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
             widget.updateInfo.latestReleaseName!.trim().isNotEmpty &&
             widget.updateInfo.latestReleaseName!.trim() !=
                 'v${widget.updateInfo.latestVersion}' &&
-            widget.updateInfo.latestReleaseName!.trim() != widget.updateInfo.latestVersion
+            widget.updateInfo.latestReleaseName!.trim() !=
+                widget.updateInfo.latestVersion
         ? widget.updateInfo.latestReleaseName!.trim()
         : l10n.updateVersionSubtitle(widget.updateInfo.latestVersion);
 
@@ -691,8 +689,9 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                   ),
                 ),
                 InkWell(
-                  onTap: () =>
-                      AppUpdateService.launchUpdateUrl(widget.updateInfo.htmlUrl),
+                  onTap: () => AppUpdateService.launchUpdateUrl(
+                    widget.updateInfo.htmlUrl,
+                  ),
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -829,7 +828,10 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
             if (_isDownloading || _isInstalling || _errorMessage != null) ...[
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: appBackground,
                   borderRadius: BorderRadius.circular(10),
@@ -855,8 +857,9 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                                 height: 14,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(appAccent),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    appAccent,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -906,8 +909,9 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                             height: 14,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(appAccent),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                appAccent,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),

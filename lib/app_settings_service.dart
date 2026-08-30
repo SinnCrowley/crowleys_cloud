@@ -222,17 +222,20 @@ class AppSettingsService {
         return '/backup/${_sanitizeDeviceName(customName)}';
       }
       final sanitized = _sanitizeDeviceName(Platform.localHostname);
-      final safeName =
-          (sanitized.isEmpty || sanitized == 'localhost') ? 'device' : sanitized;
+      final safeName = (sanitized.isEmpty || sanitized == 'localhost')
+          ? 'device'
+          : sanitized;
       return '/backup/$safeName';
     }
 
     try {
-      final rawName =
-          await getSystemDeviceName(deviceInfoPlugin: deviceInfoPlugin);
+      final rawName = await getSystemDeviceName(
+        deviceInfoPlugin: deviceInfoPlugin,
+      );
       final sanitized = _sanitizeDeviceName(rawName);
-      final safeName =
-          (sanitized.isEmpty || sanitized == 'localhost') ? 'device' : sanitized;
+      final safeName = (sanitized.isEmpty || sanitized == 'localhost')
+          ? 'device'
+          : sanitized;
       final result = '/backup/$safeName';
       await store.setString(_cachedDefaultBackupTargetDirKey, result);
       return result;

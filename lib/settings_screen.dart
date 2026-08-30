@@ -445,8 +445,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     final initial =
         (current == '/backup/localhost' || current == 'backup/localhost')
-            ? _defaultTargetDirectory()
-            : current;
+        ? _defaultTargetDirectory()
+        : current;
     final path = await showDialog<String?>(
       context: context,
       builder: (context) => _TextInputDialog(
@@ -783,8 +783,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     final target =
         (rawTarget == '/backup/localhost' || rawTarget == 'backup/localhost')
-            ? _defaultTargetDirectory()
-            : rawTarget;
+        ? _defaultTargetDirectory()
+        : rawTarget;
     final syncCategories = _syncCategories();
     final syncFolders = _syncStringList('syncFolders');
 
