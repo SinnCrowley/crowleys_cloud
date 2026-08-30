@@ -89,4 +89,30 @@ void main() {
       expect(await settings.biometricLoginEnabled(), false);
     },
   );
+
+  test('persists custom deviceName and updates defaultBackupTargetDirectory', () async {
+    final settings = AppSettingsService();
+
+    expect(await settings.deviceName(), isNull);
+    await settings.setDeviceName('Pixel 8 Pro');
+    expect(await settings.deviceName(), 'Pixel 8 Pro');
+    expect(
+      await settings.defaultBackupTargetDirectory(),
+      '/backup/pixel_8_pro',
+    );
+
+    await settings.setDeviceName(null);
+    expect(await settings.deviceName(), isNull);
+  });
+
+  test('clears legacy /backup/localhost cached value and falls back to clean target', () async {
+    SharedPreferences.setMockInitialValues({
+      'cached_default_backup_target_dir': '/backup/localhost',
+    });
+
+    final settings = AppSettingsService();
+    final target = await settings.defaultBackupTargetDirectory();
+    expect(target, isNot(equals('/backup/localhost')));
+    expect(target, startsWith('/backup/'));
+  });
 }

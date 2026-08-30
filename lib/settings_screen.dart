@@ -443,11 +443,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       'backupTargetDirectory',
       _defaultTargetDirectory(),
     );
+    final initial =
+        (current == '/backup/localhost' || current == 'backup/localhost')
+            ? _defaultTargetDirectory()
+            : current;
     final path = await showDialog<String?>(
       context: context,
       builder: (context) => _TextInputDialog(
         title: l10n.serverTargetDirDialogTitle,
-        initialValue: current,
+        initialValue: initial,
         hintText: l10n.serverTargetDirectoryHint,
       ),
     );
@@ -773,10 +777,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final syncEnabled = _syncBool('syncEnabled', false);
     final wifiOnly = _syncBool('backupWifiOnly', true);
     final chargingOnly = _syncBool('backupChargingOnly', false);
-    final target = _syncString(
+    final rawTarget = _syncString(
       'backupTargetDirectory',
       _defaultTargetDirectory(),
     );
+    final target =
+        (rawTarget == '/backup/localhost' || rawTarget == 'backup/localhost')
+            ? _defaultTargetDirectory()
+            : rawTarget;
     final syncCategories = _syncCategories();
     final syncFolders = _syncStringList('syncFolders');
 

@@ -17,6 +17,7 @@ import 'dart:io';
 
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/cache_service.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,6 +31,9 @@ class AppSettingsService {
   static const downloadDirectoryPathKey = 'settings.downloadDirectoryPath';
   static const tokenLifetimeKey = 'settings.tokenLifetime';
   static const localeKey = 'settings.locale';
+  static const deviceNameKey = 'settings.deviceName';
+  static const _cachedDefaultBackupTargetDirKey =
+      'cached_default_backup_target_dir';
 
   SharedPreferences? _prefs;
 
@@ -97,6 +101,99 @@ class AppSettingsService {
     await prefs.setString(localeKey, code);
   }
 
+  Future<String?> deviceName() async {
+    final name = (await _store).getString(deviceNameKey);
+    return name == null || name.trim().isEmpty ? null : name.trim();
+  }
+
+  Future<void> setDeviceName(String? name) async {
+    final trimmed = name?.trim() ?? '';
+    final prefs = await _store;
+    if (trimmed.isEmpty) {
+      await prefs.remove(deviceNameKey);
+    } else {
+      await prefs.setString(deviceNameKey, trimmed);
+    }
+    await prefs.remove(_cachedDefaultBackupTargetDirKey);
+  }
+
+  Future<String> getSystemDeviceName({
+    DeviceInfoPlugin? deviceInfoPlugin,
+  }) async {
+    final customName = await deviceName();
+    if (customName != null && customName.isNotEmpty) {
+      return customName;
+    }
+
+    try {
+      final deviceInfo = deviceInfoPlugin ?? DeviceInfoPlugin();
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        final name = androidInfo.name.trim();
+        if (name.isNotEmpty &&
+            name.toLowerCase() != 'localhost' &&
+            name.toLowerCase() != 'null') {
+          return name;
+        }
+        final model = androidInfo.model.trim();
+        if (model.isNotEmpty &&
+            model.toLowerCase() != 'localhost' &&
+            model.toLowerCase() != 'null') {
+          return model;
+        }
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        final name = iosInfo.name.trim();
+        if (name.isNotEmpty &&
+            name.toLowerCase() != 'localhost' &&
+            name.toLowerCase() != 'null') {
+          return name;
+        }
+      } else if (Platform.isMacOS) {
+        final macInfo = await deviceInfo.macOsInfo;
+        final compName = macInfo.computerName.trim();
+        if (compName.isNotEmpty &&
+            compName.toLowerCase() != 'localhost' &&
+            compName.toLowerCase() != 'null') {
+          return compName;
+        }
+      } else if (Platform.isWindows) {
+        final winInfo = await deviceInfo.windowsInfo;
+        final compName = winInfo.computerName.trim();
+        if (compName.isNotEmpty &&
+            compName.toLowerCase() != 'localhost' &&
+            compName.toLowerCase() != 'null') {
+          return compName;
+        }
+      } else if (Platform.isLinux) {
+        final linuxInfo = await deviceInfo.linuxInfo;
+        final pretty = linuxInfo.prettyName.trim();
+        if (pretty.isNotEmpty &&
+            pretty.toLowerCase() != 'localhost' &&
+            pretty.toLowerCase() != 'null') {
+          return pretty;
+        }
+        final name = linuxInfo.name.trim();
+        if (name.isNotEmpty &&
+            name.toLowerCase() != 'localhost' &&
+            name.toLowerCase() != 'null') {
+          return name;
+        }
+      }
+    } catch (_) {}
+
+    try {
+      final host = Platform.localHostname.trim();
+      if (host.isNotEmpty &&
+          host.toLowerCase() != 'localhost' &&
+          host.toLowerCase() != 'localhost.localdomain') {
+        return host;
+      }
+    } catch (_) {}
+
+    return 'device';
+  }
+
   Future<int> cacheMaxBytes() async {
     return (await _store).getInt(CacheService.thumbnailMaxBytesKey) ??
         CacheService.defaultThumbnailMaxBytes;
@@ -106,21 +203,38 @@ class AppSettingsService {
     await (await _store).setInt(CacheService.thumbnailMaxBytesKey, value);
   }
 
-  Future<String> defaultBackupTargetDirectory() async {
-    if (Platform.environment.containsKey('FLUTTER_TEST')) {
-      return '/backup/${_sanitizeDeviceName(Platform.localHostname)}';
-    }
-
+  Future<String> defaultBackupTargetDirectory({
+    DeviceInfoPlugin? deviceInfoPlugin,
+  }) async {
     final store = await _store;
-    final cached = store.getString('cached_default_backup_target_dir');
-    if (cached != null && cached.isNotEmpty) {
+    final cached = store.getString(_cachedDefaultBackupTargetDirKey);
+    if (cached != null &&
+        cached.isNotEmpty &&
+        cached != '/backup/localhost' &&
+        cached != 'backup/localhost') {
       return cached;
     }
 
+    if (Platform.environment.containsKey('FLUTTER_TEST') &&
+        deviceInfoPlugin == null) {
+      final customName = await deviceName();
+      if (customName != null && customName.isNotEmpty) {
+        return '/backup/${_sanitizeDeviceName(customName)}';
+      }
+      final sanitized = _sanitizeDeviceName(Platform.localHostname);
+      final safeName =
+          (sanitized.isEmpty || sanitized == 'localhost') ? 'device' : sanitized;
+      return '/backup/$safeName';
+    }
+
     try {
-      final name = Platform.localHostname;
-      final result = '/backup/${_sanitizeDeviceName(name)}';
-      await store.setString('cached_default_backup_target_dir', result);
+      final rawName =
+          await getSystemDeviceName(deviceInfoPlugin: deviceInfoPlugin);
+      final sanitized = _sanitizeDeviceName(rawName);
+      final safeName =
+          (sanitized.isEmpty || sanitized == 'localhost') ? 'device' : sanitized;
+      final result = '/backup/$safeName';
+      await store.setString(_cachedDefaultBackupTargetDirKey, result);
       return result;
     } catch (_) {
       return '/backup/device';
@@ -133,7 +247,7 @@ class AppSettingsService {
         .replaceAll(RegExp(r'[^a-z0-9._-]+'), '_')
         .replaceAll(RegExp(r'_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
-    return safe.isEmpty ? 'device' : safe;
+    return (safe.isEmpty || safe == 'localhost') ? 'device' : safe;
   }
 
   Future<AppThemeData> loadTheme() async {
