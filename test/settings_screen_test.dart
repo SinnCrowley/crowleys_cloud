@@ -22,6 +22,7 @@ import 'package:crowleys_cloud/server_store.dart';
 import 'package:crowleys_cloud/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'test_helpers.dart';
 
@@ -37,6 +38,13 @@ class _FakeBiometricAuthService extends BiometricAuthService {
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    PackageInfo.setMockInitialValues(
+      appName: 'Crowleys Cloud',
+      packageName: 'com.sinncrowley.crowleys_cloud',
+      version: '0.4.0',
+      buildNumber: '400',
+      buildSignature: '',
+    );
   });
 
   testWidgets(

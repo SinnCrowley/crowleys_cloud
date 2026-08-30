@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'test_helpers.dart';
 
 void main() {
@@ -337,5 +338,21 @@ void main() {
 
       await file.delete();
     });
+
+    test(
+      'getCurrentAppVersion returns platform version when available',
+      () async {
+        PackageInfo.setMockInitialValues(
+          appName: 'Crowleys Cloud',
+          packageName: 'com.sinncrowley.crowleys_cloud',
+          version: '0.4.0',
+          buildNumber: '400',
+          buildSignature: '',
+        );
+
+        final version = await AppUpdateService.getCurrentAppVersion();
+        expect(version, equals('0.4.0'));
+      },
+    );
   });
 }

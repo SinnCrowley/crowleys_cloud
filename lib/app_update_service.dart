@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -114,13 +115,28 @@ class AppUpdateInfo {
 class AppUpdateService {
   final String owner;
   final String repo;
-  final String currentVersion;
+  final String? currentVersion;
 
   AppUpdateService({
     this.owner = githubRepoOwner,
     this.repo = githubRepoName,
-    this.currentVersion = appVersion,
+    this.currentVersion,
   });
+
+  /// Retrieves the actual installed app version from the platform package metadata.
+  /// Falls back to [appVersion] if the platform info is unavailable.
+  static Future<String> getCurrentAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform().timeout(
+        const Duration(milliseconds: 500),
+      );
+      final v = cleanVersion(info.version);
+      if (v.isNotEmpty) {
+        return v;
+      }
+    } catch (_) {}
+    return cleanVersion(appVersion);
+  }
 
   /// Cleans a tag or version string (e.g. "v1.2.0-beta" -> "1.2.0").
   static String cleanVersion(String v) {
@@ -161,13 +177,14 @@ class AppUpdateService {
     return result;
   }
 
-  /// Checks GitHub Releases API for releases newer than [currentVersion].
+  /// Checks GitHub Releases API for releases newer than the installed app version.
   Future<AppUpdateInfo?> checkForUpdates({
     http.Client? client,
     AppLocalizations? l10n,
   }) async {
     final httpClient = client ?? http.Client();
     final shouldCloseClient = client == null;
+    final activeCurrentVersion = currentVersion ?? await getCurrentAppVersion();
 
     try {
       // First attempt: fetch recent releases list to support multi-version changelog
@@ -191,7 +208,7 @@ class AppUpdateService {
               .toList();
 
           final newerReleases = allReleases
-              .where((r) => isVersionNewer(r.version, currentVersion))
+              .where((r) => isVersionNewer(r.version, activeCurrentVersion))
               .toList();
 
           if (newerReleases.isNotEmpty) {
@@ -203,7 +220,7 @@ class AppUpdateService {
 
             return AppUpdateInfo(
               hasUpdate: true,
-              currentVersion: currentVersion,
+              currentVersion: activeCurrentVersion,
               latestVersion: latest.version,
               latestReleaseName: latest.name,
               releaseNotes: formattedChangelog,
@@ -218,8 +235,8 @@ class AppUpdateService {
                 : null;
             return AppUpdateInfo(
               hasUpdate: false,
-              currentVersion: currentVersion,
-              latestVersion: latestKnown?.version ?? currentVersion,
+              currentVersion: activeCurrentVersion,
+              latestVersion: latestKnown?.version ?? activeCurrentVersion,
               latestReleaseName: latestKnown?.name,
               releaseNotes: '',
               htmlUrl:
@@ -245,8 +262,8 @@ class AppUpdateService {
       if (latestResponse.statusCode == 404) {
         return AppUpdateInfo(
           hasUpdate: false,
-          currentVersion: currentVersion,
-          latestVersion: currentVersion,
+          currentVersion: activeCurrentVersion,
+          latestVersion: activeCurrentVersion,
           releaseNotes:
               (l10n ?? platformAppLocalizations()).updateNoReleasesPublished,
           htmlUrl: 'https://github.com/$owner/$repo/releases',
@@ -257,11 +274,14 @@ class AppUpdateService {
         final decoded = jsonDecode(latestResponse.body);
         if (decoded is Map<String, dynamic>) {
           final latest = AppReleaseItem.fromJson(decoded, l10n: l10n);
-          final hasUpdate = isVersionNewer(latest.version, currentVersion);
+          final hasUpdate = isVersionNewer(
+            latest.version,
+            activeCurrentVersion,
+          );
 
           return AppUpdateInfo(
             hasUpdate: hasUpdate,
-            currentVersion: currentVersion,
+            currentVersion: activeCurrentVersion,
             latestVersion: latest.version,
             latestReleaseName: latest.name,
             releaseNotes: latest.body,

@@ -98,6 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double? _syncProgressPercent;
   String _defaultTargetDir = '/backup/device';
   bool _isCheckingUpdate = false;
+  String? _installedVersion;
   String? _localeCode;
 
   SyncService get _syncService {
@@ -217,6 +218,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       widget.settingsService.downloadDirectoryPath(),
       widget.settingsService.defaultBackupTargetDirectory(),
       widget.settingsService.localeCode(),
+      AppUpdateService.getCurrentAppVersion(),
     ]);
     if (!mounted) return;
     setState(() {
@@ -229,6 +231,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _downloadPath = results[6] as String?;
       _defaultTargetDir = results[7]! as String;
       _localeCode = results[8] as String?;
+      _installedVersion = results[9]! as String;
       _selectedSyncServerId =
           widget.serverManager.activeServer?.id ??
           widget.serverManager.servers.firstOrNull?.id;
@@ -1210,7 +1213,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: Text(
             _isCheckingUpdate
                 ? l10n.checkingForUpdates
-                : l10n.versionLabel(appVersion),
+                : l10n.versionLabel(_installedVersion ?? appVersion),
             style: TextStyle(color: appSubtext),
           ),
           trailing: _isCheckingUpdate
