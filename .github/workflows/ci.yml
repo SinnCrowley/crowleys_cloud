@@ -43,7 +43,50 @@ jobs:
         run: cmake --build server/build --parallel $(nproc)
 
   # ------------------------------------------------------------------------------
-  # 2. Flutter Mobile Application Verification (runs on every push/PR)
+  # 2. Web Frontend Build & Verification (runs on every push/PR)
+  # ------------------------------------------------------------------------------
+  test-web:
+    name: Build & Verify Web Client
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: server/web/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: server/web
+        run: npm ci
+
+      - name: Verify Localization Keys
+        working-directory: server/web
+        run: npm run check:i18n
+
+      - name: Build Web Client Bundle
+        working-directory: server/web
+        run: npm run build
+
+      - name: Package Web Client Bundle
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          tar -czvf "crowleys-cloud-web-${VERSION}.tar.gz" -C server public
+
+      - name: Upload Web Client Artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-bundle
+          path: crowleys-cloud-web-*.tar.gz
+          retention-days: 30
+
+  # ------------------------------------------------------------------------------
+  # 3. Flutter Mobile Application Verification (runs on every push/PR)
   # ------------------------------------------------------------------------------
   test-client:
     name: Test & Analyze Client
@@ -284,11 +327,11 @@ jobs:
             $(printf "${IMAGE}@sha256:%s " *)
 
   # ------------------------------------------------------------------------------
-  # 7. Create GitHub Release with APK (triggers only on version tags)
+  # 7. Create GitHub Release with APK and Web Client (triggers only on version tags)
   # ------------------------------------------------------------------------------
   create-release:
     name: Publish GitHub Release
-    needs: [build-server, build-android, build-ios, merge-docker-manifest]
+    needs: [build-server, test-web, build-android, build-ios, merge-docker-manifest]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -301,6 +344,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: android-apk
+
+      - name: Download Web Bundle Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-bundle
 
       - name: Rename APK with Version
         run: |
@@ -321,8 +369,11 @@ jobs:
           echo "" >> release_notes.md
           echo "" >> release_notes.md
           echo "---" >> release_notes.md
-          echo "### Installation" >> release_notes.md
+          echo "### Android App" >> release_notes.md
           echo "Download the APK file below and install it on your Android device." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Web Client" >> release_notes.md
+          echo "Standalone web client assets are attached as \`crowleys-cloud-web-${GITHUB_REF#refs/tags/v}.tar.gz\` (extract into \`public/\`)." >> release_notes.md
           echo "" >> release_notes.md
           echo "### Server Docker Image" >> release_notes.md
           echo '```bash' >> release_notes.md
@@ -333,7 +384,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body_path: release_notes.md
-          files: ${{ env.APK_NAME }}
+          files: |
+            ${{ env.APK_NAME }}
+            crowleys-cloud-web-*.tar.gz
           draft: false
           prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-rc') || contains(github.ref, '-alpha') }}
         env:

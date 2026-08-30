@@ -1,5 +1,15 @@
 # Multi-stage build for Crowley's Cloud Server
-# Stage 1: Build environment
+
+# Stage 1: Build Web Client Frontend (Svelte SPA)
+FROM node:22-alpine AS web-builder
+WORKDIR /app/server/web
+COPY server/web/package*.json ./
+RUN npm ci
+COPY server/web/ ./
+COPY server/public/ ../public/
+RUN npm run build
+
+# Stage 2: Build C++ Server Backend
 FROM ubuntu:22.04 AS builder
 
 # Prevent interactive prompts
@@ -43,7 +53,7 @@ WORKDIR /app/server
 RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 RUN cmake --build build -j$(nproc)
 
-# Stage 2: Runtime environment
+# Stage 3: Runtime environment
 FROM ubuntu:22.04
 
 # Prevent interactive prompts
@@ -68,6 +78,9 @@ WORKDIR /app
 # Copy the built binary and the default configurations
 COPY --from=builder /app/server/build/crowleys_cloud_server ./crowleys_cloud_server
 COPY --from=builder /app/server/config ./config
+
+# Copy compiled static web client files
+COPY --from=web-builder /app/server/public ./public
 
 # Create default directories for volume mounts
 RUN mkdir -p storage uploads logs data
