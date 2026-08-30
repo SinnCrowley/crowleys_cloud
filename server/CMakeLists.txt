@@ -4,7 +4,7 @@
 # ==============================================================================
 
 cmake_minimum_required(VERSION 3.15)
-project(crowleys_cloud_server VERSION 0.3.0 LANGUAGES CXX)
+project(crowleys_cloud_server VERSION 0.4.0 LANGUAGES CXX)
 
 # Require C++20 standard for modern standard library features (std::filesystem, etc.)
 set(CMAKE_CXX_STANDARD 20)
