@@ -16,14 +16,10 @@
 name: crowleys_cloud
 description: "Mobile app for Crowley's Cloud Server"
 publish_to: 'none'
-version: 0.2.0+1
+version: 0.3.0+300
 
 environment:
   sdk: ^3.9.2
-
-# Dependency Audit (Milestone 3 / R3):
-# - PRUNED: `device_info_plus` (Replaced with Dart stdlib `dart:io` `Platform.localHostname` in AppSettingsService)
-# - AUDITED & RETAINED: All core native platform, media, storage, security, and networking packages below.
 
 dependencies:
   flutter:
