@@ -244,7 +244,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     return /\.(jpg|jpeg|png|webp|gif|bmp|heic|avif|heif|mp4|mkv|avi|mov|webm|flv|mp3|wav|ogg|flac|m4a|aac)$/i.test(name);
   }
 
+  let justLongPressed = false;
+
   function handleItemClick(item) {
+    if (justLongPressed) {
+      justLongPressed = false;
+      return;
+    }
     if (selectedIds.size > 0) {
       toggleSelect(item.id);
       return;
@@ -258,6 +264,84 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     if (item && !item.is_dir) {
       activePreviewItem = item;
     }
+  }
+
+  function longpress(node, threshold = 500) {
+    let timer = null;
+    let startX = 0;
+    let startY = 0;
+    let didLongPress = false;
+
+    const handleStart = (e) => {
+      if (e.type === 'mousedown' && e.button !== 0) return;
+      const point = e.touches ? e.touches[0] : e;
+      startX = point.clientX;
+      startY = point.clientY;
+      didLongPress = false;
+
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        didLongPress = true;
+        justLongPressed = true;
+        node.dispatchEvent(new CustomEvent('longpress'));
+      }, threshold);
+    };
+
+    const handleMove = (e) => {
+      if (!timer) return;
+      const point = e.touches ? e.touches[0] : e;
+      const diffX = Math.abs(point.clientX - startX);
+      const diffY = Math.abs(point.clientY - startY);
+      if (diffX > 10 || diffY > 10) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    const handleEnd = () => {
+      clearTimeout(timer);
+      timer = null;
+    };
+
+    const handleClickCapture = (e) => {
+      if (didLongPress || justLongPressed) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        justLongPressed = false;
+        didLongPress = false;
+      }
+    };
+
+    node.addEventListener('mousedown', handleStart);
+    node.addEventListener('touchstart', handleStart, { passive: true });
+    node.addEventListener('mousemove', handleMove);
+    node.addEventListener('touchmove', handleMove, { passive: true });
+    node.addEventListener('mouseup', handleEnd);
+    node.addEventListener('mouseleave', handleEnd);
+    node.addEventListener('touchend', handleEnd);
+    node.addEventListener('touchcancel', handleEnd);
+    node.addEventListener('click', handleClickCapture, { capture: true });
+
+    return {
+      destroy() {
+        clearTimeout(timer);
+        node.removeEventListener('mousedown', handleStart);
+        node.removeEventListener('touchstart', handleStart);
+        node.removeEventListener('mousemove', handleMove);
+        node.removeEventListener('touchmove', handleMove);
+        node.removeEventListener('mouseup', handleEnd);
+        node.removeEventListener('mouseleave', handleEnd);
+        node.removeEventListener('touchend', handleEnd);
+        node.removeEventListener('touchcancel', handleEnd);
+        node.removeEventListener('click', handleClickCapture, { capture: true });
+      }
+    };
+  }
+
+  function handleLongPress(item) {
+    if (navigator.vibrate) navigator.vibrate(40);
+    toggleSelect(item.id);
   }
 
   function formatSize(bytes) {
@@ -320,6 +404,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           class="trash-grid-card {selectedIds.has(item.id) ? 'selected' : ''}"
+          use:longpress
+          on:longpress={() => handleLongPress(item)}
           on:click={() => handleItemClick(item)}
           on:dblclick={() => handleItemDblClick(item)}
         >
@@ -385,6 +471,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div
             class="trash-table-row {selectedIds.has(item.id) ? 'selected' : ''}"
+            use:longpress
+            on:longpress={() => handleLongPress(item)}
             on:click={() => handleItemClick(item)}
             on:dblclick={() => handleItemDblClick(item)}
           >

@@ -162,39 +162,74 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   }
 
   function longpress(node, threshold = 500) {
-    let timer;
+    let timer = null;
+    let startX = 0;
+    let startY = 0;
+    let didLongPress = false;
 
     const handleStart = (e) => {
       if (e.type === 'mousedown' && e.button !== 0) return;
-      justLongPressed = false;
+      const point = e.touches ? e.touches[0] : e;
+      startX = point.clientX;
+      startY = point.clientY;
+      didLongPress = false;
+
+      clearTimeout(timer);
       timer = setTimeout(() => {
+        didLongPress = true;
         justLongPressed = true;
         node.dispatchEvent(new CustomEvent('longpress'));
       }, threshold);
     };
 
-    const handleCancel = () => {
+    const handleMove = (e) => {
+      if (!timer) return;
+      const point = e.touches ? e.touches[0] : e;
+      const diffX = Math.abs(point.clientX - startX);
+      const diffY = Math.abs(point.clientY - startY);
+      if (diffX > 10 || diffY > 10) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    const handleEnd = () => {
       clearTimeout(timer);
+      timer = null;
+    };
+
+    const handleClickCapture = (e) => {
+      if (didLongPress || justLongPressed) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        justLongPressed = false;
+        didLongPress = false;
+      }
     };
 
     node.addEventListener('mousedown', handleStart);
     node.addEventListener('touchstart', handleStart, { passive: true });
-    node.addEventListener('mouseup', handleCancel);
-    node.addEventListener('mouseleave', handleCancel);
-    node.addEventListener('touchend', handleCancel);
-    node.addEventListener('touchcancel', handleCancel);
-    node.addEventListener('touchmove', handleCancel);
+    node.addEventListener('mousemove', handleMove);
+    node.addEventListener('touchmove', handleMove, { passive: true });
+    node.addEventListener('mouseup', handleEnd);
+    node.addEventListener('mouseleave', handleEnd);
+    node.addEventListener('touchend', handleEnd);
+    node.addEventListener('touchcancel', handleEnd);
+    node.addEventListener('click', handleClickCapture, { capture: true });
 
     return {
       destroy() {
         clearTimeout(timer);
         node.removeEventListener('mousedown', handleStart);
         node.removeEventListener('touchstart', handleStart);
-        node.removeEventListener('mouseup', handleCancel);
-        node.removeEventListener('mouseleave', handleCancel);
-        node.removeEventListener('touchend', handleCancel);
-        node.removeEventListener('touchcancel', handleCancel);
-        node.removeEventListener('touchmove', handleCancel);
+        node.removeEventListener('mousemove', handleMove);
+        node.removeEventListener('touchmove', handleMove);
+        node.removeEventListener('mouseup', handleEnd);
+        node.removeEventListener('mouseleave', handleEnd);
+        node.removeEventListener('touchend', handleEnd);
+        node.removeEventListener('touchcancel', handleEnd);
+        node.removeEventListener('click', handleClickCapture, { capture: true });
       }
     };
   }
@@ -202,9 +237,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   function handleLongPress(item) {
     if (navigator.vibrate) navigator.vibrate(40);
     dispatch('select', item);
-    setTimeout(() => {
-      justLongPressed = false;
-    }, 200);
   }
 
   function createDragGhost(count) {
