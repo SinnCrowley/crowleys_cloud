@@ -103,8 +103,7 @@ class HttpAuthGateway implements AuthGateway {
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw AuthException(
-        _extractError(response.body) ??
-            l10n.authFailedGeneric,
+        _extractError(response.body) ?? l10n.authFailedGeneric,
       );
     }
 

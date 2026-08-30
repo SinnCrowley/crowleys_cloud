@@ -820,10 +820,7 @@ class FileBrowserController extends ChangeNotifier {
       await reload();
       return true;
     } catch (e) {
-      operationMessage = local.failedToRenameWithError(
-        item.name,
-        e.toString(),
-      );
+      operationMessage = local.failedToRenameWithError(item.name, e.toString());
       notifyListeners();
       return false;
     }

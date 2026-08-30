@@ -600,9 +600,7 @@ class HttpSyncApiClient implements SyncApiClient {
         return MapEntry(key, path);
       });
     }
-    throw SyncException(
-      platformAppLocalizations().syncResultFailed,
-    );
+    throw SyncException(platformAppLocalizations().syncResultFailed);
   }
 
   @override
@@ -630,9 +628,7 @@ class HttpSyncApiClient implements SyncApiClient {
       );
       if (response.statusCode >= 200 && response.statusCode < 300) return;
       throw SyncException(
-        platformAppLocalizations().uploadFailed(
-          'HTTP ${response.statusCode}',
-        ),
+        platformAppLocalizations().uploadFailed('HTTP ${response.statusCode}'),
       );
     }
 
@@ -809,10 +805,7 @@ class SyncService {
     var failed = 0;
     String? message;
 
-    onProgress?.call(
-      resolvedL10n.syncStatusConnecting,
-      null,
-    );
+    onProgress?.call(resolvedL10n.syncStatusConnecting, null);
     final isAlive = await apiClient.ping(server: server);
     if (!isAlive) {
       final result = SyncRunResult(
@@ -823,26 +816,19 @@ class SyncService {
         failedFiles: 0,
         startedAt: startedAt,
         finishedAt: DateTime.now().toUtc(),
-        message:
-            resolvedL10n.syncStatusConnectionLost(server.displayName),
+        message: resolvedL10n.syncStatusConnectionLost(server.displayName),
       );
       await stateStore.saveLastResult(server.id, result);
       return result;
     }
 
-    onProgress?.call(
-      resolvedL10n.syncStatusScanningFiles,
-      null,
-    );
+    onProgress?.call(resolvedL10n.syncStatusScanningFiles, null);
 
     try {
       final candidates = await scanner.scan(server);
       scanned = candidates.length;
       if (candidates.isEmpty) {
-        onProgress?.call(
-          resolvedL10n.syncStatusNoFilesFound,
-          1.0,
-        );
+        onProgress?.call(resolvedL10n.syncStatusNoFilesFound, 1.0);
         final result = SyncRunResult(
           status: SyncRunStatus.noFiles,
           scannedFiles: 0,
@@ -851,8 +837,7 @@ class SyncService {
           failedFiles: 0,
           startedAt: startedAt,
           finishedAt: DateTime.now().toUtc(),
-          message:
-              resolvedL10n.syncStatusNoFilesSelected,
+          message: resolvedL10n.syncStatusNoFilesSelected,
         );
         await stateStore.saveLastResult(server.id, result);
         return result;
@@ -928,10 +913,7 @@ class SyncService {
       // Step 3: Query server for duplicate file hashes
       Map<String, String> existingRemotePaths = const {};
       if (hashToCandidate.isNotEmpty) {
-        onProgress?.call(
-          resolvedL10n.syncStatusCheckingDuplicates,
-          null,
-        );
+        onProgress?.call(resolvedL10n.syncStatusCheckingDuplicates, null);
         try {
           existingRemotePaths = await apiClient.checkHashes(
             server: server,
@@ -1016,10 +998,7 @@ class SyncService {
         }
       }
 
-      onProgress?.call(
-        resolvedL10n.syncStatusCompleting,
-        1.0,
-      );
+      onProgress?.call(resolvedL10n.syncStatusCompleting, 1.0);
 
       final status = failed > 0
           ? SyncRunStatus.partialFailure

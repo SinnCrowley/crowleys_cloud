@@ -442,31 +442,35 @@ void main() {
     },
   );
 
-  test('returns localized Russian connection lost message when l10n is provided', () async {
-    final stateFile = File('${tempDir.path}/state.json');
-    final stateStore = FileSyncStateStore(
-      fileProvider: () async => stateFile,
-    );
-    final api = _FakeApiClient()..isServerUnreachable = true;
-    final service = SyncService(
-      scanner: _FakeScanner([]),
-      apiClient: api,
-      stateStore: stateStore,
-    );
+  test(
+    'returns localized Russian connection lost message when l10n is provided',
+    () async {
+      final stateFile = File('${tempDir.path}/state.json');
+      final stateStore = FileSyncStateStore(
+        fileProvider: () async => stateFile,
+      );
+      final api = _FakeApiClient()..isServerUnreachable = true;
+      final service = SyncService(
+        scanner: _FakeScanner([]),
+        apiClient: api,
+        stateStore: stateStore,
+      );
 
-    final l10nRu = lookupAppLocalizations(const Locale('ru'));
-    final result = await service.syncServer(server, l10n: l10nRu);
+      final l10nRu = lookupAppLocalizations(const Locale('ru'));
+      final result = await service.syncServer(server, l10n: l10nRu);
 
-    expect(result.status, SyncRunStatus.serverUnreachable);
-    expect(result.message, l10nRu.syncStatusConnectionLost(server.displayName));
-  });
+      expect(result.status, SyncRunStatus.serverUnreachable);
+      expect(
+        result.message,
+        l10nRu.syncStatusConnectionLost(server.displayName),
+      );
+    },
+  );
 
   test('emits localized Russian progress messages during sync run', () async {
     final file = await writeTestFile(tempDir, 'photo.jpg', 'some content');
     final stateFile = File('${tempDir.path}/state.json');
-    final stateStore = FileSyncStateStore(
-      fileProvider: () async => stateFile,
-    );
+    final stateStore = FileSyncStateStore(fileProvider: () async => stateFile);
     final api = _FakeApiClient();
     final service = SyncService(
       scanner: _FakeScanner([

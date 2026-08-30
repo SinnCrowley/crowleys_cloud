@@ -50,11 +50,14 @@ void main() {
       final locale = entry.key;
       final expectedType = entry.value;
 
-      test('lookupAppLocalizations for ${locale.languageCode} returns $expectedType', () {
-        final l10n = lookupAppLocalizations(locale);
-        expect(l10n.runtimeType, expectedType);
-        expect(l10n.localeName, locale.languageCode);
-      });
+      test(
+        'lookupAppLocalizations for ${locale.languageCode} returns $expectedType',
+        () {
+          final l10n = lookupAppLocalizations(locale);
+          expect(l10n.runtimeType, expectedType);
+          expect(l10n.localeName, locale.languageCode);
+        },
+      );
     }
   });
 
@@ -520,7 +523,11 @@ void main() {
 
         test('Multi-parameter methods format correctly across combinations', () {
           for (final s1 in ['fileA.png', 'folder_123', '🚀_doc.pdf']) {
-            for (final s2 in ['fileB.png', 'folder_456', 'Network timeout (504)']) {
+            for (final s2 in [
+              'fileB.png',
+              'folder_456',
+              'Network timeout (504)',
+            ]) {
               // errorDeletingFile
               final r1 = l10n.errorDeletingFile(s1, s2);
               expect(r1, isNotEmpty);
@@ -724,37 +731,40 @@ void main() {
     for (final entry in slavicLocales.entries) {
       final locale = entry.key;
 
-      testWidgets('Renders localized text inside widget tree for locale [${locale.languageCode}]', (tester) async {
-        late AppLocalizations contextL10n;
+      testWidgets(
+        'Renders localized text inside widget tree for locale [${locale.languageCode}]',
+        (tester) async {
+          late AppLocalizations contextL10n;
 
-        await tester.pumpWidget(
-          wrapWithLocalization(
-            Scaffold(
-              body: Builder(
-                builder: (context) {
-                  contextL10n = AppLocalizations.of(context)!;
-                  return Column(
-                    children: [
-                      Text(contextL10n.appTitle),
-                      Text(contextL10n.welcomeBack),
-                      Text(contextL10n.navSettings),
-                      Text(contextL10n.deleteNItemsTitle(3)),
-                    ],
-                  );
-                },
+          await tester.pumpWidget(
+            wrapWithLocalization(
+              Scaffold(
+                body: Builder(
+                  builder: (context) {
+                    contextL10n = AppLocalizations.of(context)!;
+                    return Column(
+                      children: [
+                        Text(contextL10n.appTitle),
+                        Text(contextL10n.welcomeBack),
+                        Text(contextL10n.navSettings),
+                        Text(contextL10n.deleteNItemsTitle(3)),
+                      ],
+                    );
+                  },
+                ),
               ),
+              locale: locale,
             ),
-            locale: locale,
-          ),
-        );
-        await tester.pumpAndSettle();
+          );
+          await tester.pumpAndSettle();
 
-        expect(contextL10n.localeName, locale.languageCode);
-        expect(find.text(contextL10n.appTitle), findsOneWidget);
-        expect(find.text(contextL10n.welcomeBack), findsOneWidget);
-        expect(find.text(contextL10n.navSettings), findsOneWidget);
-        expect(find.text(contextL10n.deleteNItemsTitle(3)), findsOneWidget);
-      });
+          expect(contextL10n.localeName, locale.languageCode);
+          expect(find.text(contextL10n.appTitle), findsOneWidget);
+          expect(find.text(contextL10n.welcomeBack), findsOneWidget);
+          expect(find.text(contextL10n.navSettings), findsOneWidget);
+          expect(find.text(contextL10n.deleteNItemsTitle(3)), findsOneWidget);
+        },
+      );
     }
   });
 }

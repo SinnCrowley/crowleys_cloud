@@ -357,28 +357,16 @@ void main() {
     expect(manager.activeServer?.id, 'backup');
   });
 
-  testWidgets('renders localized storage root and dropdown options in Russian', (
-    tester,
-  ) async {
-    await _useTallScreen(tester);
-    final manager =
-        ActiveServerManager(
-            store: ServerStore(),
-            authService: AuthService(secretStore: InMemorySecretStore()),
-          )
-          ..activeServer = ServerProfile(
-            id: 'srv',
-            displayName: 'Server 1',
-            baseUrl: 'http://localhost',
-            authMode: 'login',
-            lastUsedAt: DateTime.now().toUtc(),
-            syncPrefs: const {
-              'syncEnabled': true,
-              'syncFolders': ['/storage/emulated/0'],
-            },
-          )
-          ..servers = [
-            ServerProfile(
+  testWidgets(
+    'renders localized storage root and dropdown options in Russian',
+    (tester) async {
+      await _useTallScreen(tester);
+      final manager =
+          ActiveServerManager(
+              store: ServerStore(),
+              authService: AuthService(secretStore: InMemorySecretStore()),
+            )
+            ..activeServer = ServerProfile(
               id: 'srv',
               displayName: 'Server 1',
               baseUrl: 'http://localhost',
@@ -388,25 +376,41 @@ void main() {
                 'syncEnabled': true,
                 'syncFolders': ['/storage/emulated/0'],
               },
-            ),
-          ];
+            )
+            ..servers = [
+              ServerProfile(
+                id: 'srv',
+                displayName: 'Server 1',
+                baseUrl: 'http://localhost',
+                authMode: 'login',
+                lastUsedAt: DateTime.now().toUtc(),
+                syncPrefs: const {
+                  'syncEnabled': true,
+                  'syncFolders': ['/storage/emulated/0'],
+                },
+              ),
+            ];
 
-    await tester.pumpWidget(
-      wrapWithLocalization(
-        SettingsScreen(
-          serverManager: manager,
-          biometricAuthService: _FakeBiometricAuthService(false),
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          SettingsScreen(
+            serverManager: manager,
+            biometricAuthService: _FakeBiometricAuthService(false),
+          ),
+          locale: const Locale('ru'),
         ),
-        locale: const Locale('ru'),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    // Verify Russian section titles and localized storage root
-    expect(find.text('Хранилище'), findsWidgets);
-    expect(find.text('Резервное копирование и синхронизация'), findsOneWidget);
-    expect(find.text('Хранилище и кеш'), findsOneWidget);
-  });
+      // Verify Russian section titles and localized storage root
+      expect(find.text('Хранилище'), findsWidgets);
+      expect(
+        find.text('Резервное копирование и синхронизация'),
+        findsOneWidget,
+      );
+      expect(find.text('Хранилище и кеш'), findsOneWidget);
+    },
+  );
 }
 
 Future<void> _useTallScreen(WidgetTester tester) async {

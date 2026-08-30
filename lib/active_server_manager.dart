@@ -157,8 +157,7 @@ class ActiveServerManager extends ChangeNotifier {
   }) {
     if (activeServer?.id != serverId) return;
     requiresAuth = false;
-    connectionErrorMessage =
-        message ?? _getL10n(l10n).unableToConnectToServer;
+    connectionErrorMessage = message ?? _getL10n(l10n).unableToConnectToServer;
     notifyListeners();
   }
 

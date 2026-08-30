@@ -112,7 +112,7 @@ class TrashBrowserController extends ChangeNotifier {
       );
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception(
-            platformAppLocalizations().connectionFailed(
+          platformAppLocalizations().connectionFailed(
             'Server error ${response.statusCode}',
           ),
         );
@@ -208,7 +208,7 @@ class TrashBrowserController extends ChangeNotifier {
       });
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception(
-            platformAppLocalizations().connectionFailed(
+          platformAppLocalizations().connectionFailed(
             'Server error ${response.statusCode}',
           ),
         );
@@ -251,7 +251,7 @@ class TrashBrowserController extends ChangeNotifier {
         });
         if (resp.statusCode < 200 || resp.statusCode >= 300) {
           throw Exception(
-              platformAppLocalizations().connectionFailed(
+            platformAppLocalizations().connectionFailed(
               'Server error ${resp.statusCode}',
             ),
           );
@@ -264,7 +264,7 @@ class TrashBrowserController extends ChangeNotifier {
         });
         if (resp.statusCode < 200 || resp.statusCode >= 300) {
           throw Exception(
-              platformAppLocalizations().connectionFailed(
+            platformAppLocalizations().connectionFailed(
               'Server error ${resp.statusCode}',
             ),
           );
@@ -291,7 +291,7 @@ class TrashBrowserController extends ChangeNotifier {
       final response = await _authorizedDeleteJson(uri, {'ids': ids});
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception(
-            platformAppLocalizations().connectionFailed(
+          platformAppLocalizations().connectionFailed(
             'Server error ${response.statusCode}',
           ),
         );

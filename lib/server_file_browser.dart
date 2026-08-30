@@ -834,14 +834,12 @@ class _ServerHeaderControls extends StatelessWidget {
                         .map(
                           (v) => DropdownMenuItem(
                             value: v,
-                            child: Text(
-                              switch (v) {
-                                ServerSortBy.name => l10n.name,
-                                ServerSortBy.date => l10n.date,
-                                ServerSortBy.size => l10n.size,
-                                ServerSortBy.type => l10n.type,
-                              },
-                            ),
+                            child: Text(switch (v) {
+                              ServerSortBy.name => l10n.name,
+                              ServerSortBy.date => l10n.date,
+                              ServerSortBy.size => l10n.size,
+                              ServerSortBy.type => l10n.type,
+                            }),
                           ),
                         )
                         .toList(),
@@ -1317,14 +1315,12 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                               .map(
                                 (v) => DropdownMenuItem(
                                   value: v,
-                                  child: Text(
-                                    switch (v) {
-                                      ServerSortBy.name => l10n.name,
-                                      ServerSortBy.date => l10n.date,
-                                      ServerSortBy.size => l10n.size,
-                                      ServerSortBy.type => l10n.type,
-                                    },
-                                  ),
+                                  child: Text(switch (v) {
+                                    ServerSortBy.name => l10n.name,
+                                    ServerSortBy.date => l10n.date,
+                                    ServerSortBy.size => l10n.size,
+                                    ServerSortBy.type => l10n.type,
+                                  }),
                                 ),
                               )
                               .toList(),

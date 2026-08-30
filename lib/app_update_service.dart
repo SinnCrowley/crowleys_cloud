@@ -47,7 +47,8 @@ class AppReleaseItem {
   }) {
     final tagName = (json['tag_name'] as String?) ?? '';
     final name = json['name'] as String?;
-    final body = (json['body'] as String?) ??
+    final body =
+        (json['body'] as String?) ??
         (l10n ?? platformAppLocalizations()).updateNoReleaseNotes;
     final htmlUrl = (json['html_url'] as String?) ?? '';
     final publishedAtStr = json['published_at'] as String?;
@@ -528,14 +529,16 @@ class AppUpdateDialog extends StatelessWidget {
                     if (notes.isEmpty ||
                         notes == l10n.updateNoReleaseNotes ||
                         notes ==
-                            lookupAppLocalizations(const Locale('en'))
-                                .updateNoReleaseNotes) {
+                            lookupAppLocalizations(
+                              const Locale('en'),
+                            ).updateNoReleaseNotes) {
                       return l10n.updateNoReleaseNotes;
                     }
                     if (notes == l10n.updateNoReleasesPublished ||
                         notes ==
-                            lookupAppLocalizations(const Locale('en'))
-                                .updateNoReleasesPublished) {
+                            lookupAppLocalizations(
+                              const Locale('en'),
+                            ).updateNoReleasesPublished) {
                       return l10n.updateNoReleasesPublished;
                     }
                     return notes;

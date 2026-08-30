@@ -231,7 +231,10 @@ void main() {
         ),
       );
 
-      expect(find.text('Примечания к выпуску не предоставлены.'), findsOneWidget);
+      expect(
+        find.text('Примечания к выпуску не предоставлены.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders localized no releases published fallback in Russian', (
@@ -242,8 +245,7 @@ void main() {
         currentVersion: '1.0.0',
         latestVersion: '1.0.0',
         releaseNotes: 'No releases published yet.',
-        htmlUrl:
-            'https://github.com/SinnCrowley/crowleys_cloud/releases',
+        htmlUrl: 'https://github.com/SinnCrowley/crowleys_cloud/releases',
       );
 
       await tester.pumpWidget(
