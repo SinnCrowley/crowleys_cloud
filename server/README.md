@@ -93,6 +93,7 @@ Configuration settings are loaded from `server/config/config.json`. Below is a b
 | `storage_root` | String | `"./storage"` | Local directory where physical user files are saved. |
 | `db_path` | String | `"./data/server.sqlite3"` | File path to the SQLite3 database. |
 | `temp_upload_dir` | String | `"./uploads"` | Directory used for temporary HTTP upload streams. |
+| `public_dir` | String | `"./public"` | Directory path containing static web client assets (Svelte SPA build & static HTML/JS/CSS). |
 | `jwt_secret` | String | `"your-jwt-secret"` | Signature secret key used to issue and verify JWT access tokens. |
 | `upload_limit_bytes` | Number | `10737418240` | Maximum allowed size of an uploaded file in bytes (e.g., 10 GB). |
 | `rate_limit_per_minute` | Number | `10` | IP-based request threshold per minute for critical auth endpoints. |

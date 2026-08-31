@@ -90,12 +90,12 @@ int main(int argc, char *argv[]) {
     drogon::app().setClientMaxMemoryBodySize(limit);
   }
 
-  // Configure static web interface hosting from ./public (Svelte SPA build)
-  const std::string publicDir = "./public";
+  // Configure static web interface hosting from publicDir (Svelte SPA build)
+  const std::string publicDir = appCtx.config.publicDir;
   if (std::filesystem::exists(publicDir)) {
     drogon::app().setDocumentRoot(publicDir);
     drogon::app().setHomePage("index.html");
-    const std::string indexHtmlPath = publicDir + "/index.html";
+    const std::string indexHtmlPath = (std::filesystem::path(publicDir) / "index.html").generic_string();
     if (std::filesystem::exists(indexHtmlPath)) {
       drogon::app().setCustom404Page(drogon::HttpResponse::newFileResponse(indexHtmlPath));
 

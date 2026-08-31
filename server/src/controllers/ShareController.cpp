@@ -357,7 +357,8 @@ void ShareController::sharePage(const drogon::HttpRequestPtr &req,
     return;
   }
 
-  const std::string shareHtmlPath = "./public/share.html";
+  const std::string shareHtmlPath =
+      (std::filesystem::path(server::ctx().config.publicDir) / "share.html").generic_string();
   if (std::filesystem::exists(shareHtmlPath)) {
     callback(drogon::HttpResponse::newFileResponse(shareHtmlPath));
   } else {
@@ -545,7 +546,8 @@ void ShareController::publicAsset(const drogon::HttpRequestPtr &req,
                                    std::function<void(const drogon::HttpResponsePtr &)> &&callback,
                                    const std::string &filename) {
   const std::string cleanName = std::filesystem::path(filename).filename().string();
-  const std::string assetPath = "./public/" + cleanName;
+  const std::string assetPath =
+      (std::filesystem::path(server::ctx().config.publicDir) / cleanName).generic_string();
   if (std::filesystem::exists(assetPath)) {
     callback(drogon::HttpResponse::newFileResponse(assetPath));
   } else {

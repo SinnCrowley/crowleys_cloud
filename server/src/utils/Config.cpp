@@ -37,6 +37,7 @@ Config loadConfig(const std::string &path) {
   cfg.storageRoot = json.get("storage_root", cfg.storageRoot).asString();
   cfg.dbPath = json.get("db_path", cfg.dbPath).asString();
   cfg.tempUploadDir = json.get("temp_upload_dir", cfg.tempUploadDir).asString();
+  cfg.publicDir = json.get("public_dir", cfg.publicDir).asString();
   cfg.jwtSecret = json.get("jwt_secret", cfg.jwtSecret).asString();
   cfg.uploadLimitBytes = json.get("upload_limit_bytes", Json::Int64(cfg.uploadLimitBytes)).asInt64();
   cfg.rateLimitPerMinute = json.get("rate_limit_per_minute", cfg.rateLimitPerMinute).asInt();
@@ -60,6 +61,9 @@ Config loadConfig(const std::string &path) {
   } catch (...) {}
   try {
     cfg.tempUploadDir = std::filesystem::weakly_canonical(cfg.tempUploadDir).generic_string();
+  } catch (...) {}
+  try {
+    cfg.publicDir = std::filesystem::weakly_canonical(cfg.publicDir).generic_string();
   } catch (...) {}
 
   return cfg;
