@@ -18,6 +18,7 @@
 #include "server/utils/Crypto.hpp"
 #include "server/utils/TimeUtils.hpp"
 
+#include <trantor/utils/Logger.h>
 #include <sqlite3.h>
 
 #include <chrono>
@@ -31,12 +32,11 @@ UserService::UserService(db::Database &db, const utils::Config &config)
     : db_(db), config_(config) {}
 
 std::string UserService::passwordHash(const std::string &password) const {
-  // Placeholder hash; switch to bcrypt/argon2 in production hardening pass.
-  return utils::sha256Hex("pw|" + password);
+  return utils::hashPassword(password);
 }
 
 bool UserService::verifyPassword(const std::string &password, const std::string &storedHash) const {
-  return passwordHash(password) == storedHash;
+  return utils::verifyPasswordHash(password, storedHash);
 }
 
 std::optional<UserRecord> UserService::registerUser(const std::string &username,
@@ -79,6 +79,20 @@ std::optional<UserRecord> UserService::authenticate(const std::string &username,
 
   if (!verifyPassword(password, hashStr)) {
     return std::nullopt;
+  }
+
+  if (utils::isLegacyPasswordHash(hashStr)) {
+    try {
+      const auto newHash = passwordHash(password);
+      auto updateGuard = db_.getStatement("UPDATE users SET password_hash = ? WHERE id = ?");
+      auto *updateStmt = updateGuard.get();
+      sqlite3_bind_text(updateStmt, 1, newHash.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_int64(updateStmt, 2, id);
+      sqlite3_step(updateStmt);
+      LOG_INFO << "Seamlessly upgraded legacy password hash to Argon2id for user: " << username;
+    } catch (const std::exception &e) {
+      LOG_WARN << "Failed to upgrade legacy password hash for user " << username << ": " << e.what();
+    }
   }
 
   return UserRecord{.id = id, .username = username, .role = roleStr};

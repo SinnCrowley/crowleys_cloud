@@ -41,14 +41,6 @@ std::int64_t TrashService::getTrashRetentionDays(std::int64_t /*userId*/) const 
 }
 
 void TrashService::setTrashRetentionDays(std::int64_t userId, std::int64_t days) {
-  {
-    auto stmtGuard = db_.getStatement("UPDATE users SET trash_retention_days = ? WHERE id = ?");
-    auto *stmt = stmtGuard.get();
-    sqlite3_bind_int64(stmt, 1, days);
-    sqlite3_bind_int64(stmt, 2, userId);
-    sqlite3_step(stmt);
-  }
-
   if (days == 0) {
     purgeTrash(userId);
   }

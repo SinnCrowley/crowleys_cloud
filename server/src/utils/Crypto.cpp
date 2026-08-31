@@ -25,6 +25,10 @@
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
+#include <openssl/kdf.h>
+#include <openssl/core_names.h>
+#include <openssl/params.h>
+#include <openssl/crypto.h>
 
 #include <iomanip>
 #include <sstream>
@@ -101,6 +105,150 @@ std::string randomTokenHex(std::size_t bytes) {
     out << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b);
   }
   return out.str();
+}
+
+namespace {
+static bool deriveArgon2idRaw(const std::string &password,
+                             const std::vector<unsigned char> &salt,
+                             uint32_t memCostKb,
+                             uint32_t timeCost,
+                             uint32_t lanes,
+                             std::vector<unsigned char> &outHash) {
+  EVP_KDF *kdf = EVP_KDF_fetch(nullptr, "ARGON2ID", nullptr);
+  if (!kdf) return false;
+
+  EVP_KDF_CTX *kctx = EVP_KDF_CTX_new(kdf);
+  EVP_KDF_free(kdf);
+  if (!kctx) return false;
+
+  uint32_t threads = lanes;
+  OSSL_PARAM params[7];
+  params[0] = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_PASSWORD,
+                                                const_cast<char *>(password.data()),
+                                                password.size());
+  params[1] = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SALT,
+                                                const_cast<unsigned char *>(salt.data()),
+                                                salt.size());
+  params[2] = OSSL_PARAM_construct_uint32(OSSL_KDF_PARAM_ARGON2_LANES, &lanes);
+  params[3] = OSSL_PARAM_construct_uint32(OSSL_KDF_PARAM_ARGON2_MEMCOST, &memCostKb);
+  params[4] = OSSL_PARAM_construct_uint32(OSSL_KDF_PARAM_ITER, &timeCost);
+  params[5] = OSSL_PARAM_construct_uint32(OSSL_KDF_PARAM_THREADS, &threads);
+  params[6] = OSSL_PARAM_construct_end();
+
+  bool ok = (EVP_KDF_derive(kctx, outHash.data(), outHash.size(), params) > 0);
+  EVP_KDF_CTX_free(kctx);
+  return ok;
+}
+
+static std::vector<unsigned char> hexToBytes(const std::string &hex) {
+  std::vector<unsigned char> bytes;
+  if (hex.size() % 2 != 0) return bytes;
+  bytes.reserve(hex.size() / 2);
+  for (std::size_t i = 0; i < hex.size(); i += 2) {
+    unsigned int byteVal = 0;
+    std::stringstream ss;
+    ss << std::hex << hex.substr(i, 2);
+    if (!(ss >> byteVal)) return {};
+    bytes.push_back(static_cast<unsigned char>(byteVal));
+  }
+  return bytes;
+}
+} // namespace
+
+bool isLegacyPasswordHash(const std::string &storedHash) {
+  return storedHash.rfind("$argon2id$", 0) != 0;
+}
+
+std::string hashPassword(const std::string &password) {
+  constexpr uint32_t memCostKb = 64 * 1024; // 64 MB
+  constexpr uint32_t timeCost = 3;
+  constexpr uint32_t lanes = 1;
+  constexpr std::size_t saltBytes = 16;
+  constexpr std::size_t hashBytes = 32;
+
+  std::vector<unsigned char> salt(saltBytes);
+  if (RAND_bytes(salt.data(), static_cast<int>(salt.size())) != 1) {
+    throw std::runtime_error("Failed to generate salt for password hashing");
+  }
+
+  std::vector<unsigned char> hash(hashBytes);
+  if (!deriveArgon2idRaw(password, salt, memCostKb, timeCost, lanes, hash)) {
+    throw std::runtime_error("Failed to derive Argon2id hash");
+  }
+
+  std::ostringstream saltHexStream;
+  for (unsigned char b : salt) {
+    saltHexStream << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b);
+  }
+
+  std::ostringstream hashHexStream;
+  for (unsigned char b : hash) {
+    hashHexStream << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b);
+  }
+
+  std::ostringstream formatted;
+  formatted << "$argon2id$v=19$m=" << memCostKb << ",t=" << timeCost << ",p=" << lanes
+            << "$" << saltHexStream.str() << "$" << hashHexStream.str();
+  return formatted.str();
+}
+
+bool verifyPasswordHash(const std::string &password, const std::string &storedHash) {
+  if (isLegacyPasswordHash(storedHash)) {
+    const auto legacyHash = sha256Hex("pw|" + password);
+    if (legacyHash.size() != storedHash.size()) return false;
+    return CRYPTO_memcmp(legacyHash.data(), storedHash.data(), legacyHash.size()) == 0;
+  }
+
+  // Parse $argon2id$v=19$m=65536,t=3,p=1$<salt_hex>$<hash_hex>
+  std::vector<std::string> parts;
+  std::stringstream ss(storedHash);
+  std::string item;
+  while (std::getline(ss, item, '$')) {
+    parts.push_back(item);
+  }
+
+  if (parts.size() < 6 || parts[1] != "argon2id") {
+    return false;
+  }
+
+  uint32_t memCostKb = 64 * 1024;
+  uint32_t timeCost = 3;
+  uint32_t lanes = 1;
+
+  const std::string &paramsStr = parts[3];
+  std::stringstream paramSs(paramsStr);
+  std::string paramKV;
+  while (std::getline(paramSs, paramKV, ',')) {
+    auto eqPos = paramKV.find('=');
+    if (eqPos != std::string::npos) {
+      std::string key = paramKV.substr(0, eqPos);
+      std::string val = paramKV.substr(eqPos + 1);
+      try {
+        if (key == "m") memCostKb = static_cast<uint32_t>(std::stoul(val));
+        else if (key == "t") timeCost = static_cast<uint32_t>(std::stoul(val));
+        else if (key == "p") lanes = static_cast<uint32_t>(std::stoul(val));
+      } catch (...) {
+        return false;
+      }
+    }
+  }
+
+  const std::string &saltHex = parts[4];
+  const std::string &expectedHashHex = parts[5];
+
+  auto saltBytes = hexToBytes(saltHex);
+  auto expectedHashBytes = hexToBytes(expectedHashHex);
+
+  if (saltBytes.empty() || expectedHashBytes.empty()) {
+    return false;
+  }
+
+  std::vector<unsigned char> derivedHash(expectedHashBytes.size());
+  if (!deriveArgon2idRaw(password, saltBytes, memCostKb, timeCost, lanes, derivedHash)) {
+    return false;
+  }
+
+  return CRYPTO_memcmp(derivedHash.data(), expectedHashBytes.data(), derivedHash.size()) == 0;
 }
 
 namespace {

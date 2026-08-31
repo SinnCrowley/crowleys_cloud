@@ -140,8 +140,7 @@ void Database::migrate() {
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'user',
-      created_at INTEGER NOT NULL,
-      email TEXT UNIQUE
+      created_at INTEGER NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS password_resets (
@@ -203,6 +202,7 @@ void Database::migrate() {
       sha256 TEXT NOT NULL DEFAULT '',
       is_shared INTEGER NOT NULL DEFAULT 0,
       is_explicit_shared INTEGER NOT NULL DEFAULT 0,
+      deleted_at INTEGER,
       UNIQUE(owner_user_id, scope, rel_path)
     );
 
@@ -218,6 +218,10 @@ void Database::migrate() {
       ON file_index(rel_path, is_deleted, is_shared);
     CREATE INDEX IF NOT EXISTS idx_file_index_shared_type
       ON file_index(is_shared, is_deleted, type);
+    CREATE INDEX IF NOT EXISTS idx_file_index_sha256
+      ON file_index(owner_user_id, scope, sha256, is_deleted);
+    CREATE INDEX IF NOT EXISTS idx_file_index_is_shared
+      ON file_index(is_shared, is_deleted);
 
     CREATE TABLE IF NOT EXISTS trash (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -236,86 +240,6 @@ void Database::migrate() {
 
     CREATE INDEX IF NOT EXISTS idx_trash_owner ON trash(owner_user_id);
   )");
-
-  sqlite3_stmt *stmt = nullptr;
-  sqlite3_prepare_v2(db_, "PRAGMA table_info(file_index)", -1, &stmt, nullptr);
-  bool hasUploaderColumn = false;
-  bool hasSha256Column = false;
-  bool hasIsSharedColumn = false;
-  bool hasExplicitSharedColumn = false;
-  bool hasDeletedAtColumn = false;
-  while (sqlite3_step(stmt) == SQLITE_ROW) {
-    const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-    if (nameRaw != nullptr) {
-      std::string nameStr(nameRaw);
-      if (nameStr == "uploader_user_id") {
-        hasUploaderColumn = true;
-      } else if (nameStr == "sha256") {
-        hasSha256Column = true;
-      } else if (nameStr == "is_shared") {
-        hasIsSharedColumn = true;
-      } else if (nameStr == "is_explicit_shared") {
-        hasExplicitSharedColumn = true;
-      } else if (nameStr == "deleted_at") {
-        hasDeletedAtColumn = true;
-      }
-    }
-  }
-  sqlite3_finalize(stmt);
-
-  if (!hasUploaderColumn) {
-    exec("ALTER TABLE file_index ADD COLUMN uploader_user_id INTEGER NOT NULL DEFAULT 0;");
-  }
-  if (!hasSha256Column) {
-    exec("ALTER TABLE file_index ADD COLUMN sha256 TEXT NOT NULL DEFAULT '';");
-  }
-  if (!hasIsSharedColumn) {
-    exec("ALTER TABLE file_index ADD COLUMN is_shared INTEGER NOT NULL DEFAULT 0;");
-  }
-  if (!hasExplicitSharedColumn) {
-    exec("ALTER TABLE file_index ADD COLUMN is_explicit_shared INTEGER NOT NULL DEFAULT 0;");
-  }
-  if (!hasDeletedAtColumn) {
-    exec("ALTER TABLE file_index ADD COLUMN deleted_at INTEGER;");
-  }
-  exec("CREATE INDEX IF NOT EXISTS idx_file_index_sha256 ON file_index(owner_user_id, scope, sha256, is_deleted);");
-  exec("CREATE INDEX IF NOT EXISTS idx_file_index_is_shared ON file_index(is_shared, is_deleted);");
-
-  sqlite3_prepare_v2(db_, "PRAGMA table_info(trash)", -1, &stmt, nullptr);
-  bool hasTrashSha256 = false;
-  while (sqlite3_step(stmt) == SQLITE_ROW) {
-    const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-    if (nameRaw != nullptr && std::string(nameRaw) == "sha256") {
-      hasTrashSha256 = true;
-    }
-  }
-  sqlite3_finalize(stmt);
-  if (!hasTrashSha256) {
-    exec("ALTER TABLE trash ADD COLUMN sha256 TEXT NOT NULL DEFAULT '';");
-  }
-
-  sqlite3_prepare_v2(db_, "PRAGMA table_info(users)", -1, &stmt, nullptr);
-  bool hasEmailColumn = false;
-  bool hasTrashRetention = false;
-  while (sqlite3_step(stmt) == SQLITE_ROW) {
-    const auto *nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-    if (nameRaw != nullptr) {
-      std::string nameStr(nameRaw);
-      if (nameStr == "email") {
-        hasEmailColumn = true;
-      } else if (nameStr == "trash_retention_days") {
-        hasTrashRetention = true;
-      }
-    }
-  }
-  sqlite3_finalize(stmt);
-  if (!hasEmailColumn) {
-    exec("ALTER TABLE users ADD COLUMN email TEXT;");
-    exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);");
-  }
-  if (!hasTrashRetention) {
-    exec("ALTER TABLE users ADD COLUMN trash_retention_days INTEGER NOT NULL DEFAULT 7;");
-  }
 }
 
 }  // namespace server::db

@@ -130,9 +130,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <div class="bento-card-icon-container primary-light">
           <span class="material-symbols-outlined">folder_open</span>
         </div>
-        <button class="bento-card-action" title={$t('common.actions')}>
-          <span class="material-symbols-outlined">more_vert</span>
-        </button>
       </div>
       <div>
         <h3 class="bento-card-title">{$t('dashboard.all_files')}</h3>
