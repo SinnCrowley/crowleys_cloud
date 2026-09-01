@@ -27,6 +27,7 @@ message DirEntry {
   string mime_type = 7;
   string thumbnail_url = 8;
   int64 id = 9;
+  string blurhash = 10;
 }
 
 message DirResponse {

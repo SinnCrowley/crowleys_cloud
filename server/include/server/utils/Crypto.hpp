@@ -33,5 +33,7 @@ std::string decryptAes256(const std::string &cipherText, const std::string &keyS
 bool encryptFileAes256(const std::filesystem::path &srcPath, const std::filesystem::path &dstPath, const std::string &keySource, std::string &outPlainSha256);
 bool decryptFileAes256(const std::filesystem::path &srcPath, const std::filesystem::path &dstPath, const std::string &keySource);
 bool decryptFileToStream(const std::filesystem::path &srcPath, const std::string &keySource, const std::function<void(const char* data, size_t size)> &chunkCallback);
+bool decryptFileToMemory(const std::filesystem::path &srcPath, const std::string &keySource, std::vector<uint8_t> &outPlainBytes);
+bool decryptBufferAes256(const uint8_t *cipherData, size_t cipherLen, const std::string &keySource, std::vector<uint8_t> &outPlainBytes);
 
 }  // namespace server::utils

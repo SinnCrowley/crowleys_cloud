@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { createEventDispatcher } from 'svelte';
   import { filesApi } from '../api/files.js';
   import { t, i18n } from '../stores/i18n.js';
+  import SmartThumbnail from './SmartThumbnail.svelte';
 
   export let items = [];
   export let selectedItems = new Set();
@@ -30,12 +31,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let isDragOver = false;
   let dragCounter = 0;
   let hoveredFolderTarget = null;
-  let thumbnailErrors = new Set();
-
-  function handleThumbnailError(path) {
-    thumbnailErrors.add(path);
-    thumbnailErrors = thumbnailErrors;
-  }
 
   $: parentPath = currentPath && currentPath.includes('/')
     ? currentPath.substring(0, currentPath.lastIndexOf('/'))
@@ -547,20 +542,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
           <div class="col-name cell-content">
             <div class="list-item-thumbnail">
-              {#if (item.type === 'photo' || item.type === 'video') && !thumbnailErrors.has(item.path)}
-                <img
-                  src={filesApi.getThumbnailUrl({ scope, path: item.path })}
-                  alt={item.name}
-                  on:error={() => handleThumbnailError(item.path)}
-                />
-              {:else}
-                <span
-                  class="material-symbols-outlined file-type-icon {item.is_dir ? 'icon-folder' : ''}"
-                  style={item.is_dir ? "font-variation-settings: 'FILL' 1;" : ''}
-                >
-                  {getMaterialIcon(item)}
-                </span>
-              {/if}
+              <SmartThumbnail {item} {scope} viewMode="list" size={128} />
             </div>
             <span class="file-name-text">{item.name}</span>
           </div>
@@ -769,12 +751,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     flex-shrink: 0;
     margin-right: 12px;
     background-color: var(--bg-background);
-  }
-
-  .list-item-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    position: relative;
   }
 
   /* Custom styled checkboxes in the application theme style */

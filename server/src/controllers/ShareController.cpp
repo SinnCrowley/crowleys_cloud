@@ -312,6 +312,9 @@ void ShareController::getShareInfo(const drogon::HttpRequestPtr &req,
         fileObj["modifiedAt"] = Json::Value::Int64(entry.modifiedAt);
         fileObj["type"] = entry.type;
         fileObj["mimeType"] = entry.mimeType;
+        if (!entry.isDir && !entry.blurhash.empty()) {
+          fileObj["blurhash"] = entry.blurhash;
+        }
         filesJson.append(fileObj);
       }
     } else {

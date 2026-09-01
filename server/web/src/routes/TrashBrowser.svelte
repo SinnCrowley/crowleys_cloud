@@ -20,6 +20,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { t, i18n } from '../stores/i18n.js';
   import RestoreConflictModal from '../components/RestoreConflictModal.svelte';
   import MediaPreviewModal from '../components/MediaPreviewModal.svelte';
+  import SmartThumbnail from '../components/SmartThumbnail.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -34,7 +35,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let errorMsg = '';
   let selectedIds = new Set();
   let trashRetentionDays = 30; // default fallback
-  let thumbnailErrors = new Set();
   let activePreviewItem = null;
 
   // Custom modal dialog state
@@ -233,11 +233,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     }
   }
 
-  function handleThumbnailError(id) {
-    thumbnailErrors.add(id);
-    thumbnailErrors = thumbnailErrors;
-  }
-
   function isMediaItem(item) {
     if (!item || item.is_dir) return false;
     const name = item.name || '';
@@ -410,15 +405,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           on:dblclick={() => handleItemDblClick(item)}
         >
           <div class="trash-grid-thumbnail">
-            {#if (item.type === 'photo' || item.type === 'video' || isMediaItem(item)) && !thumbnailErrors.has(item.id)}
-              <img
-                src={filesApi.getThumbnailUrl({ trashId: item.id })}
-                alt={item.name}
-                on:error={() => handleThumbnailError(item.id)}
-              />
-            {:else}
-              <span class="material-symbols-outlined grid-icon">{getMaterialIcon(item)}</span>
-            {/if}
+            <SmartThumbnail {item} scope="trash" trashId={item.id} viewMode="grid" size={256} />
           </div>
           <div class="trash-grid-info">
             <div class="trash-grid-name" title={item.name}>{item.name}</div>
@@ -488,15 +475,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             </div>
             <div class="col-name cell-content font-medium">
               <div class="list-item-thumbnail">
-                {#if (item.type === 'photo' || item.type === 'video' || isMediaItem(item)) && !thumbnailErrors.has(item.id)}
-                  <img
-                    src={filesApi.getThumbnailUrl({ trashId: item.id })}
-                    alt={item.name}
-                    on:error={() => handleThumbnailError(item.id)}
-                  />
-                {:else}
-                  <span class="material-symbols-outlined file-type-icon">{getMaterialIcon(item)}</span>
-                {/if}
+                <SmartThumbnail {item} scope="trash" trashId={item.id} viewMode="list" size={128} />
               </div>
               <span class="file-name-text" title={item.name}>{item.name}</span>
             </div>
@@ -728,18 +707,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     border-radius: var(--radius-md);
     background-color: var(--bg-background);
     margin-bottom: 8px;
-  }
-
-  .trash-grid-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .trash-grid-thumbnail .grid-icon {
-    font-size: 56px;
-    color: var(--accent-color);
+    position: relative;
   }
 
   .list-item-thumbnail {
@@ -753,13 +721,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     overflow: hidden;
     flex-shrink: 0;
     margin-right: 8px;
-  }
-
-  .list-item-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+    position: relative;
   }
 
   .trash-grid-info {
@@ -857,12 +819,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     align-items: center;
     gap: 8px;
     text-align: right;
-  }
-
-  .file-type-icon {
-    font-size: 20px;
-    color: var(--accent-color);
-    flex-shrink: 0;
   }
 
   .file-name-text {

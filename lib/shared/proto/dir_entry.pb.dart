@@ -28,6 +28,7 @@ class DirEntry extends $pb.GeneratedMessage {
     $core.String? mimeType,
     $core.String? thumbnailUrl,
     $fixnum.Int64? id,
+    $core.String? blurhash,
   }) {
     final result = create();
     if (name != null) result.name = name;
@@ -39,6 +40,7 @@ class DirEntry extends $pb.GeneratedMessage {
     if (mimeType != null) result.mimeType = mimeType;
     if (thumbnailUrl != null) result.thumbnailUrl = thumbnailUrl;
     if (id != null) result.id = id;
+    if (blurhash != null) result.blurhash = blurhash;
     return result;
   }
 
@@ -65,6 +67,7 @@ class DirEntry extends $pb.GeneratedMessage {
     ..aOS(7, _omitFieldNames ? '' : 'mimeType')
     ..aOS(8, _omitFieldNames ? '' : 'thumbnailUrl')
     ..aInt64(9, _omitFieldNames ? '' : 'id')
+    ..aOS(10, _omitFieldNames ? '' : 'blurhash')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -165,6 +168,15 @@ class DirEntry extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(8);
   @$pb.TagNumber(9)
   void clearId() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.String get blurhash => $_getSZ(9);
+  @$pb.TagNumber(10)
+  set blurhash($core.String value) => $_setString(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasBlurhash() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearBlurhash() => $_clearField(10);
 }
 
 class DirResponse extends $pb.GeneratedMessage {

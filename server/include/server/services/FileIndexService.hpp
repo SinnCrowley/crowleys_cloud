@@ -37,6 +37,7 @@ struct IndexedDirEntry {
   std::string thumbnailUrl;
   bool isShared{false};
   std::int64_t uploaderUserId{0};
+  std::string blurhash;
 };
 
 struct ListIndexQuery {
@@ -87,7 +88,8 @@ class FileIndexService {
                   const std::string &relPath,
                   const std::filesystem::path &absolutePath,
                   std::int64_t uploaderUserId,
-                  const std::string &thumbnailPath = "");
+                  const std::string &thumbnailPath = "",
+                  const std::string &blurhash = "");
 
   /**
    * Explicitly upserts file index entry with given metadata attributes.
@@ -103,7 +105,16 @@ class FileIndexService {
                           const std::string &mimeType,
                           std::int64_t uploaderUserId,
                           const std::string &sha256Val,
-                          const std::string &thumbnailPath = "");
+                          const std::string &thumbnailPath = "",
+                          const std::string &blurhash = "");
+
+  void updateBlurHash(std::int64_t ownerUserId,
+                      StorageScope scope,
+                      const std::string &relPath,
+                      const std::string &blurhash);
+
+  void updateBlurHashBySha256(const std::string &sha256,
+                              const std::string &blurhash);
 
   void markDeleted(std::int64_t ownerUserId, StorageScope scope, const std::string &relPath);
   void markDeletedPrefix(std::int64_t ownerUserId, StorageScope scope, const std::string &relPrefix);

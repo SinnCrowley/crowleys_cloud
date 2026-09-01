@@ -33,6 +33,9 @@ Database::Database(const std::string &path) {
     throw std::runtime_error("Cannot open sqlite db");
   }
 
+  // Set busy handler timeout immediately to handle lock contention during PRAGMAs
+  sqlite3_busy_timeout(db_, 5000);
+
   // PRAGMA Configuration Tuning:
   // 1. Enforce SQLite foreign key constraint checks.
   exec("PRAGMA foreign_keys = ON;");
@@ -202,6 +205,7 @@ void Database::migrate() {
       sha256 TEXT NOT NULL DEFAULT '',
       is_shared INTEGER NOT NULL DEFAULT 0,
       is_explicit_shared INTEGER NOT NULL DEFAULT 0,
+      blurhash TEXT NOT NULL DEFAULT '',
       deleted_at INTEGER,
       UNIQUE(owner_user_id, scope, rel_path)
     );
@@ -240,6 +244,29 @@ void Database::migrate() {
 
     CREATE INDEX IF NOT EXISTS idx_trash_owner ON trash(owner_user_id);
   )");
+
+  // Dynamic schema migration: add blurhash column to file_index if missing
+  {
+    bool hasBlurhash = false;
+    sqlite3_stmt *stmt = nullptr;
+    if (sqlite3_prepare_v2(db_, "PRAGMA table_info(file_index);", -1, &stmt, nullptr) == SQLITE_OK) {
+      while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const auto *colName = sqlite3_column_text(stmt, 1);
+        if (colName != nullptr && std::string(reinterpret_cast<const char *>(colName)) == "blurhash") {
+          hasBlurhash = true;
+          break;
+        }
+      }
+      sqlite3_finalize(stmt);
+    }
+    if (!hasBlurhash) {
+      try {
+        exec("ALTER TABLE file_index ADD COLUMN blurhash TEXT NOT NULL DEFAULT '';");
+      } catch (...) {
+        // Silently handle if table does not exist or column was added concurrently
+      }
+    }
+  }
 }
 
 }  // namespace server::db

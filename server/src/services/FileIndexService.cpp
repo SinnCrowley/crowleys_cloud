@@ -66,7 +66,8 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
                                   const std::string &relPath,
                                   const std::filesystem::path &absolutePath,
                                   std::int64_t uploaderUserId,
-                                  const std::string &thumbnailPath) {
+                                  const std::string &thumbnailPath,
+                                  const std::string &blurhash) {
   const auto normalizedRel = normalizeRelPath(relPath);
   if (normalizedRel.empty()) return;
 
@@ -83,7 +84,7 @@ void FileIndexService::upsertFile(std::int64_t ownerUserId,
     sha256Val = "";
   }
 
-  upsertFileExplicit(ownerUserId, scope, relPath, fileName, size, mtime, type, mimeType, uploaderUserId, sha256Val, thumbnailPath);
+  upsertFileExplicit(ownerUserId, scope, relPath, fileName, size, mtime, type, mimeType, uploaderUserId, sha256Val, thumbnailPath, blurhash);
 }
 
 void FileIndexService::upsertFileExplicit(std::int64_t ownerUserId,
@@ -96,7 +97,8 @@ void FileIndexService::upsertFileExplicit(std::int64_t ownerUserId,
                                           const std::string &mimeType,
                                           std::int64_t uploaderUserId,
                                           const std::string &sha256Val,
-                                          const std::string &thumbnailPath) {
+                                          const std::string &thumbnailPath,
+                                          const std::string &blurhash) {
   const auto normalizedRel = normalizeRelPath(relPath);
   if (normalizedRel.empty()) return;
   const auto normalizedParent = normalizeRelPath(std::filesystem::path(normalizedRel).parent_path().generic_string());
@@ -106,13 +108,14 @@ void FileIndexService::upsertFileExplicit(std::int64_t ownerUserId,
 
   const char *sql =
       "INSERT INTO file_index(owner_user_id, scope, rel_path, parent_path, name, type, mime_type, size_bytes, "
-      "modified_at, uploaded_at, thumbnail_path, thumbnail_updated_at, is_deleted, uploader_user_id, sha256, is_shared) "
-      "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?) "
+      "modified_at, uploaded_at, thumbnail_path, thumbnail_updated_at, is_deleted, uploader_user_id, sha256, is_shared, blurhash) "
+      "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?) "
       "ON CONFLICT(owner_user_id, scope, rel_path) DO UPDATE SET "
       "parent_path=excluded.parent_path, name=excluded.name, type=excluded.type, mime_type=excluded.mime_type, "
       "size_bytes=excluded.size_bytes, modified_at=excluded.modified_at, thumbnail_path=excluded.thumbnail_path, "
       "thumbnail_updated_at=excluded.thumbnail_updated_at, is_deleted=0, uploader_user_id=excluded.uploader_user_id, "
-      "sha256=excluded.sha256";
+      "sha256=excluded.sha256, "
+      "blurhash=CASE WHEN excluded.blurhash != '' THEN excluded.blurhash ELSE file_index.blurhash END";
 
   auto stmtGuard = db_.getStatement(sql);
   auto *stmt = stmtGuard.get();
@@ -137,11 +140,46 @@ void FileIndexService::upsertFileExplicit(std::int64_t ownerUserId,
   sqlite3_bind_int64(stmt, 13, uploaderUserId);
   sqlite3_bind_text(stmt, 14, sha256Val.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_int(stmt, 15, isShared ? 1 : 0);
+  sqlite3_bind_text(stmt, 16, blurhash.c_str(), -1, SQLITE_TRANSIENT);
 
   if (sqlite3_step(stmt) != SQLITE_DONE) {
     const auto *err = sqlite3_errmsg(db_.raw());
     throw std::runtime_error(err == nullptr ? "failed to upsert file index" : err);
   }
+}
+
+void FileIndexService::updateBlurHash(std::int64_t ownerUserId,
+                                      StorageScope scope,
+                                      const std::string &relPath,
+                                      const std::string &blurhash) {
+  const auto normalizedRel = normalizeRelPath(relPath);
+  if (normalizedRel.empty() || blurhash.empty()) return;
+
+  const char *sql =
+      "UPDATE file_index SET blurhash = ? "
+      "WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0";
+  auto stmtGuard = db_.getStatement(sql);
+  auto *stmt = stmtGuard.get();
+  sqlite3_bind_text(stmt, 1, blurhash.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_int64(stmt, 2, ownerUserId);
+  const auto scopeRaw = scopeToString(scope);
+  sqlite3_bind_text(stmt, 3, scopeRaw.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 4, normalizedRel.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_step(stmt);
+}
+
+void FileIndexService::updateBlurHashBySha256(const std::string &sha256,
+                                              const std::string &blurhash) {
+  if (sha256.empty() || blurhash.empty()) return;
+
+  const char *sql =
+      "UPDATE file_index SET blurhash = ? "
+      "WHERE sha256 = ? AND is_deleted = 0";
+  auto stmtGuard = db_.getStatement(sql);
+  auto *stmt = stmtGuard.get();
+  sqlite3_bind_text(stmt, 1, blurhash.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 2, sha256.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_step(stmt);
 }
 
 void FileIndexService::markDeleted(std::int64_t ownerUserId,
@@ -199,13 +237,13 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
   db::Database::StatementGuard stmtGuard;
   if (query.scope == StorageScope::Shared) {
     stmtGuard = db_.getStatement(
-        "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path, is_shared, uploader_user_id "
+        "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path, is_shared, uploader_user_id, blurhash "
         "FROM file_index "
         "WHERE is_shared = 1 AND is_deleted = 0 AND rel_path LIKE ?");
     sqlite3_bind_text(stmtGuard.get(), 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
   } else {
     stmtGuard = db_.getStatement(
-        "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path, is_shared, uploader_user_id "
+        "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path, is_shared, uploader_user_id, blurhash "
         "FROM file_index "
         "WHERE owner_user_id = ? AND scope = ? AND is_deleted = 0 AND rel_path LIKE ?");
     sqlite3_bind_int64(stmtGuard.get(), 1, query.ownerUserId);
@@ -253,6 +291,7 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
     const auto *typeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
     const auto *mimeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
     const auto *thumbRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 6));
+    const auto *blurRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 9));
 
     if (!recursiveFiles) {
       const auto slashPos = remaining.find('/');
@@ -272,6 +311,9 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
                   .type = "directory",
                   .mimeType = "inode/directory",
                   .thumbnailUrl = "",
+                  .isShared = false,
+                  .uploaderUserId = 0,
+                  .blurhash = "",
               });
         } else if (fileMtime > it->second.modifiedAt) {
           it->second.modifiedAt = fileMtime;
@@ -302,6 +344,7 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
                   .thumbnailUrl = "",
                   .isShared = sqlite3_column_int(stmt, 7) == 1,
                   .uploaderUserId = sqlite3_column_int64(stmt, 8),
+                  .blurhash = "",
               });
         }
       }
@@ -334,6 +377,7 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
                       .thumbnailUrl = "",
                       .isShared = sqlite3_column_int(stmt, 7) == 1,
                       .uploaderUserId = sqlite3_column_int64(stmt, 8),
+                      .blurhash = "",
                   });
             }
           }
@@ -354,6 +398,7 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
         .thumbnailUrl = std::string(thumbRaw == nullptr ? "" : thumbRaw),
         .isShared = sqlite3_column_int(stmt, 7) == 1,
         .uploaderUserId = sqlite3_column_int64(stmt, 8),
+        .blurhash = std::string(blurRaw == nullptr ? "" : blurRaw),
     });
   }
 
@@ -546,7 +591,7 @@ std::optional<IndexedDirEntry> FileIndexService::findFileByHash(std::int64_t own
                                                                 StorageScope scope,
                                                                 const std::string &sha256) const {
   const char *sql =
-      "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path "
+      "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path, blurhash "
       "FROM file_index "
       "WHERE owner_user_id = ? AND scope = ? AND sha256 = ? AND is_deleted = 0 "
       "LIMIT 1";
@@ -565,6 +610,7 @@ std::optional<IndexedDirEntry> FileIndexService::findFileByHash(std::int64_t own
     const auto *typeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
     const auto *mimeRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
     const auto *thumbRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 6));
+    const auto *blurRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 7));
 
     entry = IndexedDirEntry{
         .name = std::string(nameRaw == nullptr ? "" : nameRaw),
@@ -575,6 +621,9 @@ std::optional<IndexedDirEntry> FileIndexService::findFileByHash(std::int64_t own
         .type = std::string(typeRaw == nullptr ? "other" : typeRaw),
         .mimeType = std::string(mimeRaw == nullptr ? "application/octet-stream" : mimeRaw),
         .thumbnailUrl = std::string(thumbRaw == nullptr ? "" : thumbRaw),
+        .isShared = false,
+        .uploaderUserId = 0,
+        .blurhash = std::string(blurRaw == nullptr ? "" : blurRaw),
     };
   }
   return entry;

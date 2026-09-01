@@ -28,6 +28,7 @@ import 'package:open_file/open_file.dart';
 
 import 'package:crowleys_cloud/shared/utils/byte_formatter.dart';
 import 'package:crowleys_cloud/shared/utils/file_icon_utils.dart';
+import 'package:crowleys_cloud/shared/utils/scroll_throttler.dart';
 import 'package:crowleys_cloud/shared/widgets/breadcrumb_bar.dart';
 import 'package:crowleys_cloud/shared/widgets/create_folder_dialog.dart';
 import 'package:crowleys_cloud/shared/widgets/remote_thumbnail_widget.dart';
@@ -506,48 +507,50 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
     if (controller.files.isEmpty) {
       return Center(child: Text(l10n.noFilesFound));
     }
-    return Scrollbar(
-      thumbVisibility: true,
-      interactive: true,
-      thickness: 8,
-      radius: const Radius.circular(4),
-      child: isGridView
-          ? GridView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: controller.files.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.8,
-              ),
-              itemBuilder: (context, i) => _GridItem(
-                controller: controller,
-                item: controller.files[i],
-                isSelected: controller.selectedFiles.contains(
-                  controller.files[i],
+    return ScrollThrottler(
+      child: Scrollbar(
+        thumbVisibility: true,
+        interactive: true,
+        thickness: 8,
+        radius: const Radius.circular(4),
+        child: isGridView
+            ? GridView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: controller.files.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.8,
                 ),
-                onTap: () => _onTapItem(controller.files[i]),
-                onLongPress: () =>
-                    controller.toggleSelection(controller.files[i]),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: controller.files.length,
-              itemBuilder: (context, i) {
-                final item = controller.files[i];
-                return _ListItem(
+                itemBuilder: (context, i) => _GridItem(
                   controller: controller,
-                  item: item,
-                  isSelected: controller.selectedFiles.contains(item),
-                  onTap: () => _onTapItem(item),
-                  onLongPress: () => controller.toggleSelection(item),
-                  onToggle: () => controller.toggleSelection(item),
-                  onMenu: () => _showContextMenu(context, item),
-                );
-              },
-            ),
+                  item: controller.files[i],
+                  isSelected: controller.selectedFiles.contains(
+                    controller.files[i],
+                  ),
+                  onTap: () => _onTapItem(controller.files[i]),
+                  onLongPress: () =>
+                      controller.toggleSelection(controller.files[i]),
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: controller.files.length,
+                itemBuilder: (context, i) {
+                  final item = controller.files[i];
+                  return _ListItem(
+                    controller: controller,
+                    item: item,
+                    isSelected: controller.selectedFiles.contains(item),
+                    onTap: () => _onTapItem(item),
+                    onLongPress: () => controller.toggleSelection(item),
+                    onToggle: () => controller.toggleSelection(item),
+                    onMenu: () => _showContextMenu(context, item),
+                  );
+                },
+              ),
+      ),
     );
   }
 }
@@ -576,6 +579,7 @@ class _ServerThumb extends StatelessWidget {
           _ServerFileFallbackIcon(item: item, size: size),
       isList: isList,
       cacheKey: '${item.path}_${item.modifiedAt}',
+      blurhash: item.blurhash,
     );
   }
 }

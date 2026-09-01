@@ -24,6 +24,8 @@ import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_browser_controller.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
+import 'package:crowleys_cloud/shared/proto/dir_entry.pb.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -564,6 +566,184 @@ void main() {
 
     controller.disposeController();
     controller.dispose();
+  });
+
+  group('BlurHash Integration', () {
+    test('ServerFileItem serializes and deserializes blurhash cleanly', () {
+      const blurHashStr = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
+      final item = ServerFileItem(
+        name: 'photo.jpg',
+        size: 1024,
+        modifiedAt: DateTime.fromMillisecondsSinceEpoch(
+          1725134000,
+          isUtc: true,
+        ),
+        type: 'photo',
+        mimeType: 'image/jpeg',
+        thumbnailUrl: '/api/thumb?path=photo.jpg',
+        isDir: false,
+        path: 'photo.jpg',
+        blurhash: blurHashStr,
+      );
+
+      final json = item.toJson();
+      expect(json['blurhash'], blurHashStr);
+
+      final fromJson = ServerFileItem.fromJson(json);
+      expect(fromJson.blurhash, blurHashStr);
+
+      // Empty/null blurhash handling
+      final noBlurJson = Map<String, Object?>.from(json)..remove('blurhash');
+      final fromNoBlur = ServerFileItem.fromJson(noBlurJson);
+      expect(fromNoBlur.blurhash, isNull);
+
+      final emptyBlurJson = Map<String, Object?>.from(json)..['blurhash'] = '';
+      final fromEmptyBlur = ServerFileItem.fromJson(emptyBlurJson);
+      expect(fromEmptyBlur.blurhash, isNull);
+    });
+
+    test('DirResponse protobuf parses blurhash field tag 10', () {
+      const blurHashStr = 'L~TSUA~qfQ~q~q%MfQ%MfQfQfQfQ';
+      final protoResponse = DirResponse(
+        entries: [
+          DirEntry(
+            name: 'sample.png',
+            path: 'sample.png',
+            isDir: false,
+            size: Int64(2048),
+            modifiedAt: Int64(1725134000),
+            type: 'photo',
+            mimeType: 'image/png',
+            thumbnailUrl: '/api/thumb?path=sample.png',
+            id: Int64(1),
+            blurhash: blurHashStr,
+          ),
+        ],
+      );
+
+      final buffer = protoResponse.writeToBuffer();
+      final parsed = DirResponse.fromBuffer(buffer);
+      expect(parsed.entries.length, 1);
+      expect(parsed.entries[0].name, 'sample.png');
+      expect(parsed.entries[0].blurhash, blurHashStr);
+
+      final item = ServerFileItem(
+        name: parsed.entries[0].name,
+        size: parsed.entries[0].size.toInt(),
+        modifiedAt: DateTime.fromMillisecondsSinceEpoch(
+          parsed.entries[0].modifiedAt.toInt(),
+          isUtc: true,
+        ),
+        type: parsed.entries[0].type,
+        mimeType: parsed.entries[0].mimeType,
+        thumbnailUrl: parsed.entries[0].thumbnailUrl.isEmpty
+            ? null
+            : parsed.entries[0].thumbnailUrl,
+        isDir: parsed.entries[0].isDir,
+        path: parsed.entries[0].path,
+        blurhash: parsed.entries[0].blurhash.isNotEmpty
+            ? parsed.entries[0].blurhash
+            : null,
+      );
+
+      expect(item.blurhash, blurHashStr);
+    });
+  });
+
+  group('ServerBrowserController HTTP 304 & ETag Thumbnail Loading', () {
+    late Directory tempRoot;
+    late Directory supportDir;
+    late Directory tempDir;
+
+    setUp(() async {
+      tempRoot = await Directory.systemTemp.createTemp('controller_thumb_test');
+      supportDir = Directory(p.join(tempRoot.path, 'support'));
+      tempDir = Directory(p.join(tempRoot.path, 'temp'));
+      await CacheService.instance.init(supportDir: supportDir, tempDir: tempDir);
+    });
+
+    tearDown(() async {
+      if (await tempRoot.exists()) {
+        await tempRoot.delete(recursive: true);
+      }
+    });
+
+    test('loadThumbnailWithRetry handles 200 OK and conditional 304 Not Modified', () async {
+      final store = InMemorySecretStore();
+      await store.saveTokens(
+        serverId: 'srv',
+        accessToken: 'token',
+        refreshToken: 'refresh',
+      );
+
+      final item = ServerFileItem(
+        name: 'photo.jpg',
+        size: 100,
+        modifiedAt: DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true),
+        type: 'photo',
+        mimeType: 'image/jpeg',
+        thumbnailUrl: '/api/thumb?path=photo.jpg',
+        isDir: false,
+        path: 'photo.jpg',
+      );
+
+      var requestCount = 0;
+      String? sentIfNoneMatch;
+
+      final client = MockClient((request) async {
+        if (request.url.path == '/api/dir') {
+          return http.Response(jsonEncode({'entries': []}), 200);
+        }
+        if (request.url.path.contains('/thumb')) {
+          requestCount++;
+          sentIfNoneMatch = request.headers['if-none-match'];
+          if (sentIfNoneMatch == '"etag-100"') {
+            return http.Response('', 304, headers: {'etag': '"etag-100"'});
+          }
+          return http.Response.bytes(
+            utf8.encode('thumb_bytes_v1'),
+            200,
+            headers: {'etag': '"etag-100"'},
+          );
+        }
+        return http.Response('not found', 404);
+      });
+
+      final controller = ServerBrowserController(
+        profile: ServerProfile(
+          id: 'srv',
+          displayName: 'Test',
+          baseUrl: 'http://localhost:7777',
+          authMode: 'login',
+          lastUsedAt: DateTime.now().toUtc(),
+          syncPrefs: const {},
+        ),
+        serverId: 'srv',
+        authService: AuthService(secretStore: store),
+        client: client,
+      );
+
+      // 1. First fetch -> 200 OK
+      final bytes1 = await controller.loadThumbnailWithRetry(item);
+      expect(bytes1, isNotNull);
+      expect(utf8.decode(bytes1!), equals('thumb_bytes_v1'));
+      expect(sentIfNoneMatch, isNull);
+      expect(requestCount, equals(1));
+
+      // Clear memory cache so next request checks conditional ETag
+      CacheService.instance.clearAll;
+      await CacheService.instance.init(supportDir: supportDir, tempDir: tempDir);
+
+      // 2. Second fetch -> sends If-None-Match: "etag-100" -> receives 304 Not Modified -> returns cached disk bytes
+      final bytes2 = await controller.loadThumbnailWithRetry(item);
+      expect(bytes2, isNotNull);
+      expect(utf8.decode(bytes2!), equals('thumb_bytes_v1'));
+      expect(sentIfNoneMatch, equals('"etag-100"'));
+      expect(requestCount, equals(2));
+
+      controller.disposeController();
+      controller.dispose();
+    });
   });
 }
 

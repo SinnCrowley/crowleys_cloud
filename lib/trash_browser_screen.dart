@@ -28,6 +28,7 @@ import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 
 import 'package:crowleys_cloud/shared/utils/file_icon_utils.dart';
+import 'package:crowleys_cloud/shared/utils/scroll_throttler.dart';
 import 'package:crowleys_cloud/shared/widgets/remote_thumbnail_widget.dart';
 import 'package:crowleys_cloud/shared/widgets/selection_action_bar.dart';
 import 'package:crowleys_cloud/shared/widgets/selection_header_bar.dart';
@@ -505,62 +506,64 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
       );
     }
 
-    return Scrollbar(
-      thumbVisibility: true,
-      interactive: true,
-      thickness: 8,
-      radius: const Radius.circular(4),
-      child: _isGridView
-          ? GridView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-              itemCount: controller.files.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.8,
+    return ScrollThrottler(
+      child: Scrollbar(
+        thumbVisibility: true,
+        interactive: true,
+        thickness: 8,
+        radius: const Radius.circular(4),
+        child: _isGridView
+            ? GridView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                itemCount: controller.files.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.8,
+                ),
+                itemBuilder: (context, i) {
+                  final item = controller.files[i];
+                  final isSelected = controller.selectedFiles.contains(item);
+                  return _TrashGridItem(
+                    controller: controller,
+                    item: item,
+                    isSelected: isSelected,
+                    onTap: () => _handleTapItem(item),
+                    onLongPress: () {
+                      setState(() {
+                        controller.toggleSelection(item);
+                      });
+                    },
+                  );
+                },
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.fromLTRB(8, 16, 8, 80),
+                itemCount: controller.files.length,
+                itemBuilder: (context, i) {
+                  final item = controller.files[i];
+                  final isSelected = controller.selectedFiles.contains(item);
+                  return _TrashListItem(
+                    controller: controller,
+                    item: item,
+                    isSelected: isSelected,
+                    onTap: () => _handleTapItem(item),
+                    onLongPress: () {
+                      setState(() {
+                        controller.toggleSelection(item);
+                      });
+                    },
+                    onToggle: () {
+                      setState(() {
+                        controller.toggleSelection(item);
+                      });
+                    },
+                    onMenu: () => _showSingleItemMenu(item),
+                  );
+                },
               ),
-              itemBuilder: (context, i) {
-                final item = controller.files[i];
-                final isSelected = controller.selectedFiles.contains(item);
-                return _TrashGridItem(
-                  controller: controller,
-                  item: item,
-                  isSelected: isSelected,
-                  onTap: () => _handleTapItem(item),
-                  onLongPress: () {
-                    setState(() {
-                      controller.toggleSelection(item);
-                    });
-                  },
-                );
-              },
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(8, 16, 8, 80),
-              itemCount: controller.files.length,
-              itemBuilder: (context, i) {
-                final item = controller.files[i];
-                final isSelected = controller.selectedFiles.contains(item);
-                return _TrashListItem(
-                  controller: controller,
-                  item: item,
-                  isSelected: isSelected,
-                  onTap: () => _handleTapItem(item),
-                  onLongPress: () {
-                    setState(() {
-                      controller.toggleSelection(item);
-                    });
-                  },
-                  onToggle: () {
-                    setState(() {
-                      controller.toggleSelection(item);
-                    });
-                  },
-                  onMenu: () => _showSingleItemMenu(item),
-                );
-              },
-            ),
+      ),
     );
   }
 }
@@ -715,6 +718,7 @@ class _TrashThumb extends StatelessWidget {
           _TrashFileFallbackIcon(item: item, size: size),
       isList: isList,
       cacheKey: '${item.path}_${item.modifiedAt}',
+      blurhash: item.blurhash,
     );
   }
 }

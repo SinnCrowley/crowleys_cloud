@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { createEventDispatcher } from 'svelte';
   import { filesApi } from '../api/files.js';
   import { t, i18n } from '../stores/i18n.js';
+  import SmartThumbnail from './SmartThumbnail.svelte';
 
   export let items = [];
   export let selectedItems = new Set();
@@ -417,12 +418,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       dispatch('uploadFiles', filesToUpload);
     }
   }
-
-  let thumbnailErrors = new Set();
-  function handleThumbnailError(path) {
-    thumbnailErrors.add(path);
-    thumbnailErrors = thumbnailErrors;
-  }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -497,20 +492,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           title={item.name}
         >
           <div class="grid-item-thumbnail">
-            {#if (item.type === 'photo' || item.type === 'video') && !thumbnailErrors.has(item.path)}
-              <img
-                src={filesApi.getThumbnailUrl({ scope, path: item.path })}
-                alt={item.name}
-                on:error={() => handleThumbnailError(item.path)}
-              />
-            {:else}
-              <span
-                class="material-symbols-outlined grid-item-icon {item.is_dir ? 'icon-folder' : ''}"
-                style={item.is_dir ? "font-variation-settings: 'FILL' 1;" : ''}
-              >
-                {getMaterialIcon(item)}
-              </span>
-            {/if}
+            <SmartThumbnail {item} {scope} viewMode="grid" size={256} />
           </div>
           
           <div class="grid-item-info">
@@ -646,12 +628,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     border-radius: var(--radius-md);
     background-color: var(--bg-background);
     margin-bottom: 8px;
-  }
-
-  .grid-item-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    position: relative;
   }
 
   .grid-item-icon {

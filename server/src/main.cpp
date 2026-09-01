@@ -24,13 +24,6 @@
 #include <filesystem>
 #include <chrono>
 
-namespace server {
-AppContext &ctx() {
-  static AppContext singleton;
-  return singleton;
-}
-}  // namespace server
-
 int main(int argc, char *argv[]) {
   const std::string configPath = (argc > 1) ? argv[1] : "./config/config.json";
 
@@ -54,6 +47,10 @@ int main(int argc, char *argv[]) {
   appCtx.fileService = std::make_unique<server::services::FileService>(appCtx.config);
   appCtx.fileIndexService =
       std::make_unique<server::services::FileIndexService>(*appCtx.database, *appCtx.fileService);
+  appCtx.thumbnailQueue = std::make_unique<server::services::ThumbnailQueue>(
+      appCtx.config, appCtx.fileService.get(), appCtx.fileIndexService.get(), 512, 2);
+  appCtx.thumbnailQueue->start();
+
   appCtx.shareService = std::make_unique<server::services::ShareService>(*appCtx.database);
   appCtx.trashService =
       std::make_unique<server::services::TrashService>(*appCtx.database, *appCtx.fileService);
@@ -172,8 +169,25 @@ int main(int argc, char *argv[]) {
     });  // runEvery
   });  // registerBeginningAdvice
 
+  // Graceful shutdown hooks for background thumbnail worker pool
+  const auto shutdownHandler = []() {
+    LOG_INFO << "Server stopping: shutting down thumbnail queue and worker pool...";
+    if (server::ctx().thumbnailQueue) {
+      server::ctx().thumbnailQueue->stop();
+    }
+    drogon::app().quit();
+  };
+  drogon::app().setIntSignalHandler(shutdownHandler);
+  drogon::app().setTermSignalHandler(shutdownHandler);
+
   LOG_INFO << "Starting server on " << appCtx.config.host << ":" << appCtx.config.port
            << " with logs in " << appCtx.config.logDir;
   drogon::app().run();
+
+  LOG_INFO << "Server stopped, ensuring background workers are finished...";
+  if (appCtx.thumbnailQueue) {
+    appCtx.thumbnailQueue->stop();
+  }
+
   return 0;
 }

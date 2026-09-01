@@ -20,6 +20,7 @@ import 'file_item.dart';
 import 'thumbnail_service.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import 'package:crowleys_cloud/shared/utils/blurhash_decoder.dart';
 import 'package:crowleys_cloud/shared/utils/file_icon_utils.dart';
 
 class _FileType {
@@ -187,8 +188,11 @@ class _FsThumbnailState extends State<_FsThumbnail> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      _ThumbnailFuture(future: _future, size: widget.size);
+  Widget build(BuildContext context) => _ThumbnailFuture(
+    future: _future,
+    size: widget.size,
+    blurhash: widget.item.serverFile?.blurhash,
+  );
 }
 
 // ── Общий FutureBuilder для обоих типов ──────────────────────────
@@ -196,8 +200,13 @@ class _FsThumbnailState extends State<_FsThumbnail> {
 class _ThumbnailFuture extends StatelessWidget {
   final Future<Uint8List?>? future;
   final double size;
+  final String? blurhash;
 
-  const _ThumbnailFuture({required this.future, required this.size});
+  const _ThumbnailFuture({
+    required this.future,
+    required this.size,
+    this.blurhash,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -221,12 +230,14 @@ class _ThumbnailFuture extends StatelessWidget {
             size: size,
             icon: Icons.broken_image,
             color: Colors.red.shade300,
+            blurhash: blurhash,
           );
         }
         return _Placeholder(
           size: size,
           icon: Icons.image_outlined,
           color: Colors.white24,
+          blurhash: blurhash,
         );
       },
     );
@@ -239,15 +250,28 @@ class _Placeholder extends StatelessWidget {
   final double size;
   final IconData icon;
   final Color color;
+  final String? blurhash;
 
   const _Placeholder({
     required this.size,
     required this.icon,
     required this.color,
+    this.blurhash,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (blurhash != null && BlurHashDecoder.isValid(blurhash)) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: BlurHashWidget(
+          blurhash: blurhash!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
     return Container(
       width: size,
       height: size,

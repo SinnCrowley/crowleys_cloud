@@ -128,7 +128,10 @@ class CacheService {
     Directory? tempDir,
     SharedPreferences? prefs,
   }) async {
-    // Reset transient state on re-initialization to avoid stale entries.
+    // Flush dirty manifest before re-initialization if already initialized
+    if (_manifestDirty && _manifestFile != null) {
+      await flushManifest(immediate: true);
+    }
     _manifestFlushTimer?.cancel();
     _manifestFlushTimer = null;
     _cachedManifestEntries = null;
@@ -285,38 +288,126 @@ class CacheService {
     }
   }
 
+  /// Retrieves the stored ETag for a cached remote thumbnail, or null if not cached.
+  Future<String?> getThumbnailEtag({
+    required String serverId,
+    required String cacheKey,
+  }) async {
+    if (!_isReady || _remoteThumbnailDir == null) return null;
+    final file = _remoteThumbnailFile(serverId, cacheKey);
+    final entries = await _manifestEntries();
+    final idx = entries.indexWhere((e) => e.path == file.path);
+    if (idx >= 0) {
+      return entries[idx].etag;
+    }
+    return null;
+  }
+
   Future<Uint8List?> getRemoteThumbnail({
     required String serverId,
     required String cacheKey,
-    required Future<Uint8List?> Function() fetch,
+    required Function fetch,
   }) {
     final inFlightKey = '$serverId:$cacheKey';
     final mem = getMemoryThumbnail(inFlightKey);
     if (mem != null) return Future.value(mem);
 
-    if (!_isReady || _remoteThumbnailDir == null) return fetch();
+    if (!_isReady || _remoteThumbnailDir == null) {
+      return _invokeFetch(fetch, null).then((rawResult) {
+        if (rawResult is ThumbnailFetchResult) return rawResult.bytes;
+        if (rawResult is Uint8List) return rawResult;
+        if (rawResult is List<int>) return Uint8List.fromList(rawResult);
+        return null;
+      });
+    }
+
     return _thumbnailInFlight.putIfAbsent(inFlightKey, () async {
       try {
         final file = _remoteThumbnailFile(serverId, cacheKey);
-        if (await file.exists()) {
-          await _touch(file, CacheKind.remoteThumbnail, serverId, isRead: true);
-          final bytes = await file.readAsBytes();
-          putMemoryThumbnail(inFlightKey, bytes, filePath: file.path);
-          return bytes;
+        final fileExists = await file.exists();
+        String? storedEtag;
+        if (fileExists) {
+          final entries = await _manifestEntries();
+          final idx = entries.indexWhere((e) => e.path == file.path);
+          if (idx >= 0) {
+            storedEtag = entries[idx].etag;
+          }
         }
 
-        final data = await fetch();
-        if (data == null) return null;
-        await file.parent.create(recursive: true);
-        await file.writeAsBytes(data, flush: true);
-        await _touch(file, CacheKind.remoteThumbnail, serverId);
-        await evictThumbnails();
-        putMemoryThumbnail(inFlightKey, data, filePath: file.path);
-        return data;
+        final dynamic rawResult = await _invokeFetch(fetch, storedEtag);
+
+        if (rawResult is ThumbnailFetchResult) {
+          if (rawResult.isNotModified) {
+            // HTTP 304: Retain cached file on disk, update lastAccess & etag
+            if (fileExists) {
+              await _touch(
+                file,
+                CacheKind.remoteThumbnail,
+                serverId,
+                isRead: true,
+                etag: rawResult.etag ?? storedEtag,
+              );
+              final bytes = await file.readAsBytes();
+              putMemoryThumbnail(inFlightKey, bytes, filePath: file.path);
+              return bytes;
+            }
+            return null;
+          }
+
+          final data = rawResult.bytes;
+          if (data != null) {
+            await file.parent.create(recursive: true);
+            await file.writeAsBytes(data, flush: true);
+            await _touch(
+              file,
+              CacheKind.remoteThumbnail,
+              serverId,
+              etag: rawResult.etag,
+            );
+            await evictThumbnails();
+            putMemoryThumbnail(inFlightKey, data, filePath: file.path);
+            return data;
+          }
+        } else if (rawResult is Uint8List || rawResult is List<int>) {
+          final data = rawResult is Uint8List
+              ? rawResult
+              : Uint8List.fromList(rawResult as List<int>);
+          await file.parent.create(recursive: true);
+          await file.writeAsBytes(data, flush: true);
+          await _touch(file, CacheKind.remoteThumbnail, serverId);
+          await evictThumbnails();
+          putMemoryThumbnail(inFlightKey, data, filePath: file.path);
+          return data;
+        }
+
+        // Offline fallback: if fetch failed but file exists on disk, return cached file
+        if (fileExists) {
+          try {
+            final bytes = await file.readAsBytes();
+            putMemoryThumbnail(inFlightKey, bytes, filePath: file.path);
+            return bytes;
+          } catch (_) {}
+        }
+
+        return null;
       } finally {
         _thumbnailInFlight.remove(inFlightKey);
       }
     });
+  }
+
+  static Future<dynamic> _invokeFetch(Function fetch, String? etag) async {
+    if (fetch is FutureOr<dynamic> Function(String?)) {
+      return await fetch(etag);
+    } else if (fetch is FutureOr<dynamic> Function()) {
+      return await fetch();
+    } else {
+      try {
+        return await (fetch as dynamic)(etag);
+      } catch (_) {
+        return await (fetch as dynamic)();
+      }
+    }
   }
 
   Future<void> deleteServer(String serverId) async {
@@ -483,6 +574,7 @@ class CacheService {
     CacheKind kind,
     String serverId, {
     bool isRead = false,
+    String? etag,
   }) async {
     final now = DateTime.now().toUtc();
     final entries = await _manifestEntries();
@@ -490,13 +582,22 @@ class CacheService {
     final index = entries.indexWhere((e) => e.path == path);
     if (index >= 0) {
       final existing = entries[index];
-      // For read hits, if the last access was less than 1 hour ago, update in memory only.
+      final updatedEtag = etag ?? existing.etag;
+      // For read hits with unchanged etag, if the last access was less than 1 hour ago, update in memory only.
       if (isRead &&
+          etag == null &&
           now.difference(existing.lastAccess) < const Duration(hours: 1)) {
-        entries[index] = existing.copyWith(lastAccess: now, updatedAt: now);
+        entries[index] = existing.copyWith(
+          lastAccess: now,
+          updatedAt: now,
+        );
         return;
       }
-      entries[index] = existing.copyWith(lastAccess: now, updatedAt: now);
+      entries[index] = existing.copyWith(
+        lastAccess: now,
+        updatedAt: now,
+        etag: updatedEtag,
+      );
     } else {
       final stat = await file.stat();
       entries.add(
@@ -508,6 +609,7 @@ class CacheService {
           createdAt: now,
           updatedAt: now,
           lastAccess: now,
+          etag: etag,
         ),
       );
     }
@@ -604,6 +706,21 @@ class CacheService {
   }
 }
 
+/// Encapsulates the result of a network thumbnail fetch, distinguishing between
+/// 200 OK (with byte payload and optional ETag) and 304 Not Modified (with refreshed ETag).
+class ThumbnailFetchResult {
+  const ThumbnailFetchResult.bytes(Uint8List this.bytes, {this.etag})
+      : isNotModified = false;
+
+  const ThumbnailFetchResult.notModified({this.etag})
+      : bytes = null,
+        isNotModified = true;
+
+  final Uint8List? bytes;
+  final String? etag;
+  final bool isNotModified;
+}
+
 class CachedDirectoryListing {
   const CachedDirectoryListing({
     required this.entries,
@@ -641,6 +758,7 @@ class _CacheManifestEntry {
     required this.createdAt,
     required this.updatedAt,
     required this.lastAccess,
+    this.etag,
   });
 
   final String path;
@@ -650,11 +768,13 @@ class _CacheManifestEntry {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime lastAccess;
+  final String? etag;
 
   _CacheManifestEntry copyWith({
     int? size,
     DateTime? updatedAt,
     DateTime? lastAccess,
+    String? etag,
   }) {
     return _CacheManifestEntry(
       path: path,
@@ -664,6 +784,7 @@ class _CacheManifestEntry {
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       lastAccess: lastAccess ?? this.lastAccess,
+      etag: etag ?? this.etag,
     );
   }
 
@@ -681,6 +802,7 @@ class _CacheManifestEntry {
       createdAt: readTime('created_at'),
       updatedAt: readTime('updated_at'),
       lastAccess: readTime('last_access'),
+      etag: json['etag'] as String?,
     );
   }
 
@@ -693,6 +815,7 @@ class _CacheManifestEntry {
       'created_at': createdAt.millisecondsSinceEpoch,
       'updated_at': updatedAt.millisecondsSinceEpoch,
       'last_access': lastAccess.millisecondsSinceEpoch,
+      if (etag != null) 'etag': etag,
     };
   }
 }

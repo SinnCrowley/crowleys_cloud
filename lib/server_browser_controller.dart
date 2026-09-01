@@ -693,23 +693,47 @@ class ServerBrowserController extends ChangeNotifier {
     return _cacheService.getRemoteThumbnail(
       serverId: serverId,
       cacheKey: cacheKey,
-      fetch: () => _loadThumbnailFromServer(item, size: size),
+      fetch: (String? storedEtag) => _loadThumbnailFromServer(
+        item,
+        size: size,
+        ifNoneMatch: storedEtag,
+      ),
     );
   }
 
-  Future<Uint8List?> _loadThumbnailFromServer(
+  Future<ThumbnailFetchResult?> _loadThumbnailFromServer(
     ServerFileItem item, {
     required int size,
+    String? ifNoneMatch,
   }) async {
     final uri = resolveThumbnailUrl(item, size: size);
+    final headers = <String, String>{};
+    if (ifNoneMatch != null && ifNoneMatch.isNotEmpty) {
+      headers['if-none-match'] =
+          ifNoneMatch.startsWith('"') ? ifNoneMatch : '"$ifNoneMatch"';
+    }
+
     const delays = [
       Duration(milliseconds: 500),
       Duration(seconds: 1),
       Duration(seconds: 2),
     ];
     for (var i = 0; i <= delays.length; i++) {
-      final response = await _authorizedGet(uri);
-      if (response.statusCode == 200) return response.bodyBytes;
+      final response = await _authorizedGet(
+        uri,
+        headers: headers.isNotEmpty ? headers : null,
+      );
+
+      if (response.statusCode == 304) {
+        final etag = response.headers['etag'] ?? ifNoneMatch;
+        return ThumbnailFetchResult.notModified(etag: etag);
+      }
+
+      if (response.statusCode == 200) {
+        final etag = response.headers['etag'];
+        return ThumbnailFetchResult.bytes(response.bodyBytes, etag: etag);
+      }
+
       if (response.statusCode != 202 || i == delays.length) break;
       await Future<void>.delayed(delays[i]);
     }
@@ -789,6 +813,7 @@ class ServerBrowserController extends ChangeNotifier {
               thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,
               isDir: e.isDir,
               path: e.path,
+              blurhash: e.blurhash.isNotEmpty ? e.blurhash : null,
             ),
           )
           .toList();
@@ -832,6 +857,7 @@ class ServerBrowserController extends ChangeNotifier {
               thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,
               isDir: e.isDir,
               path: e.path,
+              blurhash: e.blurhash.isNotEmpty ? e.blurhash : null,
             ),
           )
           .toList();

@@ -526,4 +526,137 @@ bool decryptFileToStream(const std::filesystem::path &srcPath, const std::string
   return true;
 }
 
+bool decryptFileToMemory(const std::filesystem::path &srcPath,
+                         const std::string &keySource,
+                         std::vector<uint8_t> &outPlainBytes) {
+  outPlainBytes.clear();
+
+  std::error_code ec;
+  const auto fileSize = std::filesystem::file_size(srcPath, ec);
+  if (ec || fileSize < 32) {
+    return false;
+  }
+
+  const auto cipherSize = fileSize - 16;
+  if (cipherSize % 16 != 0) {
+    return false;
+  }
+
+  std::ifstream in(srcPath, std::ios::binary);
+  if (!in) {
+    return false;
+  }
+
+  unsigned char iv[16];
+  if (!in.read(reinterpret_cast<char*>(iv), sizeof(iv))) {
+    return false;
+  }
+
+  std::string key = derive32ByteKey(keySource);
+
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  if (!ctx) {
+    return false;
+  }
+
+  if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr,
+                         reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+
+  outPlainBytes.resize(cipherSize + 16);
+
+  constexpr size_t bufferSize = 65536; // 64KB
+  std::vector<char> buffer(bufferSize);
+
+  int totalPlainLen = 0;
+  bool ok = true;
+
+  while (in.read(buffer.data(), bufferSize) || in.gcount() > 0) {
+    auto count = in.gcount();
+    int outLen = 0;
+    if (EVP_DecryptUpdate(ctx,
+                           outPlainBytes.data() + totalPlainLen,
+                           &outLen,
+                           reinterpret_cast<const unsigned char*>(buffer.data()),
+                           static_cast<int>(count)) != 1) {
+      ok = false;
+      break;
+    }
+    totalPlainLen += outLen;
+  }
+
+  if (ok) {
+    int finalLen = 0;
+    if (EVP_DecryptFinal_ex(ctx, outPlainBytes.data() + totalPlainLen, &finalLen) != 1) {
+      ok = false;
+    } else {
+      totalPlainLen += finalLen;
+    }
+  }
+
+  EVP_CIPHER_CTX_free(ctx);
+
+  if (!ok) {
+    outPlainBytes.clear();
+    return false;
+  }
+
+  outPlainBytes.resize(totalPlainLen);
+  return true;
+}
+
+bool decryptBufferAes256(const uint8_t *cipherData,
+                         size_t cipherLen,
+                         const std::string &keySource,
+                         std::vector<uint8_t> &outPlainBytes) {
+  outPlainBytes.clear();
+
+  if (!cipherData || cipherLen < 32) {
+    return false;
+  }
+
+  const size_t cipherPayloadLen = cipherLen - 16;
+  if (cipherPayloadLen % 16 != 0) {
+    return false;
+  }
+
+  const unsigned char *iv = cipherData;
+  const unsigned char *payload = cipherData + 16;
+
+  std::string key = derive32ByteKey(keySource);
+
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  if (!ctx) {
+    return false;
+  }
+
+  if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr,
+                         reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+
+  outPlainBytes.resize(cipherPayloadLen + 16);
+
+  int outLen = 0;
+  if (EVP_DecryptUpdate(ctx, outPlainBytes.data(), &outLen, payload, static_cast<int>(cipherPayloadLen)) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    outPlainBytes.clear();
+    return false;
+  }
+
+  int finalLen = 0;
+  if (EVP_DecryptFinal_ex(ctx, outPlainBytes.data() + outLen, &finalLen) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    outPlainBytes.clear();
+    return false;
+  }
+
+  EVP_CIPHER_CTX_free(ctx);
+  outPlainBytes.resize(outLen + finalLen);
+  return true;
+}
+
 }  // namespace server::utils

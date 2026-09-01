@@ -28,6 +28,7 @@ const DirEntry$json = {
     {'1': 'mime_type', '3': 7, '4': 1, '5': 9, '10': 'mimeType'},
     {'1': 'thumbnail_url', '3': 8, '4': 1, '5': 9, '10': 'thumbnailUrl'},
     {'1': 'id', '3': 9, '4': 1, '5': 3, '10': 'id'},
+    {'1': 'blurhash', '3': 10, '4': 1, '5': 9, '10': 'blurhash'},
   ],
 };
 
@@ -37,7 +38,7 @@ final $typed_data.Uint8List dirEntryDescriptor = $convert.base64Decode(
     'NfZGlyGAMgASgIUgVpc0RpchISCgRzaXplGAQgASgEUgRzaXplEh8KC21vZGlmaWVkX2F0GAUg'
     'ASgDUgptb2RpZmllZEF0EhIKBHR5cGUYBiABKAlSBHR5cGUSGwoJbWltZV90eXBlGAcgASgJUg'
     'htaW1lVHlwZRIjCg10aHVtYm5haWxfdXJsGAggASgJUgx0aHVtYm5haWxVcmwSDgoCaWQYCSAB'
-    'KANSAmlk');
+    'KANSAmlkEhoKCGJsdXJoYXNoGAogASgJUghibHVyaGFzaA==');
 
 @$core.Deprecated('Use dirResponseDescriptor instead')
 const DirResponse$json = {

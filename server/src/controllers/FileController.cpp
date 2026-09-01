@@ -26,6 +26,7 @@
 #include "server/AppContext.hpp"
 #include "server/utils/Crypto.hpp"
 #include "server/utils/HttpHelpers.hpp"
+#include "server/utils/ImageUtils.hpp"
 #include "server/utils/ZipWriter.hpp"
 #include "dir_entry.pb.h"
 
@@ -102,6 +103,9 @@ Json::Value formatDirEntryJson(const services::IndexedDirEntry &entry,
 
   if (!entry.isDir) {
     v["thumbnail_url"] = "/api/thumb?scope=" + scopeRaw + "&path=" + drogon::utils::urlEncode(entry.path) + "&s=256";
+    if (!entry.blurhash.empty()) {
+      v["blurhash"] = entry.blurhash;
+    }
   }
   return v;
 }
@@ -124,61 +128,6 @@ Json::Value formatTrashEntryJson(const services::TrashEntry &entry) {
 }
 
 using server::utils::runProcess;
-}  // namespace
-
-namespace {
-std::mutex thumbMutex;
-std::unordered_set<std::string> thumbInFlight;
-
-class ThumbnailThreadPool {
- public:
-  ThumbnailThreadPool(size_t threads) : stop_(false) {
-    for (size_t i = 0; i < threads; ++i) {
-      workers_.emplace_back([this] {
-        for (;;) {
-          std::function<void()> task;
-          {
-            std::unique_lock<std::mutex> lock(this->queueMutex_);
-            this->condition_.wait(lock, [this] { return this->stop_ || !this->tasks_.empty(); });
-            if (this->stop_ && this->tasks_.empty()) return;
-            task = std::move(this->tasks_.front());
-            this->tasks_.pop();
-          }
-          task();
-        }
-      });
-    }
-  }
-
-  template <class F>
-  void enqueue(F &&f) {
-    {
-      std::unique_lock<std::mutex> lock(queueMutex_);
-      tasks_.emplace(std::forward<F>(f));
-    }
-    condition_.notify_one();
-  }
-
-  ~ThumbnailThreadPool() {
-    {
-      std::unique_lock<std::mutex> lock(queueMutex_);
-      stop_ = true;
-    }
-    condition_.notify_all();
-    for (std::thread &worker : workers_) {
-      if (worker.joinable()) worker.join();
-    }
-  }
-
- private:
-  std::vector<std::thread> workers_;
-  std::queue<std::function<void()>> tasks_;
-  std::mutex queueMutex_;
-  std::condition_variable condition_;
-  bool stop_;
-};
-
-ThumbnailThreadPool thumbPool(2);
 }  // namespace
 
 void FileController::listDir(const drogon::HttpRequestPtr &req,
@@ -351,6 +300,9 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
         protoEntry->set_mime_type(entry.mimeType);
         if (!entry.isDir) {
           protoEntry->set_thumbnail_url("/api/thumb?scope=" + scopeRaw + "&path=" + drogon::utils::urlEncode(entry.path) + "&s=256");
+          if (!entry.blurhash.empty()) {
+            protoEntry->set_blurhash(entry.blurhash);
+          }
         }
       }
       auto resp = drogon::HttpResponse::newHttpResponse();
@@ -386,6 +338,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     std::filesystem::path virtualPath;
     std::int64_t cacheUserId = userId;
     std::string sha256Val;
+    services::StorageScope activeScope = services::StorageScope::Private;
     const bool hashFiles = server::ctx().config.hashFiles;
 
     const auto trashIdStr = req->getParameter("trash_id");
@@ -436,6 +389,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
         return;
       }
+      activeScope = *scope;
       const auto rawPath = req->getParameter("path");
       const auto normalizedPath = services::FileIndexService::normalizeRelPath(rawPath);
       virtualPath = normalizedPath;
@@ -464,6 +418,17 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         }
         source = std::filesystem::path(server::ctx().config.storageRoot) / "data" / sha256Val;
       } else {
+        const char *idxSql = "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1";
+        auto idxGuard = server::ctx().database->getStatement(idxSql);
+        auto *idxStmt = idxGuard.get();
+        sqlite3_bind_int64(idxStmt, 1, fileOwnerId);
+        const auto scopeStr = services::FileIndexService::scopeToString(*scope);
+        sqlite3_bind_text(idxStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(idxStmt, 3, normalizedPath.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(idxStmt) == SQLITE_ROW) {
+          const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
+          if (shaValRaw) sha256Val = shaValRaw;
+        }
         if (*scope == services::StorageScope::Shared) {
           source = server::ctx().fileService->resolvePath(fileOwnerId, role, services::StorageScope::Private, normalizedPath, false);
         } else {
@@ -481,89 +446,81 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     }
 
     const auto fileType = server::ctx().fileService->classifyType(virtualPath);
-    const auto sizeRaw = req->getParameter("s").empty() ? "256" : req->getParameter("s");
+    const auto sizeRaw = req->getParameter("s").empty() ? (req->getParameter("size").empty() ? "256" : req->getParameter("size")) : req->getParameter("s");
     const auto thumbSize = std::max(64, std::min(1024, std::stoi(sizeRaw)));
-    const auto key = std::to_string(cacheUserId) + ":" + source.generic_string() + ":" + std::to_string(thumbSize);
-    const auto thumbRoot = std::filesystem::path(server::ctx().config.storageRoot) / ".thumbs" / std::to_string(cacheUserId);
-    std::filesystem::create_directories(thumbRoot);
-    const auto thumbPathBase = thumbRoot / std::to_string(std::hash<std::string>{}(key));
-    const auto thumbPath = std::filesystem::path(thumbPathBase.string() + ".jpg");
 
-    std::error_code ecThumb, ecSrcTime;
-    const auto thumbMtime = std::filesystem::last_write_time(thumbPath, ecThumb);
-    const auto srcMtime = std::filesystem::last_write_time(source, ecSrcTime);
-    if (!ecThumb && !ecSrcTime && thumbMtime >= srcMtime) {
-      auto resp = drogon::HttpResponse::newFileResponse(thumbPath.string());
+    std::string etagStr;
+    if (!sha256Val.empty()) {
+      etagStr = sha256Val + "_" + std::to_string(thumbSize);
+    } else {
+      std::error_code ecSrcTime;
+      const auto srcMtime = std::filesystem::last_write_time(source, ecSrcTime);
+      const auto srcSize = std::filesystem::file_size(source, ecSrcTime);
+      const auto mtimeSec = !ecSrcTime ? std::chrono::duration_cast<std::chrono::seconds>(srcMtime.time_since_epoch()).count() : 0;
+      etagStr = std::to_string(mtimeSec) + "_" + std::to_string(srcSize) + "_" + std::to_string(thumbSize);
+    }
+    const std::string quotedEtag = server::utils::formatETag(etagStr);
+
+    const auto ifNoneMatch = req->getHeader("if-none-match");
+    if (!ifNoneMatch.empty() && server::utils::matchesIfNoneMatch(ifNoneMatch, etagStr, sha256Val)) {
+      auto resp = drogon::HttpResponse::newHttpResponse();
+      resp->setStatusCode(drogon::k304NotModified);
+      resp->addHeader("ETag", quotedEtag);
+      resp->addHeader("Cache-Control", "private, max-age=31536000, immutable");
       callback(resp);
       return;
     }
 
-    {
-      std::lock_guard<std::mutex> lock(thumbMutex);
-      if (thumbInFlight.insert(key).second) {
-        thumbPool.enqueue([source, thumbPath, key, thumbSize, fileType, hashFiles]() {
-          std::filesystem::path actualSource = source;
-          std::filesystem::path decryptedTmp;
+    const auto key = std::to_string(cacheUserId) + ":" + source.generic_string() + ":" + std::to_string(thumbSize);
+    const auto thumbRoot = std::filesystem::path(server::ctx().config.storageRoot) / ".thumbs" / std::to_string(cacheUserId);
+    std::filesystem::create_directories(thumbRoot);
+    const auto thumbPathBase = thumbRoot / std::to_string(std::hash<std::string>{}(key));
+    const auto thumbPathWebp = std::filesystem::path(thumbPathBase.string() + ".webp");
+    const auto thumbPathJpg = std::filesystem::path(thumbPathBase.string() + ".jpg");
 
-          if (hashFiles) {
-            try {
-              decryptedTmp = thumbPath.string() + ".dec.tmp";
-              if (utils::decryptFileAes256(source, decryptedTmp, server::ctx().config.encryptionKey)) {
-                actualSource = decryptedTmp;
-              } else {
-                std::filesystem::remove(decryptedTmp);
-              }
-            } catch (...) {
-            }
-          }
+    std::error_code ecWebp, ecJpg, ecSrcTime;
+    const auto srcMtime = std::filesystem::last_write_time(source, ecSrcTime);
 
-          try {
-            if (fileType == "video" && server::ctx().config.videoThumbsEnabled) {
-              std::vector<std::string> args = {
-                  server::ctx().config.ffmpegBinary,
-                  "-hide_banner",
-                  "-loglevel",
-                  "error",
-                  "-y",
-                  "-ss",
-                  "00:00:01",
-                  "-i",
-                  actualSource.string(),
-                  "-frames:v",
-                  "1",
-                  "-vf",
-                  "scale=" + std::to_string(thumbSize) + ":-1:force_original_aspect_ratio=decrease",
-                  thumbPath.string()};
-              runProcess(args);
-            } else if (fileType == "photo") {
-              std::vector<std::string> args = {
-                  server::ctx().config.ffmpegBinary,
-                  "-hide_banner",
-                  "-loglevel",
-                  "error",
-                  "-y",
-                  "-i",
-                  actualSource.string(),
-                  "-vf",
-                  "scale=" + std::to_string(thumbSize) + ":-1:force_original_aspect_ratio=decrease",
-                  thumbPath.string()};
-              runProcess(args);
-            } else {
-              std::filesystem::copy_file(
-                  actualSource, thumbPath, std::filesystem::copy_options::overwrite_existing);
-            }
-          } catch (...) {
-          }
+    // 1. Check WebP cached thumbnail
+    const auto webpMtime = std::filesystem::last_write_time(thumbPathWebp, ecWebp);
+    if (!ecWebp && !ecSrcTime && webpMtime >= srcMtime) {
+      auto resp = drogon::HttpResponse::newFileResponse(thumbPathWebp.string());
+      resp->setContentTypeCode(drogon::ContentType::CT_CUSTOM);
+      resp->setContentTypeString("image/webp");
+      resp->addHeader("ETag", quotedEtag);
+      resp->addHeader("Cache-Control", "private, max-age=31536000, immutable");
+      callback(resp);
+      return;
+    }
 
-          if (!decryptedTmp.empty()) {
-            std::error_code ec;
-            std::filesystem::remove(decryptedTmp, ec);
-          }
+    // 2. Check legacy JPEG cached thumbnail for backward compatibility
+    const auto jpgMtime = std::filesystem::last_write_time(thumbPathJpg, ecJpg);
+    if (!ecJpg && !ecSrcTime && jpgMtime >= srcMtime) {
+      auto resp = drogon::HttpResponse::newFileResponse(thumbPathJpg.string());
+      resp->setContentTypeCode(drogon::ContentType::CT_CUSTOM);
+      resp->setContentTypeString("image/jpeg");
+      resp->addHeader("ETag", quotedEtag);
+      resp->addHeader("Cache-Control", "private, max-age=31536000, immutable");
+      callback(resp);
+      return;
+    }
 
-          std::lock_guard<std::mutex> lock(thumbMutex);
-          thumbInFlight.erase(key);
-        });
-      }
+    // 3. Enqueue background thumbnail generation via AppContext thumbnailQueue
+    if (server::ctx().thumbnailQueue) {
+      server::ctx().thumbnailQueue->scheduleThumbnail(
+          cacheUserId,
+          cacheUserId,
+          activeScope,
+          virtualPath.generic_string(),
+          source,
+          fileType,
+          sha256Val,
+          thumbSize,
+          hashFiles,
+          server::ctx().config.encryptionKey,
+          !trashIdStr.empty(),
+          !trashIdStr.empty() ? std::stoll(trashIdStr) : 0,
+          thumbPathWebp);
     }
 
     auto resp = drogon::HttpResponse::newHttpResponse();
@@ -675,6 +632,40 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
         return;
       }
 
+      const std::string fileEtag = server::utils::formatETag(sha256Val);
+      const auto ifNoneMatch = req->getHeader("if-none-match");
+      if (!ifNoneMatch.empty() && server::utils::matchesIfNoneMatch(ifNoneMatch, sha256Val)) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k304NotModified);
+        resp->addHeader("ETag", fileEtag);
+        resp->addHeader("Cache-Control", "private, no-cache");
+        callback(resp);
+        return;
+      }
+
+      if (req->isHead() || req->getMethod() == drogon::Head) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k200OK);
+        if (!mimeType.empty()) {
+          resp->setContentTypeString(mimeType);
+        } else {
+          resp->setContentTypeCode(drogon::CT_APPLICATION_OCTET_STREAM);
+        }
+        const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
+        const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
+        resp->addHeader("Content-Disposition", std::string(dispositionType) + "; filename=\"" + fileName + "\"");
+        resp->addHeader("ETag", fileEtag);
+        resp->addHeader("Cache-Control", "private, no-cache");
+        resp->addHeader("Accept-Ranges", "bytes");
+        std::error_code ec;
+        auto fileSize = std::filesystem::file_size(physicalPath, ec);
+        if (!ec) {
+          resp->addHeader("Content-Length", std::to_string(fileSize));
+        }
+        callback(resp);
+        return;
+      }
+
       auto resp = drogon::HttpResponse::newAsyncStreamResponse([physicalPath, key = server::ctx().config.encryptionKey](drogon::ResponseStreamPtr stream) {
         std::thread([stream = std::move(stream), physicalPath, key]() mutable {
           try {
@@ -698,6 +689,8 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
       const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
       resp->addHeader("Content-Disposition", std::string(dispositionType) + "; filename=\"" + fileName + "\"");
+      resp->addHeader("ETag", fileEtag);
+      resp->addHeader("Cache-Control", "private, no-cache");
       callback(resp);
       return;
     }
@@ -744,7 +737,26 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       return;
     }
 
+    std::error_code ecFile;
+    const auto fileMtime = std::filesystem::last_write_time(fullPath, ecFile);
+    const auto fileSize = std::filesystem::file_size(fullPath, ecFile);
+    const auto mtimeSec = !ecFile ? std::chrono::duration_cast<std::chrono::seconds>(fileMtime.time_since_epoch()).count() : 0;
+    const std::string fileEtag = std::to_string(mtimeSec) + "_" + std::to_string(fileSize);
+    const std::string quotedFileEtag = server::utils::formatETag(fileEtag);
+
+    const auto ifNoneMatch = req->getHeader("if-none-match");
+    if (!ifNoneMatch.empty() && server::utils::matchesIfNoneMatch(ifNoneMatch, fileEtag)) {
+      auto resp = drogon::HttpResponse::newHttpResponse();
+      resp->setStatusCode(drogon::k304NotModified);
+      resp->addHeader("ETag", quotedFileEtag);
+      resp->addHeader("Cache-Control", "private, no-cache");
+      callback(resp);
+      return;
+    }
+
     auto resp = drogon::HttpResponse::newFileResponse(fullPath.string());
+    resp->addHeader("ETag", quotedFileEtag);
+    resp->addHeader("Cache-Control", "private, no-cache");
     callback(resp);
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));
@@ -967,6 +979,12 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
 
           server::ctx().fileIndexService->upsertFileExplicit(
               ownerUserId, *scope, relPath, fileName, fileLength, now, type, mimeType, uploaderUserId, plainSha256);
+          if (type == "photo" || type == "video") {
+            if (server::ctx().thumbnailQueue) {
+              server::ctx().thumbnailQueue->scheduleThumbnail(
+                  ownerUserId, ownerUserId, *scope, relPath, physicalPath, type, plainSha256, 256, hashFiles, server::ctx().config.encryptionKey);
+            }
+          }
         } else {
           const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, relPath, true);
           std::filesystem::create_directories(target.parent_path());
@@ -981,6 +999,13 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
           const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
           server::ctx().fileIndexService->upsertFile(
               ownerUserId, *scope, relPath, target, uploaderUserId);
+          const auto type = server::ctx().fileService->classifyType(fileName);
+          if (type == "photo" || type == "video") {
+            if (server::ctx().thumbnailQueue) {
+              server::ctx().thumbnailQueue->scheduleThumbnail(
+                  ownerUserId, ownerUserId, *scope, relPath, target, type, "", 256, hashFiles, server::ctx().config.encryptionKey);
+            }
+          }
         }
 
         Json::Value fileObj;
@@ -999,7 +1024,9 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       }
     }
 
-    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+    auto resp = drogon::HttpResponse::newHttpJsonResponse(body);
+    resp->setStatusCode(drogon::k201Created);
+    callback(resp);
     return;
   }
 
@@ -1057,6 +1084,12 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
 
           server::ctx().fileIndexService->upsertFileExplicit(
               ownerUserId, *scope, relPath, fileName, fileSize, now, type, mimeType, uploaderUserId, plainSha256);
+          if (type == "photo" || type == "video") {
+            if (server::ctx().thumbnailQueue) {
+              server::ctx().thumbnailQueue->scheduleThumbnail(
+                  ownerUserId, ownerUserId, *scope, relPath, physicalPath, type, plainSha256, 256, hashFiles, server::ctx().config.encryptionKey);
+            }
+          }
         } else {
           const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
           std::filesystem::create_directories(target.parent_path());
@@ -1066,6 +1099,14 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
           const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
           server::ctx().fileIndexService->upsertFile(
               ownerUserId, *scope, relPath, target, uploaderUserId);
+          const auto fileName = std::filesystem::path(relPath).filename().string();
+          const auto type = server::ctx().fileService->classifyType(fileName);
+          if (type == "photo" || type == "video") {
+            if (server::ctx().thumbnailQueue) {
+              server::ctx().thumbnailQueue->scheduleThumbnail(
+                  ownerUserId, ownerUserId, *scope, relPath, target, type, "", 256, hashFiles, server::ctx().config.encryptionKey);
+            }
+          }
         }
 
         std::error_code ec;
@@ -1075,7 +1116,9 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
         body["ok"] = true;
         body["completed"] = true;
         body["bytes_received"] = static_cast<Json::UInt64>(currentSize);
-        callback(drogon::HttpResponse::newHttpJsonResponse(body));
+        auto resp = drogon::HttpResponse::newHttpJsonResponse(body);
+        resp->setStatusCode(drogon::k201Created);
+        callback(resp);
         return;
       } else {
         Json::Value body;
@@ -1123,6 +1166,12 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
 
       server::ctx().fileIndexService->upsertFileExplicit(
           ownerUserId, *scope, relPath, fileName, req->bodyLength(), now, type, mimeType, uploaderUserId, plainSha256);
+      if (type == "photo" || type == "video") {
+        if (server::ctx().thumbnailQueue) {
+          server::ctx().thumbnailQueue->scheduleThumbnail(
+              ownerUserId, ownerUserId, *scope, relPath, physicalPath, type, plainSha256, 256, hashFiles, server::ctx().config.encryptionKey);
+        }
+      }
     } else {
       const auto target = server::ctx().fileService->resolvePath(userId, role, *scope, req->getParameter("path"), true);
       std::filesystem::create_directories(target.parent_path());
@@ -1134,13 +1183,23 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
 
       utils::portableRename(tmp, target);
       const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
+      const auto fileName = std::filesystem::path(relPath).filename().string();
       const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
       const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
       server::ctx().fileIndexService->upsertFile(
           ownerUserId, *scope, relPath, target, uploaderUserId);
+      const auto type = server::ctx().fileService->classifyType(fileName);
+      if (type == "photo" || type == "video") {
+        if (server::ctx().thumbnailQueue) {
+          server::ctx().thumbnailQueue->scheduleThumbnail(
+              ownerUserId, ownerUserId, *scope, relPath, target, type, "", 256, hashFiles, server::ctx().config.encryptionKey);
+        }
+      }
     }
 
-    callback(jsonOk());
+    auto resp = jsonOk();
+    resp->setStatusCode(drogon::k201Created);
+    callback(resp);
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));
   }

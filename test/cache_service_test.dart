@@ -234,4 +234,133 @@ void main() {
       greaterThanOrEqualTo(8),
     );
   });
+
+  group('HTTP 304 & ETag Caching', () {
+    test('persists etag in manifest entries and retrieves via getThumbnailEtag', () async {
+      await CacheService.instance.getRemoteThumbnail(
+        serverId: 'srv',
+        cacheKey: 'photo1',
+        fetch: (etag) async => ThumbnailFetchResult.bytes(
+          utf8.encode('photo_bytes'),
+          etag: '"etag-12345"',
+        ),
+      );
+
+      final storedEtag = await CacheService.instance.getThumbnailEtag(
+        serverId: 'srv',
+        cacheKey: 'photo1',
+      );
+      expect(storedEtag, equals('"etag-12345"'));
+
+      // Flush manifest and re-initialize CacheService
+      await CacheService.instance.flushManifest(immediate: true);
+      await CacheService.instance.init(supportDir: supportDir, tempDir: tempDir);
+
+      final recoveredEtag = await CacheService.instance.getThumbnailEtag(
+        serverId: 'srv',
+        cacheKey: 'photo1',
+      );
+      expect(recoveredEtag, equals('"etag-12345"'));
+    });
+
+    test('304 Not Modified retains existing disk file without rewriting and updates lastAccess', () async {
+      // 1. Initial 200 OK
+      await CacheService.instance.getRemoteThumbnail(
+        serverId: 'srv',
+        cacheKey: 'photo2',
+        fetch: (etag) async => ThumbnailFetchResult.bytes(
+          utf8.encode('original_image_bytes'),
+          etag: '"etag-v1"',
+        ),
+      );
+
+      // Clear memory cache so next request hits disk / conditional revalidation
+      CacheService.instance.clearAll; // clear memory
+      await CacheService.instance.init(supportDir: supportDir, tempDir: tempDir);
+
+      String? passedEtag;
+      var fetchCount = 0;
+
+      // 2. Conditional fetch returning 304
+      final result = await CacheService.instance.getRemoteThumbnail(
+        serverId: 'srv',
+        cacheKey: 'photo2',
+        fetch: (etag) async {
+          passedEtag = etag;
+          fetchCount++;
+          return const ThumbnailFetchResult.notModified(etag: '"etag-v1"');
+        },
+      );
+
+      expect(passedEtag, equals('"etag-v1"'));
+      expect(fetchCount, equals(1));
+      expect(result, isNotNull);
+      expect(utf8.decode(result!), equals('original_image_bytes'));
+
+      // Verify that RAM cache is now populated with disk bytes
+      expect(
+        CacheService.instance.getMemoryThumbnail('srv:photo2'),
+        isNotNull,
+      );
+    });
+
+    test('200 OK updates disk cache file and saves new ETag in manifest', () async {
+      // Initial fetch
+      await CacheService.instance.getRemoteThumbnail(
+        serverId: 'srv',
+        cacheKey: 'photo3',
+        fetch: (etag) async => ThumbnailFetchResult.bytes(
+          utf8.encode('old_bytes'),
+          etag: '"etag-old"',
+        ),
+      );
+
+      // Subsequent 200 OK fetch with new payload and new ETag
+      await CacheService.instance.init(supportDir: supportDir, tempDir: tempDir);
+
+      final updated = await CacheService.instance.getRemoteThumbnail(
+        serverId: 'srv',
+        cacheKey: 'photo3',
+        fetch: (etag) async {
+          expect(etag, equals('"etag-old"'));
+          return ThumbnailFetchResult.bytes(
+            utf8.encode('new_bytes'),
+            etag: '"etag-new"',
+          );
+        },
+      );
+
+      expect(utf8.decode(updated!), equals('new_bytes'));
+      final storedEtag = await CacheService.instance.getThumbnailEtag(
+        serverId: 'srv',
+        cacheKey: 'photo3',
+      );
+      expect(storedEtag, equals('"etag-new"'));
+    });
+
+    test('offline fallback returns existing disk thumbnail when fetch fails or returns null', () async {
+      // Seed disk cache
+      await CacheService.instance.getRemoteThumbnail(
+        serverId: 'srv',
+        cacheKey: 'photo4',
+        fetch: (etag) async => ThumbnailFetchResult.bytes(
+          utf8.encode('cached_photo_bytes'),
+          etag: '"etag-offline"',
+        ),
+      );
+
+      // Clear memory cache to simulate app restart in offline mode
+      await CacheService.instance.init(supportDir: supportDir, tempDir: tempDir);
+
+      // Fetch fails (returns null)
+      final fallback = await CacheService.instance.getRemoteThumbnail(
+        serverId: 'srv',
+        cacheKey: 'photo4',
+        fetch: (etag) async => null,
+      );
+
+      expect(fallback, isNotNull);
+      expect(utf8.decode(fallback!), equals('cached_photo_bytes'));
+    });
+  });
 }

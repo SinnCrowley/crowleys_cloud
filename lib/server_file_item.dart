@@ -26,6 +26,7 @@ class ServerFileItem {
     this.id,
     this.ownerName,
     this.uploaderUserId,
+    this.blurhash,
   });
 
   final String name;
@@ -39,6 +40,7 @@ class ServerFileItem {
   final int? id;
   final String? ownerName;
   final int? uploaderUserId;
+  final String? blurhash;
 
   factory ServerFileItem.fromJson(Map<String, Object?> json) {
     return ServerFileItem(
@@ -56,6 +58,9 @@ class ServerFileItem {
       id: (json['id'] as num?)?.toInt(),
       ownerName: json['owner_name'] as String?,
       uploaderUserId: (json['uploader_user_id'] as num?)?.toInt(),
+      blurhash: (json['blurhash'] as String?)?.isNotEmpty == true
+          ? json['blurhash'] as String
+          : null,
     );
   }
 
@@ -72,6 +77,7 @@ class ServerFileItem {
       if (id != null) 'id': id,
       if (ownerName != null) 'owner_name': ownerName,
       if (uploaderUserId != null) 'uploader_user_id': uploaderUserId,
+      if (blurhash != null && blurhash!.isNotEmpty) 'blurhash': blurhash,
     };
   }
 
