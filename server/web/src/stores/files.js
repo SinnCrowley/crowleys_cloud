@@ -124,7 +124,7 @@ export const filesStore = {
     const currentScope = get(scope);
     isLoading.set(true);
     try {
-      await Promise.all(selected.map((path) => filesApi.deleteFile({ scope: currentScope, path })));
+      await filesApi.deleteFiles({ scope: currentScope, paths: selected });
       this.clearSelection();
       await this.loadDirectory();
     } catch (err) {

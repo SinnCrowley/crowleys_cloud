@@ -201,6 +201,12 @@
       "prev_file": "Poprzedni (←)",
       "next_file": "Następny (→)",
       "close": "Zamknij (Esc)"
+    },
+    "delete": {
+      "title": "Przenieść do kosza?",
+      "single_msg": "Czy na pewno chcesz przenieść „{name}” do kosza?",
+      "batch_msg": "Czy na pewno chcesz przenieść {count} wybranych elementów do kosza?",
+      "delete_btn": "Przenieś do kosza"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "Wyłączanie udostępniania {count} elementów...",
     "batch_unshared": "Wyłączono udostępnianie {count} elementów na serwerze.",
     "trash_retention_updated": "Zasady przechowywania w koszu zaktualizowano na serwerze.",
-    "trash_retention_failed": "Nie udało się zaktualizować zasad przechowywania w koszu"
+    "trash_retention_failed": "Nie udało się zaktualizować zasad przechowywania w koszu",
+    "batch_deleted_summary": "Przeniesiono {count} element(ów) do kosza.",
+    "batch_deleted_partial": "Przeniesiono {deleted} element(ów) do kosza, niepowodzenie: {failed}.",
+    "batch_deleted_all_failed": "Nie udało się usunąć {count} element(ów)."
   },
   "api": {
     "session_reset": "Sesja została zresetowana",

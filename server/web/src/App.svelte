@@ -171,6 +171,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let isFolderPickerOpen = false;
   let folderPickerTargetItems = []; // Array of items to move
   let confirmMoveModal = null; // { validPaths, destFolder, targetName }
+  let confirmDeleteModal = null; // { paths, itemName, count }
 
   // Share Link Modal State
   let shareModal = null; // { file, url }
@@ -480,14 +481,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       }
     } else if (type === 'delete') {
       if (item) {
-        try {
-          await filesApi.deleteFile({ scope: $scope, path: item.path });
-          showToast(i18n.format('toasts.item_moved_to_trash', { name: item.name }), 'success');
-          filesStore.loadDirectory();
-          refreshStats();
-        } catch (err) {
-          showToast(err.message || i18n.format('toasts.item_delete_failed'), 'error');
-        }
+        requestDelete([item.path], item.name);
+      } else if ($selectedPaths.size > 0) {
+        requestDelete(Array.from($selectedPaths));
       }
     } else if (type === 'refresh') {
       filesStore.loadDirectory();
@@ -665,6 +661,48 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       showToast(lastError ? `${i18n.format('toasts.move_failed')}: ${lastError}` : i18n.format('toasts.move_failed'), 'error');
     }
     await filesStore.loadDirectory();
+  }
+
+  function requestDelete(paths, itemName = null) {
+    if (!paths || paths.length === 0) return;
+    confirmDeleteModal = {
+      paths,
+      itemName: itemName || (paths.length === 1 ? paths[0].split('/').pop() : null),
+      count: paths.length
+    };
+  }
+
+  async function executeConfirmedDelete() {
+    if (!confirmDeleteModal) return;
+    const { paths, itemName, count } = confirmDeleteModal;
+    confirmDeleteModal = null;
+
+    try {
+      const res = await filesApi.deleteFiles({ scope: $scope, paths });
+      filesStore.clearSelection();
+      await filesStore.loadDirectory();
+      refreshStats();
+
+      if (count === 1 && itemName) {
+        if (res && res.failed > 0) {
+          showToast(i18n.format('toasts.item_delete_failed'), 'error');
+        } else {
+          showToast(i18n.format('toasts.item_moved_to_trash', { name: itemName }), 'success');
+        }
+      } else {
+        const deleted = res?.deleted ?? (count - (res?.failed ?? 0));
+        const failed = res?.failed ?? 0;
+        if (failed === 0) {
+          showToast(i18n.format('toasts.batch_deleted_summary', { count: deleted, deleted }), 'success');
+        } else if (deleted > 0) {
+          showToast(i18n.format('toasts.batch_deleted_partial', { deleted, failed }), 'warning');
+        } else {
+          showToast(i18n.format('toasts.batch_deleted_all_failed', { count: failed, failed }), 'error');
+        }
+      }
+    } catch (err) {
+      showToast(err.message || i18n.format('toasts.item_delete_failed'), 'error');
+    }
   }
 
   async function handleBatchDownload() {
@@ -880,7 +918,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         on:downloadSelected={handleBatchDownload}
         on:shareSelected={handleBatchShare}
         on:moveSelected={handleOpenMoveSelected}
-        on:deleteSelected={() => filesStore.deleteSelected()}
+        on:deleteSelected={() => requestDelete(Array.from($selectedPaths))}
         on:unshareSelected={handleBatchUnshare}
       />
     {:else if currentRoute === 'trash'}
@@ -1025,6 +1063,24 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <div class="dialog-actions" style="margin-top: 8px;">
           <button class="btn btn-secondary" on:click={() => (confirmMoveModal = null)}>{$t('common.cancel')}</button>
           <button class="btn btn-primary" on:click={executeConfirmedMove}>{$t('common.move')}</button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Confirm Delete Modal (Single & Batch) -->
+  {#if confirmDeleteModal}
+    <div class="modal-backdrop" on:click|self={() => (confirmDeleteModal = null)}>
+      <div class="dialog-card">
+        <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">{$t('modals.delete.title')}</h3>
+        <p class="text-sub" style="margin: 8px 0 0 0; color: var(--text-sub); font-size: 14px; line-height: 1.5;">
+          {confirmDeleteModal.count === 1
+            ? $t('modals.delete.single_msg', { name: confirmDeleteModal.itemName })
+            : $t('modals.delete.batch_msg', { count: confirmDeleteModal.count })}
+        </p>
+        <div class="dialog-actions" style="display: flex; justify-content: flex-end; gap: var(--spacing-sm); margin-top: 16px;">
+          <button class="btn btn-secondary" on:click={() => (confirmDeleteModal = null)}>{$t('common.cancel')}</button>
+          <button class="btn btn-primary danger-btn" on:click={executeConfirmedDelete}>{$t('modals.delete.delete_btn')}</button>
         </div>
       </div>
     </div>

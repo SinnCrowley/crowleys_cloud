@@ -19,7 +19,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crowleys_cloud/shared/utils/blurhash_decoder.dart';
 
 void main() {
-  const sampleBlurHash = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4'; // 4x3 components (length 28)
+  const sampleBlurHash =
+      'L6Pj0^jE.AyE_3t7t7R**0o#DgR4'; // 4x3 components (length 28)
   const solidBlurHash = '000000'; // 1x1 component (length 6)
 
   setUp(() {
@@ -42,8 +43,14 @@ void main() {
     });
 
     test('rejects invalid characters not in Base83', () {
-      expect(BlurHashDecoder.isValid('L6Pj0^jE.AyE_3t7t7R**0o#DgR!'), isFalse); // '!' is not in Base83
-      expect(BlurHashDecoder.isValid('L6Pj0^jE.AyE_3t7t7R**0o#DgR '), isFalse); // space is not in Base83
+      expect(
+        BlurHashDecoder.isValid('L6Pj0^jE.AyE_3t7t7R**0o#DgR!'),
+        isFalse,
+      ); // '!' is not in Base83
+      expect(
+        BlurHashDecoder.isValid('L6Pj0^jE.AyE_3t7t7R**0o#DgR '),
+        isFalse,
+      ); // space is not in Base83
     });
 
     test('rejects mismatched length for component count', () {
@@ -58,7 +65,11 @@ void main() {
     test('synthesizes valid 32-bit top-down BMP bytes with 54-byte header', () {
       const width = 32;
       const height = 32;
-      final bmp = BlurHashDecoder.decodeToBmp(sampleBlurHash, width: width, height: height);
+      final bmp = BlurHashDecoder.decodeToBmp(
+        sampleBlurHash,
+        width: width,
+        height: height,
+      );
 
       expect(bmp, isNotNull);
       final bytes = bmp!;
@@ -71,15 +82,27 @@ void main() {
       final byteData = ByteData.sublistView(bytes);
       expect(byteData.getUint32(2, Endian.little), equals(expectedFileSize));
       expect(byteData.getUint32(6, Endian.little), equals(0));
-      expect(byteData.getUint32(10, Endian.little), equals(54)); // Pixel array offset
+      expect(
+        byteData.getUint32(10, Endian.little),
+        equals(54),
+      ); // Pixel array offset
 
       // BITMAPINFOHEADER (40 bytes)
       expect(byteData.getUint32(14, Endian.little), equals(40)); // Header size
       expect(byteData.getInt32(18, Endian.little), equals(width));
-      expect(byteData.getInt32(22, Endian.little), equals(-height)); // Negative height for top-down
+      expect(
+        byteData.getInt32(22, Endian.little),
+        equals(-height),
+      ); // Negative height for top-down
       expect(byteData.getUint16(26, Endian.little), equals(1)); // Planes
-      expect(byteData.getUint16(28, Endian.little), equals(32)); // 32 bits per pixel
-      expect(byteData.getUint32(30, Endian.little), equals(0)); // BI_RGB (uncompressed)
+      expect(
+        byteData.getUint16(28, Endian.little),
+        equals(32),
+      ); // 32 bits per pixel
+      expect(
+        byteData.getUint32(30, Endian.little),
+        equals(0),
+      ); // BI_RGB (uncompressed)
       expect(byteData.getUint32(34, Endian.little), equals(width * height * 4));
 
       // Check pixel data alpha channel is 255
@@ -91,7 +114,11 @@ void main() {
     test('decodes RGBA bytes correctly', () {
       const width = 16;
       const height = 16;
-      final rgba = BlurHashDecoder.decodeRgba(sampleBlurHash, width: width, height: height);
+      final rgba = BlurHashDecoder.decodeRgba(
+        sampleBlurHash,
+        width: width,
+        height: height,
+      );
       expect(rgba, isNotNull);
       expect(rgba!.length, equals(width * height * 4));
       for (int i = 0; i < rgba.length; i += 4) {
@@ -100,9 +127,18 @@ void main() {
     });
 
     test('returns null for invalid dimensions or blurhash', () {
-      expect(BlurHashDecoder.decodeToBmp('invalid', width: 32, height: 32), isNull);
-      expect(BlurHashDecoder.decodeToBmp(sampleBlurHash, width: 0, height: 32), isNull);
-      expect(BlurHashDecoder.decodeToBmp(sampleBlurHash, width: 32, height: -5), isNull);
+      expect(
+        BlurHashDecoder.decodeToBmp('invalid', width: 32, height: 32),
+        isNull,
+      );
+      expect(
+        BlurHashDecoder.decodeToBmp(sampleBlurHash, width: 0, height: 32),
+        isNull,
+      );
+      expect(
+        BlurHashDecoder.decodeToBmp(sampleBlurHash, width: 32, height: -5),
+        isNull,
+      );
     });
   });
 

@@ -201,6 +201,12 @@
       "prev_file": "Anterior (←)",
       "next_file": "Próximo (→)",
       "close": "Fechar (Esc)"
+    },
+    "delete": {
+      "title": "Mover para a lixeira?",
+      "single_msg": "Tem certeza de que deseja mover \"{name}\" para a lixeira?",
+      "batch_msg": "Tem certeza de que deseja mover {count} item(ns) selecionado(s) para a lixeira?",
+      "delete_btn": "Mover para a lixeira"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "A remover a partilha de {count} itens...",
     "batch_unshared": "Partilha de {count} itens removida do servidor.",
     "trash_retention_updated": "Política de retenção da reciclagem atualizada no servidor.",
-    "trash_retention_failed": "Não foi possível atualizar a política de retenção da reciclagem"
+    "trash_retention_failed": "Não foi possível atualizar a política de retenção da reciclagem",
+    "batch_deleted_summary": "{count} item(ns) movido(s) para a lixeira.",
+    "batch_deleted_partial": "{deleted} item(ns) movido(s) para a lixeira, {failed} falharam.",
+    "batch_deleted_all_failed": "Falha ao excluir {count} item(ns)."
   },
   "api": {
     "session_reset": "Sessão reposta",

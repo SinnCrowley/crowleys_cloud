@@ -201,6 +201,12 @@
       "prev_file": "上一个（←）",
       "next_file": "下一个（→）",
       "close": "关闭（Esc）"
+    },
+    "delete": {
+      "title": "移至回收站？",
+      "single_msg": "确定要将 \"{name}\" 移至回收站吗？",
+      "batch_msg": "确定要将选中的 {count} 个项目移至回收站吗？",
+      "delete_btn": "移至回收站"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "正在取消共享 {count} 个项目…",
     "batch_unshared": "已取消在服务器上共享 {count} 个项目。",
     "trash_retention_updated": "服务器上的回收站保留策略已更新。",
-    "trash_retention_failed": "无法更新回收站保留策略"
+    "trash_retention_failed": "无法更新回收站保留策略",
+    "batch_deleted_summary": "已将 {count} 个项目移至回收站。",
+    "batch_deleted_partial": "已将 {deleted} 个项目移至回收站，{failed} 个失败。",
+    "batch_deleted_all_failed": "删除 {count} 个项目失败。"
   },
   "api": {
     "session_reset": "会话已重置",

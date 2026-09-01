@@ -388,9 +388,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
           children: [
             ListenableBuilder(
               listenable: _controller,
-              builder: (context, _) => _HeaderControls(
-                controller: _controller,
-              ),
+              builder: (context, _) => _HeaderControls(controller: _controller),
             ),
             ListenableBuilder(
               listenable: _controller,
@@ -453,9 +451,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
 class _HeaderControls extends StatelessWidget {
   final FileBrowserController controller;
 
-  const _HeaderControls({
-    required this.controller,
-  });
+  const _HeaderControls({required this.controller});
 
   @override
   Widget build(BuildContext context) {

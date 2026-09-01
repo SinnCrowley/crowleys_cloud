@@ -201,6 +201,12 @@
       "prev_file": "이전 (←)",
       "next_file": "다음 (→)",
       "close": "닫기 (Esc)"
+    },
+    "delete": {
+      "title": "휴지통으로 이동하시겠습니까?",
+      "single_msg": "\"{name}\" 항목을 휴지통으로 이동하시겠습니까?",
+      "batch_msg": "선택한 {count}개 항목을 휴지통으로 이동하시겠습니까?",
+      "delete_btn": "휴지통으로 이동"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "항목 {count}개의 공유를 해제하는 중…",
     "batch_unshared": "서버에서 항목 {count}개의 공유를 해제했습니다.",
     "trash_retention_updated": "서버의 휴지통 보관 정책을 업데이트했습니다.",
-    "trash_retention_failed": "휴지통 보관 정책을 업데이트하지 못했습니다"
+    "trash_retention_failed": "휴지통 보관 정책을 업데이트하지 못했습니다",
+    "batch_deleted_summary": "{count}개 항목을 휴지통으로 이동했습니다.",
+    "batch_deleted_partial": "{deleted}개 항목을 휴지통으로 이동했습니다 ({failed}개 실패).",
+    "batch_deleted_all_failed": "{count}개 항목 삭제에 실패했습니다."
   },
   "api": {
     "session_reset": "세션이 재설정되었습니다",

@@ -201,6 +201,12 @@
       "prev_file": "Önceki (←)",
       "next_file": "Sonraki (→)",
       "close": "Kapat (Esc)"
+    },
+    "delete": {
+      "title": "Çöp kutusuna taşınsın mı?",
+      "single_msg": "\"{name}\" öğesini çöp kutusuna taşımak istediğinizden emin misiniz?",
+      "batch_msg": "Seçilen {count} öğeyi çöp kutusuna taşımak istediğinizden emin misiniz?",
+      "delete_btn": "Çöp Kutusuna Taşı"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "{count} öğenin paylaşımı kaldırılıyor...",
     "batch_unshared": "{count} öğenin sunucu paylaşımı kaldırıldı.",
     "trash_retention_updated": "Çöp kutusu saklama ilkesi sunucuda güncellendi.",
-    "trash_retention_failed": "Çöp kutusu saklama ilkesi güncellenemedi"
+    "trash_retention_failed": "Çöp kutusu saklama ilkesi güncellenemedi",
+    "batch_deleted_summary": "{count} öğe çöp kutusuna taşındı.",
+    "batch_deleted_partial": "{deleted} öğe çöp kutusuna taşındı, {failed} başarısız oldu.",
+    "batch_deleted_all_failed": "{count} öğe silinemedi."
   },
   "api": {
     "session_reset": "Oturum sıfırlandı",

@@ -175,6 +175,12 @@
       "copy_link": "Copy Link",
       "copied": "Copied! ✓"
     },
+    "delete": {
+      "title": "Move to Trash?",
+      "single_msg": "Are you sure you want to move \"{name}\" to trash?",
+      "batch_msg": "Are you sure you want to move {count} selected item(s) to trash?",
+      "delete_btn": "Move to Trash"
+    },
     "conflict": {
       "upload_title": "File Conflicts Detected",
       "upload_subtitle": "{count} item(s) already exist in the target folder.",
@@ -314,6 +320,9 @@
     "move_failed": "Failed to move items",
     "already_in_target": "Items are already in the target folder.",
     "items_deleted": "Items moved to trash.",
+    "batch_deleted_summary": "Moved {count} item(s) to trash.",
+    "batch_deleted_partial": "Moved {deleted} item(s) to trash, {failed} failed.",
+    "batch_deleted_all_failed": "Failed to delete {count} item(s).",
     "items_restored": "Successfully restored {count} item(s).",
     "items_deleted_permanently": "Successfully permanently deleted {count} items.",
     "trash_emptied": "Trash emptied successfully.",

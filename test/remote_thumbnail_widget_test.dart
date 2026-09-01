@@ -33,12 +33,73 @@ void main() {
 
   // Minimal 1x1 transparent PNG bytes for testing Image.memory
   final samplePngBytes = Uint8List.fromList([
-    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
-    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-    0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
-    0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-    0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
-    0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+    0x89,
+    0x50,
+    0x4E,
+    0x47,
+    0x0D,
+    0x0A,
+    0x1A,
+    0x0A,
+    0x00,
+    0x00,
+    0x00,
+    0x0D,
+    0x49,
+    0x48,
+    0x44,
+    0x52,
+    0x00,
+    0x00,
+    0x00,
+    0x01,
+    0x00,
+    0x00,
+    0x00,
+    0x01,
+    0x08,
+    0x06,
+    0x00,
+    0x00,
+    0x00,
+    0x1F,
+    0x15,
+    0xC4,
+    0x89,
+    0x00,
+    0x00,
+    0x00,
+    0x0A,
+    0x49,
+    0x44,
+    0x41,
+    0x54,
+    0x78,
+    0x9C,
+    0x63,
+    0x00,
+    0x01,
+    0x00,
+    0x00,
+    0x05,
+    0x00,
+    0x01,
+    0x0D,
+    0x0A,
+    0x2D,
+    0xB4,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x49,
+    0x45,
+    0x4E,
+    0x44,
+    0xAE,
+    0x42,
+    0x60,
+    0x82,
   ]);
 
   setUp(() async {
@@ -57,62 +118,71 @@ void main() {
   });
 
   group('RemoteThumbnailWidget', () {
-    testWidgets('renders BlurHash placeholder immediately on initial frame when blurhash is valid', (tester) async {
-      final completer = Completer<Uint8List?>();
+    testWidgets(
+      'renders BlurHash placeholder immediately on initial frame when blurhash is valid',
+      (tester) async {
+        final completer = Completer<Uint8List?>();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: RemoteThumbnailWidget(
-              thumbnailLoader: () => completer.future,
-              fallbackBuilder: (ctx, size) => const Icon(Icons.image_not_supported),
-              isList: false,
-              blurhash: sampleBlurHash,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: RemoteThumbnailWidget(
+                thumbnailLoader: () => completer.future,
+                fallbackBuilder: (ctx, size) =>
+                    const Icon(Icons.image_not_supported),
+                isList: false,
+                blurhash: sampleBlurHash,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // On initial pump before completer resolves, BlurHashWidget should be visible
-      expect(find.byType(BlurHashWidget), findsOneWidget);
-      expect(find.byType(Image), findsOneWidget); // BlurHash BMP image
-      expect(find.byIcon(Icons.image_not_supported), findsNothing);
+        // On initial pump before completer resolves, BlurHashWidget should be visible
+        expect(find.byType(BlurHashWidget), findsOneWidget);
+        expect(find.byType(Image), findsOneWidget); // BlurHash BMP image
+        expect(find.byIcon(Icons.image_not_supported), findsNothing);
 
-      // Now complete the future and settle
-      completer.complete(samplePngBytes);
-      await tester.pumpAndSettle();
+        // Now complete the future and settle
+        completer.complete(samplePngBytes);
+        await tester.pumpAndSettle();
 
-      // Now loaded image is shown
-      expect(find.byType(Image), findsOneWidget);
-    });
+        // Now loaded image is shown
+        expect(find.byType(Image), findsOneWidget);
+      },
+    );
 
-    testWidgets('falls back to fallbackBuilder when blurhash is null or invalid', (tester) async {
-      final completer = Completer<Uint8List?>();
+    testWidgets(
+      'falls back to fallbackBuilder when blurhash is null or invalid',
+      (tester) async {
+        final completer = Completer<Uint8List?>();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: RemoteThumbnailWidget(
-              thumbnailLoader: () => completer.future,
-              fallbackBuilder: (ctx, size) => const Icon(Icons.broken_image),
-              isList: false,
-              blurhash: null,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: RemoteThumbnailWidget(
+                thumbnailLoader: () => completer.future,
+                fallbackBuilder: (ctx, size) => const Icon(Icons.broken_image),
+                isList: false,
+                blurhash: null,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byIcon(Icons.broken_image), findsOneWidget);
-      expect(find.byType(BlurHashWidget), findsNothing);
+        expect(find.byIcon(Icons.broken_image), findsOneWidget);
+        expect(find.byType(BlurHashWidget), findsNothing);
 
-      completer.complete(samplePngBytes);
-      await tester.pumpAndSettle();
+        completer.complete(samplePngBytes);
+        await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.broken_image), findsNothing);
-      expect(find.byType(Image), findsOneWidget);
-    });
+        expect(find.byIcon(Icons.broken_image), findsNothing);
+        expect(find.byType(Image), findsOneWidget);
+      },
+    );
 
-    testWidgets('instant RAM cache hit renders loaded image on first frame', (tester) async {
+    testWidgets('instant RAM cache hit renders loaded image on first frame', (
+      tester,
+    ) async {
       const cacheKey = 'cached_thumb_key';
       CacheService.instance.putMemoryThumbnail(cacheKey, samplePngBytes);
 
@@ -126,7 +196,8 @@ void main() {
                 loaderCalled = true;
                 return samplePngBytes;
               },
-              fallbackBuilder: (ctx, size) => const Icon(Icons.image_not_supported),
+              fallbackBuilder: (ctx, size) =>
+                  const Icon(Icons.image_not_supported),
               isList: false,
               cacheKey: cacheKey,
               blurhash: sampleBlurHash,
@@ -140,44 +211,50 @@ void main() {
       expect(loaderCalled, isFalse);
     });
 
-    testWidgets('defers loading during fast fling and starts when scroll settles', (tester) async {
-      final fastNotifier = ValueNotifier<bool>(true);
-      var loaderCalls = 0;
+    testWidgets(
+      'defers loading during fast fling and starts when scroll settles',
+      (tester) async {
+        final fastNotifier = ValueNotifier<bool>(true);
+        var loaderCalls = 0;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ScrollThrottlerScope(
-              notifier: fastNotifier,
-              child: RemoteThumbnailWidget(
-                thumbnailLoader: () async {
-                  loaderCalls++;
-                  return samplePngBytes;
-                },
-                fallbackBuilder: (ctx, size) => const Icon(Icons.image_not_supported),
-                isList: false,
-                blurhash: sampleBlurHash,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: ScrollThrottlerScope(
+                notifier: fastNotifier,
+                child: RemoteThumbnailWidget(
+                  thumbnailLoader: () async {
+                    loaderCalls++;
+                    return samplePngBytes;
+                  },
+                  fallbackBuilder: (ctx, size) =>
+                      const Icon(Icons.image_not_supported),
+                  isList: false,
+                  blurhash: sampleBlurHash,
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Fast scrolling is active -> loader should NOT be called
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(loaderCalls, equals(0));
-      expect(find.byType(BlurHashWidget), findsOneWidget);
+        // Fast scrolling is active -> loader should NOT be called
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(loaderCalls, equals(0));
+        expect(find.byType(BlurHashWidget), findsOneWidget);
 
-      // Scroll settles
-      fastNotifier.value = false;
-      await tester.pump();
-      await tester.pumpAndSettle();
+        // Scroll settles
+        fastNotifier.value = false;
+        await tester.pump();
+        await tester.pumpAndSettle();
 
-      expect(loaderCalls, equals(1));
-      expect(find.byType(Image), findsOneWidget);
-    });
+        expect(loaderCalls, equals(1));
+        expect(find.byType(Image), findsOneWidget);
+      },
+    );
 
-    testWidgets('cancels pending debounce timer when unmounted before firing', (tester) async {
+    testWidgets('cancels pending debounce timer when unmounted before firing', (
+      tester,
+    ) async {
       var loaderCalled = false;
 
       await tester.pumpWidget(
@@ -188,7 +265,8 @@ void main() {
                 loaderCalled = true;
                 return samplePngBytes;
               },
-              fallbackBuilder: (ctx, size) => const Icon(Icons.image_not_supported),
+              fallbackBuilder: (ctx, size) =>
+                  const Icon(Icons.image_not_supported),
               isList: false,
               blurhash: sampleBlurHash,
               debounceDuration: const Duration(milliseconds: 100),
@@ -200,11 +278,7 @@ void main() {
       // Unmount before 100ms debounce completes
       await tester.pump(const Duration(milliseconds: 20));
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: SizedBox(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: SizedBox())),
       );
 
       await tester.pump(const Duration(milliseconds: 200));

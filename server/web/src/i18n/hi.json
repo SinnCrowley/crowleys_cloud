@@ -201,6 +201,12 @@
       "prev_file": "पिछली (←)",
       "next_file": "अगली (→)",
       "close": "बंद करें (Esc)"
+    },
+    "delete": {
+      "title": "कचरा पेटी में ले जाएं?",
+      "single_msg": "क्या आप वाकई \"{name}\" को कचरा पेटी में ले जाना चाहते हैं?",
+      "batch_msg": "क्या आप वाकई {count} चयनित आइटम को कचरा पेटी में ले जाना चाहते हैं?",
+      "delete_btn": "कचरा पेटी में ले जाएं"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "{count} आइटम का साझाकरण हटाया जा रहा है…",
     "batch_unshared": "सर्वर पर {count} आइटम का साझाकरण हटाया गया।",
     "trash_retention_updated": "सर्वर पर ट्रैश अवधारण नीति अपडेट हुई।",
-    "trash_retention_failed": "ट्रैश अवधारण नीति अपडेट नहीं हो सकी"
+    "trash_retention_failed": "ट्रैश अवधारण नीति अपडेट नहीं हो सकी",
+    "batch_deleted_summary": "{count} आइटम कचरा पेटी में ले जाए गए।",
+    "batch_deleted_partial": "{deleted} आइटम कचरा पेटी में ले जाए गए, {failed} विफल रहे।",
+    "batch_deleted_all_failed": "{count} आइटम हटाने में विफल।"
   },
   "api": {
     "session_reset": "सत्र रीसेट किया गया",

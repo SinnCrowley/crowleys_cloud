@@ -659,7 +659,10 @@ void main() {
       tempRoot = await Directory.systemTemp.createTemp('controller_thumb_test');
       supportDir = Directory(p.join(tempRoot.path, 'support'));
       tempDir = Directory(p.join(tempRoot.path, 'temp'));
-      await CacheService.instance.init(supportDir: supportDir, tempDir: tempDir);
+      await CacheService.instance.init(
+        supportDir: supportDir,
+        tempDir: tempDir,
+      );
     });
 
     tearDown(() async {
@@ -668,82 +671,153 @@ void main() {
       }
     });
 
-    test('loadThumbnailWithRetry handles 200 OK and conditional 304 Not Modified', () async {
-      final store = InMemorySecretStore();
-      await store.saveTokens(
-        serverId: 'srv',
-        accessToken: 'token',
-        refreshToken: 'refresh',
-      );
+    test(
+      'loadThumbnailWithRetry handles 200 OK and conditional 304 Not Modified',
+      () async {
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv',
+          accessToken: 'token',
+          refreshToken: 'refresh',
+        );
 
-      final item = ServerFileItem(
-        name: 'photo.jpg',
-        size: 100,
-        modifiedAt: DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true),
-        type: 'photo',
-        mimeType: 'image/jpeg',
-        thumbnailUrl: '/api/thumb?path=photo.jpg',
-        isDir: false,
-        path: 'photo.jpg',
-      );
+        final item = ServerFileItem(
+          name: 'photo.jpg',
+          size: 100,
+          modifiedAt: DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true),
+          type: 'photo',
+          mimeType: 'image/jpeg',
+          thumbnailUrl: '/api/thumb?path=photo.jpg',
+          isDir: false,
+          path: 'photo.jpg',
+        );
 
-      var requestCount = 0;
-      String? sentIfNoneMatch;
+        var requestCount = 0;
+        String? sentIfNoneMatch;
 
-      final client = MockClient((request) async {
-        if (request.url.path == '/api/dir') {
-          return http.Response(jsonEncode({'entries': []}), 200);
-        }
-        if (request.url.path.contains('/thumb')) {
-          requestCount++;
-          sentIfNoneMatch = request.headers['if-none-match'];
-          if (sentIfNoneMatch == '"etag-100"') {
-            return http.Response('', 304, headers: {'etag': '"etag-100"'});
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/dir') {
+            return http.Response(jsonEncode({'entries': []}), 200);
           }
-          return http.Response.bytes(
-            utf8.encode('thumb_bytes_v1'),
+          if (request.url.path.contains('/thumb')) {
+            requestCount++;
+            sentIfNoneMatch = request.headers['if-none-match'];
+            if (sentIfNoneMatch == '"etag-100"') {
+              return http.Response('', 304, headers: {'etag': '"etag-100"'});
+            }
+            return http.Response.bytes(
+              utf8.encode('thumb_bytes_v1'),
+              200,
+              headers: {'etag': '"etag-100"'},
+            );
+          }
+          return http.Response('not found', 404);
+        });
+
+        final controller = ServerBrowserController(
+          profile: ServerProfile(
+            id: 'srv',
+            displayName: 'Test',
+            baseUrl: 'http://localhost:7777',
+            authMode: 'login',
+            lastUsedAt: DateTime.now().toUtc(),
+            syncPrefs: const {},
+          ),
+          serverId: 'srv',
+          authService: AuthService(secretStore: store),
+          client: client,
+        );
+
+        // 1. First fetch -> 200 OK
+        final bytes1 = await controller.loadThumbnailWithRetry(item);
+        expect(bytes1, isNotNull);
+        expect(utf8.decode(bytes1!), equals('thumb_bytes_v1'));
+        expect(sentIfNoneMatch, isNull);
+        expect(requestCount, equals(1));
+
+        // Clear memory cache so next request checks conditional ETag
+        CacheService.instance.clearAll;
+        await CacheService.instance.init(
+          supportDir: supportDir,
+          tempDir: tempDir,
+        );
+
+        // 2. Second fetch -> sends If-None-Match: "etag-100" -> receives 304 Not Modified -> returns cached disk bytes
+        final bytes2 = await controller.loadThumbnailWithRetry(item);
+        expect(bytes2, isNotNull);
+        expect(utf8.decode(bytes2!), equals('thumb_bytes_v1'));
+        expect(sentIfNoneMatch, equals('"etag-100"'));
+        expect(requestCount, equals(2));
+
+        controller.disposeController();
+        controller.dispose();
+      },
+    );
+
+    test(
+      'deleteSelectedFiles sends single batch request with all paths',
+      () async {
+        final l10nEn = lookupAppLocalizations(const Locale('en'));
+        final l10nRu = lookupAppLocalizations(const Locale('ru'));
+
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv',
+          accessToken: 'token',
+          refreshToken: 'refresh',
+        );
+
+        final item1 = _serverItem(name: 'file1.txt', path: 'file1.txt');
+        final item2 = _serverItem(name: 'file2.txt', path: 'file2.txt');
+
+        var deleteRequestsCount = 0;
+        Map<String, dynamic>? capturedBody;
+
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/files') {
+            if (request.method == 'DELETE') {
+              deleteRequestsCount++;
+              capturedBody = jsonDecode(request.body) as Map<String, dynamic>;
+              final count = (capturedBody?['paths'] as List?)?.length ?? 0;
+              return http.Response(
+                jsonEncode({'ok': true, 'deleted': count, 'failed': 0}),
+                200,
+              );
+            }
+          }
+          return http.Response(
+            jsonEncode({
+              'entries': [item1.toJson(), item2.toJson()],
+            }),
             200,
-            headers: {'etag': '"etag-100"'},
           );
-        }
-        return http.Response('not found', 404);
-      });
+        });
 
-      final controller = ServerBrowserController(
-        profile: ServerProfile(
-          id: 'srv',
-          displayName: 'Test',
-          baseUrl: 'http://localhost:7777',
-          authMode: 'login',
-          lastUsedAt: DateTime.now().toUtc(),
-          syncPrefs: const {},
-        ),
-        serverId: 'srv',
-        authService: AuthService(secretStore: store),
-        client: client,
-      );
+        final controller = _controller(store: store, client: client);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
 
-      // 1. First fetch -> 200 OK
-      final bytes1 = await controller.loadThumbnailWithRetry(item);
-      expect(bytes1, isNotNull);
-      expect(utf8.decode(bytes1!), equals('thumb_bytes_v1'));
-      expect(sentIfNoneMatch, isNull);
-      expect(requestCount, equals(1));
+        controller.toggleSelection(item1);
+        controller.toggleSelection(item2);
+        expect(controller.selectedFiles.length, 2);
 
-      // Clear memory cache so next request checks conditional ETag
-      CacheService.instance.clearAll;
-      await CacheService.instance.init(supportDir: supportDir, tempDir: tempDir);
+        await controller.deleteSelectedFiles(l10nEn);
 
-      // 2. Second fetch -> sends If-None-Match: "etag-100" -> receives 304 Not Modified -> returns cached disk bytes
-      final bytes2 = await controller.loadThumbnailWithRetry(item);
-      expect(bytes2, isNotNull);
-      expect(utf8.decode(bytes2!), equals('thumb_bytes_v1'));
-      expect(sentIfNoneMatch, equals('"etag-100"'));
-      expect(requestCount, equals(2));
+        expect(deleteRequestsCount, equals(1));
+        expect(capturedBody, isNotNull);
+        expect(capturedBody!['scope'], equals('private'));
+        expect(capturedBody!['paths'], equals(['file1.txt', 'file2.txt']));
+        expect(controller.operationMessage, l10nEn.deletedNItems(2));
+        expect(controller.selectedFiles, isEmpty);
 
-      controller.disposeController();
-      controller.dispose();
-    });
+        // Verify localized Russian message too
+        controller.toggleSelection(item1);
+        await controller.deleteSelectedFiles(l10nRu);
+        expect(controller.operationMessage, l10nRu.deletedNItems(1));
+
+        controller.disposeController();
+        controller.dispose();
+      },
+    );
   });
 }
 

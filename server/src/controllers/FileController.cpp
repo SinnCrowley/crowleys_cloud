@@ -1465,33 +1465,75 @@ void FileController::deleteFile(const drogon::HttpRequestPtr &req,
     return;
   }
 
-  const auto scope = services::parseScope(req->getParameter("scope"));
+  std::string scopeRaw = req->getParameter("scope");
+  std::vector<std::string> paths;
+
+  auto json = req->getJsonObject();
+  if (json) {
+    if (json->isMember("scope") && (*json)["scope"].isString()) {
+      scopeRaw = (*json)["scope"].asString();
+    }
+    if (json->isMember("paths") && (*json)["paths"].isArray()) {
+      for (const auto &p : (*json)["paths"]) {
+        if (p.isString()) {
+          const auto rel = services::FileIndexService::normalizeRelPath(p.asString());
+          if (!rel.empty()) {
+            paths.push_back(rel);
+          }
+        }
+      }
+    } else if (json->isMember("path") && (*json)["path"].isString()) {
+      const auto rel = services::FileIndexService::normalizeRelPath((*json)["path"].asString());
+      if (!rel.empty()) {
+        paths.push_back(rel);
+      }
+    }
+  }
+
+  if (paths.empty()) {
+    const auto qPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
+    if (!qPath.empty()) {
+      paths.push_back(qPath);
+    }
+  }
+
+  const auto scope = services::parseScope(scopeRaw.empty() ? "private" : scopeRaw);
   if (!scope.has_value()) {
     callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
     return;
   }
 
-  try {
-    const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
-    if (*scope == services::StorageScope::Shared) {
-      auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(relPath);
-      if (!ownerId.has_value()) {
-        callback(jsonError(drogon::k404NotFound, "File not found in shared scope"));
-        return;
-      }
-      if (*ownerId != userId) {
-        callback(jsonError(drogon::k403Forbidden, "Only the owner can unshare files"));
-        return;
-      }
-      server::ctx().fileIndexService->setSharedFlag(*ownerId, relPath, false);
-    } else {
-      server::ctx().trashService->moveToTrash(userId, *scope, relPath);
-    }
-
-    callback(jsonOk());
-  } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+  if (paths.empty()) {
+    callback(jsonError(drogon::k400BadRequest, "paths array is required"));
+    return;
   }
+
+  int deleted = 0;
+  int failed = 0;
+
+  for (const auto &relPath : paths) {
+    try {
+      if (*scope == services::StorageScope::Shared) {
+        auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(relPath);
+        if (!ownerId.has_value() || *ownerId != userId) {
+          failed++;
+          continue;
+        }
+        server::ctx().fileIndexService->setSharedFlag(*ownerId, relPath, false);
+      } else {
+        server::ctx().trashService->moveToTrash(userId, *scope, relPath);
+      }
+      deleted++;
+    } catch (...) {
+      failed++;
+    }
+  }
+
+  Json::Value body;
+  body["ok"] = true;
+  body["deleted"] = deleted;
+  body["failed"] = failed;
+  callback(drogon::HttpResponse::newHttpJsonResponse(body));
 }
 
 void FileController::rebuildIndex(const drogon::HttpRequestPtr &req,

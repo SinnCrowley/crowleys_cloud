@@ -326,11 +326,8 @@ class TrashBrowserController extends ChangeNotifier {
     return _cacheService.getRemoteThumbnail(
       serverId: serverId,
       cacheKey: cacheKey,
-      fetch: (String? storedEtag) => _loadThumbnailFromServer(
-        item,
-        size: size,
-        ifNoneMatch: storedEtag,
-      ),
+      fetch: (String? storedEtag) =>
+          _loadThumbnailFromServer(item, size: size, ifNoneMatch: storedEtag),
     );
   }
 
@@ -342,8 +339,9 @@ class TrashBrowserController extends ChangeNotifier {
     final uri = resolveThumbnailUrl(item, size: size);
     final headers = <String, String>{};
     if (ifNoneMatch != null && ifNoneMatch.isNotEmpty) {
-      headers['if-none-match'] =
-          ifNoneMatch.startsWith('"') ? ifNoneMatch : '"$ifNoneMatch"';
+      headers['if-none-match'] = ifNoneMatch.startsWith('"')
+          ? ifNoneMatch
+          : '"$ifNoneMatch"';
     }
 
     const delays = [

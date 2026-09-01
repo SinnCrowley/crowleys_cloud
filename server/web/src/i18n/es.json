@@ -201,6 +201,12 @@
       "prev_file": "Anterior (←)",
       "next_file": "Siguiente (→)",
       "close": "Cerrar (Esc)"
+    },
+    "delete": {
+      "title": "¿Mover a la papelera?",
+      "single_msg": "¿Seguro que deseas mover \"{name}\" a la papelera?",
+      "batch_msg": "¿Seguro que deseas mover {count} elemento(s) seleccionado(s) a la papelera?",
+      "delete_btn": "Mover a la papelera"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "Dejando de compartir {count} elementos...",
     "batch_unshared": "Se dejó de compartir {count} elementos del servidor.",
     "trash_retention_updated": "Se actualizó la política de retención de la papelera en el servidor.",
-    "trash_retention_failed": "No se pudo actualizar la política de retención de la papelera"
+    "trash_retention_failed": "No se pudo actualizar la política de retención de la papelera",
+    "batch_deleted_summary": "Se movieron {count} elemento(s) a la papelera.",
+    "batch_deleted_partial": "Se movieron {deleted} elemento(s) a la papelera, fallaron {failed}.",
+    "batch_deleted_all_failed": "Error al eliminar {count} elemento(s)."
   },
   "api": {
     "session_reset": "Sesión restablecida",

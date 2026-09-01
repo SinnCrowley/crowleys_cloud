@@ -587,10 +587,7 @@ class CacheService {
       if (isRead &&
           etag == null &&
           now.difference(existing.lastAccess) < const Duration(hours: 1)) {
-        entries[index] = existing.copyWith(
-          lastAccess: now,
-          updatedAt: now,
-        );
+        entries[index] = existing.copyWith(lastAccess: now, updatedAt: now);
         return;
       }
       entries[index] = existing.copyWith(
@@ -710,11 +707,11 @@ class CacheService {
 /// 200 OK (with byte payload and optional ETag) and 304 Not Modified (with refreshed ETag).
 class ThumbnailFetchResult {
   const ThumbnailFetchResult.bytes(Uint8List this.bytes, {this.etag})
-      : isNotModified = false;
+    : isNotModified = false;
 
   const ThumbnailFetchResult.notModified({this.etag})
-      : bytes = null,
-        isNotModified = true;
+    : bytes = null,
+      isNotModified = true;
 
   final Uint8List? bytes;
   final String? etag;

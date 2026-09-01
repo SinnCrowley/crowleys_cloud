@@ -201,6 +201,12 @@
       "prev_file": "前へ（←）",
       "next_file": "次へ（→）",
       "close": "閉じる（Esc）"
+    },
+    "delete": {
+      "title": "ゴミ箱に移動しますか？",
+      "single_msg": "「{name}」をゴミ箱に移動してもよろしいですか？",
+      "batch_msg": "選択した {count} 個のアイテムをゴミ箱に移動してもよろしいですか？",
+      "delete_btn": "ゴミ箱に移動"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "{count} 件の項目の共有を解除しています…",
     "batch_unshared": "サーバーで {count} 件の項目の共有を解除しました。",
     "trash_retention_updated": "サーバーのごみ箱保持ポリシーを更新しました。",
-    "trash_retention_failed": "ごみ箱の保持ポリシーを更新できませんでした"
+    "trash_retention_failed": "ごみ箱の保持ポリシーを更新できませんでした",
+    "batch_deleted_summary": "{count} 個のアイテムをゴミ箱に移動しました。",
+    "batch_deleted_partial": "{deleted} 個のアイテムをゴミ箱に移動しました（{failed} 個失敗）。",
+    "batch_deleted_all_failed": "{count} 個のアイテムの削除に失敗しました。"
   },
   "api": {
     "session_reset": "セッションをリセットしました",

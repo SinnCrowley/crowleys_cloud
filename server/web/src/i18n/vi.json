@@ -201,6 +201,12 @@
       "prev_file": "Trước (←)",
       "next_file": "Sau (→)",
       "close": "Đóng (Esc)"
+    },
+    "delete": {
+      "title": "Chuyển vào thùng rác?",
+      "single_msg": "Bạn có chắc chắn muốn chuyển \"{name}\" vào thùng rác?",
+      "batch_msg": "Bạn có chắc chắn muốn chuyển {count} mục đã chọn vào thùng rác?",
+      "delete_btn": "Chuyển vào thùng rác"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "Đang ngừng chia sẻ {count} mục…",
     "batch_unshared": "Đã ngừng chia sẻ {count} mục trên máy chủ.",
     "trash_retention_updated": "Đã cập nhật chính sách lưu giữ thùng rác trên máy chủ.",
-    "trash_retention_failed": "Không thể cập nhật chính sách lưu giữ thùng rác"
+    "trash_retention_failed": "Không thể cập nhật chính sách lưu giữ thùng rác",
+    "batch_deleted_summary": "Đã chuyển {count} mục vào thùng rác.",
+    "batch_deleted_partial": "Đã chuyển {deleted} mục vào thùng rác, {failed} thất bại.",
+    "batch_deleted_all_failed": "Không thể xóa {count} mục."
   },
   "api": {
     "session_reset": "Đã đặt lại phiên",

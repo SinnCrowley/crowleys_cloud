@@ -55,179 +55,249 @@ void main() {
   });
 
   group('ServerBrowserController Adversarial: HTTP 202 Accepted Retries & 304', () {
-    test('Retries on HTTP 202 Accepted and succeeds when 200 OK eventually returned', () async {
-      int thumbRequestCount = 0;
-      final mockClient = MockClient((request) async {
-        if (request.url.path.contains('/thumb')) {
-          thumbRequestCount++;
-          if (thumbRequestCount < 3) {
-            // Return 202 Accepted for first 2 requests
+    test(
+      'Retries on HTTP 202 Accepted and succeeds when 200 OK eventually returned',
+      () async {
+        int thumbRequestCount = 0;
+        final mockClient = MockClient((request) async {
+          if (request.url.path.contains('/thumb')) {
+            thumbRequestCount++;
+            if (thumbRequestCount < 3) {
+              // Return 202 Accepted for first 2 requests
+              return http.Response('', 202);
+            }
+            return http.Response(
+              'final_image_data',
+              200,
+              headers: {'etag': '"etag-final"'},
+            );
+          }
+          return http.Response(jsonEncode({'entries': []}), 200);
+        });
+
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv1',
+          accessToken: 'valid_access_token',
+          refreshToken: 'valid_refresh_token',
+        );
+
+        final controller = ServerBrowserController(
+          serverId: 'srv1',
+          profile: ServerProfile(
+            id: 'srv1',
+            displayName: 'Test',
+            baseUrl: 'http://localhost:8080',
+            authMode: 'login',
+            lastUsedAt: DateTime.now().toUtc(),
+            syncPrefs: const {},
+          ),
+          authService: AuthService(secretStore: store),
+          client: mockClient,
+        );
+
+        final item = ServerFileItem(
+          name: 'test.jpg',
+          size: 100,
+          modifiedAt: DateTime.now().toUtc(),
+          type: 'photo',
+          mimeType: 'image/jpeg',
+          thumbnailUrl: '/api/thumb?path=test.jpg',
+          isDir: false,
+          path: 'test.jpg',
+        );
+
+        final result = await controller.loadThumbnailWithRetry(item);
+        expect(result, isNotNull);
+        expect(utf8.decode(result!), equals('final_image_data'));
+        expect(thumbRequestCount, equals(3));
+        controller.disposeController();
+        controller.dispose();
+      },
+    );
+
+    test(
+      'Exhausts retries cleanly on persistent 202 Accepted without infinite loop',
+      () async {
+        int thumbRequestCount = 0;
+        final mockClient = MockClient((request) async {
+          if (request.url.path.contains('/thumb')) {
+            thumbRequestCount++;
             return http.Response('', 202);
           }
-          return http.Response(
-            'final_image_data',
-            200,
-            headers: {'etag': '"etag-final"'},
-          );
-        }
-        return http.Response(jsonEncode({'entries': []}), 200);
-      });
+          return http.Response(jsonEncode({'entries': []}), 200);
+        });
 
-      final store = InMemorySecretStore();
-      await store.saveTokens(
-        serverId: 'srv1',
-        accessToken: 'valid_access_token',
-        refreshToken: 'valid_refresh_token',
-      );
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv1',
+          accessToken: 'valid_access_token',
+          refreshToken: 'valid_refresh_token',
+        );
 
-      final controller = ServerBrowserController(
-        serverId: 'srv1',
-        profile: ServerProfile(
-          id: 'srv1',
-          displayName: 'Test',
-          baseUrl: 'http://localhost:8080',
-          authMode: 'login',
-          lastUsedAt: DateTime.now().toUtc(),
-          syncPrefs: const {},
-        ),
-        authService: AuthService(secretStore: store),
-        client: mockClient,
-      );
+        final controller = ServerBrowserController(
+          serverId: 'srv1',
+          profile: ServerProfile(
+            id: 'srv1',
+            displayName: 'Test',
+            baseUrl: 'http://localhost:8080',
+            authMode: 'login',
+            lastUsedAt: DateTime.now().toUtc(),
+            syncPrefs: const {},
+          ),
+          authService: AuthService(secretStore: store),
+          client: mockClient,
+        );
 
-      final item = ServerFileItem(
-        name: 'test.jpg',
-        size: 100,
-        modifiedAt: DateTime.now().toUtc(),
-        type: 'photo',
-        mimeType: 'image/jpeg',
-        thumbnailUrl: '/api/thumb?path=test.jpg',
-        isDir: false,
-        path: 'test.jpg',
-      );
+        final item = ServerFileItem(
+          name: 'test.jpg',
+          size: 100,
+          modifiedAt: DateTime.now().toUtc(),
+          type: 'photo',
+          mimeType: 'image/jpeg',
+          thumbnailUrl: '/api/thumb?path=test.jpg',
+          isDir: false,
+          path: 'test.jpg',
+        );
 
-      final result = await controller.loadThumbnailWithRetry(item);
-      expect(result, isNotNull);
-      expect(utf8.decode(result!), equals('final_image_data'));
-      expect(thumbRequestCount, equals(3));
-      controller.disposeController();
-      controller.dispose();
-    });
-
-    test('Exhausts retries cleanly on persistent 202 Accepted without infinite loop', () async {
-      int thumbRequestCount = 0;
-      final mockClient = MockClient((request) async {
-        if (request.url.path.contains('/thumb')) {
-          thumbRequestCount++;
-          return http.Response('', 202);
-        }
-        return http.Response(jsonEncode({'entries': []}), 200);
-      });
-
-      final store = InMemorySecretStore();
-      await store.saveTokens(
-        serverId: 'srv1',
-        accessToken: 'valid_access_token',
-        refreshToken: 'valid_refresh_token',
-      );
-
-      final controller = ServerBrowserController(
-        serverId: 'srv1',
-        profile: ServerProfile(
-          id: 'srv1',
-          displayName: 'Test',
-          baseUrl: 'http://localhost:8080',
-          authMode: 'login',
-          lastUsedAt: DateTime.now().toUtc(),
-          syncPrefs: const {},
-        ),
-        authService: AuthService(secretStore: store),
-        client: mockClient,
-      );
-
-      final item = ServerFileItem(
-        name: 'test.jpg',
-        size: 100,
-        modifiedAt: DateTime.now().toUtc(),
-        type: 'photo',
-        mimeType: 'image/jpeg',
-        thumbnailUrl: '/api/thumb?path=test.jpg',
-        isDir: false,
-        path: 'test.jpg',
-      );
-
-      final result = await controller.loadThumbnailWithRetry(item);
-      expect(result, isNull);
-      // Retries are 0, 500ms, 1s, 2s -> total 4 attempts
-      expect(thumbRequestCount, equals(4));
-      controller.disposeController();
-      controller.dispose();
-    });
+        final result = await controller.loadThumbnailWithRetry(item);
+        expect(result, isNull);
+        // Retries are 0, 500ms, 1s, 2s -> total 4 attempts
+        expect(thumbRequestCount, equals(4));
+        controller.disposeController();
+        controller.dispose();
+      },
+    );
   });
 
   group('RemoteThumbnailWidget Adversarial: Widget Lifecycle & Scroll Fling', () {
-    testWidgets('Renders instant BlurHash placeholder and transitions smoothly to loaded image', (tester) async {
-      final completer = Completer<Uint8List?>();
+    testWidgets(
+      'Renders instant BlurHash placeholder and transitions smoothly to loaded image',
+      (tester) async {
+        final completer = Completer<Uint8List?>();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: RemoteThumbnailWidget(
-              blurhash: sampleBlurHash,
-              isList: false,
-              thumbnailLoader: () => completer.future,
-              fallbackBuilder: (ctx, size) => const Icon(Icons.broken_image),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: RemoteThumbnailWidget(
+                blurhash: sampleBlurHash,
+                isList: false,
+                thumbnailLoader: () => completer.future,
+                fallbackBuilder: (ctx, size) => const Icon(Icons.broken_image),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Frame 0: BlurHashWidget should be immediately rendered as placeholder
-      expect(find.byType(BlurHashWidget), findsOneWidget);
+        // Frame 0: BlurHashWidget should be immediately rendered as placeholder
+        expect(find.byType(BlurHashWidget), findsOneWidget);
 
-      // Complete thumbnail future
-      final dummyBytes = Uint8List.fromList([
-        0x42, 0x4D, 58, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0,
-        40, 0, 0, 0, 1, 0, 0, 0, 255, 255, 255, 255, 1, 0, 32, 0,
-        0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 255, 255,
-      ]);
-      completer.complete(dummyBytes);
+        // Complete thumbnail future
+        final dummyBytes = Uint8List.fromList([
+          0x42,
+          0x4D,
+          58,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          54,
+          0,
+          0,
+          0,
+          40,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          255,
+          255,
+          255,
+          255,
+          1,
+          0,
+          32,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          255,
+          255,
+        ]);
+        completer.complete(dummyBytes);
 
-      // Settle animation
-      await tester.pumpAndSettle();
+        // Settle animation
+        await tester.pumpAndSettle();
 
-      // Placeholder transitioned to loaded Image
-      expect(find.byType(Image), findsOneWidget);
-    });
+        // Placeholder transitioned to loaded Image
+        expect(find.byType(Image), findsOneWidget);
+      },
+    );
 
-    testWidgets('Gracefully handles disposal while thumbnail loader is in flight', (tester) async {
-      final completer = Completer<Uint8List?>();
+    testWidgets(
+      'Gracefully handles disposal while thumbnail loader is in flight',
+      (tester) async {
+        final completer = Completer<Uint8List?>();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: RemoteThumbnailWidget(
-              blurhash: sampleBlurHash,
-              isList: false,
-              thumbnailLoader: () => completer.future,
-              fallbackBuilder: (ctx, size) => const Icon(Icons.broken_image),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: RemoteThumbnailWidget(
+                blurhash: sampleBlurHash,
+                isList: false,
+                thumbnailLoader: () => completer.future,
+                fallbackBuilder: (ctx, size) => const Icon(Icons.broken_image),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Unmount the widget while future is still in flight
-      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('Unmounted'))));
+        // Unmount the widget while future is still in flight
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: Text('Unmounted'))),
+        );
 
-      // Now complete the future after widget is unmounted
-      completer.complete(Uint8List(10));
-      await tester.pump();
+        // Now complete the future after widget is unmounted
+        completer.complete(Uint8List(10));
+        await tester.pump();
 
-      // Verify no setState after dispose exceptions occurred
-      expect(tester.takeException(), isNull);
-    });
+        // Verify no setState after dispose exceptions occurred
+        expect(tester.takeException(), isNull);
+      },
+    );
 
-    testWidgets('Suppresses thumbnail loading during fast fling scroll', (tester) async {
+    testWidgets('Suppresses thumbnail loading during fast fling scroll', (
+      tester,
+    ) async {
       int loadCount = 0;
       final scrollController = ScrollController();
 

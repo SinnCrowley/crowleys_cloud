@@ -457,9 +457,8 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
           children: [
             ListenableBuilder(
               listenable: controller,
-              builder: (context, _) => _ServerHeaderControls(
-                controller: controller,
-              ),
+              builder: (context, _) =>
+                  _ServerHeaderControls(controller: controller),
             ),
             ListenableBuilder(
               listenable: controller,
@@ -803,9 +802,7 @@ class _ListItem extends StatelessWidget {
 }
 
 class _ServerHeaderControls extends StatelessWidget {
-  const _ServerHeaderControls({
-    required this.controller,
-  });
+  const _ServerHeaderControls({required this.controller});
 
   final ServerBrowserController controller;
 
@@ -1323,7 +1320,9 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                             if (showNewFolder) const SizedBox(width: 8),
                             Container(
                               height: 40,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               decoration: BoxDecoration(
                                 color: appSurface,
                                 borderRadius: BorderRadius.circular(8),
@@ -1333,65 +1332,70 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                                 children: [
                                   Icon(Icons.sort, color: appSubtext, size: 20),
                                   const SizedBox(width: 8),
-                      DropdownButtonHideUnderline(
-                        child: DropdownButton<ServerSortBy>(
-                          value: _sortBy,
-                          dropdownColor: appSurface,
-                          style: TextStyle(color: appText),
-                          icon: Icon(Icons.arrow_drop_down, color: appSubtext),
-                          items: ServerSortBy.values
-                              .map(
-                                (v) => DropdownMenuItem(
-                                  value: v,
-                                  child: Text(switch (v) {
-                                    ServerSortBy.name => l10n.name,
-                                    ServerSortBy.date => l10n.date,
-                                    ServerSortBy.size => l10n.size,
-                                    ServerSortBy.type => l10n.type,
-                                  }),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (v) {
-                            if (v == null) return;
-                            setState(() => _sortBy = v);
-                            _applySorting();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                        Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                            color: appSurface,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: IconButton(
-                            splashRadius: 20,
-                            icon: Icon(
-                              _sortAscending
-                                  ? Icons.arrow_upward
-                                  : Icons.arrow_downward,
-                              color: appSubtext,
+                                  DropdownButtonHideUnderline(
+                                    child: DropdownButton<ServerSortBy>(
+                                      value: _sortBy,
+                                      dropdownColor: appSurface,
+                                      style: TextStyle(color: appText),
+                                      icon: Icon(
+                                        Icons.arrow_drop_down,
+                                        color: appSubtext,
+                                      ),
+                                      items: ServerSortBy.values
+                                          .map(
+                                            (v) => DropdownMenuItem(
+                                              value: v,
+                                              child: Text(switch (v) {
+                                                ServerSortBy.name => l10n.name,
+                                                ServerSortBy.date => l10n.date,
+                                                ServerSortBy.size => l10n.size,
+                                                ServerSortBy.type => l10n.type,
+                                              }),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: (v) {
+                                        if (v == null) return;
+                                        setState(() => _sortBy = v);
+                                        _applySorting();
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            onPressed: () {
-                              setState(() => _sortAscending = !_sortAscending);
-                              _applySorting();
-                            },
-                          ),
+                            Container(
+                              height: 40,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                color: appSurface,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                splashRadius: 20,
+                                icon: Icon(
+                                  _sortAscending
+                                      ? Icons.arrow_upward
+                                      : Icons.arrow_downward,
+                                  color: appSubtext,
+                                ),
+                                onPressed: () {
+                                  setState(
+                                    () => _sortAscending = !_sortAscending,
+                                  );
+                                  _applySorting();
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
+                  ),
+                );
+              },
+            ),
+          ),
           const SizedBox(height: 4),
           _buildBreadcrumb(context),
           const SizedBox(height: 8),

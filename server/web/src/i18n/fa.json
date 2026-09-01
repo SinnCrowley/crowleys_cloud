@@ -201,6 +201,12 @@
       "prev_file": "قبلی (←)",
       "next_file": "بعدی (→)",
       "close": "بستن (Esc)"
+    },
+    "delete": {
+      "title": "انتقال به سطل زباله؟",
+      "single_msg": "آیا مطمئن هستید که می‌خواهید «{name}» را به سطل زباله منتقل کنید؟",
+      "batch_msg": "آیا مطمئن هستید که می‌خواهید {count} مورد انتخاب شده را به سطل زباله منتقل کنید؟",
+      "delete_btn": "انتقال به سطل زباله"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "در حال لغو اشتراک‌گذاری {count} مورد…",
     "batch_unshared": "اشتراک‌گذاری {count} مورد در سرور لغو شد.",
     "trash_retention_updated": "سیاست نگهداری سطل زباله در سرور به‌روزرسانی شد.",
-    "trash_retention_failed": "به‌روزرسانی سیاست نگهداری سطل زباله ناموفق بود"
+    "trash_retention_failed": "به‌روزرسانی سیاست نگهداری سطل زباله ناموفق بود",
+    "batch_deleted_summary": "{count} مورد به سطل زباله منتقل شد.",
+    "batch_deleted_partial": "{deleted} مورد به سطل زباله منتقل شد، {failed} مورد ناموفق بود.",
+    "batch_deleted_all_failed": "حذف {count} مورد انجام نشد."
   },
   "api": {
     "session_reset": "نشست بازنشانی شد",

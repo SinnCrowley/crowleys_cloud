@@ -40,7 +40,9 @@ void main() {
       expect(isFast, isFalse);
     });
 
-    testWidgets('returns false when no ancestor ScrollThrottler exists', (tester) async {
+    testWidgets('returns false when no ancestor ScrollThrottler exists', (
+      tester,
+    ) async {
       bool? isFast;
 
       await tester.pumpWidget(
@@ -57,7 +59,10 @@ void main() {
       );
 
       expect(isFast, isFalse);
-      expect(ScrollThrottler.notifierOf(tester.element(find.byType(SizedBox))), isNull);
+      expect(
+        ScrollThrottler.notifierOf(tester.element(find.byType(SizedBox))),
+        isNull,
+      );
     });
 
     testWidgets('detects fast fling and resets on scroll end', (tester) async {
@@ -76,7 +81,8 @@ void main() {
                   return ListView.builder(
                     controller: controller,
                     itemCount: 100,
-                    itemBuilder: (ctx, i) => SizedBox(height: 100, child: Text('Item $i')),
+                    itemBuilder: (ctx, i) =>
+                        SizedBox(height: 100, child: Text('Item $i')),
                   );
                 },
               ),
@@ -97,42 +103,48 @@ void main() {
       expect(fastNotifier.value, isFalse);
     });
 
-    testWidgets('resets after idle timeout if fling stops without explicit end notification', (tester) async {
-      final controller = ScrollController();
-      late ValueNotifier<bool> fastNotifier;
+    testWidgets(
+      'resets after idle timeout if fling stops without explicit end notification',
+      (tester) async {
+        final controller = ScrollController();
+        late ValueNotifier<bool> fastNotifier;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ScrollThrottler(
-              velocityThreshold: 200.0,
-              idleTimeout: const Duration(milliseconds: 60),
-              child: Builder(
-                builder: (context) {
-                  fastNotifier = ScrollThrottler.notifierOf(context)!;
-                  return ListView.builder(
-                    controller: controller,
-                    itemCount: 100,
-                    itemBuilder: (ctx, i) => SizedBox(height: 100, child: Text('Item $i')),
-                  );
-                },
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: ScrollThrottler(
+                velocityThreshold: 200.0,
+                idleTimeout: const Duration(milliseconds: 60),
+                child: Builder(
+                  builder: (context) {
+                    fastNotifier = ScrollThrottler.notifierOf(context)!;
+                    return ListView.builder(
+                      controller: controller,
+                      itemCount: 100,
+                      itemBuilder: (ctx, i) =>
+                          SizedBox(height: 100, child: Text('Item $i')),
+                    );
+                  },
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Trigger fling
-      await tester.fling(find.byType(ListView), const Offset(0, -300), 2000);
-      await tester.pump();
-      expect(fastNotifier.value, isTrue);
+        // Trigger fling
+        await tester.fling(find.byType(ListView), const Offset(0, -300), 2000);
+        await tester.pump();
+        expect(fastNotifier.value, isTrue);
 
-      // Advance clock past idle timeout
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(fastNotifier.value, isFalse);
-    });
+        // Advance clock past idle timeout
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(fastNotifier.value, isFalse);
+      },
+    );
 
-    testWidgets('allows notification bubbling to parent NotificationListener', (tester) async {
+    testWidgets('allows notification bubbling to parent NotificationListener', (
+      tester,
+    ) async {
       var parentReceived = false;
 
       await tester.pumpWidget(
@@ -146,7 +158,8 @@ void main() {
               child: ScrollThrottler(
                 child: ListView.builder(
                   itemCount: 50,
-                  itemBuilder: (ctx, i) => SizedBox(height: 50, child: Text('Item $i')),
+                  itemBuilder: (ctx, i) =>
+                      SizedBox(height: 50, child: Text('Item $i')),
                 ),
               ),
             ),

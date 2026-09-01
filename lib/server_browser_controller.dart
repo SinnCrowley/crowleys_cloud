@@ -471,28 +471,47 @@ class ServerBrowserController extends ChangeNotifier {
   Future<void> deleteSelectedFiles([AppLocalizations? l10n]) async {
     final local = _getL10n(l10n);
     operationMessage = null;
+    final itemsToDelete = selectedFiles.toList();
+    if (itemsToDelete.isEmpty) {
+      notifyListeners();
+      return;
+    }
+
+    final paths = itemsToDelete.map((e) => e.path).toList();
+    final uri = _apiUri('/files');
     var deleted = 0;
     var failed = 0;
-    for (final item in selectedFiles.toList()) {
-      final uri = _apiUri(
-        '/files',
-      ).replace(queryParameters: {'scope': scope, 'path': item.path});
-      try {
-        final response = await _authorizedDelete(uri);
-        if (response.statusCode >= 200 && response.statusCode < 300) {
+
+    try {
+      final response = await _authorizedDeleteJson(uri, {
+        'scope': scope,
+        'paths': paths,
+      });
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        try {
+          final payload = jsonDecode(response.body) as Map<String, Object?>;
+          deleted =
+              (payload['deleted'] as num?)?.toInt() ?? itemsToDelete.length;
+          failed = (payload['failed'] as num?)?.toInt() ?? 0;
+        } catch (_) {
+          deleted = itemsToDelete.length;
+          failed = 0;
+        }
+
+        for (final item in itemsToDelete) {
           files.remove(item);
-          deleted++;
           await _invalidateDirectory(
             scope: scope,
             path: _parentPath(item.path),
           );
-        } else {
-          failed++;
         }
-      } catch (_) {
-        failed++;
+      } else {
+        failed = itemsToDelete.length;
       }
+    } catch (_) {
+      failed = itemsToDelete.length;
     }
+
     operationMessage = failed == 0
         ? local.deletedNItems(deleted)
         : local.deletedNItemsFailedM(deleted, failed);
@@ -633,10 +652,10 @@ class ServerBrowserController extends ChangeNotifier {
         failed++;
         continue;
       }
-      final deleteUri = _apiUri(
-        '/files',
-      ).replace(queryParameters: {'scope': scope, 'path': item.path});
-      final delResp = await _authorizedDelete(deleteUri);
+      final delResp = await _authorizedDeleteJson(_apiUri('/files'), {
+        'scope': scope,
+        'paths': [item.path],
+      });
       if (delResp.statusCode >= 200 && delResp.statusCode < 300) {
         moved++;
         await _invalidateDirectory(scope: scope, path: _parentPath(item.path));
@@ -693,11 +712,8 @@ class ServerBrowserController extends ChangeNotifier {
     return _cacheService.getRemoteThumbnail(
       serverId: serverId,
       cacheKey: cacheKey,
-      fetch: (String? storedEtag) => _loadThumbnailFromServer(
-        item,
-        size: size,
-        ifNoneMatch: storedEtag,
-      ),
+      fetch: (String? storedEtag) =>
+          _loadThumbnailFromServer(item, size: size, ifNoneMatch: storedEtag),
     );
   }
 
@@ -709,8 +725,9 @@ class ServerBrowserController extends ChangeNotifier {
     final uri = resolveThumbnailUrl(item, size: size);
     final headers = <String, String>{};
     if (ifNoneMatch != null && ifNoneMatch.isNotEmpty) {
-      headers['if-none-match'] =
-          ifNoneMatch.startsWith('"') ? ifNoneMatch : '"$ifNoneMatch"';
+      headers['if-none-match'] = ifNoneMatch.startsWith('"')
+          ? ifNoneMatch
+          : '"$ifNoneMatch"';
     }
 
     const delays = [
@@ -1088,7 +1105,10 @@ class ServerBrowserController extends ChangeNotifier {
   Future<http.StreamedResponse> _authorizedStreamedGet(Uri uri) =>
       _httpClient.streamedGet(uri);
 
-  Future<http.Response> _authorizedDelete(Uri uri) => _httpClient.delete(uri);
+  Future<http.Response> _authorizedDeleteJson(
+    Uri uri,
+    Map<String, Object?> payload,
+  ) => _httpClient.deleteJson(uri, payload);
 
   Future<http.Response> _authorizedPostJson(
     Uri uri,

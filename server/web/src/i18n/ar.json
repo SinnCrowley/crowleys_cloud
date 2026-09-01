@@ -201,6 +201,12 @@
       "prev_file": "السابق (←)",
       "next_file": "التالي (→)",
       "close": "إغلاق (Esc)"
+    },
+    "delete": {
+      "title": "نقل إلى سلة المهملات؟",
+      "single_msg": "هل أنت متأكد من رغبتك في نقل \"{name}\" إلى سلة المهملات؟",
+      "batch_msg": "هل أنت متأكد من رغبتك في نقل {count} من العناصر المحددة إلى سلة المهملات؟",
+      "delete_btn": "نقل إلى سلة المهملات"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "جارٍ إلغاء مشاركة {count} عناصر…",
     "batch_unshared": "تم إلغاء مشاركة {count} عناصر على الخادم.",
     "trash_retention_updated": "تم تحديث سياسة الاحتفاظ بسلة المهملات على الخادم.",
-    "trash_retention_failed": "تعذر تحديث سياسة الاحتفاظ بسلة المهملات"
+    "trash_retention_failed": "تعذر تحديث سياسة الاحتفاظ بسلة المهملات",
+    "batch_deleted_summary": "تم نقل {count} عنصر/عناصر إلى سلة المهملات.",
+    "batch_deleted_partial": "تم نقل {deleted} عنصر/عناصر إلى سلة المهملات، وفشل {failed}.",
+    "batch_deleted_all_failed": "فشل حذف {count} عنصر/عناصر."
   },
   "api": {
     "session_reset": "تمت إعادة تعيين الجلسة",

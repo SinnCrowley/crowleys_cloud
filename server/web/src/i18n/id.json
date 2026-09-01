@@ -201,6 +201,12 @@
       "prev_file": "Sebelumnya (←)",
       "next_file": "Berikutnya (→)",
       "close": "Tutup (Esc)"
+    },
+    "delete": {
+      "title": "Pindahkan ke Sampah?",
+      "single_msg": "Apakah Anda yakin ingin memindahkan \"{name}\" ke sampah?",
+      "batch_msg": "Apakah Anda yakin ingin memindahkan {count} item yang dipilih ke sampah?",
+      "delete_btn": "Pindahkan ke Sampah"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "Membatalkan berbagi {count} item…",
     "batch_unshared": "Membatalkan berbagi {count} item di server.",
     "trash_retention_updated": "Kebijakan penyimpanan sampah diperbarui di server.",
-    "trash_retention_failed": "Gagal memperbarui kebijakan penyimpanan sampah"
+    "trash_retention_failed": "Gagal memperbarui kebijakan penyimpanan sampah",
+    "batch_deleted_summary": "{count} item dipindahkan ke sampah.",
+    "batch_deleted_partial": "{deleted} item dipindahkan ke sampah, {failed} gagal.",
+    "batch_deleted_all_failed": "Gagal menghapus {count} item."
   },
   "api": {
     "session_reset": "Sesi diatur ulang",

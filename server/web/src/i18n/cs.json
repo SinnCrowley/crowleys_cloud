@@ -201,6 +201,12 @@
       "prev_file": "Předchozí (←)",
       "next_file": "Další (→)",
       "close": "Zavřít (Esc)"
+    },
+    "delete": {
+      "title": "Přesunout do koše?",
+      "single_msg": "Opravdu chcete přesunout „{name}“ do koše?",
+      "batch_msg": "Opravdu chcete přesunout {count} vybraných položek do koše?",
+      "delete_btn": "Přesunout do koše"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "Ruší se sdílení {count} položek...",
     "batch_unshared": "Na serveru bylo zrušeno sdílení {count} položek.",
     "trash_retention_updated": "Doba uchování v koši byla na serveru změněna.",
-    "trash_retention_failed": "Dobu uchování v koši se nepodařilo změnit"
+    "trash_retention_failed": "Dobu uchování v koši se nepodařilo změnit",
+    "batch_deleted_summary": "Přesunuto {count} položek do koše.",
+    "batch_deleted_partial": "Přesunuto {deleted} položek do koše, {failed} se nezdařilo.",
+    "batch_deleted_all_failed": "Nepodařilo se smazat {count} položek."
   },
   "api": {
     "session_reset": "Relace byla obnovena",

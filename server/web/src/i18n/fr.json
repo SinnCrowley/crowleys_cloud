@@ -201,6 +201,12 @@
       "prev_file": "Précédent (←)",
       "next_file": "Suivant (→)",
       "close": "Fermer (Échap)"
+    },
+    "delete": {
+      "title": "Déplacer vers la corbeille ?",
+      "single_msg": "Voulez-vous vraiment déplacer « {name} » vers la corbeille ?",
+      "batch_msg": "Voulez-vous vraiment déplacer {count} élément(s) sélectionné(s) vers la corbeille ?",
+      "delete_btn": "Déplacer vers la corbeille"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "Arrêt du partage de {count} éléments...",
     "batch_unshared": "Partage de {count} éléments arrêté sur le serveur.",
     "trash_retention_updated": "Politique de conservation de la corbeille mise à jour sur le serveur.",
-    "trash_retention_failed": "Impossible de mettre à jour la politique de conservation de la corbeille"
+    "trash_retention_failed": "Impossible de mettre à jour la politique de conservation de la corbeille",
+    "batch_deleted_summary": "{count} élément(s) déplacé(s) vers la corbeille.",
+    "batch_deleted_partial": "{deleted} élément(s) déplacé(s) vers la corbeille, {failed} échec(s).",
+    "batch_deleted_all_failed": "Échec de suppression de {count} élément(s)."
   },
   "api": {
     "session_reset": "Session réinitialisée",

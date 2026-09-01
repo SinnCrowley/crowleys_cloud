@@ -278,9 +278,12 @@ export const filesApi = {
     return apiPost(`/api/files/move?${params.toString()}`);
   },
 
+  async deleteFiles({ scope = 'private', paths = [] }) {
+    return apiDelete('/api/files', { scope, paths });
+  },
+
   async deleteFile({ scope = 'private', path }) {
-    const params = new URLSearchParams({ scope, path });
-    return apiDelete(`/api/files?${params.toString()}`);
+    return this.deleteFiles({ scope, paths: [path] });
   },
 
 

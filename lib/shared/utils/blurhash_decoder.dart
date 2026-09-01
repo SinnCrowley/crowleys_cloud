@@ -55,9 +55,10 @@ class BlurHashDecoder {
     if (v <= 0.0031308) {
       return (v * 12.92 * 255.0).round().clamp(0, 255);
     }
-    return ((1.055 * math.pow(v, 1.0 / 2.4) - 0.055) * 255.0)
-        .round()
-        .clamp(0, 255);
+    return ((1.055 * math.pow(v, 1.0 / 2.4) - 0.055) * 255.0).round().clamp(
+      0,
+      255,
+    );
   }
 
   static double _signPow(double val, double exp) {
@@ -268,7 +269,11 @@ class BlurHashDecoder {
     // BITMAPINFOHEADER (40 bytes)
     byteData.setUint32(14, 40, Endian.little); // header size
     byteData.setInt32(18, width, Endian.little);
-    byteData.setInt32(22, -height, Endian.little); // negative height for top-down raster
+    byteData.setInt32(
+      22,
+      -height,
+      Endian.little,
+    ); // negative height for top-down raster
     byteData.setUint16(26, 1, Endian.little); // planes
     byteData.setUint16(28, 32, Endian.little); // bpp
     byteData.setUint32(30, 0, Endian.little); // BI_RGB (uncompressed)
@@ -300,7 +305,7 @@ class BlurHashDecoder {
         bmp[pixelOffset++] = _linearToSrgb(b); // Blue
         bmp[pixelOffset++] = _linearToSrgb(g); // Green
         bmp[pixelOffset++] = _linearToSrgb(r); // Red
-        bmp[pixelOffset++] = 255;              // Alpha
+        bmp[pixelOffset++] = 255; // Alpha
       }
     }
 

@@ -201,6 +201,12 @@
       "prev_file": "Zurück (←)",
       "next_file": "Weiter (→)",
       "close": "Schließen (Esc)"
+    },
+    "delete": {
+      "title": "In den Papierkorb verschieben?",
+      "single_msg": "Möchten Sie \"{name}\" wirklich in den Papierkorb verschieben?",
+      "batch_msg": "Möchten Sie {count} ausgewählte Elemente wirklich in den Papierkorb verschieben?",
+      "delete_btn": "In den Papierkorb"
     }
   },
   "trash": {
@@ -340,7 +346,10 @@
     "batch_unsharing": "Freigabe von {count} Elementen wird aufgehoben...",
     "batch_unshared": "Freigabe von {count} Elementen auf dem Server aufgehoben.",
     "trash_retention_updated": "Aufbewahrungsrichtlinie für den Papierkorb auf dem Server aktualisiert.",
-    "trash_retention_failed": "Aufbewahrungsrichtlinie für den Papierkorb konnte nicht aktualisiert werden"
+    "trash_retention_failed": "Aufbewahrungsrichtlinie für den Papierkorb konnte nicht aktualisiert werden",
+    "batch_deleted_summary": "{count} Element(e) in den Papierkorb verschoben.",
+    "batch_deleted_partial": "{deleted} Element(e) in den Papierkorb verschoben, {failed} fehlgeschlagen.",
+    "batch_deleted_all_failed": "{count} Element(e) konnten nicht gelöscht werden."
   },
   "api": {
     "session_reset": "Sitzung zurückgesetzt",

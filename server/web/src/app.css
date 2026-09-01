@@ -413,6 +413,18 @@ body {
   gap: var(--spacing-sm);
 }
 
+.btn-primary.danger-btn,
+.btn-danger {
+  background-color: var(--color-danger, #ef4444) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+.btn-primary.danger-btn:hover,
+.btn-danger:hover {
+  background-color: var(--color-danger-hover, #dc2626) !important;
+}
+
 /* ==========================================================================
    New Layout and Component Classes matching Reference Designs
    ========================================================================== */

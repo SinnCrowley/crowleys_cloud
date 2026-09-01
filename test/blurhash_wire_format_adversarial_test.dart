@@ -79,300 +79,325 @@ void main() {
       expect(parsedEntry.size, Int64(1048576));
     });
 
-    test('Backward compatibility: Legacy Protobuf without Tag 10 decodes cleanly', () {
-      // Create message without blurhash (tag 10 omitted)
-      final legacyEntry = DirEntry(
-        name: 'legacy_photo.jpg',
-        path: '/photos/legacy_photo.jpg',
-        isDir: false,
-        size: Int64(512),
-        modifiedAt: Int64(1725130000),
-        type: 'photo',
-        mimeType: 'image/jpeg',
-        thumbnailUrl: '/api/thumb?path=%2Fphotos%2Flegacy_photo.jpg',
-        id: Int64(10),
-      );
+    test(
+      'Backward compatibility: Legacy Protobuf without Tag 10 decodes cleanly',
+      () {
+        // Create message without blurhash (tag 10 omitted)
+        final legacyEntry = DirEntry(
+          name: 'legacy_photo.jpg',
+          path: '/photos/legacy_photo.jpg',
+          isDir: false,
+          size: Int64(512),
+          modifiedAt: Int64(1725130000),
+          type: 'photo',
+          mimeType: 'image/jpeg',
+          thumbnailUrl: '/api/thumb?path=%2Fphotos%2Flegacy_photo.jpg',
+          id: Int64(10),
+        );
 
-      final legacyResponse = DirResponse(entries: [legacyEntry]);
-      final wireBytes = legacyResponse.writeToBuffer();
+        final legacyResponse = DirResponse(entries: [legacyEntry]);
+        final wireBytes = legacyResponse.writeToBuffer();
 
-      // Tag 10 (0x52) must NOT exist in the serialized wire buffer
-      expect(wireBytes.contains(0x52), isFalse);
+        // Tag 10 (0x52) must NOT exist in the serialized wire buffer
+        expect(wireBytes.contains(0x52), isFalse);
 
-      final parsed = DirResponse.fromBuffer(wireBytes);
-      expect(parsed.entries.length, 1);
-      final e = parsed.entries.first;
-      expect(e.name, 'legacy_photo.jpg');
-      expect(e.blurhash, isEmpty);
+        final parsed = DirResponse.fromBuffer(wireBytes);
+        expect(parsed.entries.length, 1);
+        final e = parsed.entries.first;
+        expect(e.name, 'legacy_photo.jpg');
+        expect(e.blurhash, isEmpty);
 
-      // Client mapping to ServerFileItem must produce blurhash == null
-      final item = ServerFileItem(
-        name: e.name,
-        size: e.size.toInt(),
-        modifiedAt: DateTime.fromMillisecondsSinceEpoch(
-          e.modifiedAt.toInt(),
-          isUtc: true,
-        ),
-        type: e.type,
-        mimeType: e.mimeType,
-        thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,
-        isDir: e.isDir,
-        path: e.path,
-        id: e.id != 0 ? e.id.toInt() : null,
-        blurhash: e.blurhash.isNotEmpty ? e.blurhash : null,
-      );
-      expect(item.blurhash, isNull);
-    });
-
-    test('Forward compatibility: Protobuf with unknown future tags decodes without crashing', () {
-      // Manually append extra fields
-      final entry = DirEntry(
-        name: 'future.jpg',
-        path: '/photos/future.jpg',
-        isDir: false,
-        size: Int64(100),
-        modifiedAt: Int64(1725130000),
-        type: 'photo',
-        mimeType: 'image/jpeg',
-        blurhash: validBlurHash,
-      );
-
-      final response = DirResponse(entries: [entry]);
-      final normalBytes = response.writeToBuffer();
-
-      // Proto parser preserves unknown fields and decodes known fields without failure
-      final parsed = DirResponse.fromBuffer(normalBytes);
-      expect(parsed.entries.first.name, 'future.jpg');
-      expect(parsed.entries.first.blurhash, validBlurHash);
-    });
-
-    test('JSON deserialization handles empty, null, and valid blurhash values', () {
-      // 1. Missing blurhash key
-      final item1 = ServerFileItem.fromJson({
-        'name': 'doc.pdf',
-        'size': 1000,
-        'modified_at': 1725134000,
-        'type': 'document',
-        'mime_type': 'application/pdf',
-        'is_dir': false,
-        'path': 'doc.pdf',
-      });
-      expect(item1.blurhash, isNull);
-
-      // 2. Explicit null blurhash
-      final item2 = ServerFileItem.fromJson({
-        'name': 'doc.pdf',
-        'size': 1000,
-        'modified_at': 1725134000,
-        'type': 'document',
-        'mime_type': 'application/pdf',
-        'is_dir': false,
-        'path': 'doc.pdf',
-        'blurhash': null,
-      });
-      expect(item2.blurhash, isNull);
-
-      // 3. Empty string blurhash
-      final item3 = ServerFileItem.fromJson({
-        'name': 'doc.pdf',
-        'size': 1000,
-        'modified_at': 1725134000,
-        'type': 'document',
-        'mime_type': 'application/pdf',
-        'is_dir': false,
-        'path': 'doc.pdf',
-        'blurhash': '',
-      });
-      expect(item3.blurhash, isNull);
-
-      // 4. Valid string blurhash
-      final item4 = ServerFileItem.fromJson({
-        'name': 'image.jpg',
-        'size': 2048,
-        'modified_at': 1725134000,
-        'type': 'photo',
-        'mime_type': 'image/jpeg',
-        'thumbnail_url': '/api/thumb?path=image.jpg',
-        'is_dir': false,
-        'path': 'image.jpg',
-        'blurhash': validBlurHash,
-      });
-      expect(item4.blurhash, validBlurHash);
-
-      // 5. Roundtrip toJson -> fromJson
-      final json4 = item4.toJson();
-      expect(json4['blurhash'], validBlurHash);
-      final roundtrip4 = ServerFileItem.fromJson(json4);
-      expect(roundtrip4.blurhash, validBlurHash);
-      expect(roundtrip4, equals(item4));
-    });
-
-    test('Non-image items safety across Trash controller with Protobuf', () async {
-      final store = InMemorySecretStore();
-      await store.saveTokens(
-        serverId: 'srv',
-        accessToken: 'token',
-        refreshToken: 'refresh',
-      );
-
-      final mixedEntriesProto = DirResponse(
-        entries: [
-          DirEntry(
-            name: 'Documents',
-            path: 'Documents',
-            isDir: true,
-            size: Int64(0),
-            modifiedAt: Int64(1725130000),
-            type: 'folder',
-            mimeType: 'inode/directory',
+        // Client mapping to ServerFileItem must produce blurhash == null
+        final item = ServerFileItem(
+          name: e.name,
+          size: e.size.toInt(),
+          modifiedAt: DateTime.fromMillisecondsSinceEpoch(
+            e.modifiedAt.toInt(),
+            isUtc: true,
           ),
-          DirEntry(
-            name: 'notes.txt',
-            path: 'notes.txt',
-            isDir: false,
-            size: Int64(150),
-            modifiedAt: Int64(1725131000),
-            type: 'document',
-            mimeType: 'text/plain',
-          ),
-          DirEntry(
-            name: 'song.mp3',
-            path: 'song.mp3',
-            isDir: false,
-            size: Int64(4500000),
-            modifiedAt: Int64(1725132000),
-            type: 'audio',
-            mimeType: 'audio/mpeg',
-          ),
-          DirEntry(
-            name: 'photo_with_hash.jpg',
-            path: 'photo_with_hash.jpg',
-            isDir: false,
-            size: Int64(2000000),
-            modifiedAt: Int64(1725133000),
-            type: 'photo',
-            mimeType: 'image/jpeg',
-            thumbnailUrl: '/api/thumb?path=photo_with_hash.jpg&s=256',
-            blurhash: validBlurHash,
-          ),
-        ],
-      );
+          type: e.type,
+          mimeType: e.mimeType,
+          thumbnailUrl: e.thumbnailUrl.isEmpty ? null : e.thumbnailUrl,
+          isDir: e.isDir,
+          path: e.path,
+          id: e.id != 0 ? e.id.toInt() : null,
+          blurhash: e.blurhash.isNotEmpty ? e.blurhash : null,
+        );
+        expect(item.blurhash, isNull);
+      },
+    );
 
-      final client = MockClient((request) async {
-        if (request.url.path == '/api/trash') {
-          return http.Response.bytes(
-            mixedEntriesProto.writeToBuffer(),
-            200,
-            headers: {'content-type': 'application/x-protobuf'},
-          );
-        }
-        return http.Response(jsonEncode({'entries': []}), 200);
-      });
+    test(
+      'Forward compatibility: Protobuf with unknown future tags decodes without crashing',
+      () {
+        // Manually append extra fields
+        final entry = DirEntry(
+          name: 'future.jpg',
+          path: '/photos/future.jpg',
+          isDir: false,
+          size: Int64(100),
+          modifiedAt: Int64(1725130000),
+          type: 'photo',
+          mimeType: 'image/jpeg',
+          blurhash: validBlurHash,
+        );
 
-      final trashController = TrashBrowserController(
-        serverId: 'srv',
-        baseUrl: 'http://localhost:7777',
-        authService: AuthService(secretStore: store),
-        client: client,
-      );
+        final response = DirResponse(entries: [entry]);
+        final normalBytes = response.writeToBuffer();
 
-      await trashController.reload();
-      expect(trashController.files.length, 4);
+        // Proto parser preserves unknown fields and decodes known fields without failure
+        final parsed = DirResponse.fromBuffer(normalBytes);
+        expect(parsed.entries.first.name, 'future.jpg');
+        expect(parsed.entries.first.blurhash, validBlurHash);
+      },
+    );
 
-      final trashPhoto = trashController.files.firstWhere((f) => f.name == 'photo_with_hash.jpg');
-      expect(trashPhoto.blurhash, validBlurHash);
+    test(
+      'JSON deserialization handles empty, null, and valid blurhash values',
+      () {
+        // 1. Missing blurhash key
+        final item1 = ServerFileItem.fromJson({
+          'name': 'doc.pdf',
+          'size': 1000,
+          'modified_at': 1725134000,
+          'type': 'document',
+          'mime_type': 'application/pdf',
+          'is_dir': false,
+          'path': 'doc.pdf',
+        });
+        expect(item1.blurhash, isNull);
 
-      final trashDoc = trashController.files.firstWhere((f) => f.name == 'notes.txt');
-      expect(trashDoc.blurhash, isNull);
+        // 2. Explicit null blurhash
+        final item2 = ServerFileItem.fromJson({
+          'name': 'doc.pdf',
+          'size': 1000,
+          'modified_at': 1725134000,
+          'type': 'document',
+          'mime_type': 'application/pdf',
+          'is_dir': false,
+          'path': 'doc.pdf',
+          'blurhash': null,
+        });
+        expect(item2.blurhash, isNull);
 
-      trashController.dispose();
-    });
+        // 3. Empty string blurhash
+        final item3 = ServerFileItem.fromJson({
+          'name': 'doc.pdf',
+          'size': 1000,
+          'modified_at': 1725134000,
+          'type': 'document',
+          'mime_type': 'application/pdf',
+          'is_dir': false,
+          'path': 'doc.pdf',
+          'blurhash': '',
+        });
+        expect(item3.blurhash, isNull);
 
-    test('Non-image items safety across Directory controller with JSON response', () async {
-      final store = InMemorySecretStore();
-      await store.saveTokens(
-        serverId: 'srv',
-        accessToken: 'token',
-        refreshToken: 'refresh',
-      );
+        // 4. Valid string blurhash
+        final item4 = ServerFileItem.fromJson({
+          'name': 'image.jpg',
+          'size': 2048,
+          'modified_at': 1725134000,
+          'type': 'photo',
+          'mime_type': 'image/jpeg',
+          'thumbnail_url': '/api/thumb?path=image.jpg',
+          'is_dir': false,
+          'path': 'image.jpg',
+          'blurhash': validBlurHash,
+        });
+        expect(item4.blurhash, validBlurHash);
 
-      final jsonPayload = {
-        'entries': [
-          {
-            'name': 'FolderA',
-            'path': 'FolderA',
-            'is_dir': true,
-            'size': 0,
-            'modified_at': 1725130000,
-            'type': 'folder',
-            'mime_type': 'inode/directory',
-          },
-          {
-            'name': 'data.csv',
-            'path': 'data.csv',
-            'is_dir': false,
-            'size': 1200,
-            'modified_at': 1725131000,
-            'type': 'document',
-            'mime_type': 'text/csv',
-            'thumbnail_url': null,
-          },
-          {
-            'name': 'pic.webp',
-            'path': 'pic.webp',
-            'is_dir': false,
-            'size': 50000,
-            'modified_at': 1725132000,
-            'type': 'photo',
-            'mime_type': 'image/webp',
-            'thumbnail_url': '/api/thumb?path=pic.webp&s=256',
-            'blurhash': validBlurHash,
-          },
-        ],
-      };
+        // 5. Roundtrip toJson -> fromJson
+        final json4 = item4.toJson();
+        expect(json4['blurhash'], validBlurHash);
+        final roundtrip4 = ServerFileItem.fromJson(json4);
+        expect(roundtrip4.blurhash, validBlurHash);
+        expect(roundtrip4, equals(item4));
+      },
+    );
 
-      final client = MockClient((request) async {
-        if (request.url.path == '/api/dir') {
-          return http.Response(
-            jsonEncode(jsonPayload),
-            200,
-            headers: {'content-type': 'application/json'},
-          );
-        }
-        if (request.url.path == '/api/account/stats') {
-          return http.Response(jsonEncode({}), 200);
-        }
-        return http.Response(jsonEncode({'entries': []}), 200);
-      });
+    test(
+      'Non-image items safety across Trash controller with Protobuf',
+      () async {
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv',
+          accessToken: 'token',
+          refreshToken: 'refresh',
+        );
 
-      final browserController = ServerBrowserController(
-        profile: ServerProfile(
-          id: 'srv',
-          displayName: 'Test',
+        final mixedEntriesProto = DirResponse(
+          entries: [
+            DirEntry(
+              name: 'Documents',
+              path: 'Documents',
+              isDir: true,
+              size: Int64(0),
+              modifiedAt: Int64(1725130000),
+              type: 'folder',
+              mimeType: 'inode/directory',
+            ),
+            DirEntry(
+              name: 'notes.txt',
+              path: 'notes.txt',
+              isDir: false,
+              size: Int64(150),
+              modifiedAt: Int64(1725131000),
+              type: 'document',
+              mimeType: 'text/plain',
+            ),
+            DirEntry(
+              name: 'song.mp3',
+              path: 'song.mp3',
+              isDir: false,
+              size: Int64(4500000),
+              modifiedAt: Int64(1725132000),
+              type: 'audio',
+              mimeType: 'audio/mpeg',
+            ),
+            DirEntry(
+              name: 'photo_with_hash.jpg',
+              path: 'photo_with_hash.jpg',
+              isDir: false,
+              size: Int64(2000000),
+              modifiedAt: Int64(1725133000),
+              type: 'photo',
+              mimeType: 'image/jpeg',
+              thumbnailUrl: '/api/thumb?path=photo_with_hash.jpg&s=256',
+              blurhash: validBlurHash,
+            ),
+          ],
+        );
+
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/trash') {
+            return http.Response.bytes(
+              mixedEntriesProto.writeToBuffer(),
+              200,
+              headers: {'content-type': 'application/x-protobuf'},
+            );
+          }
+          return http.Response(jsonEncode({'entries': []}), 200);
+        });
+
+        final trashController = TrashBrowserController(
+          serverId: 'srv',
           baseUrl: 'http://localhost:7777',
-          authMode: 'login',
-          lastUsedAt: DateTime.now().toUtc(),
-          syncPrefs: const {},
-        ),
-        serverId: 'srv',
-        authService: AuthService(secretStore: store),
-        client: client,
-      );
+          authService: AuthService(secretStore: store),
+          client: client,
+        );
 
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-      expect(browserController.files.length, 3);
+        await trashController.reload();
+        expect(trashController.files.length, 4);
 
-      final folder = browserController.files.firstWhere((f) => f.name == 'FolderA');
-      expect(folder.blurhash, isNull);
+        final trashPhoto = trashController.files.firstWhere(
+          (f) => f.name == 'photo_with_hash.jpg',
+        );
+        expect(trashPhoto.blurhash, validBlurHash);
 
-      final doc = browserController.files.firstWhere((f) => f.name == 'data.csv');
-      expect(doc.blurhash, isNull);
+        final trashDoc = trashController.files.firstWhere(
+          (f) => f.name == 'notes.txt',
+        );
+        expect(trashDoc.blurhash, isNull);
 
-      final pic = browserController.files.firstWhere((f) => f.name == 'pic.webp');
-      expect(pic.blurhash, validBlurHash);
+        trashController.dispose();
+      },
+    );
 
-      browserController.disposeController();
-      browserController.dispose();
-    });
+    test(
+      'Non-image items safety across Directory controller with JSON response',
+      () async {
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv',
+          accessToken: 'token',
+          refreshToken: 'refresh',
+        );
+
+        final jsonPayload = {
+          'entries': [
+            {
+              'name': 'FolderA',
+              'path': 'FolderA',
+              'is_dir': true,
+              'size': 0,
+              'modified_at': 1725130000,
+              'type': 'folder',
+              'mime_type': 'inode/directory',
+            },
+            {
+              'name': 'data.csv',
+              'path': 'data.csv',
+              'is_dir': false,
+              'size': 1200,
+              'modified_at': 1725131000,
+              'type': 'document',
+              'mime_type': 'text/csv',
+              'thumbnail_url': null,
+            },
+            {
+              'name': 'pic.webp',
+              'path': 'pic.webp',
+              'is_dir': false,
+              'size': 50000,
+              'modified_at': 1725132000,
+              'type': 'photo',
+              'mime_type': 'image/webp',
+              'thumbnail_url': '/api/thumb?path=pic.webp&s=256',
+              'blurhash': validBlurHash,
+            },
+          ],
+        };
+
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/dir') {
+            return http.Response(
+              jsonEncode(jsonPayload),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (request.url.path == '/api/account/stats') {
+            return http.Response(jsonEncode({}), 200);
+          }
+          return http.Response(jsonEncode({'entries': []}), 200);
+        });
+
+        final browserController = ServerBrowserController(
+          profile: ServerProfile(
+            id: 'srv',
+            displayName: 'Test',
+            baseUrl: 'http://localhost:7777',
+            authMode: 'login',
+            lastUsedAt: DateTime.now().toUtc(),
+            syncPrefs: const {},
+          ),
+          serverId: 'srv',
+          authService: AuthService(secretStore: store),
+          client: client,
+        );
+
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(browserController.files.length, 3);
+
+        final folder = browserController.files.firstWhere(
+          (f) => f.name == 'FolderA',
+        );
+        expect(folder.blurhash, isNull);
+
+        final doc = browserController.files.firstWhere(
+          (f) => f.name == 'data.csv',
+        );
+        expect(doc.blurhash, isNull);
+
+        final pic = browserController.files.firstWhere(
+          (f) => f.name == 'pic.webp',
+        );
+        expect(pic.blurhash, validBlurHash);
+
+        browserController.disposeController();
+        browserController.dispose();
+      },
+    );
   });
 }
