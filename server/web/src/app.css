@@ -378,7 +378,7 @@ body {
   text-align: right;
 }
 
-/* Modal Overlay */
+/* Modal Overlay & Dialog Cards */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -391,6 +391,26 @@ body {
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
+}
+
+.dialog-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  box-sizing: border-box;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
 }
 
 /* ==========================================================================

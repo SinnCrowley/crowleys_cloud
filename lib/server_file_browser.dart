@@ -450,6 +450,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Stack(
       children: [
         Column(
@@ -458,8 +459,6 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
               listenable: controller,
               builder: (context, _) => _ServerHeaderControls(
                 controller: controller,
-                showCreateFolder: controller.selectedType == 'all',
-                onCreateFolder: _createFolder,
               ),
             ),
             ListenableBuilder(
@@ -473,6 +472,27 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
               ),
             ),
           ],
+        ),
+        ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            final showCreateFolder =
+                !controller.isSelectionMode &&
+                controller.selectedType == 'all' &&
+                controller.scope != 'shared';
+            if (!showCreateFolder) return const SizedBox.shrink();
+            return Positioned(
+              right: 16,
+              bottom: 16,
+              child: FloatingActionButton(
+                onPressed: _createFolder,
+                backgroundColor: appAccent,
+                foregroundColor: Colors.black,
+                tooltip: l10n.newFolder,
+                child: const Icon(Icons.create_new_folder),
+              ),
+            );
+          },
         ),
         ListenableBuilder(
           listenable: controller,
@@ -785,13 +805,9 @@ class _ListItem extends StatelessWidget {
 class _ServerHeaderControls extends StatelessWidget {
   const _ServerHeaderControls({
     required this.controller,
-    required this.showCreateFolder,
-    required this.onCreateFolder,
   });
 
   final ServerBrowserController controller;
-  final bool showCreateFolder;
-  final Future<void> Function() onCreateFolder;
 
   @override
   Widget build(BuildContext context) {
@@ -807,16 +823,9 @@ class _ServerHeaderControls extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          if (showCreateFolder)
-            FilledButton.icon(
-              onPressed: onCreateFolder,
-              icon: const Icon(Icons.create_new_folder),
-              label: Text(l10n.newFolder),
-            ),
-          const Spacer(),
           Container(
             height: 40,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -825,6 +834,7 @@ class _ServerHeaderControls extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.sort, color: appSubtext, size: 20),
                 const SizedBox(width: 8),
@@ -876,7 +886,7 @@ class _ServerHeaderControls extends StatelessWidget {
               onPressed: () => unawaited(controller.toggleSortDirection()),
             ),
           ),
-          const SizedBox(width: 8),
+          const Spacer(),
           Container(
             height: 40,
             width: 40,
@@ -1290,25 +1300,39 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
               top: 8,
               bottom: 8,
             ),
-            child: Row(
-              children: [
-                FilledButton.icon(
-                  onPressed: _createFolder,
-                  icon: const Icon(Icons.create_new_folder),
-                  label: Text(l10n.newFolder),
-                ),
-                const Spacer(),
-                Container(
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: appSurface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.sort, color: appSubtext, size: 20),
-                      const SizedBox(width: 8),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final showNewFolder = widget.controller.scope != 'shared';
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (showNewFolder)
+                          FilledButton.icon(
+                            onPressed: _createFolder,
+                            icon: const Icon(Icons.create_new_folder),
+                            label: Text(l10n.newFolder),
+                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (showNewFolder) const SizedBox(width: 8),
+                            Container(
+                              height: 40,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: appSurface,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.sort, color: appSubtext, size: 20),
+                                  const SizedBox(width: 8),
                       DropdownButtonHideUnderline(
                         child: DropdownButton<ServerSortBy>(
                           value: _sortBy,
@@ -1338,31 +1362,36 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    color: appSurface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: IconButton(
-                    splashRadius: 20,
-                    icon: Icon(
-                      _sortAscending
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
-                      color: appSubtext,
+                        Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: appSurface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            splashRadius: 20,
+                            icon: Icon(
+                              _sortAscending
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward,
+                              color: appSubtext,
+                            ),
+                            onPressed: () {
+                              setState(() => _sortAscending = !_sortAscending);
+                              _applySorting();
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                    onPressed: () {
-                      setState(() => _sortAscending = !_sortAscending);
-                      _applySorting();
-                    },
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
+        ),
+      ),
           const SizedBox(height: 4),
           _buildBreadcrumb(context),
           const SizedBox(height: 8),

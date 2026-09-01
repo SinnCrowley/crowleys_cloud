@@ -636,7 +636,7 @@ void FileIndexService::setSharedFlag(std::int64_t ownerUserId,
   bool isDir = false;
   // 1. Check database first to see if it is indexed as a directory
   {
-    const char *dbSql = "SELECT type FROM file_index WHERE owner_user_id = ? AND scope = 'private' AND rel_path = ? LIMIT 1";
+    const char *dbSql = "SELECT type FROM file_index WHERE owner_user_id = ? AND scope = 'private' AND rel_path = ? AND is_deleted = 0 LIMIT 1";
     auto dbGuard = db_.getStatement(dbSql);
     auto *dbStmt = dbGuard.get();
     sqlite3_bind_int64(dbStmt, 1, ownerUserId);
@@ -648,8 +648,22 @@ void FileIndexService::setSharedFlag(std::int64_t ownerUserId,
       }
     }
   }
-  // 2. If not found/not directory in DB, check physical disk safely
-  if (!isDir) {
+  // 2. Check if there are any child entries in DB whose parent_path is normalized or starts with normalized/
+  if (!isDir && !normalized.empty()) {
+    const char *dirSql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = 'private' AND (parent_path = ? OR parent_path LIKE ? OR rel_path LIKE ?) AND is_deleted = 0 LIMIT 1";
+    auto dirGuard = db_.getStatement(dirSql);
+    auto *dirStmt = dirGuard.get();
+    sqlite3_bind_int64(dirStmt, 1, ownerUserId);
+    sqlite3_bind_text(dirStmt, 2, normalized.c_str(), -1, SQLITE_TRANSIENT);
+    const auto pattern = normalized + "/%";
+    sqlite3_bind_text(dirStmt, 3, pattern.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(dirStmt, 4, pattern.c_str(), -1, SQLITE_TRANSIENT);
+    if (sqlite3_step(dirStmt) == SQLITE_ROW) {
+      isDir = true;
+    }
+  }
+  // 3. If not found/not directory in DB, check physical disk safely
+  if (!isDir && !normalized.empty()) {
     std::error_code ec;
     const auto absolutePath = fileService_.resolvePath(ownerUserId, "user", StorageScope::Private, normalized, false);
     isDir = std::filesystem::is_directory(absolutePath, ec);
@@ -667,7 +681,7 @@ void FileIndexService::setSharedFlag(std::int64_t ownerUserId,
           "modified_at, uploaded_at, is_deleted, uploader_user_id, is_shared, is_explicit_shared) "
           "VALUES(?, 'private', ?, ?, ?, 'directory', 'inode/directory', 0, ?, ?, 0, ?, 1, 1) "
           "ON CONFLICT(owner_user_id, scope, rel_path) DO UPDATE SET "
-          "is_shared=1, is_explicit_shared=1, is_deleted=0";
+          "is_shared=1, is_explicit_shared=1, is_deleted=0, type='directory'";
 
       auto stmtGuard = db_.getStatement(sql);
       auto *stmt = stmtGuard.get();
@@ -685,11 +699,13 @@ void FileIndexService::setSharedFlag(std::int64_t ownerUserId,
       const auto pattern = normalized + "/%";
       const char *updSql =
           "UPDATE file_index SET is_shared = 1 "
-          "WHERE owner_user_id = ? AND scope = 'private' AND rel_path LIKE ?";
+          "WHERE owner_user_id = ? AND scope = 'private' AND (rel_path LIKE ? OR parent_path = ? OR parent_path LIKE ?)";
       auto updGuard = db_.getStatement(updSql);
       auto *updStmt = updGuard.get();
       sqlite3_bind_int64(updStmt, 1, ownerUserId);
       sqlite3_bind_text(updStmt, 2, pattern.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(updStmt, 3, normalized.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(updStmt, 4, pattern.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_step(updStmt);
     } else {
       // It's a file
@@ -709,12 +725,14 @@ void FileIndexService::setSharedFlag(std::int64_t ownerUserId,
       const auto pattern = normalized + "/%";
       const char *sql =
           "UPDATE file_index SET is_shared = 0, is_explicit_shared = 0 "
-          "WHERE owner_user_id = ? AND scope = 'private' AND (rel_path = ? OR rel_path LIKE ?)";
+          "WHERE owner_user_id = ? AND scope = 'private' AND (rel_path = ? OR rel_path LIKE ? OR parent_path = ? OR parent_path LIKE ?)";
       auto stmtGuard = db_.getStatement(sql);
       auto *stmt = stmtGuard.get();
       sqlite3_bind_int64(stmt, 1, ownerUserId);
       sqlite3_bind_text(stmt, 2, normalized.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_bind_text(stmt, 3, pattern.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(stmt, 4, normalized.c_str(), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(stmt, 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_step(stmt);
     } else {
       // Unsharing a file only affects the file itself

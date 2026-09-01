@@ -178,12 +178,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     {/if}
 
     <div class="picker-footer">
-      <button
-        class="btn btn-secondary"
-        on:click={() => (showNewFolderInput = !showNewFolderInput)}
-      >
-        + {$t('context_menu.new_folder')}
-      </button>
+      {#if scope !== 'shared'}
+        <button
+          class="btn btn-secondary"
+          on:click={() => (showNewFolderInput = !showNewFolderInput)}
+        >
+          + {$t('context_menu.new_folder')}
+        </button>
+      {/if}
 
       <div class="footer-actions">
         <button class="btn btn-secondary" on:click={handleClose}>{$t('common.cancel')}</button>

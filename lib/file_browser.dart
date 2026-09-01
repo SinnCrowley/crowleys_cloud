@@ -381,6 +381,7 @@ class _FileBrowserScreenState extends State<FileBrowser> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Stack(
       children: [
         Column(
@@ -389,8 +390,6 @@ class _FileBrowserScreenState extends State<FileBrowser> {
               listenable: _controller,
               builder: (context, _) => _HeaderControls(
                 controller: _controller,
-                showCreateFolder: widget.category.name == 'All files',
-                onCreateFolder: _createFolder,
               ),
             ),
             ListenableBuilder(
@@ -414,6 +413,26 @@ class _FileBrowserScreenState extends State<FileBrowser> {
         ListenableBuilder(
           listenable: _controller,
           builder: (context, _) {
+            final showCreateFolder =
+                !_controller.isSelectionMode &&
+                widget.category.name == 'All files';
+            if (!showCreateFolder) return const SizedBox.shrink();
+            return Positioned(
+              right: 16,
+              bottom: 16,
+              child: FloatingActionButton(
+                onPressed: _createFolder,
+                backgroundColor: appAccent,
+                foregroundColor: Colors.black,
+                tooltip: l10n.newFolder,
+                child: const Icon(Icons.create_new_folder),
+              ),
+            );
+          },
+        ),
+        ListenableBuilder(
+          listenable: _controller,
+          builder: (context, _) {
             if (!_controller.isSelectionMode) return const SizedBox.shrink();
             return _SelectionActionBar(
               onUpload: () => _uploadItems(_controller.selectedFiles.toList()),
@@ -433,13 +452,9 @@ class _FileBrowserScreenState extends State<FileBrowser> {
 
 class _HeaderControls extends StatelessWidget {
   final FileBrowserController controller;
-  final bool showCreateFolder;
-  final Future<void> Function() onCreateFolder;
 
   const _HeaderControls({
     required this.controller,
-    required this.showCreateFolder,
-    required this.onCreateFolder,
   });
 
   @override
@@ -456,16 +471,9 @@ class _HeaderControls extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          if (showCreateFolder)
-            FilledButton.icon(
-              onPressed: onCreateFolder,
-              icon: const Icon(Icons.create_new_folder),
-              label: Text(l10n.newFolder),
-            ),
-          const Spacer(),
           Container(
             height: 40,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -474,6 +482,7 @@ class _HeaderControls extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.sort, color: appSubtext, size: 20),
                 const SizedBox(width: 8),

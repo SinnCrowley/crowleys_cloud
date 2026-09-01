@@ -161,9 +161,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     <button class="menu-item text-body" on:click={() => handleAction('refresh')}>
       <span class="material-symbols-outlined item-icon">refresh</span> {$t('common.refresh')}
     </button>
-    <button class="menu-item text-body" on:click={() => handleAction('newFolder')}>
-      <span class="material-symbols-outlined item-icon">create_new_folder</span> {$t('context_menu.new_folder')}
-    </button>
+    {#if currentScope !== 'shared'}
+      <button class="menu-item text-body" on:click={() => handleAction('newFolder')}>
+        <span class="material-symbols-outlined item-icon">create_new_folder</span> {$t('context_menu.new_folder')}
+      </button>
+    {/if}
   {/if}
 </div>
 

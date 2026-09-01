@@ -820,14 +820,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       {/if}
 
       <!-- Extended FAB for Folder Creation in bottom-right corner -->
-      <button
-        class="floating-action-btn"
-        title={$t('modals.create_folder.title')}
-        on:click={openNewFolderModal}
-      >
-        <span class="material-symbols-outlined" style="margin-right: 8px;">create_new_folder</span>
-        <span>{$t('files.create_new_folder')}</span>
-      </button>
+      {#if $scope !== 'shared'}
+        <button
+          class="floating-action-btn"
+          title={$t('modals.create_folder.title')}
+          on:click={openNewFolderModal}
+        >
+          <span class="material-symbols-outlined" style="margin-right: 8px;">create_new_folder</span>
+          <span>{$t('files.create_new_folder')}</span>
+        </button>
+      {/if}
 
       <main class="main-content">
         {#if $error}
