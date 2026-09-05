@@ -16,6 +16,7 @@
 #include "server/db/Database.hpp"
 #include "server/services/FileIndexService.hpp"
 #include "server/services/FileService.hpp"
+#include "server/services/ThumbnailQueue.hpp"
 #include "server/utils/Crypto.hpp"
 #include "dir_entry.pb.h"
 
@@ -243,6 +244,128 @@ static void testProtobufSerialization() {
   std::cout << "  [PASS] Protobuf serialization test passed." << std::endl;
 }
 
+static void testSharedDirectoryPropagation() {
+  std::cout << "[TEST] Running shared directory dynamic propagation test..." << std::endl;
+  auto dbPath = createTempDbPath();
+  {
+    db::Database db(dbPath.string());
+    db.migrate();
+
+    utils::Config config;
+    FileService fileService(config);
+    FileIndexService indexService(db, fileService);
+
+    const std::int64_t userId = 100;
+
+    // 1. Create 'shared_docs' folder and mark it as explicitly shared
+    indexService.upsertFileExplicit(
+        userId,
+        StorageScope::Private,
+        "shared_docs",
+        "shared_docs",
+        0,
+        1725135900,
+        "directory",
+        "inode/directory",
+        userId,
+        "");
+    indexService.setSharedFlag(userId, "shared_docs", true);
+    assert(indexService.isAncestorShared(userId, "shared_docs/subfolder/file.pdf"));
+
+    // 2. Upload/Sync a new file into the shared folder
+    indexService.upsertFileExplicit(
+        userId,
+        StorageScope::Private,
+        "shared_docs/report.pdf",
+        "report.pdf",
+        5000,
+        1725136000,
+        "document",
+        "application/pdf",
+        userId,
+        "sha256_report_1");
+
+    auto foundReport = indexService.findFileByHash(userId, StorageScope::Private, "sha256_report_1");
+    assert(foundReport.has_value());
+    assert(foundReport->isShared == true);
+
+    // 3. Sync/upload a nested file into a subfolder of the shared folder
+    indexService.upsertFileExplicit(
+        userId,
+        StorageScope::Private,
+        "shared_docs/subfolder/nested.png",
+        "nested.png",
+        12000,
+        1725136100,
+        "photo",
+        "image/png",
+        userId,
+        "sha256_nested_1");
+
+    auto foundNested = indexService.findFileByHash(userId, StorageScope::Private, "sha256_nested_1");
+    assert(foundNested.has_value());
+    assert(foundNested->isShared == true);
+
+    // 4. File in a non-shared folder
+    indexService.upsertFileExplicit(
+        userId,
+        StorageScope::Private,
+        "private_docs/secret.pdf",
+        "secret.pdf",
+        3000,
+        1725136200,
+        "document",
+        "application/pdf",
+        userId,
+        "sha256_secret_1");
+
+    auto foundSecret = indexService.findFileByHash(userId, StorageScope::Private, "sha256_secret_1");
+    assert(foundSecret.has_value());
+    assert(foundSecret->isShared == false);
+
+    // 5. Deleting a shared file removes its shared status
+    indexService.markDeleted(userId, StorageScope::Private, "shared_docs/report.pdf");
+    auto query = ListIndexQuery{
+        .ownerUserId = 0,
+        .scope = StorageScope::Shared,
+        .currentPath = "",
+        .filterType = "all",
+        .query = "",
+        .sortBy = "name",
+        .sortAscending = true,
+        .includeDirs = false,
+        .recursiveFiles = true,
+    };
+    auto sharedFiles = indexService.listDirectory(query);
+    bool foundDeletedInShared = false;
+    for (const auto &item : sharedFiles) {
+      if (item.path == "shared_docs/report.pdf") foundDeletedInShared = true;
+    }
+    assert(!foundDeletedInShared);
+
+    // 6. Test getSharedFileOwner for nested shared files
+    auto ownerNested = indexService.getSharedFileOwner("shared_docs/subfolder/nested.png");
+    assert(ownerNested.has_value());
+    assert(*ownerNested == userId);
+
+    // 7. Test findFileByHash in Shared scope
+    auto sharedFound = indexService.findFileByHash(0, StorageScope::Shared, "sha256_nested_1");
+    assert(sharedFound.has_value());
+    assert(sharedFound->uploaderUserId == userId);
+    assert(sharedFound->name == "nested.png");
+
+    // 8. Test that private and shared thumbnail keys match exactly
+    const int thumbSize = 256;
+    const auto privateKey = services::ThumbnailTask::makeKey(userId, "sha256_nested_1", thumbSize);
+    const auto sharedOwnerId = *ownerNested;
+    const auto sharedKey = services::ThumbnailTask::makeKey(sharedOwnerId, "sha256_nested_1", thumbSize);
+    assert(privateKey == sharedKey);
+  }
+
+  std::filesystem::remove_all(dbPath.parent_path());
+  std::cout << "  [PASS] Shared directory dynamic propagation passed." << std::endl;
+}
+
 int main() {
   std::cout << "========================================" << std::endl;
   std::cout << "   FileIndex BlurHash & Migration Test  " << std::endl;
@@ -252,9 +375,10 @@ int main() {
   testLegacyDatabaseDynamicMigration();
   testFileIndexBlurHashOperations();
   testProtobufSerialization();
+  testSharedDirectoryPropagation();
 
   std::cout << "========================================" << std::endl;
-  std::cout << " [ALL PASS] All FileIndex BlurHash tests passed!" << std::endl;
+  std::cout << " [ALL PASS] All FileIndex BlurHash & Sharing tests passed!" << std::endl;
   std::cout << "========================================" << std::endl;
   return 0;
 }

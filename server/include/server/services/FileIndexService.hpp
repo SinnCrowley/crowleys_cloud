@@ -148,12 +148,12 @@ class FileIndexService {
                             StorageScope scope,
                             const std::filesystem::path &rootPath);
 
+  bool isAncestorShared(std::int64_t ownerUserId, const std::string &relPath) const;
+
   static std::string scopeToString(StorageScope scope);
   static std::string normalizeRelPath(const std::string &rawPath);
 
  private:
-  bool isAncestorShared(std::int64_t ownerUserId, const std::string &relPath) const;
-
   db::Database &db_;
   const FileService &fileService_;
 };

@@ -23,7 +23,8 @@ set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 # Fetch and configure Drogon C++ Web Framework (v1.9.13)
 FetchContent_Declare(
   drogon
-  SOURCE_DIR "/tmp/drogon_source"
+  GIT_REPOSITORY https://github.com/drogonframework/drogon.git
+  GIT_TAG v1.9.13
 )
 FetchContent_MakeAvailable(drogon)
 

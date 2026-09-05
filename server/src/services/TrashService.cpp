@@ -496,6 +496,18 @@ void TrashService::restoreFromTrash(std::int64_t userId, const std::vector<std::
           sqlite3_bind_text(updStmt, 4, pattern.c_str(), -1, SQLITE_TRANSIENT);
           sqlite3_step(updStmt);
         }
+
+        if (scope == StorageScope::Private && server::ctx().fileIndexService->isAncestorShared(ownerUserId, finalRelPath)) {
+          auto sharedGuard = db_.getStatement(
+              "UPDATE file_index SET is_shared = 1 "
+              "WHERE owner_user_id = ? AND scope = 'private' AND (rel_path = ? OR rel_path LIKE ?)");
+          auto *sharedStmt = sharedGuard.get();
+          sqlite3_bind_int64(sharedStmt, 1, ownerUserId);
+          sqlite3_bind_text(sharedStmt, 2, finalRelPath.c_str(), -1, SQLITE_TRANSIENT);
+          const auto pattern = finalRelPath + "/%";
+          sqlite3_bind_text(sharedStmt, 3, pattern.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_step(sharedStmt);
+        }
       } else {
         server::ctx().fileIndexService->upsertFileExplicit(
             ownerUserId, scope, finalRelPath, finalName, size, now, type, mimeType, uploaderUserId, sha256Val);

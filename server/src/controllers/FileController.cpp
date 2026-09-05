@@ -404,13 +404,15 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         fileOwnerId = *ownerId;
       }
 
+      // Files in file_index are indexed under 'private' scope for their owner
+      const auto queryScopeStr = (*scope == services::StorageScope::Shared) ? "private" : services::FileIndexService::scopeToString(*scope);
+
       if (hashFiles) {
         const char *idxSql = "SELECT sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1";
         auto idxGuard = server::ctx().database->getStatement(idxSql);
         auto *idxStmt = idxGuard.get();
         sqlite3_bind_int64(idxStmt, 1, fileOwnerId);
-        const auto scopeStr = services::FileIndexService::scopeToString(*scope);
-        sqlite3_bind_text(idxStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(idxStmt, 2, queryScopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(idxStmt, 3, normalizedPath.c_str(), -1, SQLITE_TRANSIENT);
         if (sqlite3_step(idxStmt) == SQLITE_ROW) {
           const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
@@ -422,8 +424,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
         auto idxGuard = server::ctx().database->getStatement(idxSql);
         auto *idxStmt = idxGuard.get();
         sqlite3_bind_int64(idxStmt, 1, fileOwnerId);
-        const auto scopeStr = services::FileIndexService::scopeToString(*scope);
-        sqlite3_bind_text(idxStmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(idxStmt, 2, queryScopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(idxStmt, 3, normalizedPath.c_str(), -1, SQLITE_TRANSIENT);
         if (sqlite3_step(idxStmt) == SQLITE_ROW) {
           const auto shaValRaw = reinterpret_cast<const char *>(sqlite3_column_text(idxStmt, 0));
@@ -471,8 +472,10 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
       return;
     }
 
-    const auto key = std::to_string(cacheUserId) + ":" + source.generic_string() + ":" + std::to_string(thumbSize);
-    const auto thumbRoot = std::filesystem::path(server::ctx().config.storageRoot) / ".thumbs" / std::to_string(cacheUserId);
+    const auto effectiveId = (cacheUserId > 0) ? cacheUserId : userId;
+    const auto identifier = sha256Val.empty() ? source.generic_string() : sha256Val;
+    const auto key = services::ThumbnailTask::makeKey(effectiveId, identifier, thumbSize);
+    const auto thumbRoot = std::filesystem::path(server::ctx().config.storageRoot) / ".thumbs" / std::to_string(effectiveId);
     std::filesystem::create_directories(thumbRoot);
     const auto thumbPathBase = thumbRoot / std::to_string(std::hash<std::string>{}(key));
     const auto thumbPathWebp = std::filesystem::path(thumbPathBase.string() + ".webp");
@@ -508,8 +511,8 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     // 3. Enqueue background thumbnail generation via AppContext thumbnailQueue
     if (server::ctx().thumbnailQueue) {
       server::ctx().thumbnailQueue->scheduleThumbnail(
-          cacheUserId,
-          cacheUserId,
+          effectiveId,
+          effectiveId,
           activeScope,
           virtualPath.generic_string(),
           source,
@@ -603,12 +606,13 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
           fileOwnerId = *ownerId;
         }
 
+        const auto queryScopeStr = (*scope == services::StorageScope::Shared) ? "private" : services::FileIndexService::scopeToString(*scope);
+
         const char *sql = "SELECT sha256, mime_type, name FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1";
         auto stmtGuard = server::ctx().database->getStatement(sql);
         auto *stmt = stmtGuard.get();
         sqlite3_bind_int64(stmt, 1, fileOwnerId);
-        const auto scopeStr = services::FileIndexService::scopeToString(*scope);
-        sqlite3_bind_text(stmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, queryScopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 3, normalizedPath.c_str(), -1, SQLITE_TRANSIENT);
 
         if (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -802,20 +806,34 @@ void FileController::downloadZip(const drogon::HttpRequestPtr &req,
     const bool hashFiles = server::ctx().config.hashFiles;
     if (hashFiles) {
       db::Database::StatementGuard stmtGuard;
-      if (targetRelPath.empty()) {
-        const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND type != 'directory' AND is_deleted = 0";
-        stmtGuard = server::ctx().database->getStatement(sql);
-        sqlite3_bind_int64(stmtGuard.get(), 1, queryOwnerUserId);
-        sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+      if (*scopeOpt == services::StorageScope::Shared) {
+        if (targetRelPath.empty()) {
+          const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE is_shared = 1 AND type != 'directory' AND is_deleted = 0";
+          stmtGuard = server::ctx().database->getStatement(sql);
+        } else {
+          const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE is_shared = 1 AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND type != 'directory' AND is_deleted = 0";
+          stmtGuard = server::ctx().database->getStatement(sql);
+          sqlite3_bind_text(stmtGuard.get(), 1, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_text(stmtGuard.get(), 2, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+          const auto pattern = targetRelPath + "/%";
+          sqlite3_bind_text(stmtGuard.get(), 3, pattern.c_str(), -1, SQLITE_TRANSIENT);
+        }
       } else {
-        const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND type != 'directory' AND is_deleted = 0";
-        stmtGuard = server::ctx().database->getStatement(sql);
-        sqlite3_bind_int64(stmtGuard.get(), 1, queryOwnerUserId);
-        sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmtGuard.get(), 3, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmtGuard.get(), 4, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
-        const auto pattern = targetRelPath + "/%";
-        sqlite3_bind_text(stmtGuard.get(), 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
+        if (targetRelPath.empty()) {
+          const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND type != 'directory' AND is_deleted = 0";
+          stmtGuard = server::ctx().database->getStatement(sql);
+          sqlite3_bind_int64(stmtGuard.get(), 1, userId);
+          sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        } else {
+          const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND type != 'directory' AND is_deleted = 0";
+          stmtGuard = server::ctx().database->getStatement(sql);
+          sqlite3_bind_int64(stmtGuard.get(), 1, userId);
+          sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_text(stmtGuard.get(), 3, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+          sqlite3_bind_text(stmtGuard.get(), 4, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
+          const auto pattern = targetRelPath + "/%";
+          sqlite3_bind_text(stmtGuard.get(), 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
+        }
       }
 
       auto *stmt = stmtGuard.get();
@@ -1415,6 +1433,32 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
       if (sqlite3_step(stmtGuard.get()) != SQLITE_DONE) {
         callback(jsonError(drogon::k500InternalServerError, "Failed to update file index"));
         return;
+      }
+
+      // Propagate shared status based on destination ancestor
+      const bool destParentShared = (*scope == services::StorageScope::Private &&
+          server::ctx().fileIndexService->isAncestorShared(ownerUserId, dest));
+
+      if (destParentShared) {
+        const std::string destPrefixPattern = dest + "/%";
+        auto sharedUpd = server::ctx().database->getStatement(
+            "UPDATE file_index SET is_shared = 1 "
+            "WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND is_deleted = 0");
+        sqlite3_bind_int64(sharedUpd.get(), 1, ownerUserId);
+        sqlite3_bind_text(sharedUpd.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(sharedUpd.get(), 3, dest.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(sharedUpd.get(), 4, destPrefixPattern.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_step(sharedUpd.get());
+      } else {
+        const std::string destPrefixPattern = dest + "/%";
+        auto unsharedUpd = server::ctx().database->getStatement(
+            "UPDATE file_index SET is_shared = 0 "
+            "WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND is_explicit_shared = 0 AND is_deleted = 0");
+        sqlite3_bind_int64(unsharedUpd.get(), 1, ownerUserId);
+        sqlite3_bind_text(unsharedUpd.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(unsharedUpd.get(), 3, dest.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(unsharedUpd.get(), 4, destPrefixPattern.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_step(unsharedUpd.get());
       }
     } else {
       // Direct filesystem mode

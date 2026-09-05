@@ -347,6 +347,15 @@ void ThumbnailQueue::processTask(const ThumbnailTask &task) {
     return;
   }
 
+  std::error_code ecDest, ecSrc;
+  if (std::filesystem::exists(task.destWebpPath, ecDest) && !ecDest) {
+    const auto destMtime = std::filesystem::last_write_time(task.destWebpPath, ecDest);
+    const auto srcMtime = std::filesystem::last_write_time(task.sourcePath, ecSrc);
+    if (!ecDest && !ecSrc && destMtime >= srcMtime && std::filesystem::file_size(task.destWebpPath, ecDest) > 0) {
+      return;
+    }
+  }
+
   if (task.fileType == "photo") {
     std::string blurHash;
     bool success = false;
