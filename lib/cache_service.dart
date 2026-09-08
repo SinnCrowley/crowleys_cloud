@@ -14,17 +14,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crowleys_cloud/server_file_item.dart';
+import 'package:crowleys_cloud/storage/app_database.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-/// Multi-tier caching engine managing RAM LRU thumbnail bytes (500 items max),
+/// Multi-tier caching engine managing RAM LRU thumbnail bytes (byte-bounded),
 /// disk directory metadata JSON cache, disk thumbnail images, debounced manifest disk flushes (500ms),
 /// and total cache size eviction policies.
 class CacheService {
@@ -44,19 +47,33 @@ class CacheService {
   final Map<String, Future<Uint8List?>> _thumbnailInFlight = {};
   final Set<String> _localThumbnailDirs = {};
 
+  static const int defaultMaxMemoryThumbnailBytes = 48 * 1024 * 1024; // 48 MB
+  static const int hardMaxMemoryThumbnailBytes = 50 * 1024 * 1024; // 50 MB
+
   /// In-memory LRU cache for decoded thumbnail bytes (local & remote)
   /// to eliminate redundant disk reads and future recreation during scrolling.
-  final Map<String, Uint8List> _memoryThumbnailCache = {};
-  final List<String> _memoryThumbnailOrder = [];
+  final LinkedHashMap<String, Uint8List> _memoryThumbnailCache =
+      LinkedHashMap<String, Uint8List>();
   final Map<String, String> _filePathToMemoryKey = {};
-  static const int _maxMemoryThumbnailCount = 500;
+  final Map<String, String> _memoryKeyToFilePath = {};
+
+  int _currentMemoryThumbnailBytes = 0;
+  int _maxMemoryThumbnailBytes = defaultMaxMemoryThumbnailBytes;
+
+  int get currentMemoryThumbnailBytes => _currentMemoryThumbnailBytes;
+  int get maxMemoryThumbnailBytes => _maxMemoryThumbnailBytes;
+  int get memoryThumbnailCount => _memoryThumbnailCache.length;
+
+  void setMaxMemoryThumbnailBytes(int bytes) {
+    _maxMemoryThumbnailBytes = bytes.clamp(0, hardMaxMemoryThumbnailBytes);
+    _evictMemoryThumbnailsIfNeeded();
+  }
 
   /// Returns cached thumbnail bytes from RAM synchronously if available.
   Uint8List? getMemoryThumbnail(String key) {
-    final cached = _memoryThumbnailCache[key];
+    final cached = _memoryThumbnailCache.remove(key);
     if (cached != null) {
-      _memoryThumbnailOrder.remove(key);
-      _memoryThumbnailOrder.add(key);
+      _memoryThumbnailCache[key] = cached;
       return cached;
     }
     return null;
@@ -64,17 +81,50 @@ class CacheService {
 
   /// Saves thumbnail bytes in RAM cache with LRU eviction and optional file path mapping.
   void putMemoryThumbnail(String key, Uint8List bytes, {String? filePath}) {
-    if (_memoryThumbnailCache.containsKey(key)) {
-      _memoryThumbnailOrder.remove(key);
-    } else if (_memoryThumbnailOrder.length >= _maxMemoryThumbnailCount) {
-      final oldest = _memoryThumbnailOrder.removeAt(0);
-      _memoryThumbnailCache.remove(oldest);
-      _filePathToMemoryKey.removeWhere((_, v) => v == oldest);
+    final entryBytes = bytes.lengthInBytes;
+    if (entryBytes > _maxMemoryThumbnailBytes) {
+      // Entry exceeds maximum capacity, bypass L1 cache
+      return;
     }
-    _memoryThumbnailCache[key] = bytes;
-    _memoryThumbnailOrder.add(key);
+
+    final existing = _memoryThumbnailCache.remove(key);
+    if (existing != null) {
+      _currentMemoryThumbnailBytes -= existing.lengthInBytes;
+    }
+
+    final oldPath = _memoryKeyToFilePath[key];
+    if (oldPath != null && oldPath != filePath) {
+      _filePathToMemoryKey.remove(oldPath);
+      _memoryKeyToFilePath.remove(key);
+    }
+
     if (filePath != null) {
+      final oldKey = _filePathToMemoryKey[filePath];
+      if (oldKey != null && oldKey != key) {
+        _memoryKeyToFilePath.remove(oldKey);
+      }
       _filePathToMemoryKey[filePath] = key;
+      _memoryKeyToFilePath[key] = filePath;
+    }
+
+    _memoryThumbnailCache[key] = bytes;
+    _currentMemoryThumbnailBytes += entryBytes;
+
+    _evictMemoryThumbnailsIfNeeded();
+  }
+
+  void _evictMemoryThumbnailsIfNeeded() {
+    while (_currentMemoryThumbnailBytes > _maxMemoryThumbnailBytes &&
+        _memoryThumbnailCache.isNotEmpty) {
+      final oldestKey = _memoryThumbnailCache.keys.first;
+      final evicted = _memoryThumbnailCache.remove(oldestKey);
+      if (evicted != null) {
+        _currentMemoryThumbnailBytes -= evicted.lengthInBytes;
+      }
+      final associatedPath = _memoryKeyToFilePath.remove(oldestKey);
+      if (associatedPath != null) {
+        _filePathToMemoryKey.remove(associatedPath);
+      }
     }
   }
 
@@ -82,9 +132,20 @@ class CacheService {
   void invalidateMemoryThumbnailForPath(String filePath) {
     final key = _filePathToMemoryKey.remove(filePath);
     if (key != null) {
-      _memoryThumbnailCache.remove(key);
-      _memoryThumbnailOrder.remove(key);
+      _memoryKeyToFilePath.remove(key);
+      final evicted = _memoryThumbnailCache.remove(key);
+      if (evicted != null) {
+        _currentMemoryThumbnailBytes -= evicted.lengthInBytes;
+      }
     }
+  }
+
+  /// Clears all in-memory thumbnails and path mappings.
+  void clearMemoryThumbnails() {
+    _memoryThumbnailCache.clear();
+    _filePathToMemoryKey.clear();
+    _memoryKeyToFilePath.clear();
+    _currentMemoryThumbnailBytes = 0;
   }
 
   /// Unified entry point for thumbnail requests with in-memory caching and deduplication.
@@ -112,11 +173,16 @@ class CacheService {
   Directory? _remoteThumbnailDir;
   File? _manifestFile;
   SharedPreferences? _prefs;
+  AppDatabase? _database;
   bool _isReady = false;
-  bool _manifestDirty = false;
-  Timer? _manifestFlushTimer;
 
   bool get isReady => _isReady;
+
+  AppDatabase? get database => _database;
+
+  Future<Database> _getDb() async {
+    return (_database ?? AppDatabase.instance).database;
+  }
 
   void registerLocalThumbnailDirectory(Directory directory) {
     _localThumbnailDirs.add(directory.path);
@@ -127,19 +193,10 @@ class CacheService {
     Directory? supportDir,
     Directory? tempDir,
     SharedPreferences? prefs,
+    AppDatabase? database,
   }) async {
-    // Flush dirty manifest before re-initialization if already initialized
-    if (_manifestDirty && _manifestFile != null) {
-      await flushManifest(immediate: true);
-    }
-    _manifestFlushTimer?.cancel();
-    _manifestFlushTimer = null;
-    _cachedManifestEntries = null;
-    _manifestDirty = false;
     _isReady = false;
-    _memoryThumbnailCache.clear();
-    _memoryThumbnailOrder.clear();
-    _filePathToMemoryKey.clear();
+    clearMemoryThumbnails();
 
     _prefs = prefs ?? await SharedPreferences.getInstance();
     await _ensureDefaultPreferences(_prefs!);
@@ -156,47 +213,107 @@ class CacheService {
     await _metadataDir!.create(recursive: true);
     await _remoteThumbnailDir!.create(recursive: true);
     await _manifestFile!.parent.create(recursive: true);
-    await _manifestEntries();
+
+    if (database != null) {
+      _database = database;
+    } else if (supportDir != null) {
+      _database = AppDatabase(
+        customPath: p.join(root.path, 'crowleys_cloud_cache.db'),
+      );
+    } else {
+      _database = AppDatabase.instance;
+    }
+
+    await _initManifestAndDatabase();
     _isReady = true;
   }
 
-  void _scheduleManifestFlush() {
-    _manifestFlushTimer ??= Timer(const Duration(milliseconds: 500), () {
-      _manifestFlushTimer = null;
-      unawaited(flushManifest(immediate: true));
-    });
+  Future<void> _initManifestAndDatabase() async {
+    final db = await _getDb();
+    final file = _manifestFile;
+    if (file == null || !await file.exists()) return;
+
+    try {
+      final raw = await file.readAsString();
+      if (raw.trim().isEmpty) return;
+
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, Object?> && decoded['entries'] is List) {
+        final entriesList = decoded['entries'] as List;
+        final batch = db.batch();
+        for (final item in entriesList) {
+          if (item is! Map) continue;
+          final entry = _CacheManifestEntry.fromJson(
+            Map<String, Object?>.from(item),
+          );
+          batch.rawInsert(
+            '''
+            INSERT INTO cache_entries (
+              path, server_id, kind, size, created_at, updated_at, last_access, etag
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(path) DO UPDATE SET
+              size = excluded.size,
+              updated_at = excluded.updated_at,
+              last_access = excluded.last_access,
+              etag = COALESCE(excluded.etag, cache_entries.etag)
+            ''',
+            [
+              entry.path,
+              entry.serverId,
+              entry.kind.value,
+              entry.size,
+              entry.createdAt.toIso8601String(),
+              entry.updatedAt.toIso8601String(),
+              entry.lastAccess.toIso8601String(),
+              entry.etag,
+            ],
+          );
+        }
+        await batch.commit(noResult: true);
+      } else {
+        await _rebuildManifest();
+        await flushManifest(immediate: true);
+      }
+    } catch (_) {
+      await _rebuildManifest();
+      await flushManifest(immediate: true);
+    }
   }
 
   Future<void> flushManifest({bool immediate = false}) async {
-    if (!immediate) {
-      _scheduleManifestFlush();
-      return;
-    }
-    _manifestFlushTimer?.cancel();
-    _manifestFlushTimer = null;
-    if (!_manifestDirty) return;
-
     final file = _manifestFile;
     if (file == null) return;
     try {
-      final entries = _cachedManifestEntries ?? <_CacheManifestEntry>[];
+      final db = await _getDb();
+      final rows = await db.query('cache_entries');
+      final entries = rows
+          .map((r) {
+            return {
+              'path': r['path'],
+              'server_id': r['server_id'],
+              'kind': r['kind'],
+              'size': r['size'],
+              'created_at': DateTime.parse(
+                r['created_at'] as String,
+              ).millisecondsSinceEpoch,
+              'updated_at': DateTime.parse(
+                r['updated_at'] as String,
+              ).millisecondsSinceEpoch,
+              'last_access': DateTime.parse(
+                r['last_access'] as String,
+              ).millisecondsSinceEpoch,
+              if (r['etag'] != null) 'etag': r['etag'],
+            };
+          })
+          .toList(growable: false);
+
       await file.parent.create(recursive: true);
-      await file.writeAsString(
-        jsonEncode({
-          'entries': entries.map((e) => e.toJson()).toList(growable: false),
-        }),
-        flush: true,
-      );
-      _manifestDirty = false;
+      await file.writeAsString(jsonEncode({'entries': entries}), flush: true);
     } catch (_) {}
   }
 
   void dispose() {
-    _manifestFlushTimer?.cancel();
-    _manifestFlushTimer = null;
-    if (_manifestDirty) {
-      unawaited(flushManifest(immediate: true));
-    }
+    clearMemoryThumbnails();
   }
 
   Future<CachedDirectoryListing?> readDirectory({
@@ -295,10 +412,16 @@ class CacheService {
   }) async {
     if (!_isReady || _remoteThumbnailDir == null) return null;
     final file = _remoteThumbnailFile(serverId, cacheKey);
-    final entries = await _manifestEntries();
-    final idx = entries.indexWhere((e) => e.path == file.path);
-    if (idx >= 0) {
-      return entries[idx].etag;
+    final db = await _getDb();
+    final rows = await db.query(
+      'cache_entries',
+      columns: ['etag'],
+      where: 'path = ?',
+      whereArgs: [file.path],
+      limit: 1,
+    );
+    if (rows.isNotEmpty) {
+      return rows.first['etag'] as String?;
     }
     return null;
   }
@@ -327,11 +450,10 @@ class CacheService {
         final fileExists = await file.exists();
         String? storedEtag;
         if (fileExists) {
-          final entries = await _manifestEntries();
-          final idx = entries.indexWhere((e) => e.path == file.path);
-          if (idx >= 0) {
-            storedEtag = entries[idx].etag;
-          }
+          storedEtag = await getThumbnailEtag(
+            serverId: serverId,
+            cacheKey: cacheKey,
+          );
         }
 
         final dynamic rawResult = await _invokeFetch(fetch, storedEtag);
@@ -427,42 +549,59 @@ class CacheService {
     final maxBytes =
         _prefs?.getInt(thumbnailMaxBytesKey) ?? defaultThumbnailMaxBytes;
     if (maxBytes < 0) return;
-    final remoteEntries = await _manifestEntries(
-      kind: CacheKind.remoteThumbnail,
+
+    final db = await _getDb();
+    final remResult = await db.rawQuery(
+      "SELECT COALESCE(SUM(size), 0) as total FROM cache_entries WHERE kind = 'remote_thumbnail'",
     );
+    final remoteTotal = (remResult.first['total'] as num?)?.toInt() ?? 0;
     final localEntries = await _localThumbnailEntries();
-    final allEntries = [...remoteEntries, ...localEntries];
-    var total = allEntries.fold<int>(0, (sum, e) => sum + e.size);
+    var total =
+        remoteTotal + localEntries.fold<int>(0, (sum, e) => sum + e.size);
     if (total <= maxBytes) return;
 
-    allEntries.sort((a, b) => a.lastAccess.compareTo(b.lastAccess));
+    final candidateRows = await db.query(
+      'cache_entries',
+      columns: ['path', 'size', 'last_access'],
+      where: "kind = 'remote_thumbnail'",
+      orderBy: 'last_access ASC',
+    );
 
-    for (final entry in allEntries) {
+    final allCandidates = <({String path, int size, DateTime lastAccess})>[
+      for (final r in candidateRows)
+        (
+          path: r['path'] as String,
+          size: (r['size'] as num).toInt(),
+          lastAccess: DateTime.parse(r['last_access'] as String),
+        ),
+      for (final l in localEntries)
+        (path: l.path, size: l.size, lastAccess: l.lastAccess),
+    ];
+
+    allCandidates.sort((a, b) => a.lastAccess.compareTo(b.lastAccess));
+
+    for (final entry in allCandidates) {
       if (total <= maxBytes) break;
       final file = File(entry.path);
-      if (await file.exists()) {
-        await _deleteQuietly(file);
-      }
+      await _deleteQuietly(file);
       total -= entry.size;
     }
   }
 
   Future<int> cacheSizeBytes() async {
     if (!_isReady) return 0;
-    final entries = await _manifestEntries();
-    final manifestTotal = entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.size,
+    final db = await _getDb();
+    final result = await db.rawQuery(
+      'SELECT COALESCE(SUM(size), 0) as total FROM cache_entries',
     );
+    final manifestTotal = (result.first['total'] as num?)?.toInt() ?? 0;
     final localEntries = await _localThumbnailEntries();
     return manifestTotal +
         localEntries.fold<int>(0, (sum, entry) => sum + entry.size);
   }
 
   Future<void> clearAll() async {
-    _memoryThumbnailCache.clear();
-    _memoryThumbnailOrder.clear();
-    _filePathToMemoryKey.clear();
+    clearMemoryThumbnails();
     if (!_isReady) return;
     for (final root in [_metadataDir, _remoteThumbnailDir]) {
       if (root == null || !await root.exists()) continue;
@@ -476,7 +615,14 @@ class CacheService {
         if (entity is File) await _deleteQuietly(entity);
       }
     }
-    await _writeManifestEntries(const [], immediate: true);
+    final db = await _getDb();
+    await db.delete('cache_entries');
+    final manifest = _manifestFile;
+    if (manifest != null && await manifest.exists()) {
+      try {
+        await manifest.delete();
+      } catch (_) {}
+    }
   }
 
   Future<void> setThumbnailMaxBytes(int value) async {
@@ -522,53 +668,6 @@ class CacheService {
 
   String _hash(String value) => sha256.convert(utf8.encode(value)).toString();
 
-  List<_CacheManifestEntry>? _cachedManifestEntries;
-
-  Future<void> _writeManifestEntries(
-    List<_CacheManifestEntry> entries, {
-    bool immediate = false,
-  }) async {
-    _cachedManifestEntries = entries;
-    _manifestDirty = true;
-    if (immediate) {
-      await flushManifest(immediate: true);
-    } else {
-      _scheduleManifestFlush();
-    }
-  }
-
-  Future<List<_CacheManifestEntry>> _manifestEntries({CacheKind? kind}) async {
-    if (_cachedManifestEntries == null) {
-      final file = _manifestFile;
-      if (file == null || !await file.exists()) {
-        _cachedManifestEntries = <_CacheManifestEntry>[];
-      } else {
-        try {
-          final decoded = jsonDecode(await file.readAsString());
-          if (decoded is Map<String, Object?> && decoded['entries'] is List) {
-            _cachedManifestEntries = (decoded['entries'] as List)
-                .whereType<Map>()
-                .map(
-                  (e) => _CacheManifestEntry.fromJson(
-                    Map<String, Object?>.from(e),
-                  ),
-                )
-                .toList(growable: true);
-          } else {
-            _cachedManifestEntries = <_CacheManifestEntry>[];
-          }
-        } catch (_) {
-          await flushManifest(immediate: true);
-          await _rebuildManifest();
-        }
-      }
-    }
-
-    final entries = _cachedManifestEntries!;
-    if (kind == null) return List.from(entries);
-    return entries.where((e) => e.kind == kind).toList(growable: true);
-  }
-
   Future<void> _touch(
     File file,
     CacheKind kind,
@@ -577,62 +676,87 @@ class CacheService {
     String? etag,
   }) async {
     final now = DateTime.now().toUtc();
-    final entries = await _manifestEntries();
     final path = file.path;
-    final index = entries.indexWhere((e) => e.path == path);
-    if (index >= 0) {
-      final existing = entries[index];
-      final updatedEtag = etag ?? existing.etag;
-      // For read hits with unchanged etag, if the last access was less than 1 hour ago, update in memory only.
+    final db = await _getDb();
+
+    final existing = await db.query(
+      'cache_entries',
+      columns: ['last_access', 'etag'],
+      where: 'path = ?',
+      whereArgs: [path],
+      limit: 1,
+    );
+
+    if (existing.isNotEmpty) {
+      final row = existing.first;
+      final lastAccess = DateTime.parse(row['last_access'] as String);
+      final storedEtag = row['etag'] as String?;
+      final newEtag = etag ?? storedEtag;
+
       if (isRead &&
           etag == null &&
-          now.difference(existing.lastAccess) < const Duration(hours: 1)) {
-        entries[index] = existing.copyWith(lastAccess: now, updatedAt: now);
+          now.difference(lastAccess) < const Duration(hours: 1)) {
         return;
       }
-      entries[index] = existing.copyWith(
-        lastAccess: now,
-        updatedAt: now,
-        etag: updatedEtag,
+
+      await db.rawUpdate(
+        '''
+        UPDATE cache_entries 
+        SET last_access = ?, updated_at = ?, etag = ?
+        WHERE path = ?
+        ''',
+        [now.toIso8601String(), now.toIso8601String(), newEtag, path],
       );
     } else {
       final stat = await file.stat();
-      entries.add(
-        _CacheManifestEntry(
-          path: path,
-          serverId: serverId,
-          kind: kind,
-          size: stat.size,
-          createdAt: now,
-          updatedAt: now,
-          lastAccess: now,
-          etag: etag,
-        ),
+      await db.rawInsert(
+        '''
+        INSERT INTO cache_entries (
+          path, server_id, kind, size, created_at, updated_at, last_access, etag
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(path) DO UPDATE SET
+          size = excluded.size,
+          updated_at = excluded.updated_at,
+          last_access = excluded.last_access,
+          etag = COALESCE(excluded.etag, cache_entries.etag)
+        ''',
+        [
+          path,
+          serverId,
+          kind.value,
+          stat.size,
+          now.toIso8601String(),
+          now.toIso8601String(),
+          now.toIso8601String(),
+          etag,
+        ],
       );
     }
-    await _writeManifestEntries(entries);
   }
 
   Future<void> _removeManifestEntriesForServer(String serverId) async {
-    final entries = await _manifestEntries();
-    entries.removeWhere((e) => e.serverId == serverId);
-    await _writeManifestEntries(entries);
+    final db = await _getDb();
+    await db.delete(
+      'cache_entries',
+      where: 'server_id = ?',
+      whereArgs: [serverId],
+    );
   }
 
   Future<void> _evictExpiredMetadata() async {
     final retain = _metadataRetain;
-    final now = DateTime.now().toUtc();
-    final entries = await _manifestEntries();
-    final retained = <_CacheManifestEntry>[];
-    for (final entry in entries) {
-      if (entry.kind == CacheKind.metadata &&
-          now.difference(entry.lastAccess) > retain) {
-        await _deleteQuietly(File(entry.path));
-      } else {
-        retained.add(entry);
-      }
+    final cutoff = DateTime.now().toUtc().subtract(retain);
+    final db = await _getDb();
+    final expired = await db.query(
+      'cache_entries',
+      columns: ['path'],
+      where: "kind = 'metadata' AND last_access < ?",
+      whereArgs: [cutoff.toIso8601String()],
+    );
+    for (final row in expired) {
+      final path = row['path'] as String;
+      await _deleteQuietly(File(path));
     }
-    await _writeManifestEntries(retained);
   }
 
   Future<List<_CacheManifestEntry>> _localThumbnailEntries() async {
@@ -664,16 +788,21 @@ class CacheService {
       if (await file.exists()) await file.delete();
     } catch (_) {}
     invalidateMemoryThumbnailForPath(file.path);
-    final entries = await _manifestEntries();
-    final lenBefore = entries.length;
-    entries.removeWhere((e) => e.path == file.path);
-    if (entries.length != lenBefore) {
-      await _writeManifestEntries(entries);
-    }
+    try {
+      final db = await _getDb();
+      await db.delete(
+        'cache_entries',
+        where: 'path = ?',
+        whereArgs: [file.path],
+      );
+    } catch (_) {}
   }
 
   Future<void> _rebuildManifest() async {
-    final entries = <_CacheManifestEntry>[];
+    final db = await _getDb();
+    await db.delete('cache_entries');
+    final batch = db.batch();
+
     for (final tuple in [
       (_metadataDir, CacheKind.metadata),
       (_remoteThumbnailDir, CacheKind.remoteThumbnail),
@@ -686,20 +815,30 @@ class CacheService {
         final stat = await entity.stat();
         final segments = p.split(p.relative(entity.path, from: root.path));
         final serverId = segments.isEmpty ? '' : segments.first;
-        entries.add(
-          _CacheManifestEntry(
-            path: entity.path,
-            serverId: serverId,
-            kind: kind,
-            size: stat.size,
-            createdAt: stat.changed.toUtc(),
-            updatedAt: stat.modified.toUtc(),
-            lastAccess: stat.accessed.toUtc(),
-          ),
+        batch.rawInsert(
+          '''
+          INSERT INTO cache_entries (
+            path, server_id, kind, size, created_at, updated_at, last_access, etag
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(path) DO UPDATE SET
+            size = excluded.size,
+            updated_at = excluded.updated_at,
+            last_access = excluded.last_access
+          ''',
+          [
+            entity.path,
+            serverId,
+            kind.value,
+            stat.size,
+            stat.changed.toUtc().toIso8601String(),
+            stat.modified.toUtc().toIso8601String(),
+            stat.accessed.toUtc().toIso8601String(),
+            null,
+          ],
         );
       }
     }
-    await _writeManifestEntries(entries, immediate: true);
+    await batch.commit(noResult: true);
   }
 }
 

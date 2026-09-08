@@ -15,6 +15,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
@@ -386,5 +387,175 @@ void main() {
         expect(utf8.decode(fallback!), equals('cached_photo_bytes'));
       },
     );
+  });
+
+  group('Byte-Bounded Memory LRU Thumbnail Cache', () {
+    test('initializes with default max bytes and zero current bytes', () {
+      expect(
+        CacheService.instance.maxMemoryThumbnailBytes,
+        equals(CacheService.defaultMaxMemoryThumbnailBytes),
+      );
+      expect(CacheService.instance.currentMemoryThumbnailBytes, equals(0));
+      expect(CacheService.instance.memoryThumbnailCount, equals(0));
+    });
+
+    test('tracks memory thumbnail byte sizes accurately on put and update', () {
+      final bytesA = Uint8List(100);
+      final bytesB = Uint8List(250);
+      final bytesAUpdated = Uint8List(150);
+
+      CacheService.instance.putMemoryThumbnail('keyA', bytesA);
+      expect(CacheService.instance.currentMemoryThumbnailBytes, equals(100));
+      expect(CacheService.instance.memoryThumbnailCount, equals(1));
+
+      CacheService.instance.putMemoryThumbnail('keyB', bytesB);
+      expect(CacheService.instance.currentMemoryThumbnailBytes, equals(350));
+      expect(CacheService.instance.memoryThumbnailCount, equals(2));
+
+      // Overwriting keyA replaces the previous byte count
+      CacheService.instance.putMemoryThumbnail('keyA', bytesAUpdated);
+      expect(CacheService.instance.currentMemoryThumbnailBytes, equals(400));
+      expect(CacheService.instance.memoryThumbnailCount, equals(2));
+
+      // getMemoryThumbnail retrieves without changing byte count
+      final retrieved = CacheService.instance.getMemoryThumbnail('keyA');
+      expect(retrieved?.lengthInBytes, equals(150));
+      expect(CacheService.instance.currentMemoryThumbnailBytes, equals(400));
+    });
+
+    test(
+      'bypasses L1 memory cache when entry size exceeds maxMemoryThumbnailBytes',
+      () {
+        CacheService.instance.setMaxMemoryThumbnailBytes(500);
+
+        final oversized = Uint8List(600);
+        CacheService.instance.putMemoryThumbnail('oversized', oversized);
+
+        expect(CacheService.instance.getMemoryThumbnail('oversized'), isNull);
+        expect(CacheService.instance.currentMemoryThumbnailBytes, equals(0));
+        expect(CacheService.instance.memoryThumbnailCount, equals(0));
+
+        final acceptable = Uint8List(400);
+        CacheService.instance.putMemoryThumbnail('acceptable', acceptable);
+
+        expect(
+          CacheService.instance.getMemoryThumbnail('acceptable'),
+          isNotNull,
+        );
+        expect(CacheService.instance.currentMemoryThumbnailBytes, equals(400));
+        expect(CacheService.instance.memoryThumbnailCount, equals(1));
+      },
+    );
+
+    test(
+      'evicts oldest entries in O(1) LRU order when byte limit is exceeded',
+      () {
+        CacheService.instance.setMaxMemoryThumbnailBytes(300);
+
+        final thumb1 = Uint8List(100);
+        final thumb2 = Uint8List(100);
+        final thumb3 = Uint8List(100);
+        final thumb4 = Uint8List(100);
+
+        CacheService.instance.putMemoryThumbnail('t1', thumb1);
+        CacheService.instance.putMemoryThumbnail('t2', thumb2);
+        CacheService.instance.putMemoryThumbnail('t3', thumb3);
+
+        expect(CacheService.instance.currentMemoryThumbnailBytes, equals(300));
+        expect(CacheService.instance.memoryThumbnailCount, equals(3));
+
+        // Access t1 to mark it Most Recently Used (MRU)
+        final accessed = CacheService.instance.getMemoryThumbnail('t1');
+        expect(accessed, isNotNull);
+
+        // Inserting t4 must evict the least recently used entry (t2, since t1 was accessed)
+        CacheService.instance.putMemoryThumbnail('t4', thumb4);
+
+        expect(CacheService.instance.currentMemoryThumbnailBytes, equals(300));
+        expect(CacheService.instance.memoryThumbnailCount, equals(3));
+        expect(
+          CacheService.instance.getMemoryThumbnail('t2'),
+          isNull,
+        ); // evicted
+        expect(
+          CacheService.instance.getMemoryThumbnail('t1'),
+          isNotNull,
+        ); // kept
+        expect(
+          CacheService.instance.getMemoryThumbnail('t3'),
+          isNotNull,
+        ); // kept
+        expect(
+          CacheService.instance.getMemoryThumbnail('t4'),
+          isNotNull,
+        ); // kept
+      },
+    );
+
+    test(
+      'setMaxMemoryThumbnailBytes clamps to hardMax and evicts excess entries',
+      () {
+        CacheService.instance.setMaxMemoryThumbnailBytes(1000);
+
+        CacheService.instance.putMemoryThumbnail('item1', Uint8List(400));
+        CacheService.instance.putMemoryThumbnail('item2', Uint8List(400));
+        expect(CacheService.instance.currentMemoryThumbnailBytes, equals(800));
+
+        // Lower capacity: should evict oldest (item1) to satisfy new 500 byte limit
+        CacheService.instance.setMaxMemoryThumbnailBytes(500);
+        expect(CacheService.instance.maxMemoryThumbnailBytes, equals(500));
+        expect(CacheService.instance.currentMemoryThumbnailBytes, equals(400));
+        expect(CacheService.instance.getMemoryThumbnail('item1'), isNull);
+        expect(CacheService.instance.getMemoryThumbnail('item2'), isNotNull);
+
+        // Setting higher than hardMaxMemoryThumbnailBytes clamps to hardMax
+        CacheService.instance.setMaxMemoryThumbnailBytes(100 * 1024 * 1024);
+        expect(
+          CacheService.instance.maxMemoryThumbnailBytes,
+          equals(CacheService.hardMaxMemoryThumbnailBytes),
+        );
+      },
+    );
+
+    test(
+      'bidirectional path mapping invalidates correct cache entries and frees bytes',
+      () {
+        final bytes1 = Uint8List(200);
+        final bytes2 = Uint8List(300);
+
+        CacheService.instance.putMemoryThumbnail(
+          'k1',
+          bytes1,
+          filePath: '/tmp/f1.png',
+        );
+        CacheService.instance.putMemoryThumbnail(
+          'k2',
+          bytes2,
+          filePath: '/tmp/f2.png',
+        );
+
+        expect(CacheService.instance.currentMemoryThumbnailBytes, equals(500));
+
+        CacheService.instance.invalidateMemoryThumbnailForPath('/tmp/f1.png');
+
+        expect(CacheService.instance.getMemoryThumbnail('k1'), isNull);
+        expect(CacheService.instance.getMemoryThumbnail('k2'), isNotNull);
+        expect(CacheService.instance.currentMemoryThumbnailBytes, equals(300));
+        expect(CacheService.instance.memoryThumbnailCount, equals(1));
+      },
+    );
+
+    test('clearMemoryThumbnails resets byte count and removes all entries', () {
+      CacheService.instance.putMemoryThumbnail('k1', Uint8List(200));
+      CacheService.instance.putMemoryThumbnail('k2', Uint8List(300));
+      expect(CacheService.instance.currentMemoryThumbnailBytes, equals(500));
+
+      CacheService.instance.clearMemoryThumbnails();
+
+      expect(CacheService.instance.currentMemoryThumbnailBytes, equals(0));
+      expect(CacheService.instance.memoryThumbnailCount, equals(0));
+      expect(CacheService.instance.getMemoryThumbnail('k1'), isNull);
+      expect(CacheService.instance.getMemoryThumbnail('k2'), isNull);
+    });
   });
 }

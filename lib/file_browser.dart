@@ -432,11 +432,15 @@ class _FileBrowserScreenState extends State<FileBrowser> {
           listenable: _controller,
           builder: (context, _) {
             if (!_controller.isSelectionMode) return const SizedBox.shrink();
+            final canExecuteBatch = _controller.isFullyLoaded;
             return _SelectionActionBar(
-              onUpload: () => _uploadItems(_controller.selectedFiles.toList()),
-              onDelete: _deleteSelectedFiles,
-              onShare: _controller.shareSelectedFiles,
-              onAddToFolder: _addSelectedToFolder,
+              isBatchEnabled: canExecuteBatch,
+              onUpload: canExecuteBatch
+                  ? () => _uploadItems(_controller.selectedFiles.toList())
+                  : null,
+              onDelete: canExecuteBatch ? _deleteSelectedFiles : null,
+              onShare: canExecuteBatch ? _controller.shareSelectedFiles : null,
+              onAddToFolder: canExecuteBatch ? _addSelectedToFolder : null,
               onRename: _controller.selectedFiles.length == 1
                   ? () => _renameItem(_controller.selectedFiles.first)
                   : null,
@@ -996,20 +1000,27 @@ class _FileListView extends StatelessWidget {
                 mainAxisSpacing: 16,
               ),
               itemCount: controller.files.length,
-              itemBuilder: (_, i) => _GridItem(
-                item: controller.files[i],
-                isSelected: controller.selectedFiles.contains(
-                  controller.files[i],
-                ),
-                onTap: () => onItemTap(controller.files[i]),
-                onLongPress: () => onItemLongPress(controller.files[i]),
-              ),
+              itemBuilder: (_, i) {
+                final item = controller.files[i];
+                if (controller.sortBy == SortBy.size) {
+                  controller.resolveAssetSizeLazy(item);
+                }
+                return _GridItem(
+                  item: item,
+                  isSelected: controller.selectedFiles.contains(item),
+                  onTap: () => onItemTap(item),
+                  onLongPress: () => onItemLongPress(item),
+                );
+              },
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: controller.files.length,
               itemBuilder: (_, i) {
                 final item = controller.files[i];
+                if (controller.sortBy == SortBy.size) {
+                  controller.resolveAssetSizeLazy(item);
+                }
                 return _ListItem(
                   item: item,
                   isSelected: controller.selectedFiles.contains(item),
@@ -1141,11 +1152,12 @@ class _ListItem extends StatelessWidget {
 }
 
 class _SelectionActionBar extends StatelessWidget {
-  final Future<void> Function() onUpload;
-  final Future<void> Function() onDelete;
-  final Future<void> Function() onShare;
-  final Future<void> Function() onAddToFolder;
+  final Future<void> Function()? onUpload;
+  final Future<void> Function()? onDelete;
+  final Future<void> Function()? onShare;
+  final Future<void> Function()? onAddToFolder;
   final Future<void> Function()? onRename;
+  final bool isBatchEnabled;
 
   const _SelectionActionBar({
     required this.onUpload,
@@ -1153,6 +1165,7 @@ class _SelectionActionBar extends StatelessWidget {
     required this.onShare,
     required this.onAddToFolder,
     this.onRename,
+    this.isBatchEnabled = true,
   });
 
   @override
@@ -1167,27 +1180,32 @@ class _SelectionActionBar extends StatelessWidget {
           SelectionAction(
             icon: Icons.edit,
             label: l10n.rename,
-            onPressed: onRename!,
+            onPressed: onRename,
+            enabled: true,
           ),
         SelectionAction(
           icon: Icons.upload,
           label: l10n.upload,
           onPressed: onUpload,
+          enabled: isBatchEnabled && onUpload != null,
         ),
         SelectionAction(
           icon: Icons.delete,
           label: l10n.delete,
           onPressed: onDelete,
+          enabled: isBatchEnabled && onDelete != null,
         ),
         SelectionAction(
           icon: Icons.drive_file_move,
           label: l10n.addToFolder,
           onPressed: onAddToFolder,
+          enabled: isBatchEnabled && onAddToFolder != null,
         ),
         SelectionAction(
           icon: Icons.share,
           label: l10n.share,
           onPressed: onShare,
+          enabled: isBatchEnabled && onShare != null,
         ),
       ],
     );

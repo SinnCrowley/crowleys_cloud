@@ -22,12 +22,14 @@ class SelectionAction {
     required this.label,
     required this.onPressed,
     this.color,
+    this.enabled = true,
   });
 
   final IconData icon;
   final String label;
-  final Future<void> Function() onPressed;
+  final Future<void> Function()? onPressed;
   final Color? color;
+  final bool enabled;
 }
 
 /// Reusable floating bottom action bar presented during multi-item selection mode.
@@ -51,11 +53,18 @@ class SelectionActionBar extends StatelessWidget {
     required Color defaultText,
     required Color defaultIcon,
   }) {
-    final textColor = action.color ?? defaultText;
-    final iconColor = action.color ?? defaultIcon;
+    final isEnabled = action.enabled && action.onPressed != null;
+    final baseTextColor = action.color ?? defaultText;
+    final baseIconColor = action.color ?? defaultIcon;
+    final textColor = isEnabled
+        ? baseTextColor
+        : baseTextColor.withValues(alpha: 0.38);
+    final iconColor = isEnabled
+        ? baseIconColor
+        : baseIconColor.withValues(alpha: 0.38);
 
     return InkWell(
-      onTap: action.onPressed,
+      onTap: isEnabled ? action.onPressed : null,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),

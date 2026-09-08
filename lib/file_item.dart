@@ -25,19 +25,30 @@ class FileItem {
   final ServerFileItem? serverFile;
   final String _identity;
   String? _cachedPath;
+  final int? _cachedSize;
+  final DateTime? _cachedModifiedDate;
 
   FileItem.fromAsset(AssetEntity this.asset)
     : fsEntity = null,
       serverFile = null,
-      _identity = asset.id;
-  FileItem.fromEntity(FileSystemEntity this.fsEntity)
-    : asset = null,
-      serverFile = null,
-      _identity = fsEntity.path;
+      _identity = asset.id,
+      _cachedSize = null,
+      _cachedModifiedDate = null;
+  FileItem.fromEntity(
+    FileSystemEntity this.fsEntity, {
+    int? size,
+    DateTime? modifiedDate,
+  }) : asset = null,
+       serverFile = null,
+       _identity = fsEntity.path,
+       _cachedSize = size,
+       _cachedModifiedDate = modifiedDate;
   FileItem.fromServer(ServerFileItem this.serverFile)
     : asset = null,
       fsEntity = null,
-      _identity = serverFile.path;
+      _identity = serverFile.path,
+      _cachedSize = serverFile.size,
+      _cachedModifiedDate = serverFile.modifiedAt;
 
   bool get isDirectory => serverFile?.isDir ?? fsEntity is Directory;
   bool get isAsset => asset != null;
@@ -72,20 +83,15 @@ class FileItem {
   DateTime get modifiedDate {
     if (serverFile != null) return serverFile!.modifiedAt;
     if (asset != null) return asset!.modifiedDateTime;
-    final stat = fsEntity?.statSync();
-    return stat?.modified ?? DateTime(0);
+    return _cachedModifiedDate ?? DateTime(0);
   }
 
   int get size {
     if (serverFile != null) return serverFile!.size;
-    if (fsEntity != null) {
-      try {
-        return fsEntity!.statSync().size;
-      } catch (_) {
-        return 0;
-      }
+    if (asset != null) {
+      return AssetSizeCache.getSize(_identity, modifiedDate) ?? 0;
     }
-    return AssetSizeCache.getSize(_identity, modifiedDate) ?? 0;
+    return _cachedSize ?? 0;
   }
 
   String get type {

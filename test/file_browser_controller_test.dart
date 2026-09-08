@@ -35,6 +35,15 @@ class _FakeStrategy implements FileLoadStrategy {
     Directory? baseDirectory,
     required String? tempPath,
     required bool showHiddenFiles,
+    SortBy? sortBy,
+    bool? sortAscending,
+    void Function(
+      List<FileItem> chunk, {
+      required bool isInitialBatch,
+      required bool isComplete,
+    })?
+    onChunk,
+    bool Function()? isCancelled,
   }) async {
     calls++;
     return returnItems;
@@ -178,5 +187,73 @@ void main() {
         false,
       );
     });
+
+    test(
+      'FileItem.fromEntity returns pre-fetched size and modifiedDate non-blocking',
+      () {
+        final now = DateTime.now();
+        final item = FileItem.fromEntity(
+          File('/virtual/nonexistent/test.txt'),
+          size: 12345,
+          modifiedDate: now,
+        );
+
+        expect(item.size, 12345);
+        expect(item.modifiedDate, now);
+        expect(item.isDirectory, false);
+        expect(item.name, 'test.txt');
+      },
+    );
+
+    test(
+      'FileItem.fromEntity fallback defaults when size and date are omitted',
+      () {
+        final item = FileItem.fromEntity(
+          File('/virtual/nonexistent/fallback.txt'),
+        );
+
+        expect(item.size, 0);
+        expect(item.modifiedDate, DateTime(0));
+        expect(item.name, 'fallback.txt');
+      },
+    );
+
+    test(
+      'DirectoryLoadStrategy pre-queries stat asynchronously during load',
+      () async {
+        final tempDir = await Directory.systemTemp.createTemp(
+          'dir_strategy_test',
+        );
+        try {
+          final fileA = File('${tempDir.path}/test_a.txt');
+          await fileA.writeAsString('hello world test a');
+
+          final fileB = File('${tempDir.path}/test_b.txt');
+          await fileB.writeAsString('longer test string content b');
+
+          final strategy = DirectoryLoadStrategy();
+          final items = await strategy.load(
+            categoryName: 'All files',
+            searchQuery: '',
+            baseDirectory: tempDir,
+            tempPath: null,
+            showHiddenFiles: true,
+          );
+
+          expect(items.length, 2);
+          final itemA = items.firstWhere((i) => i.name == 'test_a.txt');
+          final itemB = items.firstWhere((i) => i.name == 'test_b.txt');
+
+          expect(itemA.size, (await fileA.stat()).size);
+          expect(itemA.modifiedDate, (await fileA.stat()).modified);
+          expect(itemB.size, (await fileB.stat()).size);
+          expect(itemB.modifiedDate, (await fileB.stat()).modified);
+        } finally {
+          if (await tempDir.exists()) {
+            await tempDir.delete(recursive: true);
+          }
+        }
+      },
+    );
   });
 }

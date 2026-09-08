@@ -14,7 +14,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:crowleys_cloud/active_server_manager.dart';
@@ -395,18 +397,24 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _disposeLocalController() {
-    if (_localController != null) {
-      _localController!.disposeController();
-      _localController!.dispose();
+    final controller = _localController;
+    if (controller != null) {
       _localController = null;
+      controller.disposeController();
+      try {
+        controller.dispose();
+      } catch (_) {}
     }
   }
 
   void _disposeServerController() {
-    if (_serverController != null) {
-      _serverController!.disposeController();
-      _serverController!.dispose();
+    final controller = _serverController;
+    if (controller != null) {
       _serverController = null;
+      controller.disposeController();
+      try {
+        controller.dispose();
+      } catch (_) {}
     }
   }
 
@@ -845,7 +853,9 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _onLocalCategorySelected(FileCategory category) async {
     final permissionGranted = await _requestPermission(category);
     if (permissionGranted) {
-      await _clearSearchAndResetFilterForCurrentMode();
+      if (_searchController.text.isNotEmpty) {
+        _searchController.clear();
+      }
       _disposeLocalController();
       final controller = FileBrowserController(
         category: category,
@@ -867,24 +877,41 @@ class _MainScreenState extends State<MainScreen> {
       if (_localController != null && _localController!.isSelectionMode) {
         _localController!.clearSelection();
       } else if (_localController?.canNavigateBack ?? false) {
-        await _clearSearchAndResetFilterForCurrentMode();
+        if (_searchController.text.isNotEmpty) {
+          _searchController.clear();
+          _localController?.searchQuery = '';
+        }
         await _localController!.navigateBack();
       } else {
-        await _clearSearchAndResetFilterForCurrentMode();
-        _disposeLocalController();
+        final controllerToDispose = _localController;
+        _localController = null;
         setState(() {
           _selectedLocalCategory = null;
         });
+        if (_searchController.text.isNotEmpty) {
+          _searchController.clear();
+        }
+        if (controllerToDispose != null) {
+          controllerToDispose.disposeController();
+          try {
+            controllerToDispose.dispose();
+          } catch (_) {}
+        }
       }
       return;
     }
     if (_serverController != null && _serverController!.isSelectionMode) {
       _serverController!.clearSelection();
     } else if (_serverController?.canNavigateBack ?? false) {
-      await _clearSearchAndResetFilterForCurrentMode();
+      if (_searchController.text.isNotEmpty) {
+        _searchController.clear();
+        _serverController?.searchQuery = '';
+      }
       await _serverController!.navigateBack();
     } else if (_selectedServerCategory != null) {
-      await _clearSearchAndResetFilterForCurrentMode();
+      if (_searchController.text.isNotEmpty) {
+        _searchController.clear();
+      }
       setState(() {
         _selectedServerCategory = null;
       });
@@ -992,11 +1019,7 @@ class _MainScreenState extends State<MainScreen> {
             : _transferManager.addItem(
                 name: item.name,
                 direction: TransferDirection.upload,
-                totalBytes: item.isDirectory
-                    ? 0
-                    : (File(localPath).existsSync()
-                          ? File(localPath).lengthSync()
-                          : 0),
+                totalBytes: item.isDirectory ? 0 : item.size,
               );
 
         if (item.isDirectory) {
@@ -1108,132 +1131,219 @@ class _MainScreenState extends State<MainScreen> {
       );
     }
 
-    final uri = Uri.parse(base)
-        .resolve('/api/files')
-        .replace(queryParameters: {'scope': 'private', 'path': remotePath});
     var token = initialToken;
     if (token == null || token.isEmpty) {
       return (ok: false, token: token, error: l10n.uploadErrorNoSessionToken);
     }
 
-    http.StreamedResponse response;
+    final totalBytes = await localFile.length();
+    _transferManager.throwIfItemCanceled(transferItem);
+    _transferManager.startItem(transferItem);
+
+    // 0-byte file edge case
+    if (totalBytes == 0) {
+      final uri = Uri.parse(base)
+          .resolve('/api/files')
+          .replace(
+            queryParameters: {
+              'scope': 'private',
+              'path': remotePath,
+              'offset': '0',
+              'total': '0',
+              'is_last': 'true',
+            },
+          );
+      try {
+        final resp = await client.post(
+          uri,
+          headers: {
+            'authorization': 'Bearer $token',
+            'content-type': 'application/octet-stream',
+          },
+          body: const <int>[],
+        );
+        if (resp.statusCode == 401) {
+          try {
+            await _serverManager.authService.refreshSession(
+              serverId: activeServerId,
+              baseUrl: activeServerBaseUrl,
+            );
+            token = await _serverManager.authService.readAccessToken(
+              activeServerId,
+            );
+          } catch (_) {}
+          if (token != null && token.isNotEmpty) {
+            final retryResp = await client.post(
+              uri,
+              headers: {
+                'authorization': 'Bearer $token',
+                'content-type': 'application/octet-stream',
+              },
+              body: const <int>[],
+            );
+            if (retryResp.statusCode >= 200 && retryResp.statusCode < 300) {
+              _transferManager.completeItem(transferItem);
+              return (ok: true, token: token, error: '');
+            }
+          }
+        }
+        if (resp.statusCode >= 200 && resp.statusCode < 300) {
+          _transferManager.completeItem(transferItem);
+          return (ok: true, token: token, error: '');
+        }
+        _transferManager.failItem(transferItem, 'HTTP ${resp.statusCode}');
+        return (ok: false, token: token, error: 'HTTP ${resp.statusCode}');
+      } on SocketException {
+        _transferManager.failItem(transferItem, l10n.serverDisconnected);
+        return (ok: false, token: token, error: l10n.serverDisconnected);
+      } on HttpException {
+        _transferManager.failItem(transferItem, l10n.serverDisconnected);
+        return (ok: false, token: token, error: l10n.serverDisconnected);
+      } on http.ClientException {
+        if (_transferManager.isCanceled) throw TransferCanceledException();
+        _transferManager.failItem(transferItem, l10n.serverDisconnected);
+        return (ok: false, token: token, error: l10n.serverDisconnected);
+      }
+    }
+
+    // Query server for resumable offset
+    int offset = 0;
+    final statusUri = Uri.parse(base)
+        .resolve('/api/files/upload-status')
+        .replace(queryParameters: {'scope': 'private', 'path': remotePath});
     try {
-      _transferManager.throwIfItemCanceled(transferItem);
-      _transferManager.startItem(transferItem);
-      response = await _sendUploadRequest(
-        client: client,
-        uri,
-        token: token,
-        localFile: localFile,
-        transferItem: transferItem,
+      final statusResp = await client.get(
+        statusUri,
+        headers: {'authorization': 'Bearer $token'},
       );
-      _transferManager.throwIfItemCanceled(transferItem);
+      if (statusResp.statusCode == 200) {
+        final decoded = jsonDecode(statusResp.body) as Map<String, dynamic>;
+        final bytesOnServer = (decoded['bytes_received'] as num?)?.toInt() ?? 0;
+        if (bytesOnServer > 0 && bytesOnServer < totalBytes) {
+          offset = bytesOnServer;
+          _transferManager.updateItem(transferItem, offset);
+        }
+      }
+    } catch (_) {}
+
+    const chunkSize = 2 * 1024 * 1024;
+    final raf = await localFile.open(mode: FileMode.read);
+
+    try {
+      while (offset < totalBytes) {
+        _transferManager.throwIfCanceled();
+        _transferManager.throwIfItemCanceled(transferItem);
+        await _transferManager.waitIfPaused();
+        _transferManager.throwIfItemCanceled(transferItem);
+
+        final currentChunkSize = math.min(chunkSize, totalBytes - offset);
+        final isLast = (offset + currentChunkSize) >= totalBytes;
+
+        await raf.setPosition(offset);
+        final bytes = await raf.read(currentChunkSize);
+
+        final chunkUri = Uri.parse(base)
+            .resolve('/api/files')
+            .replace(
+              queryParameters: {
+                'scope': 'private',
+                'path': remotePath,
+                'offset': offset.toString(),
+                'total': totalBytes.toString(),
+                'is_last': isLast.toString(),
+              },
+            );
+
+        http.Response? response;
+        var attempts = 0;
+        const maxRetries = 3;
+        var backoff = const Duration(milliseconds: 50);
+
+        while (attempts < maxRetries) {
+          attempts++;
+          try {
+            response = await client.post(
+              chunkUri,
+              headers: {
+                'authorization': 'Bearer $token',
+                'content-type': 'application/octet-stream',
+              },
+              body: bytes,
+            );
+
+            if (response.statusCode == 401) {
+              try {
+                await _serverManager.authService.refreshSession(
+                  serverId: activeServerId,
+                  baseUrl: activeServerBaseUrl,
+                );
+                token = await _serverManager.authService.readAccessToken(
+                  activeServerId,
+                );
+              } catch (_) {}
+              continue;
+            }
+
+            if (response.statusCode >= 200 && response.statusCode < 300) {
+              break;
+            }
+
+            if (_isConnectionUnavailableStatus(response.statusCode)) {
+              _transferManager.failItem(transferItem, l10n.serverDisconnected);
+              return (ok: false, token: token, error: l10n.serverDisconnected);
+            }
+
+            if (attempts >= maxRetries) {
+              final body = response.body;
+              _transferManager.failItem(
+                transferItem,
+                'HTTP ${response.statusCode}',
+              );
+              return (
+                ok: false,
+                token: token,
+                error:
+                    'HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
+              );
+            }
+          } on SocketException {
+            if (attempts >= maxRetries) {
+              _transferManager.failItem(transferItem, l10n.serverDisconnected);
+              return (ok: false, token: token, error: l10n.serverDisconnected);
+            }
+            await Future<void>.delayed(backoff);
+            backoff *= 2;
+          } on HttpException {
+            if (attempts >= maxRetries) {
+              _transferManager.failItem(transferItem, l10n.serverDisconnected);
+              return (ok: false, token: token, error: l10n.serverDisconnected);
+            }
+            await Future<void>.delayed(backoff);
+            backoff *= 2;
+          } on http.ClientException {
+            if (_transferManager.isCanceled) throw TransferCanceledException();
+            if (attempts >= maxRetries) {
+              _transferManager.failItem(transferItem, l10n.serverDisconnected);
+              return (ok: false, token: token, error: l10n.serverDisconnected);
+            }
+            await Future<void>.delayed(backoff);
+            backoff *= 2;
+          }
+        }
+
+        offset += bytes.length;
+        _transferManager.updateItem(transferItem, offset);
+      }
+
+      _transferManager.completeItem(transferItem);
+      return (ok: true, token: token, error: '');
     } on TransferCanceledException {
       rethrow;
     } on TransferItemCanceledException {
       rethrow;
-    } on SocketException {
-      _transferManager.failItem(transferItem, l10n.serverDisconnected);
-      return (ok: false, token: token, error: l10n.serverDisconnected);
-    } on HttpException {
-      _transferManager.failItem(transferItem, l10n.serverDisconnected);
-      return (ok: false, token: token, error: l10n.serverDisconnected);
-    } on http.ClientException {
-      if (_transferManager.isCanceled) throw TransferCanceledException();
-      _transferManager.failItem(transferItem, l10n.serverDisconnected);
-      return (ok: false, token: token, error: l10n.serverDisconnected);
+    } finally {
+      await raf.close();
     }
-
-    if (response.statusCode == 401) {
-      try {
-        await _serverManager.authService.refreshSession(
-          serverId: activeServerId,
-          baseUrl: activeServerBaseUrl,
-        );
-        token = await _serverManager.authService.readAccessToken(
-          activeServerId,
-        );
-      } catch (_) {}
-      if (token != null && token.isNotEmpty) {
-        try {
-          _transferManager.updateItem(transferItem, 0);
-          _transferManager.throwIfItemCanceled(transferItem);
-          response = await _sendUploadRequest(
-            client: client,
-            uri,
-            token: token,
-            localFile: localFile,
-            transferItem: transferItem,
-          );
-          _transferManager.throwIfItemCanceled(transferItem);
-        } on TransferCanceledException {
-          rethrow;
-        } on TransferItemCanceledException {
-          rethrow;
-        } on SocketException {
-          _transferManager.failItem(transferItem, l10n.serverDisconnected);
-          return (ok: false, token: token, error: l10n.serverDisconnected);
-        } on HttpException {
-          _transferManager.failItem(transferItem, l10n.serverDisconnected);
-          return (ok: false, token: token, error: l10n.serverDisconnected);
-        } on http.ClientException {
-          if (_transferManager.isCanceled) throw TransferCanceledException();
-          _transferManager.failItem(transferItem, l10n.serverDisconnected);
-          return (ok: false, token: token, error: l10n.serverDisconnected);
-        }
-      }
-    }
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      _transferManager.completeItem(transferItem);
-      return (ok: true, token: token, error: '');
-    }
-    if (_isConnectionUnavailableStatus(response.statusCode)) {
-      _transferManager.failItem(transferItem, l10n.serverDisconnected);
-      return (ok: false, token: token, error: l10n.serverDisconnected);
-    }
-    final body = await response.stream.bytesToString();
-    _transferManager.failItem(transferItem, 'HTTP ${response.statusCode}');
-    return (
-      ok: false,
-      token: token,
-      error: 'HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
-    );
-  }
-
-  Future<http.StreamedResponse> _sendUploadRequest(
-    Uri uri, {
-    required http.Client client,
-    required String token,
-    required File localFile,
-    required TransferItem transferItem,
-  }) async {
-    final request = http.StreamedRequest('POST', uri)
-      ..headers['authorization'] = 'Bearer $token'
-      ..headers['content-type'] = 'application/octet-stream'
-      ..contentLength = await localFile.length();
-    unawaited(() async {
-      var sent = 0;
-      try {
-        await for (final chunk in localFile.openRead()) {
-          _transferManager.throwIfCanceled();
-          _transferManager.throwIfItemCanceled(transferItem);
-          await _transferManager.waitIfPaused();
-          _transferManager.throwIfItemCanceled(transferItem);
-          sent += chunk.length;
-          request.sink.add(chunk);
-          _transferManager.updateItem(transferItem, sent);
-        }
-        await request.sink.close();
-      } on TransferItemCanceledException catch (e) {
-        request.sink.addError(e);
-        await request.sink.close();
-      } catch (e) {
-        request.sink.addError(e);
-        await request.sink.close();
-      }
-    }());
-    return client.send(request);
   }
 
   Future<({bool ok, String? token, String error})>

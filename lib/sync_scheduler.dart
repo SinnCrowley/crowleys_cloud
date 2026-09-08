@@ -25,6 +25,7 @@ import 'package:crowleys_cloud/l10n/generated/app_localizations_en.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_store.dart';
+import 'package:crowleys_cloud/storage/app_database.dart';
 import 'package:crowleys_cloud/sync_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -181,6 +182,7 @@ void syncCallbackDispatcher() {
   Workmanager().executeTask((taskName, inputData) async {
     WidgetsFlutterBinding.ensureInitialized();
     DartPluginRegistrant.ensureInitialized();
+    AppDatabase.ensurePlatformInitialized();
     if (taskName != syncBackgroundTaskName) return true;
     final serverId = inputData?['serverId'] as String?;
     final syncToken = inputData?['syncToken'] as String?;
@@ -193,7 +195,9 @@ Future<bool> runBackgroundSync({
   String? serverId,
   String? syncToken,
   AppLocalizations? l10n,
+  SyncStateStore? stateStore,
 }) async {
+  AppDatabase.ensurePlatformInitialized();
   final resolvedL10n = l10n ?? _resolveAppLocalizations();
   final store = ServerStore();
   final snapshot = await store.load();
@@ -210,7 +214,7 @@ Future<bool> runBackgroundSync({
   final syncService = SyncService(
     scanner: DeviceSyncFileScanner(),
     apiClient: HttpSyncApiClient(authService: authService),
-    stateStore: const FileSyncStateStore(),
+    stateStore: stateStore ?? const SqliteSyncStateStore(),
   );
 
   final servers = snapshot.servers.where((server) {

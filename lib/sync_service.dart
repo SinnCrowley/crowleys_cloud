@@ -31,6 +31,9 @@ import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:crowleys_cloud/storage/sqlite_sync_state_store.dart';
+
+export 'package:crowleys_cloud/storage/sqlite_sync_state_store.dart';
 
 enum SyncRunStatus {
   success,
@@ -164,10 +167,16 @@ abstract class SyncStateStore {
 }
 
 class FileSyncStateStore implements SyncStateStore {
-  const FileSyncStateStore({Future<File> Function()? fileProvider})
-    : _fileProvider = fileProvider;
+  const FileSyncStateStore({
+    Future<File> Function()? fileProvider,
+    SyncStateStore? sqliteDelegate,
+  }) : _fileProvider = fileProvider,
+       _sqliteDelegate = fileProvider == null
+           ? (sqliteDelegate ?? const SqliteSyncStateStore())
+           : null;
 
   final Future<File> Function()? _fileProvider;
+  final SyncStateStore? _sqliteDelegate;
 
   @override
   Future<SyncFileRecord?> readRecord(
@@ -175,6 +184,10 @@ class FileSyncStateStore implements SyncStateStore {
     String localPath,
     String remotePath,
   ) async {
+    final delegate = _sqliteDelegate;
+    if (delegate != null) {
+      return delegate.readRecord(serverId, localPath, remotePath);
+    }
     final data = await _load();
     final server = _serverData(data, serverId, create: false);
     final files = server?['files'] as Map<String, Object?>?;
@@ -197,6 +210,10 @@ class FileSyncStateStore implements SyncStateStore {
 
   @override
   Future<void> saveRecord(String serverId, SyncFileRecord record) async {
+    final delegate = _sqliteDelegate;
+    if (delegate != null) {
+      return delegate.saveRecord(serverId, record);
+    }
     final data = await _load();
     final server = _serverData(data, serverId, create: true)!;
     final files = Map<String, Object?>.from(
@@ -210,6 +227,10 @@ class FileSyncStateStore implements SyncStateStore {
 
   @override
   Future<SyncRunResult?> readLastResult(String serverId) async {
+    final delegate = _sqliteDelegate;
+    if (delegate != null) {
+      return delegate.readLastResult(serverId);
+    }
     final data = await _load();
     final server = _serverData(data, serverId, create: false);
     final raw = server?['lastResult'];
@@ -219,6 +240,10 @@ class FileSyncStateStore implements SyncStateStore {
 
   @override
   Future<void> saveLastResult(String serverId, SyncRunResult result) async {
+    final delegate = _sqliteDelegate;
+    if (delegate != null) {
+      return delegate.saveLastResult(serverId, result);
+    }
     final data = await _load();
     final server = _serverData(data, serverId, create: true)!;
     server['lastResult'] = result.toJson();

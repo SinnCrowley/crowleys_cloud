@@ -15,11 +15,13 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/asset_size_cache.dart';
+import 'package:crowleys_cloud/category_data_cache.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:flutter/widgets.dart';
 import 'package:open_file/open_file.dart';
@@ -41,6 +43,15 @@ abstract class FileLoadStrategy {
     Directory? baseDirectory,
     required String? tempPath,
     required bool showHiddenFiles,
+    SortBy? sortBy,
+    bool? sortAscending,
+    void Function(
+      List<FileItem> chunk, {
+      required bool isInitialBatch,
+      required bool isComplete,
+    })?
+    onChunk,
+    bool Function()? isCancelled,
   });
 }
 
@@ -53,9 +64,28 @@ class MediaStoreLoadStrategy implements FileLoadStrategy {
     Directory? baseDirectory,
     required String? tempPath,
     required bool showHiddenFiles,
+    SortBy? sortBy,
+    bool? sortAscending,
+    void Function(
+      List<FileItem> chunk, {
+      required bool isInitialBatch,
+      required bool isComplete,
+    })?
+    onChunk,
+    bool Function()? isCancelled,
   }) async {
-    final perm = await PhotoManager.requestPermissionExtend();
-    if (!perm.isAuth) return [];
+    PermissionState perm;
+    try {
+      perm = await PhotoManager.requestPermissionExtend();
+    } catch (_) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
+    }
+    if (isCancelled?.call() ?? false) return [];
+    if (!perm.hasAccess) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
+    }
 
     final type = switch (categoryName) {
       'Photos' => RequestType.image,
@@ -64,35 +94,136 @@ class MediaStoreLoadStrategy implements FileLoadStrategy {
       _ => RequestType.common,
     };
 
-    final albums = await PhotoManager.getAssetPathList(
-      type: type,
-      hasAll: true,
-      onlyAll: false,
+    final effectiveSortAscending = sortAscending ?? true;
+    final orderOption = OrderOption(
+      type: OrderOptionType.createDate,
+      asc: effectiveSortAscending,
     );
-    if (albums.isEmpty) return [];
+
+    final filterOption = FilterOptionGroup(
+      imageOption: const FilterOption(needTitle: true),
+      videoOption: const FilterOption(needTitle: true),
+      audioOption: const FilterOption(needTitle: true),
+      orders: [orderOption],
+    );
+
+    List<AssetPathEntity> albums;
+    try {
+      albums = await PhotoManager.getAssetPathList(
+        type: type,
+        hasAll: true,
+        onlyAll: false,
+        filterOption: filterOption,
+      );
+    } catch (_) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
+    }
+    if (isCancelled?.call() ?? false) return [];
+    if (albums.isEmpty) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
+    }
 
     final allAlbum = albums.firstWhere(
       (a) => a.isAll,
       orElse: () => albums.first,
     );
-    final total = await allAlbum.assetCountAsync;
-
-    const pageSize = 2000;
-    final result = <FileItem>[];
-
-    for (var page = 0; page * pageSize < total; page++) {
-      final assets = await allAlbum.getAssetListPaged(
-        page: page,
-        size: pageSize,
-      );
-      result.addAll(
-        assets
-            .map(FileItem.fromAsset)
-            .where((item) => matchesSearch(item.name, searchQuery)),
-      );
+    int total;
+    try {
+      total = await allAlbum.assetCountAsync;
+    } catch (_) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
+    }
+    if (isCancelled?.call() ?? false) return [];
+    if (total == 0) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
     }
 
-    return result;
+    const initialChunkSize = 100;
+    List<AssetEntity> firstAssets;
+    try {
+      firstAssets = await allAlbum.getAssetListPaged(
+        page: 0,
+        size: initialChunkSize,
+      );
+    } catch (_) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
+    }
+    if (isCancelled?.call() ?? false) return [];
+
+    final initialItems = firstAssets
+        .map(FileItem.fromAsset)
+        .where((item) => matchesSearch(item.name, searchQuery))
+        .toList();
+
+    final isInitialComplete =
+        firstAssets.length >= total || firstAssets.length < initialChunkSize;
+    onChunk?.call(
+      initialItems,
+      isInitialBatch: true,
+      isComplete: isInitialComplete,
+    );
+
+    if (isInitialComplete) {
+      return initialItems;
+    }
+
+    final allLoaded = List<FileItem>.of(initialItems);
+    final seenIds = initialItems.map((item) => item.pathSync).toSet();
+    const pageSize = 100;
+    var currentOffset = firstAssets.length;
+    var hasEmittedComplete = false;
+
+    while (currentOffset < total) {
+      if (isCancelled?.call() ?? false) return allLoaded;
+
+      // Yield briefly to event loop to keep UI thread unblocked (<100ms)
+      await Future<void>.delayed(Duration.zero);
+      if (isCancelled?.call() ?? false) return allLoaded;
+
+      final page = currentOffset ~/ pageSize;
+      List<AssetEntity> assets;
+      try {
+        assets = await allAlbum.getAssetListPaged(page: page, size: pageSize);
+      } catch (_) {
+        onChunk?.call([], isInitialBatch: false, isComplete: true);
+        hasEmittedComplete = true;
+        return allLoaded;
+      }
+      if (isCancelled?.call() ?? false) return allLoaded;
+      if (assets.isEmpty) {
+        onChunk?.call([], isInitialBatch: false, isComplete: true);
+        hasEmittedComplete = true;
+        break;
+      }
+
+      final chunk = assets
+          .map(FileItem.fromAsset)
+          .where((item) => matchesSearch(item.name, searchQuery))
+          .where((item) => seenIds.add(item.pathSync))
+          .toList();
+
+      currentOffset += assets.length;
+      final isComplete = currentOffset >= total || assets.length < pageSize;
+      allLoaded.addAll(chunk);
+
+      onChunk?.call(chunk, isInitialBatch: false, isComplete: isComplete);
+
+      if (isComplete) {
+        hasEmittedComplete = true;
+        break;
+      }
+    }
+
+    if (!hasEmittedComplete && !(isCancelled?.call() ?? false)) {
+      onChunk?.call([], isInitialBatch: false, isComplete: true);
+    }
+
+    return allLoaded;
   }
 }
 
@@ -106,24 +237,47 @@ class FileWalkLoadStrategy implements FileLoadStrategy {
     Directory? baseDirectory,
     required String? tempPath,
     required bool showHiddenFiles,
+    SortBy? sortBy,
+    bool? sortAscending,
+    void Function(
+      List<FileItem> chunk, {
+      required bool isInitialBatch,
+      required bool isComplete,
+    })?
+    onChunk,
+    bool Function()? isCancelled,
   }) async {
     final storageDirs = await getExternalStorageDirectories();
-    if (storageDirs == null || storageDirs.isEmpty) return [];
+    if (storageDirs == null ||
+        storageDirs.isEmpty ||
+        (isCancelled?.call() ?? false)) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
+    }
 
     final rootPath = extractRootPath(storageDirs.first.path);
-    if (rootPath == null) return [];
+    if (rootPath == null || (isCancelled?.call() ?? false)) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
+    }
 
     final files = <FileItem>[];
 
     Future<void> walkDir(Directory dir) async {
+      if (isCancelled?.call() ?? false) return;
       List<FileSystemEntity> entries;
       try {
         entries = await dir.list(recursive: false).toList();
       } catch (_) {
         return;
       }
+      if (isCancelled?.call() ?? false) return;
+
+      final subDirs = <Directory>[];
+      final candidateFiles = <File>[];
 
       for (final entity in entries) {
+        if (isCancelled?.call() ?? false) return;
         if (entity is Directory) {
           if (!isPathExcluded(
             entity.path,
@@ -131,7 +285,7 @@ class FileWalkLoadStrategy implements FileLoadStrategy {
             _excludedFolders,
             showHiddenFiles: showHiddenFiles,
           )) {
-            await walkDir(entity);
+            subDirs.add(entity);
           }
           continue;
         }
@@ -145,15 +299,42 @@ class FileWalkLoadStrategy implements FileLoadStrategy {
           continue;
         }
         if (!entityMatchesCategory(entity, categoryName)) continue;
+        candidateFiles.add(entity);
+      }
 
-        final item = FileItem.fromEntity(entity);
+      if (isCancelled?.call() ?? false) return;
+
+      final items = await Future.wait(
+        candidateFiles.map((file) async {
+          FileStat? stat;
+          try {
+            stat = await file.stat();
+          } catch (_) {}
+          return FileItem.fromEntity(
+            file,
+            size: stat?.size,
+            modifiedDate: stat?.modified,
+          );
+        }),
+      );
+
+      if (isCancelled?.call() ?? false) return;
+
+      for (final item in items) {
         if (matchesSearch(item.name, searchQuery)) {
           files.add(item);
         }
       }
+
+      for (final subDir in subDirs) {
+        if (isCancelled?.call() ?? false) return;
+        await walkDir(subDir);
+      }
     }
 
     await walkDir(Directory(rootPath));
+    if (isCancelled?.call() ?? false) return [];
+    onChunk?.call(files, isInitialBatch: true, isComplete: true);
     return files;
   }
 }
@@ -168,39 +349,79 @@ class DirectoryLoadStrategy implements FileLoadStrategy {
     Directory? baseDirectory,
     required String? tempPath,
     required bool showHiddenFiles,
+    SortBy? sortBy,
+    bool? sortAscending,
+    void Function(
+      List<FileItem> chunk, {
+      required bool isInitialBatch,
+      required bool isComplete,
+    })?
+    onChunk,
+    bool Function()? isCancelled,
   }) async {
-    if (baseDirectory == null) return [];
+    if (baseDirectory == null || (isCancelled?.call() ?? false)) {
+      onChunk?.call([], isInitialBatch: true, isComplete: true);
+      return [];
+    }
 
     final files = <FileItem>[];
 
     Future<void> walk(Directory dir, {required bool recursive}) async {
+      if (isCancelled?.call() ?? false) return;
       List<FileSystemEntity> entries;
       try {
         entries = await dir.list(recursive: false, followLinks: false).toList();
       } catch (_) {
         return;
       }
+      if (isCancelled?.call() ?? false) return;
 
-      for (final entity in entries) {
-        if (isPathExcluded(
-          entity.path,
-          tempPath,
-          _excludedFolders,
-          showHiddenFiles: showHiddenFiles,
-        )) {
-          continue;
+      final validEntries = entries
+          .where(
+            (entity) => !isPathExcluded(
+              entity.path,
+              tempPath,
+              _excludedFolders,
+              showHiddenFiles: showHiddenFiles,
+            ),
+          )
+          .toList();
+
+      if (isCancelled?.call() ?? false) return;
+
+      final items = await Future.wait(
+        validEntries.map((entity) async {
+          FileStat? stat;
+          try {
+            stat = await entity.stat();
+          } catch (_) {}
+          return (
+            entity: entity,
+            item: FileItem.fromEntity(
+              entity,
+              size: stat?.size,
+              modifiedDate: stat?.modified,
+            ),
+          );
+        }),
+      );
+
+      if (isCancelled?.call() ?? false) return;
+
+      for (final pair in items) {
+        if (matchesSearch(pair.item.name, searchQuery)) {
+          files.add(pair.item);
         }
-        final item = FileItem.fromEntity(entity);
-        if (matchesSearch(item.name, searchQuery)) {
-          files.add(item);
-        }
-        if (recursive && entity is Directory) {
-          await walk(entity, recursive: true);
+        if (recursive && pair.entity is Directory) {
+          if (isCancelled?.call() ?? false) return;
+          await walk(pair.entity as Directory, recursive: true);
         }
       }
     }
 
     await walk(baseDirectory, recursive: searchQuery.isNotEmpty);
+    if (isCancelled?.call() ?? false) return [];
+    onChunk?.call(files, isInitialBatch: true, isComplete: true);
     return files;
   }
 }
@@ -283,6 +504,19 @@ class FileBrowserController extends ChangeNotifier {
     AppSettingsService? settingsService,
     this.loadOnInit = true,
   }) : _settingsService = settingsService ?? AppSettingsService() {
+    if (category.name != 'All files') {
+      final cachedEntry = CategoryDataCache.instance.getEntry(category.name);
+      if (cachedEntry != null) {
+        files.addAll(cachedEntry.files);
+        if (cachedEntry.sortBy != null) sortBy = cachedEntry.sortBy!;
+        if (cachedEntry.sortAscending != null) {
+          sortAscending = cachedEntry.sortAscending!;
+        }
+        isLoading = false;
+        isFullyLoaded = !loadOnInit;
+        _isRevalidatingCache = true;
+      }
+    }
     if (loadOnInit) {
       unawaited(initialize());
     }
@@ -296,6 +530,7 @@ class FileBrowserController extends ChangeNotifier {
   final AppSettingsService _settingsService;
 
   bool isLoading = true;
+  bool isFullyLoaded = false;
   String? error;
   String? operationMessage;
   final List<FileItem> files = [];
@@ -306,9 +541,16 @@ class FileBrowserController extends ChangeNotifier {
   bool sortAscending = true;
   String searchQuery = '';
 
+  bool _selectAllActive = false;
+  bool get isSelectAllActive => _selectAllActive;
+
+  bool _isRevalidatingCache = false;
+  final Set<String> _inFlightSizeResolutions = {};
+
   String? _tempPath;
   int _operationId = 0;
   Timer? _searchDebounce;
+  Timer? _lazySizeDebounce;
 
   bool get isSelectionMode => selectedFiles.isNotEmpty;
   bool get canNavigateBack =>
@@ -319,11 +561,15 @@ class FileBrowserController extends ChangeNotifier {
   @visibleForTesting
   void setViewStateForTest({
     bool? loading,
+    bool? fullyLoaded,
     String? errorMessage,
     List<FileItem>? visibleFiles,
     Set<FileItem>? selected,
+    bool? selectAllActive,
   }) {
     if (loading != null) isLoading = loading;
+    if (fullyLoaded != null) isFullyLoaded = fullyLoaded;
+    if (selectAllActive != null) _selectAllActive = selectAllActive;
     error = errorMessage;
     if (visibleFiles != null) {
       files
@@ -340,12 +586,34 @@ class FileBrowserController extends ChangeNotifier {
 
   Future<void> initialize() async {
     await AssetSizeCache.load();
-    await _loadSortPreferences();
+    if (!_isRevalidatingCache) {
+      await _loadSortPreferences();
+    }
     await reload();
   }
 
+  bool _disposed = false;
+  bool get isDisposed => _disposed;
+
+  @override
+  void dispose() {
+    disposeController();
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
+  }
+
   void disposeController() {
+    _disposed = true;
+    _operationId++;
     _searchDebounce?.cancel();
+    _lazySizeDebounce?.cancel();
+    _inFlightSizeResolutions.clear();
   }
 
   Future<void> _loadSortPreferences() async {
@@ -372,12 +640,15 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   Future<void> setSearchQuery(String query) async {
+    _isRevalidatingCache = false;
+    clearSelection();
     searchQuery = query.trim();
     await reload();
   }
 
   void toggleSelection(FileItem item) {
     if (selectedFiles.contains(item)) {
+      _selectAllActive = false;
       selectedFiles.remove(item);
     } else {
       selectedFiles.add(item);
@@ -386,6 +657,7 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   void selectAll() {
+    _selectAllActive = true;
     selectedFiles
       ..clear()
       ..addAll(files);
@@ -393,37 +665,64 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   void clearSelection() {
+    _selectAllActive = false;
     selectedFiles.clear();
     notifyListeners();
   }
 
   Future<void> updateSortBy(SortBy value) async {
+    _isRevalidatingCache = false;
     sortBy = value;
     _sortFiles();
     notifyListeners();
     await _saveSortPreferences();
+
+    if (category.name != 'All files' && searchQuery.isEmpty && isFullyLoaded) {
+      CategoryDataCache.instance.put(
+        category.name,
+        files,
+        sortBy: sortBy,
+        sortAscending: sortAscending,
+      );
+    }
   }
 
   Future<void> toggleSortDirection() async {
+    _isRevalidatingCache = false;
     sortAscending = !sortAscending;
     _sortFiles();
     notifyListeners();
     await _saveSortPreferences();
+
+    if (category.name != 'All files' && searchQuery.isEmpty && isFullyLoaded) {
+      CategoryDataCache.instance.put(
+        category.name,
+        files,
+        sortBy: sortBy,
+        sortAscending: sortAscending,
+      );
+    }
   }
 
   Future<void> navigateInto(Directory dir) async {
+    _isRevalidatingCache = false;
+    clearSelection();
     directoryHistory.add(dir);
     await reload();
   }
 
   Future<void> navigateBack() async {
     if (!canNavigateBack) return;
+    _isRevalidatingCache = false;
+    clearSelection();
     directoryHistory.removeLast();
     await reload();
   }
 
   Future<void> navigateToDirectory(Directory dir) async {
     if (category.name != 'All files') return;
+    _isRevalidatingCache = false;
+    clearSelection();
     final index = directoryHistory.indexWhere((d) => d.path == dir.path);
     if (index >= 0) {
       directoryHistory.removeRange(index + 1, directoryHistory.length);
@@ -439,10 +738,20 @@ class FileBrowserController extends ChangeNotifier {
     _operationId++;
     final opId = _operationId;
 
-    isLoading = true;
-    error = null;
-    files.clear();
-    notifyListeners();
+    final isRevalidating = _isRevalidatingCache && searchQuery.isEmpty;
+    if (!isRevalidating) {
+      _isRevalidatingCache = false;
+      isLoading = true;
+      isFullyLoaded = false;
+      files.clear();
+      selectedFiles.clear();
+      _selectAllActive = false;
+      notifyListeners();
+    } else {
+      isFullyLoaded = false;
+      error = null;
+      notifyListeners();
+    }
 
     try {
       if (_tempPath == null) {
@@ -452,7 +761,7 @@ class FileBrowserController extends ChangeNotifier {
           _tempPath = '';
         }
       }
-      if (opId != _operationId) return;
+      if (_disposed || opId != _operationId) return;
 
       if (category.name == 'All files' && directoryHistory.isEmpty) {
         final storageDirs = await getExternalStorageDirectories();
@@ -467,6 +776,11 @@ class FileBrowserController extends ChangeNotifier {
 
       final strategy = _pickStrategy();
       final showHiddenFiles = await _settingsService.showHiddenFiles();
+      if (_disposed || opId != _operationId) return;
+
+      var streamHandled = false;
+      final revalidatedFiles = <FileItem>[];
+
       final loaded = await strategy.load(
         categoryName: category.name,
         searchQuery: searchQuery,
@@ -475,33 +789,138 @@ class FileBrowserController extends ChangeNotifier {
             : null,
         tempPath: _tempPath,
         showHiddenFiles: showHiddenFiles,
+        sortBy: sortBy,
+        sortAscending: sortAscending,
+        isCancelled: () => _disposed || opId != _operationId,
+        onChunk:
+            (chunk, {required bool isInitialBatch, required bool isComplete}) {
+              if (_disposed || opId != _operationId) return;
+              streamHandled = true;
+
+              if (isRevalidating) {
+                final existingRevalIds = revalidatedFiles
+                    .map((f) => f.pathSync)
+                    .toSet();
+                final newItems = chunk
+                    .where((f) => !existingRevalIds.contains(f.pathSync))
+                    .toList();
+                revalidatedFiles.addAll(newItems);
+                if (isComplete) {
+                  _isRevalidatingCache = false;
+                  files
+                    ..clear()
+                    ..addAll(revalidatedFiles);
+                  _sortFiles();
+                  if (_selectAllActive) {
+                    selectedFiles
+                      ..clear()
+                      ..addAll(files);
+                  } else {
+                    selectedFiles.retainWhere(files.contains);
+                  }
+                  if (selectedFiles.isEmpty) {
+                    _selectAllActive = false;
+                  }
+                  isFullyLoaded = true;
+                  notifyListeners();
+
+                  if (category.name != 'All files' && searchQuery.isEmpty) {
+                    CategoryDataCache.instance.put(
+                      category.name,
+                      files,
+                      sortBy: sortBy,
+                      sortAscending: sortAscending,
+                    );
+                  }
+                }
+              } else {
+                var listChanged = false;
+                if (isInitialBatch) {
+                  isLoading = false;
+                  files
+                    ..clear()
+                    ..addAll(chunk);
+                  listChanged = true;
+                } else if (chunk.isNotEmpty) {
+                  final existingIds = files.map((f) => f.pathSync).toSet();
+                  final newItems = chunk
+                      .where((item) => !existingIds.contains(item.pathSync))
+                      .toList();
+                  if (newItems.isNotEmpty) {
+                    files.addAll(newItems);
+                    listChanged = true;
+                  }
+                }
+
+                if (listChanged) {
+                  _sortFiles();
+                }
+
+                if (_selectAllActive && chunk.isNotEmpty) {
+                  selectedFiles.addAll(chunk);
+                }
+
+                isFullyLoaded = isComplete;
+                if (listChanged || isComplete) {
+                  notifyListeners();
+                }
+
+                if (isComplete &&
+                    category.name != 'All files' &&
+                    searchQuery.isEmpty) {
+                  CategoryDataCache.instance.put(
+                    category.name,
+                    files,
+                    sortBy: sortBy,
+                    sortAscending: sortAscending,
+                  );
+                }
+              }
+            },
       );
 
-      if (opId != _operationId) return;
-      files
-        ..clear()
-        ..addAll(loaded);
-      _sortFiles();
+      if (_disposed || opId != _operationId) return;
 
-      final needsSizeLoading =
-          sortBy == SortBy.size &&
-          files.any(
-            (f) =>
-                f.isAsset &&
-                AssetSizeCache.getSize(f.asset!.id, f.modifiedDate) == null,
+      if (!streamHandled) {
+        _isRevalidatingCache = false;
+        files
+          ..clear()
+          ..addAll(loaded);
+        _sortFiles();
+
+        if (_selectAllActive) {
+          selectedFiles
+            ..clear()
+            ..addAll(files);
+        } else {
+          selectedFiles.retainWhere(files.contains);
+        }
+        if (selectedFiles.isEmpty) {
+          _selectAllActive = false;
+        }
+
+        isFullyLoaded = true;
+        if (category.name != 'All files' && searchQuery.isEmpty) {
+          CategoryDataCache.instance.put(
+            category.name,
+            files,
+            sortBy: sortBy,
+            sortAscending: sortAscending,
           );
-
-      if (needsSizeLoading) {
-        await _startBackgroundSizeLoading(opId);
-      } else {
-        unawaited(_startBackgroundSizeLoading(opId));
+        }
       }
     } catch (e) {
-      if (opId != _operationId) return;
-      error = e.toString();
+      if (_disposed || opId != _operationId) return;
+      if (!isRevalidating) {
+        error = e.toString();
+      }
     } finally {
-      if (opId == _operationId) {
+      if (!_disposed && opId == _operationId) {
         isLoading = false;
+        if (isRevalidating) {
+          _isRevalidatingCache = false;
+          isFullyLoaded = true;
+        }
         notifyListeners();
       }
     }
@@ -526,7 +945,55 @@ class FileBrowserController extends ChangeNotifier {
     files.sort(_compare);
   }
 
-  Future<void> _startBackgroundSizeLoading(int opId) async {
+  /// Non-blocking on-viewport resolution helper for individual asset sizes.
+  void resolveAssetSizeLazy(FileItem item) {
+    if (!item.isAsset || _disposed) return;
+    final asset = item.asset!;
+    if (AssetSizeCache.getSize(asset.id, item.modifiedDate) != null) return;
+    if (_inFlightSizeResolutions.contains(asset.id)) return;
+    _inFlightSizeResolutions.add(asset.id);
+    unawaited(() async {
+      try {
+        final size = await asset.fileSize;
+        if (_disposed) return;
+        AssetSizeCache.setSize(asset.id, size, item.modifiedDate);
+      } catch (_) {
+        AssetSizeCache.setSize(asset.id, 0, item.modifiedDate);
+      } finally {
+        _inFlightSizeResolutions.remove(asset.id);
+      }
+      if (_disposed) return;
+      if (sortBy == SortBy.size) {
+        _lazySizeDebounce?.cancel();
+        _lazySizeDebounce = Timer(const Duration(milliseconds: 300), () {
+          if (!_disposed) {
+            _sortFiles();
+            notifyListeners();
+            if (category.name != 'All files' &&
+                searchQuery.isEmpty &&
+                isFullyLoaded) {
+              CategoryDataCache.instance.put(
+                category.name,
+                files,
+                sortBy: sortBy,
+                sortAscending: sortAscending,
+              );
+            }
+          }
+        });
+      }
+    }());
+  }
+
+  @visibleForTesting
+  bool isInFlightSizeResolution(String assetId) =>
+      _inFlightSizeResolutions.contains(assetId);
+
+  /// Bounded background worker pool for asset size resolution.
+  /// Gallery measurement concurrency is strictly capped at <= 2 to prevent CPU throttling.
+  @visibleForTesting
+  Future<void> startBackgroundSizeLoading([int? opId]) async {
+    final currentOp = opId ?? _operationId;
     final activeAssetIds = files
         .where((f) => f.isAsset)
         .map((f) => f.asset!.id)
@@ -543,14 +1010,13 @@ class FileBrowserController extends ChangeNotifier {
 
     if (assetsToFetch.isEmpty) return;
 
-    // Load sizes in parallel with a limited concurrency (e.g., 8 at a time)
-    const concurrency = 8;
+    final concurrency = math.min(2, assetsToFetch.length);
     var index = 0;
     var resolvedCount = 0;
 
     Future<void> worker() async {
       while (true) {
-        if (opId != _operationId) return;
+        if (_disposed || currentOp != _operationId) return;
 
         final currentIdx = index++;
         if (currentIdx >= assetsToFetch.length) break;
@@ -559,23 +1025,19 @@ class FileBrowserController extends ChangeNotifier {
         final asset = item.asset!;
 
         try {
-          final file = await asset.originFile ?? await asset.file;
-          if (file != null) {
-            final size = await file.length();
-            AssetSizeCache.setSize(asset.id, size, item.modifiedDate);
-            resolvedCount++;
+          final size = await asset.fileSize;
+          if (_disposed || currentOp != _operationId) return;
+          AssetSizeCache.setSize(asset.id, size, item.modifiedDate);
+          resolvedCount++;
 
-            // Re-sort and notify UI periodically (every 10 resolved items or on complete)
-            if (resolvedCount % 10 == 0 ||
-                resolvedCount == assetsToFetch.length) {
-              if (opId == _operationId) {
-                _sortFiles();
-                notifyListeners();
-              }
+          if (resolvedCount % 10 == 0 ||
+              resolvedCount == assetsToFetch.length) {
+            if (!_disposed && currentOp == _operationId) {
+              _sortFiles();
+              notifyListeners();
             }
           }
         } catch (_) {
-          // Cache 0 on error to avoid endless retries
           AssetSizeCache.setSize(asset.id, 0, item.modifiedDate);
         }
       }
@@ -591,9 +1053,40 @@ class FileBrowserController extends ChangeNotifier {
 
     final result = switch (sortBy) {
       SortBy.name => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-      SortBy.date => a.modifiedDate.compareTo(b.modifiedDate),
-      SortBy.size => a.size.compareTo(b.size),
-      SortBy.type => a.type.compareTo(b.type),
+      SortBy.date => () {
+        final cmp = (a.isAsset && b.isAsset)
+            ? a.asset!.createDateTime.compareTo(b.asset!.createDateTime)
+            : a.modifiedDate.compareTo(b.modifiedDate);
+        if (cmp != 0) return cmp;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      }(),
+      SortBy.size => () {
+        final aSize = a.isAsset
+            ? AssetSizeCache.getSize(a.asset!.id, a.modifiedDate)
+            : a.size;
+        final bSize = b.isAsset
+            ? AssetSizeCache.getSize(b.asset!.id, b.modifiedDate)
+            : b.size;
+        if (aSize != null && bSize != null) {
+          final cmp = aSize.compareTo(bSize);
+          if (cmp != 0) return cmp;
+        } else if (aSize != null) {
+          return 1;
+        } else if (bSize != null) {
+          return -1;
+        }
+        // Fallback gracefully to date sorting if uncached
+        final dateCmp = (a.isAsset && b.isAsset)
+            ? a.asset!.createDateTime.compareTo(b.asset!.createDateTime)
+            : a.modifiedDate.compareTo(b.modifiedDate);
+        if (dateCmp != 0) return dateCmp;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      }(),
+      SortBy.type => () {
+        final cmp = a.type.compareTo(b.type);
+        if (cmp != 0) return cmp;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      }(),
     };
 
     return sortAscending ? result : -result;
@@ -633,9 +1126,19 @@ class FileBrowserController extends ChangeNotifier {
       }
     }
 
+    _invalidateCategoryCache();
     files.removeWhere(selectedFiles.contains);
     selectedFiles.clear();
+    _selectAllActive = false;
     notifyListeners();
+  }
+
+  void _invalidateCategoryCache() {
+    if (category.name == 'All files') {
+      CategoryDataCache.instance.clear();
+    } else {
+      CategoryDataCache.instance.invalidate(category.name);
+    }
   }
 
   Future<void> openFileExternally(FileItem item) async {
@@ -771,7 +1274,9 @@ class FileBrowserController extends ChangeNotifier {
     }
 
     if (moved > 0) {
+      _invalidateCategoryCache();
       selectedFiles.clear();
+      _selectAllActive = false;
       await reload();
     }
 
@@ -816,7 +1321,9 @@ class FileBrowserController extends ChangeNotifier {
         await File(itemPath).rename(targetPath);
       }
       operationMessage = local.renamedOldToNew(item.name, trimmed);
+      _invalidateCategoryCache();
       selectedFiles.clear();
+      _selectAllActive = false;
       await reload();
       return true;
     } catch (e) {
