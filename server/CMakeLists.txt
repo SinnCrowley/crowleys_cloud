@@ -16,9 +16,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # ------------------------------------------------------------------------------
 include(FetchContent)
 
-# Disable Drogon examples and tests for faster, cleaner builds
+# Disable Drogon examples, tests, ctl, and unused ORM backends for faster, cleaner builds
+set(BUILD_CTL OFF CACHE BOOL "" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(BUILD_ORM OFF CACHE BOOL "" FORCE)
+set(BUILD_POSTGRESQL OFF CACHE BOOL "" FORCE)
+set(BUILD_MYSQL OFF CACHE BOOL "" FORCE)
+set(BUILD_SQLITE OFF CACHE BOOL "" FORCE)
+set(BUILD_REDIS OFF CACHE BOOL "" FORCE)
 
 # Fetch and configure Drogon C++ Web Framework (v1.9.13)
 FetchContent_Declare(
@@ -44,6 +50,14 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(WEBP REQUIRED IMPORTED_TARGET libwebp)
 pkg_check_modules(PROTOBUF REQUIRED IMPORTED_TARGET protobuf)
 set(PROTOBUF_TARGET PkgConfig::PROTOBUF)
+
+if(NOT Protobuf_PROTOC_EXECUTABLE)
+  if(TARGET protobuf::protoc)
+    set(Protobuf_PROTOC_EXECUTABLE protobuf::protoc)
+  else()
+    find_program(Protobuf_PROTOC_EXECUTABLE protoc REQUIRED)
+  endif()
+endif()
 
 
 # ------------------------------------------------------------------------------

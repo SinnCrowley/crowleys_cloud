@@ -1,7 +1,7 @@
 # Multi-stage build for Crowley's Cloud Server
 
 # Stage 1: Build Web Client Frontend (Svelte SPA)
-FROM node:22-alpine AS web-builder
+FROM node:26-alpine AS web-builder
 WORKDIR /app/server/web
 COPY server/web/package*.json ./
 RUN npm ci
@@ -10,7 +10,7 @@ COPY server/public/ ../public/
 RUN npm run build
 
 # Stage 2: Build C++ Server Backend
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:26.04 AS builder
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
@@ -55,7 +55,7 @@ RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 RUN cmake --build build -j$(nproc)
 
 # Stage 3: Runtime environment
-FROM ubuntu:22.04
+FROM ubuntu:26.04
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
