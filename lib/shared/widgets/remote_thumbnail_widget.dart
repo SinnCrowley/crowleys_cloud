@@ -192,9 +192,7 @@ class _RemoteThumbnailWidgetState extends State<RemoteThumbnailWidget> {
     return SizedBox(
       width: size,
       height: size,
-      child: Center(
-        child: widget.fallbackBuilder(context, size),
-      ),
+      child: Center(child: widget.fallbackBuilder(context, size)),
     );
   }
 
@@ -210,9 +208,7 @@ class _RemoteThumbnailWidgetState extends State<RemoteThumbnailWidget> {
         errorBuilder: (ctx, err, stack) => SizedBox(
           width: size,
           height: size,
-          child: Center(
-            child: widget.fallbackBuilder(ctx, size),
-          ),
+          child: Center(child: widget.fallbackBuilder(ctx, size)),
         ),
       ),
     );
@@ -252,10 +248,7 @@ class _RemoteThumbnailWidgetState extends State<RemoteThumbnailWidget> {
           return Stack(
             clipBehavior: Clip.hardEdge,
             alignment: Alignment.center,
-            children: <Widget>[
-              ...uniquePrevious.reversed,
-              ?currentChild,
-            ],
+            children: <Widget>[...uniquePrevious.reversed, ?currentChild],
           );
         },
         child: _loadedBytes != null

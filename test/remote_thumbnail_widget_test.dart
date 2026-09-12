@@ -316,7 +316,9 @@ void main() {
 
         // First load completes
         completer1.complete(samplePngBytes);
-        await tester.pump(const Duration(milliseconds: 50)); // halfway in crossfade
+        await tester.pump(
+          const Duration(milliseconds: 50),
+        ); // halfway in crossfade
         expect(tester.takeException(), isNull);
 
         // While crossfade is active, widget updates to another item where loader returns null (placeholder again)
