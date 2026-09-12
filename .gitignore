@@ -47,6 +47,7 @@ app.*.map.json
 # Agents instructions
 AGENTS.md
 PROJECT.md
+ORIGINAL_REQUEST.md
 .agents/
 
 # server data

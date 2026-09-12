@@ -164,16 +164,19 @@ This project relies on open-source frameworks and libraries:
 - **ZLIB** (zlib License)
 - **Google Protocol Buffers** (BSD-3-Clause)
 - **LibWebP** (BSD-3-Clause)
+- **stb (stb_image, stb_image_resize2)** (Public Domain / MIT)
 
 ### Svelte Web Interface (`server/web/`)
 - **Svelte Framework** (MIT)
 - **Vite Build Tool** (MIT)
 - **Google Material Symbols & Icons** (Apache License 2.0)
+- **Inter Font**, **Outfit Font** (SIL Open Font License 1.1)
 
 ### Flutter Mobile Client
 - **Flutter SDK** (`flutter`, `flutter_test`, `flutter_lints`) (BSD-3-Clause)
 - **permission_handler**, **video_thumbnail_plus**, **workmanager**, **open_file**, **flutter_launcher_icons**, **flutter_native_splash** (MIT)
-- **path_provider**, **path**, **shared_preferences**, **flutter_secure_storage**, **http**, **crypto**, **local_auth**, **protobuf**, **fixnum**, **share_plus**, **url_launcher**, **flutter_local_notifications** (BSD-3-Clause)
+- **path_provider**, **path**, **shared_preferences**, **flutter_secure_storage**, **http**, **crypto**, **local_auth**, **protobuf**, **fixnum**, **share_plus**, **url_launcher**, **flutter_local_notifications**, **flutter_markdown_plus**, **device_info_plus**, **package_info_plus**, **intl** (BSD-3-Clause)
+- **sqflite**, **sqflite_common_ffi** (BSD-2-Clause)
 - **photo_manager_image_provider**, **photo_manager** (Apache 2.0)
 
 For full copyright notices and complete license texts for each dependency, see [THIRD_PARTY_LICENSES.md](file:///home/crowley/Projects/crowleys_cloud/THIRD_PARTY_LICENSES.md).

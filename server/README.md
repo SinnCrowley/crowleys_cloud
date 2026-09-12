@@ -11,7 +11,7 @@ A high-performance, low-latency, and resource-efficient cloud storage backend bu
 - **Serialization:** Protocol Buffers over HTTP (`application/x-protobuf`) for directories/trash listings, falling back to JSON
 - **Cryptographic Operations:** OpenSSL (SHA-256 file hashing, AES-256-CBC local file encryption)
 - **Compression:** ZLIB (CRC32 calculations & raw zip archives stream compiling)
-- **Image Processing:** LibWebP (high-efficiency WebP thumbnail encoding and decoding)
+- **Image Processing:** LibWebP (high-efficiency WebP thumbnail encoding and decoding) & stb (image decoding and resizing)
 
 ---
 

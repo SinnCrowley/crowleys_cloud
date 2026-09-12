@@ -19,7 +19,7 @@ import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/l10n/localization_fallback.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
