@@ -545,10 +545,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     Directory? startDir;
-    final storageDirs = await getExternalStorageDirectories();
-    if (storageDirs != null && storageDirs.isNotEmpty) {
-      final root = extractRootPath(storageDirs.first.path);
-      if (root != null) startDir = Directory(root);
+    if (Platform.isAndroid) {
+      try {
+        final storageDirs = await getExternalStorageDirectories();
+        if (storageDirs != null && storageDirs.isNotEmpty) {
+          final root = extractRootPath(storageDirs.first.path);
+          if (root != null) startDir = Directory(root);
+        }
+      } catch (_) {}
+    }
+    if (startDir == null) {
+      try {
+        startDir = await getApplicationDocumentsDirectory();
+      } catch (_) {}
     }
     if (startDir == null || !mounted) return null;
 
@@ -662,7 +671,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<bool> _requestPermissionsForServerSync(ServerProfile server) async {
     if (Platform.environment.containsKey('FLUTTER_TEST')) return true;
-    if (!Platform.isAndroid) return true;
+    if (!Platform.isAndroid && !Platform.isIOS) return true;
 
     final categories = _syncStringList('syncCategories');
     final folders = _syncStringList('syncFolders');
@@ -670,12 +679,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return true;
     }
 
-    final needed = <Permission>{
-      Permission.notification,
-      Permission.ignoreBatteryOptimizations,
-    };
-    if (folders.isNotEmpty) {
-      needed.add(Permission.manageExternalStorage);
+    final needed = <Permission>{Permission.notification};
+    if (Platform.isAndroid) {
+      needed.add(Permission.ignoreBatteryOptimizations);
+      if (folders.isNotEmpty) {
+        needed.add(Permission.manageExternalStorage);
+      }
     }
 
     for (final cat in categories) {
@@ -684,8 +693,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } else if (cat == 'videos') {
         needed.add(Permission.videos);
       } else if (cat == 'audio') {
-        needed.add(Permission.audio);
-      } else {
+        if (Platform.isAndroid) {
+          needed.add(Permission.audio);
+        }
+      } else if (Platform.isAndroid) {
         needed.add(Permission.manageExternalStorage);
       }
     }
@@ -695,7 +706,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       var status = await perm.status;
       if (!status.isGranted) {
         status = await perm.request();
-        if (perm == Permission.manageExternalStorage && !status.isGranted) {
+        if (Platform.isAndroid &&
+            perm == Permission.manageExternalStorage &&
+            !status.isGranted) {
           await openAppSettings();
           status = await perm.status;
         }

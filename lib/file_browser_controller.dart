@@ -247,15 +247,21 @@ class FileWalkLoadStrategy implements FileLoadStrategy {
     onChunk,
     bool Function()? isCancelled,
   }) async {
-    final storageDirs = await getExternalStorageDirectories();
-    if (storageDirs == null ||
-        storageDirs.isEmpty ||
-        (isCancelled?.call() ?? false)) {
-      onChunk?.call([], isInitialBatch: true, isComplete: true);
-      return [];
+    String? rootPath;
+    if (Platform.isAndroid) {
+      try {
+        final storageDirs = await getExternalStorageDirectories();
+        if (storageDirs != null && storageDirs.isNotEmpty) {
+          rootPath = extractRootPath(storageDirs.first.path);
+        }
+      } catch (_) {}
+    }
+    if (rootPath == null) {
+      try {
+        rootPath = (await getApplicationDocumentsDirectory()).path;
+      } catch (_) {}
     }
 
-    final rootPath = extractRootPath(storageDirs.first.path);
     if (rootPath == null || (isCancelled?.call() ?? false)) {
       onChunk?.call([], isInitialBatch: true, isComplete: true);
       return [];
@@ -446,7 +452,11 @@ bool matchesSearch(String fileName, String query) {
 
 String? extractRootPath(String path) {
   final idx = path.indexOf('/Android/data');
-  return idx != -1 ? path.substring(0, idx) : null;
+  if (idx != -1) return path.substring(0, idx);
+  if (Platform.isIOS || !Platform.isAndroid || !path.contains('/Android/')) {
+    return path.isNotEmpty ? path : null;
+  }
+  return null;
 }
 
 bool isPathExcluded(
@@ -764,13 +774,25 @@ class FileBrowserController extends ChangeNotifier {
       if (_disposed || opId != _operationId) return;
 
       if (category.name == 'All files' && directoryHistory.isEmpty) {
-        final storageDirs = await getExternalStorageDirectories();
-        final rootDir = storageDirs?.first;
-        if (rootDir != null) {
-          final rootPath = extractRootPath(rootDir.path);
-          if (rootPath != null) {
-            directoryHistory.add(Directory(rootPath));
-          }
+        if (Platform.isAndroid) {
+          try {
+            final storageDirs = await getExternalStorageDirectories();
+            final rootDir = storageDirs != null && storageDirs.isNotEmpty
+                ? storageDirs.first
+                : null;
+            if (rootDir != null) {
+              final rootPath = extractRootPath(rootDir.path);
+              if (rootPath != null) {
+                directoryHistory.add(Directory(rootPath));
+              }
+            }
+          } catch (_) {}
+        }
+        if (directoryHistory.isEmpty) {
+          try {
+            final docsDir = await getApplicationDocumentsDirectory();
+            directoryHistory.add(docsDir);
+          } catch (_) {}
         }
       }
 
@@ -1099,7 +1121,12 @@ class FileBrowserController extends ChangeNotifier {
       if (path.isNotEmpty) filesToShare.add(XFile(path));
     }
     if (filesToShare.isNotEmpty) {
-      await SharePlus.instance.share(ShareParams(files: filesToShare));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: filesToShare,
+          sharePositionOrigin: const Rect.fromLTWH(0, 0, 500, 500),
+        ),
+      );
     }
     selectedFiles.clear();
     notifyListeners();

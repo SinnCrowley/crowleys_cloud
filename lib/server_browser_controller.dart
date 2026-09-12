@@ -540,7 +540,12 @@ class ServerBrowserController extends ChangeNotifier {
       } catch (_) {}
     }
     if (sharedLinks.isNotEmpty) {
-      await SharePlus.instance.share(ShareParams(text: sharedLinks.join('\n')));
+      await SharePlus.instance.share(
+        ShareParams(
+          text: sharedLinks.join('\n'),
+          sharePositionOrigin: const Rect.fromLTWH(0, 0, 500, 500),
+        ),
+      );
       operationMessage = local.createdNShareLinks(sharedLinks.length);
     } else {
       operationMessage = local.failedToCreateShareLinks;

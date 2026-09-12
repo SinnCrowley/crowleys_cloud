@@ -57,6 +57,7 @@ class _RemoteThumbnailWidgetState extends State<RemoteThumbnailWidget> {
   bool _hasError = false;
   Timer? _debounceTimer;
   ValueNotifier<bool>? _scrollNotifier;
+  int _transitionId = 0;
 
   @override
   void initState() {
@@ -95,6 +96,9 @@ class _RemoteThumbnailWidgetState extends State<RemoteThumbnailWidget> {
       final key = widget.cacheKey.toString();
       final mem = CacheService.instance.getMemoryThumbnail(key);
       if (mem != null) {
+        if (_loadedBytes != mem) {
+          _transitionId++;
+        }
         _loadedBytes = mem;
         _isLoading = false;
         _hasError = false;
@@ -102,6 +106,9 @@ class _RemoteThumbnailWidgetState extends State<RemoteThumbnailWidget> {
       }
     }
 
+    if (_loadedBytes != null) {
+      _transitionId++;
+    }
     _loadedBytes = null;
     _hasError = false;
 
@@ -137,6 +144,9 @@ class _RemoteThumbnailWidgetState extends State<RemoteThumbnailWidget> {
       final bytes = await widget.thumbnailLoader();
       if (!mounted) return;
       setState(() {
+        if (_loadedBytes != bytes) {
+          _transitionId++;
+        }
         _loadedBytes = bytes;
         _isLoading = false;
         _hasError = bytes == null;
@@ -179,7 +189,13 @@ class _RemoteThumbnailWidgetState extends State<RemoteThumbnailWidget> {
         ),
       );
     }
-    return widget.fallbackBuilder(context, size);
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Center(
+        child: widget.fallbackBuilder(context, size),
+      ),
+    );
   }
 
   Widget _buildLoadedImage(BuildContext context, double size, Uint8List bytes) {
@@ -191,28 +207,67 @@ class _RemoteThumbnailWidgetState extends State<RemoteThumbnailWidget> {
         height: size,
         fit: BoxFit.cover,
         gaplessPlayback: true,
-        errorBuilder: (ctx, err, stack) => widget.fallbackBuilder(ctx, size),
+        errorBuilder: (ctx, err, stack) => SizedBox(
+          width: size,
+          height: size,
+          child: Center(
+            child: widget.fallbackBuilder(ctx, size),
+          ),
+        ),
       ),
     );
+  }
+
+  Key _unwrapKey(Key key) {
+    var k = key;
+    while (k is ValueKey && k.value is Key) {
+      k = k.value as Key;
+    }
+    return k;
   }
 
   @override
   Widget build(BuildContext context) {
     final size = widget.isList ? 48.0 : 120.0;
 
-    return AnimatedSwitcher(
-      duration: widget.crossFadeDuration,
-      switchInCurve: Curves.easeIn,
-      switchOutCurve: Curves.easeOut,
-      child: _loadedBytes != null
-          ? KeyedSubtree(
-              key: const ValueKey('loaded_thumb'),
-              child: _buildLoadedImage(context, size, _loadedBytes!),
-            )
-          : KeyedSubtree(
-              key: const ValueKey('placeholder_thumb'),
-              child: _buildPlaceholder(context, size),
-            ),
+    return SizedBox(
+      width: size,
+      height: size,
+      child: AnimatedSwitcher(
+        duration: widget.crossFadeDuration,
+        switchInCurve: Curves.easeIn,
+        switchOutCurve: Curves.easeOut,
+        layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+          final seenKeys = <Key>{};
+          final uniquePrevious = <Widget>[];
+          if (currentChild?.key != null) {
+            seenKeys.add(_unwrapKey(currentChild!.key!));
+          }
+          for (final child in previousChildren.reversed) {
+            final key = child.key != null ? _unwrapKey(child.key!) : null;
+            if (key == null || seenKeys.add(key)) {
+              uniquePrevious.add(child);
+            }
+          }
+          return Stack(
+            clipBehavior: Clip.hardEdge,
+            alignment: Alignment.center,
+            children: <Widget>[
+              ...uniquePrevious.reversed,
+              ?currentChild,
+            ],
+          );
+        },
+        child: _loadedBytes != null
+            ? KeyedSubtree(
+                key: const ValueKey('loaded_thumb'),
+                child: _buildLoadedImage(context, size, _loadedBytes!),
+              )
+            : KeyedSubtree(
+                key: ValueKey('placeholder_thumb_$_transitionId'),
+                child: _buildPlaceholder(context, size),
+              ),
+      ),
     );
   }
 }

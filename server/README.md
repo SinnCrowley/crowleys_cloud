@@ -11,6 +11,7 @@ A high-performance, low-latency, and resource-efficient cloud storage backend bu
 - **Serialization:** Protocol Buffers over HTTP (`application/x-protobuf`) for directories/trash listings, falling back to JSON
 - **Cryptographic Operations:** OpenSSL (SHA-256 file hashing, AES-256-CBC local file encryption)
 - **Compression:** ZLIB (CRC32 calculations & raw zip archives stream compiling)
+- **Image Processing:** LibWebP (high-efficiency WebP thumbnail encoding and decoding)
 
 ---
 
@@ -28,11 +29,12 @@ To build and run the server, ensure your Linux system has the following installe
   - PkgConfig (required to link Protobuf & Abseil dependencies)
   - JsonCpp (development headers for Drogon JSON routing)
   - UUID (development headers for Drogon session UUIDs)
+  - LibWebP (development headers for WebP thumbnail generation)
 
 ### On Ubuntu/Debian:
 ```bash
 sudo apt-get update
-sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev ffmpeg
+sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev ffmpeg
 ```
 
 ---

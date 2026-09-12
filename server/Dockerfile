@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     uuid-dev \
     libbrotli-dev \
     libjsoncpp-dev \
+    libwebp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -68,6 +69,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libuuid1 \
     libbrotli1 \
     libjsoncpp25 \
+    libwebp7 \
     ffmpeg \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*

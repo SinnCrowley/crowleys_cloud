@@ -542,16 +542,17 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
                   mainAxisSpacing: 16,
                   childAspectRatio: 0.8,
                 ),
-                itemBuilder: (context, i) => _GridItem(
-                  controller: controller,
-                  item: controller.files[i],
-                  isSelected: controller.selectedFiles.contains(
-                    controller.files[i],
-                  ),
-                  onTap: () => _onTapItem(controller.files[i]),
-                  onLongPress: () =>
-                      controller.toggleSelection(controller.files[i]),
-                ),
+                itemBuilder: (context, i) {
+                  final item = controller.files[i];
+                  return _GridItem(
+                    key: ValueKey(item.path),
+                    controller: controller,
+                    item: item,
+                    isSelected: controller.selectedFiles.contains(item),
+                    onTap: () => _onTapItem(item),
+                    onLongPress: () => controller.toggleSelection(item),
+                  );
+                },
               )
             : ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -559,6 +560,7 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
                 itemBuilder: (context, i) {
                   final item = controller.files[i];
                   return _ListItem(
+                    key: ValueKey(item.path),
                     controller: controller,
                     item: item,
                     isSelected: controller.selectedFiles.contains(item),
@@ -592,13 +594,19 @@ class _ServerThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RemoteThumbnailWidget(
-      thumbnailLoader: () => controller.loadThumbnailWithRetry(item),
-      fallbackBuilder: (context, size) =>
-          _ServerFileFallbackIcon(item: item, size: size),
-      isList: isList,
-      cacheKey: '${item.path}_${item.modifiedAt}',
-      blurhash: item.blurhash,
+    final size = isList ? 48.0 : 120.0;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: RemoteThumbnailWidget(
+        key: ValueKey('thumb_${item.path}_${item.modifiedAt}'),
+        thumbnailLoader: () => controller.loadThumbnailWithRetry(item),
+        fallbackBuilder: (context, size) =>
+            _ServerFileFallbackIcon(item: item, size: size),
+        isList: isList,
+        cacheKey: '${item.path}_${item.modifiedAt}',
+        blurhash: item.blurhash,
+      ),
     );
   }
 }
@@ -620,6 +628,7 @@ class _ServerFileFallbackIcon extends StatelessWidget {
 
 class _GridItem extends StatelessWidget {
   const _GridItem({
+    super.key,
     required this.controller,
     required this.item,
     required this.isSelected,
@@ -637,7 +646,6 @@ class _GridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return InkWell(
-      key: ValueKey(item.path),
       onTap: onTap,
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(12),
@@ -716,6 +724,7 @@ class _GridItem extends StatelessWidget {
 
 class _ListItem extends StatelessWidget {
   const _ListItem({
+    super.key,
     required this.controller,
     required this.item,
     required this.isSelected,
@@ -737,7 +746,6 @@ class _ListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
-      key: ValueKey(item.path),
       padding: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

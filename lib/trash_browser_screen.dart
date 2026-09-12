@@ -526,6 +526,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
                   final item = controller.files[i];
                   final isSelected = controller.selectedFiles.contains(item);
                   return _TrashGridItem(
+                    key: ValueKey(item.id ?? item.path),
                     controller: controller,
                     item: item,
                     isSelected: isSelected,
@@ -545,6 +546,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
                   final item = controller.files[i];
                   final isSelected = controller.selectedFiles.contains(item);
                   return _TrashListItem(
+                    key: ValueKey(item.id ?? item.path),
                     controller: controller,
                     item: item,
                     isSelected: isSelected,
@@ -570,6 +572,7 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
 
 class _TrashGridItem extends StatelessWidget {
   const _TrashGridItem({
+    super.key,
     required this.controller,
     required this.item,
     required this.isSelected,
@@ -586,7 +589,6 @@ class _TrashGridItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      key: ValueKey(item.id),
       onTap: onTap,
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(12),
@@ -640,6 +642,7 @@ class _TrashGridItem extends StatelessWidget {
 
 class _TrashListItem extends StatelessWidget {
   const _TrashListItem({
+    super.key,
     required this.controller,
     required this.item,
     required this.isSelected,
@@ -660,7 +663,6 @@ class _TrashListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      key: ValueKey(item.id),
       padding: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -712,13 +714,19 @@ class _TrashThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RemoteThumbnailWidget(
-      thumbnailLoader: () => controller.loadThumbnailWithRetry(item),
-      fallbackBuilder: (context, size) =>
-          _TrashFileFallbackIcon(item: item, size: size),
-      isList: isList,
-      cacheKey: '${item.path}_${item.modifiedAt}',
-      blurhash: item.blurhash,
+    final size = isList ? 48.0 : 120.0;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: RemoteThumbnailWidget(
+        key: ValueKey('thumb_${item.path}_${item.modifiedAt}'),
+        thumbnailLoader: () => controller.loadThumbnailWithRetry(item),
+        fallbackBuilder: (context, size) =>
+            _TrashFileFallbackIcon(item: item, size: size),
+        isList: isList,
+        cacheKey: '${item.path}_${item.modifiedAt}',
+        blurhash: item.blurhash,
+      ),
     );
   }
 }

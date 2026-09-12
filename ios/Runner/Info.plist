@@ -54,5 +54,31 @@
 			<string>https</string>
 			<string>http</string>
 		</array>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Crowley's Cloud needs access to your photo library to browse and back up photos and videos.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>Crowley's Cloud needs permission to save downloaded photos and videos to your photo library.</string>
+		<key>UIFileSharingEnabled</key>
+		<true/>
+		<key>LSSupportsOpeningDocumentsInPlace</key>
+		<true/>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+			<key>NSAllowsLocalNetworking</key>
+			<true/>
+		</dict>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>processing</string>
+		</array>
+		<key>BGTaskSchedulerPermittedIdentifiers</key>
+		<array>
+			<string>crowleys_cloud_background_sync</string>
+			<string>dev.fluttercommunity.workmanager.BackgroundFetch</string>
+			<string>dev.fluttercommunity.workmanager.BackgroundProcessingTask</string>
+		</array>
 	</dict>
 </plist>

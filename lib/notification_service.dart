@@ -42,7 +42,17 @@ class SyncNotificationService {
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
-    const initSettings = InitializationSettings(android: androidSettings);
+    const DarwinInitializationSettings darwinSettings =
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: darwinSettings,
+      macOS: darwinSettings,
+    );
 
     await _notificationsPlugin.initialize(settings: initSettings);
 
@@ -96,7 +106,12 @@ class SyncNotificationService {
       enableVibration: false,
     );
 
-    final details = NotificationDetails(android: androidDetails);
+    const darwinDetails = DarwinNotificationDetails();
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: darwinDetails,
+      macOS: darwinDetails,
+    );
     await _notificationsPlugin.show(
       id: id,
       title: title,
@@ -132,7 +147,12 @@ class SyncNotificationService {
       playSound: true,
     );
 
-    final details = NotificationDetails(android: androidDetails);
+    const darwinDetails = DarwinNotificationDetails();
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: darwinDetails,
+      macOS: darwinDetails,
+    );
     await _notificationsPlugin.show(
       id: id,
       title: title,

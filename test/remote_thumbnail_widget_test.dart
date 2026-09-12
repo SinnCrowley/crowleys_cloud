@@ -284,5 +284,127 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       expect(loaderCalled, isFalse);
     });
+
+    testWidgets(
+      'handles rapid back-and-forth transitions without throwing duplicate key assertion',
+      (tester) async {
+        final completer1 = Completer<Uint8List?>();
+        var currentCacheKey = 'key_1';
+        var currentLoader = () => completer1.future;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: StatefulBuilder(
+                builder: (context, setState) {
+                  return RemoteThumbnailWidget(
+                    cacheKey: currentCacheKey,
+                    isList: true,
+                    thumbnailLoader: currentLoader,
+                    fallbackBuilder: (ctx, size) => const Icon(Icons.image),
+                    blurhash: sampleBlurHash,
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+
+        // Frame 0: placeholder rendered
+        expect(find.byType(BlurHashWidget), findsOneWidget);
+        expect(tester.takeException(), isNull);
+
+        // First load completes
+        completer1.complete(samplePngBytes);
+        await tester.pump(const Duration(milliseconds: 50)); // halfway in crossfade
+        expect(tester.takeException(), isNull);
+
+        // While crossfade is active, widget updates to another item where loader returns null (placeholder again)
+        final completer2 = Completer<Uint8List?>();
+        currentCacheKey = 'key_2';
+        currentLoader = () => completer2.future;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: RemoteThumbnailWidget(
+                cacheKey: currentCacheKey,
+                isList: true,
+                thumbnailLoader: currentLoader,
+                fallbackBuilder: (ctx, size) => const Icon(Icons.image),
+                blurhash: sampleBlurHash,
+              ),
+            ),
+          ),
+        );
+
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(tester.takeException(), isNull);
+
+        // Second load completes quickly while first transition was still in outgoing entries
+        completer2.complete(samplePngBytes);
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(tester.takeException(), isNull);
+
+        // Switch once again before any transition finishes
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: RemoteThumbnailWidget(
+                cacheKey: 'key_3',
+                isList: true,
+                thumbnailLoader: () async => null,
+                fallbackBuilder: (ctx, size) => const Icon(Icons.image),
+                blurhash: sampleBlurHash,
+              ),
+            ),
+          ),
+        );
+
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(tester.takeException(), isNull);
+
+        // Settle all animations
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'strictly constrains size to 48x48 in list mode and 120x120 in grid mode',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Column(
+                children: [
+                  RemoteThumbnailWidget(
+                    isList: true,
+                    thumbnailLoader: () async => null,
+                    fallbackBuilder: (ctx, size) => const Icon(Icons.error),
+                  ),
+                  RemoteThumbnailWidget(
+                    isList: false,
+                    thumbnailLoader: () async => null,
+                    fallbackBuilder: (ctx, size) => const Icon(Icons.error),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+        final listSize = tester.getSize(
+          find.byType(RemoteThumbnailWidget).first,
+        );
+        final gridSize = tester.getSize(
+          find.byType(RemoteThumbnailWidget).last,
+        );
+
+        expect(listSize, equals(const Size(48.0, 48.0)));
+        expect(gridSize, equals(const Size(120.0, 120.0)));
+      },
+    );
   });
 }

@@ -494,4 +494,97 @@ void main() {
     expect(progressMessages, contains('Проверка дубликатов на сервере...'));
     expect(progressMessages, contains('Завершение синхронизации...'));
   });
+
+  test(
+    'scanner falls back to application documents directory when not on Android',
+    () async {
+      final docsDir = Directory('${tempDir.path}/app_docs');
+      final photosDir = Directory('${docsDir.path}/Pictures');
+      await photosDir.create(recursive: true);
+      final photo = File('${photosDir.path}/ios_photo.jpg');
+      await photo.writeAsString('ios photo data');
+
+      final scanner = DeviceSyncFileScanner(
+        applicationDocumentsDirectoryProvider: () async => docsDir,
+      );
+      final scanServer = server.copyWith(
+        syncPrefs: {
+          'backupTargetDirectory': '/backup/device',
+          'syncCategories': ['photos'],
+          'syncFolders': <String>[],
+        },
+      );
+
+      final candidates = await scanner.scan(scanServer);
+      expect(candidates.length, 1);
+      expect(
+        candidates.single.remotePath,
+        'backup/device/photos/ios_photo.jpg',
+      );
+    },
+  );
+
+  test(
+    'scanner falls back to application documents when externalStorage throws',
+    () async {
+      final docsDir = Directory('${tempDir.path}/app_docs_fallback');
+      final docsSubDir = Directory('${docsDir.path}/Documents');
+      await docsSubDir.create(recursive: true);
+      final doc = File('${docsSubDir.path}/note.pdf');
+      await doc.writeAsString('document content');
+
+      final scanner = DeviceSyncFileScanner(
+        externalStorageDirectoriesProvider: () async =>
+            throw UnsupportedError('Not supported on iOS'),
+        applicationDocumentsDirectoryProvider: () async => docsDir,
+      );
+      final scanServer = server.copyWith(
+        syncPrefs: {
+          'backupTargetDirectory': '/backup/device',
+          'syncCategories': ['documents'],
+          'syncFolders': <String>[],
+        },
+      );
+
+      final candidates = await scanner.scan(scanServer);
+      expect(candidates.length, 1);
+      expect(candidates.single.remotePath, 'backup/device/documents/note.pdf');
+    },
+  );
+
+  test(
+    'syncServer safely stops processing candidates when deadline expires',
+    () async {
+      final file1 = await writeTestFile(tempDir, 'file1.jpg', 'content 1');
+      final file2 = await writeTestFile(tempDir, 'file2.jpg', 'content 2');
+      final stateFile = File('${tempDir.path}/state.json');
+      final stateStore = FileSyncStateStore(
+        fileProvider: () async => stateFile,
+      );
+      final api = _FakeApiClient();
+      final service = SyncService(
+        scanner: _FakeScanner([
+          SyncCandidate(file: file1, remotePath: 'backup/photos/file1.jpg'),
+          SyncCandidate(file: file2, remotePath: 'backup/photos/file2.jpg'),
+        ]),
+        apiClient: api,
+        stateStore: stateStore,
+      );
+
+      // Provide a deadline that is already in the past
+      final pastDeadline = DateTime.now().subtract(const Duration(seconds: 5));
+      final result = await service.syncServer(server, deadline: pastDeadline);
+
+      // Candidates were scanned, but upload loop stopped before processing files
+      expect(result.scannedFiles, 2);
+      expect(result.uploadedFiles, 0);
+      expect(api.uploadedPaths, isEmpty);
+
+      // Verify last result was persisted despite early exit
+      final lastResult = await stateStore.readLastResult(server.id);
+      expect(lastResult, isNotNull);
+      expect(lastResult?.scannedFiles, 2);
+      expect(lastResult?.uploadedFiles, 0);
+    },
+  );
 }

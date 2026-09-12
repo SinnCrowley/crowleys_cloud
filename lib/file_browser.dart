@@ -190,12 +190,19 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     if (_controller.category.name == 'All files' &&
         _controller.directoryHistory.isNotEmpty) {
       startDir = _controller.directoryHistory.last;
-    } else {
-      final dirs = await getExternalStorageDirectories();
-      if (dirs != null && dirs.isNotEmpty) {
-        final root = extractRootPath(dirs.first.path);
-        if (root != null) startDir = Directory(root);
-      }
+    } else if (Platform.isAndroid) {
+      try {
+        final dirs = await getExternalStorageDirectories();
+        if (dirs != null && dirs.isNotEmpty) {
+          final root = extractRootPath(dirs.first.path);
+          if (root != null) startDir = Directory(root);
+        }
+      } catch (_) {}
+    }
+    if (startDir == null) {
+      try {
+        startDir = await getApplicationDocumentsDirectory();
+      } catch (_) {}
     }
     if (startDir == null) return null;
     if (!mounted) return null;

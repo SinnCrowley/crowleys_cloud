@@ -423,11 +423,13 @@ class _MainScreenState extends State<MainScreen> {
       await Permission.notification.request();
       await [Permission.photos, Permission.videos, Permission.audio].request();
 
-      var storageStatus = await Permission.manageExternalStorage.status;
-      if (!storageStatus.isGranted) {
-        storageStatus = await Permission.manageExternalStorage.request();
+      if (Platform.isAndroid) {
+        var storageStatus = await Permission.manageExternalStorage.status;
         if (!storageStatus.isGranted) {
-          await openAppSettings();
+          storageStatus = await Permission.manageExternalStorage.request();
+          if (!storageStatus.isGranted) {
+            await openAppSettings();
+          }
         }
       }
     } catch (_) {}
@@ -1565,9 +1567,15 @@ class _MainScreenState extends State<MainScreen> {
         permission = Permission.videos;
         break;
       case 'Audio':
+        if (!Platform.isAndroid) {
+          return true;
+        }
         permission = Permission.audio;
         break;
       default:
+        if (!Platform.isAndroid) {
+          return true;
+        }
         permission = Permission.manageExternalStorage;
         isManageExternalStorage = true;
         break;

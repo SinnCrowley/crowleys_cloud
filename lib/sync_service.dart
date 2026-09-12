@@ -342,10 +342,12 @@ abstract class SyncFileScanner {
 class DeviceSyncFileScanner implements SyncFileScanner {
   DeviceSyncFileScanner({
     this.externalStorageDirectoriesProvider,
+    this.applicationDocumentsDirectoryProvider,
     AppSettingsService? settingsService,
   }) : _settingsService = settingsService ?? AppSettingsService();
 
   final Future<List<Directory>?> Function()? externalStorageDirectoriesProvider;
+  final Future<Directory> Function()? applicationDocumentsDirectoryProvider;
   final AppSettingsService _settingsService;
 
   @override
@@ -453,13 +455,32 @@ class DeviceSyncFileScanner implements SyncFileScanner {
   }
 
   Future<Directory?> _storageRoot() async {
-    final provider = externalStorageDirectoriesProvider;
-    final storageDirs = provider == null
-        ? await getExternalStorageDirectories()
-        : await provider();
-    if (storageDirs == null || storageDirs.isEmpty) return null;
-    final root = extractRootPath(storageDirs.first.path);
-    return root == null ? null : Directory(root);
+    final extProvider = externalStorageDirectoriesProvider;
+    List<Directory>? storageDirs;
+    if (extProvider != null) {
+      try {
+        storageDirs = await extProvider();
+      } catch (_) {}
+    } else if (Platform.isAndroid) {
+      try {
+        storageDirs = await getExternalStorageDirectories();
+      } catch (_) {}
+    }
+
+    if (storageDirs != null && storageDirs.isNotEmpty) {
+      final root = extractRootPath(storageDirs.first.path);
+      if (root != null) return Directory(root);
+    }
+
+    try {
+      final docProvider = applicationDocumentsDirectoryProvider;
+      if (docProvider != null) {
+        return await docProvider();
+      }
+      return await getApplicationDocumentsDirectory();
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<String> _identityPath(File file) async {
@@ -825,6 +846,7 @@ class SyncService {
     ServerProfile server, {
     AppLocalizations? l10n,
     void Function(String message, double? progress)? onProgress,
+    DateTime? deadline,
   }) async {
     final resolvedL10n = l10n ?? platformAppLocalizations();
     final startedAt = DateTime.now().toUtc();
@@ -878,6 +900,7 @@ class SyncService {
       final candidateLocalPaths = <SyncCandidate, String>{};
 
       for (final candidate in candidates) {
+        if (deadline != null && DateTime.now().isAfter(deadline)) break;
         final stat = await candidate.file.stat();
         final localPath = p.normalize(p.absolute(candidate.file.path));
         final existing = await stateStore.readRecord(
@@ -919,6 +942,7 @@ class SyncService {
 
       if (candidatesToHash.isNotEmpty) {
         for (var i = 0; i < candidatesToHash.length; i++) {
+          if (deadline != null && DateTime.now().isAfter(deadline)) break;
           final candidate = candidatesToHash[i];
           final filename = p.basename(candidate.file.path);
           onProgress?.call(
@@ -941,7 +965,8 @@ class SyncService {
 
       // Step 3: Query server for duplicate file hashes
       Map<String, String> existingRemotePaths = const {};
-      if (hashToCandidate.isNotEmpty) {
+      if (hashToCandidate.isNotEmpty &&
+          (deadline == null || !DateTime.now().isAfter(deadline))) {
         onProgress?.call(resolvedL10n.syncStatusCheckingDuplicates, null);
         try {
           existingRemotePaths = await apiClient.checkHashes(
@@ -955,6 +980,7 @@ class SyncService {
 
       // Step 4: Perform upload / skip matching files
       for (var i = 0; i < candidatesToHash.length; i++) {
+        if (deadline != null && DateTime.now().isAfter(deadline)) break;
         final candidate = candidatesToHash[i];
         final filename = p.basename(candidate.file.path);
         final progress = i / candidatesToHash.length;

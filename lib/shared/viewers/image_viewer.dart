@@ -144,7 +144,12 @@ class _ImageViewerState extends State<ImageViewer>
     }
     final path = await _items[_currentIndex].path;
     if (path.isNotEmpty) {
-      await SharePlus.instance.share(ShareParams(files: [XFile(path)]));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(path)],
+          sharePositionOrigin: const Rect.fromLTWH(0, 0, 500, 500),
+        ),
+      );
     }
   }
 

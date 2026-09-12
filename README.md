@@ -163,6 +163,7 @@ This project relies on open-source frameworks and libraries:
 - **SQLite3** (Public Domain)
 - **ZLIB** (zlib License)
 - **Google Protocol Buffers** (BSD-3-Clause)
+- **LibWebP** (BSD-3-Clause)
 
 ### Svelte Web Interface (`server/web/`)
 - **Svelte Framework** (MIT)

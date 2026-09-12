@@ -49,7 +49,7 @@ class ThumbnailService {
 
   Future<void> _buildNameIndex() async {
     final perm = await PhotoManager.requestPermissionExtend();
-    if (!perm.isAuth) return;
+    if (!perm.hasAccess) return;
 
     final albums = await PhotoManager.getAssetPathList(
       type: RequestType.common,
