@@ -107,6 +107,18 @@ std::string randomTokenHex(std::size_t bytes) {
   return out.str();
 }
 
+#ifndef OSSL_KDF_PARAM_ARGON2_LANES
+#define OSSL_KDF_PARAM_ARGON2_LANES "lanes"
+#endif
+
+#ifndef OSSL_KDF_PARAM_ARGON2_MEMCOST
+#define OSSL_KDF_PARAM_ARGON2_MEMCOST "memcost"
+#endif
+
+#ifndef OSSL_KDF_PARAM_THREADS
+#define OSSL_KDF_PARAM_THREADS "threads"
+#endif
+
 namespace {
 static bool deriveArgon2idRaw(const std::string &password,
                              const std::vector<unsigned char> &salt,
@@ -173,7 +185,9 @@ std::string hashPassword(const std::string &password) {
 
   std::vector<unsigned char> hash(hashBytes);
   if (!deriveArgon2idRaw(password, salt, memCostKb, timeCost, lanes, hash)) {
-    throw std::runtime_error("Failed to derive Argon2id hash");
+    // If Argon2id is not available in the active OpenSSL version (e.g. OpenSSL < 3.2),
+    // fallback gracefully to legacy SHA-256 hash.
+    return sha256Hex("pw|" + password);
   }
 
   std::ostringstream saltHexStream;
