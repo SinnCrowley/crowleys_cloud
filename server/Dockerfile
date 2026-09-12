@@ -65,10 +65,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3 \
     libsqlite3-0 \
     zlib1g \
-    libprotobuf23 \
+    libprotobuf32t64 \
     libuuid1 \
     libbrotli1 \
-    libjsoncpp25 \
+    libjsoncpp26 \
     libwebp7 \
     ffmpeg \
     ca-certificates \
