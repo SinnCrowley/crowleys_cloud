@@ -177,6 +177,14 @@
   "@categoryOtherFiles": {
     "description": "Category option: other files (long form)"
   },
+  "categoryBrowseFiles": "Explorar archivos",
+  "@categoryBrowseFiles": {
+    "description": "Category option to pick and upload files using system document picker"
+  },
+  "categoryDownloadedFiles": "Archivos descargados",
+  "@categoryDownloadedFiles": {
+    "description": "Category option for locally downloaded files"
+  },
   "noFilesFound": "No se encontraron archivos.",
   "@noFilesFound": {
     "description": "Empty state when no files exist"

@@ -177,6 +177,14 @@
   "@categoryOtherFiles": {
     "description": "Category option: other files (long form)"
   },
+  "categoryBrowseFiles": "Procházet soubory",
+  "@categoryBrowseFiles": {
+    "description": "Category option to pick and upload files using system document picker"
+  },
+  "categoryDownloadedFiles": "Stažené soubory",
+  "@categoryDownloadedFiles": {
+    "description": "Category option for locally downloaded files"
+  },
   "noFilesFound": "Nenalezeny žádné soubory.",
   "@noFilesFound": {
     "description": "Empty state when no files exist"

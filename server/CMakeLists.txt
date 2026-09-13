@@ -7,24 +7,26 @@ cmake_minimum_required(VERSION 3.15)
 project(crowleys_cloud_server VERSION 0.6.0 LANGUAGES C CXX)
 
 # Require C++20 standard for modern standard library features (std::filesystem, etc.)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ standard to use" FORCE)
+set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Require C++ standard" FORCE)
+set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Disable compiler extensions" FORCE)
 
 # ------------------------------------------------------------------------------
 # 1. External Frameworks & Dependencies
 # ------------------------------------------------------------------------------
 include(FetchContent)
 
-# Disable Drogon examples, tests, ctl, and unused ORM backends for faster, cleaner builds
+# Disable Drogon/Trantor examples, tests, docs, ctl, and unused ORM backends for faster, cleaner builds
 set(BUILD_CTL OFF CACHE BOOL "" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(BUILD_DOC OFF CACHE BOOL "" FORCE)
 set(BUILD_ORM OFF CACHE BOOL "" FORCE)
 set(BUILD_POSTGRESQL OFF CACHE BOOL "" FORCE)
 set(BUILD_MYSQL OFF CACHE BOOL "" FORCE)
 set(BUILD_SQLITE OFF CACHE BOOL "" FORCE)
 set(BUILD_REDIS OFF CACHE BOOL "" FORCE)
+set(USE_SPDLOG OFF CACHE BOOL "" FORCE)
 
 # Fetch and configure Drogon C++ Web Framework (v1.9.13)
 FetchContent_Declare(
@@ -33,6 +35,22 @@ FetchContent_Declare(
   GIT_TAG v1.9.13
 )
 FetchContent_MakeAvailable(drogon)
+
+# Ensure Trantor and Drogon targets strictly adhere to C++20 standard
+if(TARGET trantor)
+  set_target_properties(trantor PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+  )
+endif()
+if(TARGET drogon)
+  set_target_properties(drogon PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+  )
+endif()
 
 # Locate required system libraries:
 # - OpenSSL: Cryptographic operations (SHA256, HMAC, AES-256-CBC, RAND_bytes)

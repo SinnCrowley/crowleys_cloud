@@ -140,6 +140,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get categoryOtherFiles => 'Другие файлы';
 
   @override
+  String get categoryBrowseFiles => 'Обзор файлов';
+
+  @override
+  String get categoryDownloadedFiles => 'Загруженные файлы';
+
+  @override
   String get noFilesFound => 'Файлы не найдены.';
 
   @override

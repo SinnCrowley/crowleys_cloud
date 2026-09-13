@@ -43,6 +43,8 @@
   "categoryShared": "Общие",
   "categoryOther": "Другое",
   "categoryOtherFiles": "Другие файлы",
+  "categoryBrowseFiles": "Обзор файлов",
+  "categoryDownloadedFiles": "Загруженные файлы",
   "noFilesFound": "Файлы не найдены.",
   "noFilesInFolder": "В этой папке нет файлов.",
   "thisActionCannotBeUndone": "Это действие нельзя отменить.",

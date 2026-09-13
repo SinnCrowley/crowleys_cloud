@@ -1,0 +1,24 @@
+# Ignore Flutter mobile app source and build artifacts
+build/
+.dart_tool/
+android/
+ios/
+lib/
+test/
+tool/
+assets/
+scratch/
+
+# Ignore version control and IDE configuration
+.git/
+.github/
+.idea/
+*.iml
+
+# Ignore local server build outputs and runtime data
+server/build/
+server/data/
+server/logs/
+server/storage/
+server/uploads/
+server/web/node_modules/

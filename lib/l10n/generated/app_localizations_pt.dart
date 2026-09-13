@@ -140,6 +140,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get categoryOtherFiles => 'Outros ficheiros';
 
   @override
+  String get categoryBrowseFiles => 'Explorar ficheiros';
+
+  @override
+  String get categoryDownloadedFiles => 'Ficheiros transferidos';
+
+  @override
   String get noFilesFound => 'Nenhum ficheiro encontrado.';
 
   @override
@@ -1940,6 +1946,12 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get categoryOtherFiles => 'Outros arquivos';
+
+  @override
+  String get categoryBrowseFiles => 'Explorar arquivos';
+
+  @override
+  String get categoryDownloadedFiles => 'Arquivos baixados';
 
   @override
   String get noFilesFound => 'Nenhum arquivo encontrado.';

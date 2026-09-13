@@ -140,6 +140,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get categoryOtherFiles => 'Diğer dosyalar';
 
   @override
+  String get categoryBrowseFiles => 'Dosyalara göz at';
+
+  @override
+  String get categoryDownloadedFiles => 'İndirilen dosyalar';
+
+  @override
   String get noFilesFound => 'Dosya bulunamadı.';
 
   @override

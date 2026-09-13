@@ -177,6 +177,14 @@
   "@categoryOtherFiles": {
     "description": "Category option: other files (long form)"
   },
+  "categoryBrowseFiles": "Jelajahi Berkas",
+  "@categoryBrowseFiles": {
+    "description": "Category option to pick and upload files using system document picker"
+  },
+  "categoryDownloadedFiles": "Berkas yang Diunduh",
+  "@categoryDownloadedFiles": {
+    "description": "Category option for locally downloaded files"
+  },
   "noFilesFound": "Berkas tidak ditemukan.",
   "@noFilesFound": {
     "description": "Empty state when no files exist"

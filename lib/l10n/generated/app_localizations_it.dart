@@ -140,6 +140,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get categoryOtherFiles => 'Altri file';
 
   @override
+  String get categoryBrowseFiles => 'Sfoglia file';
+
+  @override
+  String get categoryDownloadedFiles => 'File scaricati';
+
+  @override
   String get noFilesFound => 'Nessun file trovato.';
 
   @override

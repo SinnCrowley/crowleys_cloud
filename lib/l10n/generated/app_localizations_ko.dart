@@ -140,6 +140,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get categoryOtherFiles => '기타 파일';
 
   @override
+  String get categoryBrowseFiles => '파일 둘러보기';
+
+  @override
+  String get categoryDownloadedFiles => '다운로드된 파일';
+
+  @override
   String get noFilesFound => '파일을 찾을 수 없습니다.';
 
   @override

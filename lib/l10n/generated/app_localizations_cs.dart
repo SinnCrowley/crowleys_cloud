@@ -140,6 +140,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get categoryOtherFiles => 'Ostatní soubory';
 
   @override
+  String get categoryBrowseFiles => 'Procházet soubory';
+
+  @override
+  String get categoryDownloadedFiles => 'Stažené soubory';
+
+  @override
   String get noFilesFound => 'Nenalezeny žádné soubory.';
 
   @override

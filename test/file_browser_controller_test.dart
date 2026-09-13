@@ -161,10 +161,57 @@ void main() {
         directoryStrategy: dir,
         loadOnInit: false,
       );
+      final downloadedFiles = FileBrowserController(
+        category: const FileCategory('Downloaded Files', Icons.download_done),
+        mediaStoreStrategy: media,
+        fileWalkStrategy: walk,
+        directoryStrategy: dir,
+        loadOnInit: false,
+      );
 
       expect(photos.strategyTypeForTest(), '_FakeStrategy');
       expect(documents.strategyTypeForTest(), '_FakeStrategy');
       expect(allFiles.strategyTypeForTest(), '_FakeStrategy');
+      expect(downloadedFiles.strategyTypeForTest(), '_FakeStrategy');
+    });
+
+    test('downloaded files back navigation follows directory stack', () async {
+      final fake = _FakeStrategy([]);
+      final controller = FileBrowserController(
+        category: const FileCategory('Downloaded Files', Icons.download_done),
+        directoryStrategy: fake,
+        loadOnInit: false,
+      );
+      controller.directoryHistory.addAll([
+        Directory('/tmp/CrowleysCloud'),
+        Directory('/tmp/CrowleysCloud/Sub'),
+      ]);
+
+      expect(controller.canNavigateBack, true);
+      await controller.navigateBack();
+      expect(controller.directoryHistory.length, 1);
+      expect(controller.canNavigateBack, false);
+    });
+
+    test('downloaded files allows folder creation', () async {
+      final tempDir = await Directory.systemTemp.createTemp('downloaded_test');
+      try {
+        final fake = _FakeStrategy([]);
+        final controller = FileBrowserController(
+          category: const FileCategory('Downloaded Files', Icons.download_done),
+          directoryStrategy: fake,
+          loadOnInit: false,
+        );
+        controller.directoryHistory.add(tempDir);
+
+        final err = await controller.createFolder('NewFolder');
+        expect(err, isNull);
+        expect(await Directory('${tempDir.path}/NewFolder').exists(), true);
+      } finally {
+        if (await tempDir.exists()) {
+          await tempDir.delete(recursive: true);
+        }
+      }
     });
 
     test('hidden paths are excluded only when setting is disabled', () {

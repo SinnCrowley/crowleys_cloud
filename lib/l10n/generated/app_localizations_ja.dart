@@ -140,6 +140,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get categoryOtherFiles => 'その他のファイル';
 
   @override
+  String get categoryBrowseFiles => 'ファイルをブラウズ';
+
+  @override
+  String get categoryDownloadedFiles => 'ダウンロードしたファイル';
+
+  @override
   String get noFilesFound => 'ファイルが見つかりません。';
 
   @override

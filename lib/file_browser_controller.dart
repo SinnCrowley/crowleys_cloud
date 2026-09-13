@@ -514,7 +514,7 @@ class FileBrowserController extends ChangeNotifier {
     AppSettingsService? settingsService,
     this.loadOnInit = true,
   }) : _settingsService = settingsService ?? AppSettingsService() {
-    if (category.name != 'All files') {
+    if (category.name != 'All files' && category.name != 'Downloaded Files') {
       final cachedEntry = CategoryDataCache.instance.getEntry(category.name);
       if (cachedEntry != null) {
         files.addAll(cachedEntry.files);
@@ -562,9 +562,11 @@ class FileBrowserController extends ChangeNotifier {
   Timer? _searchDebounce;
   Timer? _lazySizeDebounce;
 
+  bool get _isDirectoryCategory =>
+      category.name == 'All files' || category.name == 'Downloaded Files';
   bool get isSelectionMode => selectedFiles.isNotEmpty;
   bool get canNavigateBack =>
-      category.name == 'All files' && directoryHistory.length > 1;
+      _isDirectoryCategory && directoryHistory.length > 1;
   Directory? get currentDirectory =>
       directoryHistory.isEmpty ? null : directoryHistory.last;
 
@@ -687,7 +689,7 @@ class FileBrowserController extends ChangeNotifier {
     notifyListeners();
     await _saveSortPreferences();
 
-    if (category.name != 'All files' && searchQuery.isEmpty && isFullyLoaded) {
+    if (!_isDirectoryCategory && searchQuery.isEmpty && isFullyLoaded) {
       CategoryDataCache.instance.put(
         category.name,
         files,
@@ -704,7 +706,7 @@ class FileBrowserController extends ChangeNotifier {
     notifyListeners();
     await _saveSortPreferences();
 
-    if (category.name != 'All files' && searchQuery.isEmpty && isFullyLoaded) {
+    if (!_isDirectoryCategory && searchQuery.isEmpty && isFullyLoaded) {
       CategoryDataCache.instance.put(
         category.name,
         files,
@@ -730,7 +732,7 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   Future<void> navigateToDirectory(Directory dir) async {
-    if (category.name != 'All files') return;
+    if (!_isDirectoryCategory) return;
     _isRevalidatingCache = false;
     clearSelection();
     final index = directoryHistory.indexWhere((d) => d.path == dir.path);
@@ -794,6 +796,16 @@ class FileBrowserController extends ChangeNotifier {
             directoryHistory.add(docsDir);
           } catch (_) {}
         }
+      } else if (category.name == 'Downloaded Files' &&
+          directoryHistory.isEmpty) {
+        try {
+          final docsDir = await getApplicationDocumentsDirectory();
+          final downloadDir = Directory(p.join(docsDir.path, 'CrowleysCloud'));
+          if (!await downloadDir.exists()) {
+            await downloadDir.create(recursive: true);
+          }
+          directoryHistory.add(downloadDir);
+        } catch (_) {}
       }
 
       final strategy = _pickStrategy();
@@ -806,7 +818,7 @@ class FileBrowserController extends ChangeNotifier {
       final loaded = await strategy.load(
         categoryName: category.name,
         searchQuery: searchQuery,
-        baseDirectory: category.name == 'All files'
+        baseDirectory: _isDirectoryCategory
             ? (directoryHistory.isEmpty ? null : directoryHistory.last)
             : null,
         tempPath: _tempPath,
@@ -846,7 +858,7 @@ class FileBrowserController extends ChangeNotifier {
                   isFullyLoaded = true;
                   notifyListeners();
 
-                  if (category.name != 'All files' && searchQuery.isEmpty) {
+                  if (!_isDirectoryCategory && searchQuery.isEmpty) {
                     CategoryDataCache.instance.put(
                       category.name,
                       files,
@@ -888,7 +900,7 @@ class FileBrowserController extends ChangeNotifier {
                 }
 
                 if (isComplete &&
-                    category.name != 'All files' &&
+                    !_isDirectoryCategory &&
                     searchQuery.isEmpty) {
                   CategoryDataCache.instance.put(
                     category.name,
@@ -922,7 +934,7 @@ class FileBrowserController extends ChangeNotifier {
         }
 
         isFullyLoaded = true;
-        if (category.name != 'All files' && searchQuery.isEmpty) {
+        if (!_isDirectoryCategory && searchQuery.isEmpty) {
           CategoryDataCache.instance.put(
             category.name,
             files,
@@ -949,10 +961,13 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   FileLoadStrategy _pickStrategy() {
-    if (category.name == 'All files') {
+    if (_isDirectoryCategory) {
       return directoryStrategy ?? DirectoryLoadStrategy();
     }
-    if (_mediaStoreCategories.contains(category.name)) {
+    final isMedia = Platform.isIOS
+        ? (category.name == 'Photos' || category.name == 'Videos')
+        : _mediaStoreCategories.contains(category.name);
+    if (isMedia) {
       return mediaStoreStrategy ?? MediaStoreLoadStrategy();
     }
     return fileWalkStrategy ?? FileWalkLoadStrategy();
@@ -991,9 +1006,7 @@ class FileBrowserController extends ChangeNotifier {
           if (!_disposed) {
             _sortFiles();
             notifyListeners();
-            if (category.name != 'All files' &&
-                searchQuery.isEmpty &&
-                isFullyLoaded) {
+            if (!_isDirectoryCategory && searchQuery.isEmpty && isFullyLoaded) {
               CategoryDataCache.instance.put(
                 category.name,
                 files,
@@ -1161,7 +1174,7 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   void _invalidateCategoryCache() {
-    if (category.name == 'All files') {
+    if (_isDirectoryCategory) {
       CategoryDataCache.instance.clear();
     } else {
       CategoryDataCache.instance.invalidate(category.name);
@@ -1190,7 +1203,7 @@ class FileBrowserController extends ChangeNotifier {
 
   Future<String?> createFolder(String name, [AppLocalizations? l10n]) async {
     final local = _getL10n(l10n);
-    if (category.name != 'All files') {
+    if (!_isDirectoryCategory) {
       return local.folderCreationOnlyInAllFiles;
     }
     if (directoryHistory.isEmpty) {

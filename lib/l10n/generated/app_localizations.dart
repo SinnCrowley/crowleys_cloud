@@ -394,6 +394,18 @@ abstract class AppLocalizations {
   /// **'Other files'**
   String get categoryOtherFiles;
 
+  /// Category option to pick and upload files using system document picker
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Files'**
+  String get categoryBrowseFiles;
+
+  /// Category option for locally downloaded files
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded Files'**
+  String get categoryDownloadedFiles;
+
   /// Empty state when no files exist
   ///
   /// In en, this message translates to:

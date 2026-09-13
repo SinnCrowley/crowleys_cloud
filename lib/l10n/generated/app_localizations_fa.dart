@@ -140,6 +140,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String get categoryOtherFiles => 'سایر فایل‌ها';
 
   @override
+  String get categoryBrowseFiles => 'مرور فایل‌ها';
+
+  @override
+  String get categoryDownloadedFiles => 'فایل‌های دانلود شده';
+
+  @override
   String get noFilesFound => 'هیچ فایلی یافت نشد.';
 
   @override

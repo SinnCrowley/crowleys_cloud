@@ -187,7 +187,8 @@ class _FileBrowserScreenState extends State<FileBrowser> {
 
   Future<String?> _pickLocalFolder() async {
     Directory? startDir;
-    if (_controller.category.name == 'All files' &&
+    if ((_controller.category.name == 'All files' ||
+            _controller.category.name == 'Downloaded Files') &&
         _controller.directoryHistory.isNotEmpty) {
       startDir = _controller.directoryHistory.last;
     } else if (Platform.isAndroid) {
@@ -339,8 +340,11 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     final separator = Platform.pathSeparator;
     if (currentPath == rootPath ||
         currentPath.startsWith('$rootPath$separator')) {
+      final rootLabel = widget.category.name == 'Downloaded Files'
+          ? l10n.categoryDownloadedFiles
+          : l10n.storageRoot;
       final items = <({String label, String path})>[
-        (label: l10n.storageRoot, path: rootPath),
+        (label: rootLabel, path: rootPath),
       ];
       final relativePath = currentPath == rootPath
           ? ''
@@ -370,7 +374,8 @@ class _FileBrowserScreenState extends State<FileBrowser> {
 
   Widget _buildMainBreadcrumb() {
     final currentDir = _controller.currentDirectory;
-    if (widget.category.name != 'All files' ||
+    if ((widget.category.name != 'All files' &&
+            widget.category.name != 'Downloaded Files') ||
         _controller.isSelectionMode ||
         currentDir == null ||
         _controller.directoryHistory.isEmpty) {
@@ -420,7 +425,8 @@ class _FileBrowserScreenState extends State<FileBrowser> {
           builder: (context, _) {
             final showCreateFolder =
                 !_controller.isSelectionMode &&
-                widget.category.name == 'All files';
+                (widget.category.name == 'All files' ||
+                    widget.category.name == 'Downloaded Files');
             if (!showCreateFolder) return const SizedBox.shrink();
             return Positioned(
               right: 16,

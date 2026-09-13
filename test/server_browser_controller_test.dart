@@ -818,6 +818,50 @@ void main() {
         controller.dispose();
       },
     );
+
+    test(
+      'downloadSelectedFiles strips leading slashes and saves inside target folder',
+      () async {
+        final tempRoot = await Directory.systemTemp.createTemp(
+          'download_slash_test',
+        );
+        addTearDown(() async {
+          if (await tempRoot.exists()) await tempRoot.delete(recursive: true);
+        });
+        SharedPreferences.setMockInitialValues({
+          AppSettingsService.downloadDirectoryPathKey: tempRoot.path,
+        });
+
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv',
+          accessToken: 'token',
+          refreshToken: 'refresh',
+        );
+
+        final item = _serverItem(name: 'photo.jpg', path: '/nested/photo.jpg');
+
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/files') {
+            return http.Response('file-content', 200);
+          }
+          return http.Response(jsonEncode({'entries': []}), 200);
+        });
+
+        final controller = _controller(store: store, client: client);
+        controller.toggleSelection(item);
+        await controller.downloadSelectedFiles();
+
+        final downloadedFile = File(
+          p.join(tempRoot.path, 'nested', 'photo.jpg'),
+        );
+        expect(await downloadedFile.exists(), true);
+        expect(await downloadedFile.readAsString(), 'file-content');
+
+        controller.disposeController();
+        controller.dispose();
+      },
+    );
   });
 }
 

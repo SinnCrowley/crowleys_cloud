@@ -140,6 +140,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get categoryOtherFiles => 'Berkas Lainnya';
 
   @override
+  String get categoryBrowseFiles => 'Jelajahi Berkas';
+
+  @override
+  String get categoryDownloadedFiles => 'Berkas yang Diunduh';
+
+  @override
   String get noFilesFound => 'Berkas tidak ditemukan.';
 
   @override

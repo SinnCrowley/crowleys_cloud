@@ -140,6 +140,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get categoryOtherFiles => 'Tệp khác';
 
   @override
+  String get categoryBrowseFiles => 'Duyệt tệp';
+
+  @override
+  String get categoryDownloadedFiles => 'Tệp đã tải xuống';
+
+  @override
   String get noFilesFound => 'Không tìm thấy tệp nào.';
 
   @override

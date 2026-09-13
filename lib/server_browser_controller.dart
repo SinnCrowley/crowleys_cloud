@@ -33,6 +33,7 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -464,6 +465,12 @@ class ServerBrowserController extends ChangeNotifier {
     if (path.startsWith(androidPrefix)) {
       final sub = path.substring(androidPrefix.length);
       return sub.isEmpty ? _getL10n(l10n).storageRoot : sub;
+    }
+    if (Platform.isIOS && path.contains('/Documents/')) {
+      final sub = path.substring(
+        path.indexOf('/Documents/') + '/Documents/'.length,
+      );
+      return 'Files > $sub';
     }
     return path;
   }
@@ -972,6 +979,26 @@ class ServerBrowserController extends ChangeNotifier {
         transferManager?.throwIfItemCanceled(transferItem);
       }
       if (transferItem != null) transferManager?.completeItem(transferItem);
+      if (Platform.isIOS) {
+        try {
+          final ext = p.extension(targetPath).toLowerCase();
+          const imageExts = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic'};
+          const videoExts = {'.mp4', '.mov', '.m4v', '.avi', '.mkv'};
+          if (imageExts.contains(ext)) {
+            await PhotoManager.editor.saveImageWithPath(
+              targetPath,
+              title: p.basename(targetPath),
+            );
+          } else if (videoExts.contains(ext)) {
+            await PhotoManager.editor.saveVideo(
+              File(targetPath),
+              title: p.basename(targetPath),
+            );
+          }
+        } catch (e) {
+          debugPrint('Failed to save downloaded media to iOS Photos: $e');
+        }
+      }
       return true;
     } on TransferItemCanceledException {
       if (await file.exists()) {
@@ -987,7 +1014,8 @@ class ServerBrowserController extends ChangeNotifier {
         } catch (_) {}
       }
       rethrow;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Failed to download single file: $e');
       if (transferItem != null) {
         transferManager?.failItem(
           transferItem,
@@ -1003,13 +1031,13 @@ class ServerBrowserController extends ChangeNotifier {
     Directory root,
     List<_DownloadPlan> plans,
   ) async {
+    final relativePath = item.path.replaceAll(RegExp(r'^[/\\]+'), '');
+    final targetPath = p.join(root.path, relativePath);
     if (!item.isDir) {
-      plans.add(
-        _DownloadPlan(item: item, targetPath: p.join(root.path, item.path)),
-      );
+      plans.add(_DownloadPlan(item: item, targetPath: targetPath));
       return true;
     }
-    final folderTarget = Directory(p.join(root.path, item.path));
+    final folderTarget = Directory(targetPath);
     try {
       await folderTarget.create(recursive: true);
     } catch (_) {

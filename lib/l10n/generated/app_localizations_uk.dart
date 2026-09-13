@@ -140,6 +140,12 @@ class AppLocalizationsUk extends AppLocalizations {
   String get categoryOtherFiles => 'Інші файли';
 
   @override
+  String get categoryBrowseFiles => 'Огляд файлів';
+
+  @override
+  String get categoryDownloadedFiles => 'Завантажені файли';
+
+  @override
   String get noFilesFound => 'Файлів не знайдено.';
 
   @override

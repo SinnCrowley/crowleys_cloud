@@ -19,6 +19,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/app_settings_service.dart';
@@ -290,6 +291,12 @@ class _MainScreenState extends State<MainScreen> {
     FileCategory('Documents', Icons.description),
     FileCategory('Other', Icons.insert_drive_file),
   ];
+  static const _iosCategories = <FileCategory>[
+    FileCategory('Photos', Icons.photo),
+    FileCategory('Videos', Icons.videocam),
+    FileCategory('Browse Files', Icons.folder_open),
+    FileCategory('Downloaded Files', Icons.download_done),
+  ];
   static const _serverCategories = <FileCategory>[
     FileCategory('All files', Icons.folder),
     FileCategory('Photos', Icons.photo),
@@ -391,6 +398,10 @@ class _MainScreenState extends State<MainScreen> {
         return l10n.categoryOther;
       case 'Shared':
         return l10n.categoryShared;
+      case 'Browse Files':
+        return l10n.categoryBrowseFiles;
+      case 'Downloaded Files':
+        return l10n.categoryDownloadedFiles;
       default:
         return name;
     }
@@ -421,9 +432,15 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _requestAllPermissionsAtStartup() async {
     try {
       await Permission.notification.request();
-      await [Permission.photos, Permission.videos, Permission.audio].request();
+      if (Platform.isIOS) {
+        await Permission.photos.request();
+      } else if (Platform.isAndroid) {
+        await [
+          Permission.photos,
+          Permission.videos,
+          Permission.audio,
+        ].request();
 
-      if (Platform.isAndroid) {
         var storageStatus = await Permission.manageExternalStorage.status;
         if (!storageStatus.isGranted) {
           storageStatus = await Permission.manageExternalStorage.request();
@@ -804,7 +821,7 @@ class _MainScreenState extends State<MainScreen> {
     final trimmed = query.trim();
     if (_selectedModeIndex == 0) {
       if (_selectedLocalCategory == null && trimmed.isNotEmpty) {
-        final category = _allCategories[0];
+        final category = Platform.isIOS ? _iosCategories[0] : _allCategories[0];
         final permissionGranted = await _requestPermission(category);
         if (permissionGranted) {
           _disposeLocalController();
@@ -853,6 +870,10 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _onLocalCategorySelected(FileCategory category) async {
+    if (Platform.isIOS && category.name == 'Browse Files') {
+      await _pickAndUploadFiles();
+      return;
+    }
     final permissionGranted = await _requestPermission(category);
     if (permissionGranted) {
       if (_searchController.text.isNotEmpty) {
@@ -867,6 +888,32 @@ class _MainScreenState extends State<MainScreen> {
         _selectedLocalCategory = category;
         _localController = controller;
       });
+    }
+  }
+
+  Future<void> _pickAndUploadFiles() async {
+    try {
+      final files = await FilePicker.pickFiles();
+      if (files.isEmpty) return;
+
+      final items = <FileItem>[];
+      for (final file in files) {
+        final filePath = file.path;
+        if (filePath != null && filePath.isNotEmpty) {
+          items.add(
+            FileItem.fromEntity(File(filePath), size: file.lengthSync()),
+          );
+        }
+      }
+      if (items.isNotEmpty) {
+        await _uploadLocalItems(items);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking files: $e')));
+      }
     }
   }
 
@@ -1556,6 +1603,17 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<bool> _requestPermission(FileCategory category) async {
+    if (Platform.isIOS) {
+      if (category.name == 'Photos' || category.name == 'Videos') {
+        var status = await Permission.photos.status;
+        if (!status.isGranted && !status.isLimited) {
+          status = await Permission.photos.request();
+        }
+        return status.isGranted || status.isLimited;
+      }
+      return true;
+    }
+
     Permission permission;
     bool isManageExternalStorage = false;
 
@@ -2288,9 +2346,10 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildLocalCategoryGrid() {
     final l10n = AppLocalizations.of(context)!;
+    final categories = Platform.isIOS ? _iosCategories : _allCategories;
     return GridView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: _allCategories.length,
+      itemCount: categories.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 16,
@@ -2298,7 +2357,7 @@ class _MainScreenState extends State<MainScreen> {
         childAspectRatio: 1,
       ),
       itemBuilder: (context, index) {
-        final category = _allCategories[index];
+        final category = categories[index];
         return InkWell(
           onTap: () => _onLocalCategorySelected(category),
           borderRadius: BorderRadius.circular(12),

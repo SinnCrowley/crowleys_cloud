@@ -1,7 +1,6 @@
-version: '3.8'
-
 services:
   server:
+    image: ghcr.io/sinncrowley/crowleys_cloud/crowleys-cloud-server:v0.6.0
     build:
       context: ../
       dockerfile: server/Dockerfile
@@ -10,6 +9,7 @@ services:
       - "8080:8080"
     volumes:
       - ./storage:/app/storage
+      - ./data:/app/data
       - ./logs:/app/logs
       - ./config:/app/config
     restart: always

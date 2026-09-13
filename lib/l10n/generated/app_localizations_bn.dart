@@ -140,6 +140,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get categoryOtherFiles => 'অন্যান্য ফাইল';
 
   @override
+  String get categoryBrowseFiles => 'ফাইল ব্রাউজ করুন';
+
+  @override
+  String get categoryDownloadedFiles => 'ডাউনলোড করা ফাইল';
+
+  @override
   String get noFilesFound => 'কোনো ফাইল পাওয়া যায়নি।';
 
   @override

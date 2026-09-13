@@ -177,6 +177,14 @@
   "@categoryOtherFiles": {
     "description": "Category option: other files (long form)"
   },
+  "categoryBrowseFiles": "फ़ाइलें ब्राउज़ करें",
+  "@categoryBrowseFiles": {
+    "description": "Category option to pick and upload files using system document picker"
+  },
+  "categoryDownloadedFiles": "डाउनलोड की गई फ़ाइलें",
+  "@categoryDownloadedFiles": {
+    "description": "Category option for locally downloaded files"
+  },
   "noFilesFound": "कोई फ़ाइल नहीं मिली।",
   "@noFilesFound": {
     "description": "Empty state when no files exist"

@@ -140,6 +140,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get categoryOtherFiles => '其他檔案';
 
   @override
+  String get categoryBrowseFiles => '瀏覽檔案';
+
+  @override
+  String get categoryDownloadedFiles => '已下載的檔案';
+
+  @override
   String get noFilesFound => '找不到檔案。';
 
   @override
@@ -1880,6 +1886,12 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get categoryOtherFiles => '其他文件';
+
+  @override
+  String get categoryBrowseFiles => '浏览文件';
+
+  @override
+  String get categoryDownloadedFiles => '已下载的文件';
 
   @override
   String get noFilesFound => '未找到文件。';
