@@ -78,6 +78,3 @@ pnpm-debug.log*
 Thumbs.db
 *~
 *.lock
-
-# Release automation scripts
-/scripts/bump_version.sh
