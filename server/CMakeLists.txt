@@ -31,11 +31,14 @@ endif()
 
 # Windows & MSVC definitions and compiler options
 if(WIN32)
-  add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS _WINSOCK_DEPRECATED_NO_WARNINGS)
+  add_compile_definitions(NOMINMAX _CRT_SECURE_NO_WARNINGS _WINSOCK_DEPRECATED_NO_WARNINGS)
 endif()
 
 if(MSVC)
   add_compile_options(/EHsc /bigobj /utf-8)
+  if(VCPKG_TARGET_TRIPLET MATCHES "static")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
+  endif()
 endif()
 
 # Required system libraries per platform
@@ -72,6 +75,21 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(drogon)
 
+# Trantor's OpenSSLProvider.cc uses Windows CryptoAPI (CertOpenSystemStoreW, HCRYPTPROV_LEGACY)
+# on Windows without explicitly including <wincrypt.h>. Patch OpenSSLProvider.cc directly if fetched.
+if(WIN32)
+  set(TRANTOR_OPENSSL_PROVIDER "${drogon_SOURCE_DIR}/trantor/trantor/net/inner/tlsprovider/OpenSSLProvider.cc")
+  if(EXISTS "${TRANTOR_OPENSSL_PROVIDER}")
+    file(READ "${TRANTOR_OPENSSL_PROVIDER}" _provider_content)
+    if(NOT _provider_content MATCHES "wincrypt\\.h")
+      string(REGEX REPLACE "(#ifdef[ \t]+_WIN32)"
+        "\\1\n#include <windows.h>\n#include <wincrypt.h>\n#undef X509_NAME\n#undef X509_CERT_PAIR\n#undef X509_EXTENSIONS\n#undef PKCS7_ISSUER_AND_SERIAL\n#undef OCSP_REQUEST\n#undef OCSP_RESPONSE"
+        _provider_content "${_provider_content}")
+      file(WRITE "${TRANTOR_OPENSSL_PROVIDER}" "${_provider_content}")
+    endif()
+  endif()
+endif()
+
 # Ensure Trantor and Drogon targets strictly adhere to C++20 standard
 if(TARGET trantor)
   set_target_properties(trantor PROPERTIES
@@ -79,6 +97,14 @@ if(TARGET trantor)
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
   )
+  if(WIN32)
+    if(MSVC)
+      target_compile_options(trantor PRIVATE /FI"${PROJECT_SOURCE_DIR}/include/server/utils/trantor_wincrypt_fix.h")
+    else()
+      target_compile_options(trantor PRIVATE -include "${PROJECT_SOURCE_DIR}/include/server/utils/trantor_wincrypt_fix.h")
+    endif()
+    target_link_libraries(trantor PRIVATE crypt32 ws2_32)
+  endif()
   get_target_property(TRANTOR_OPTS trantor COMPILE_OPTIONS)
   if(TRANTOR_OPTS)
     list(REMOVE_ITEM TRANTOR_OPTS "-Werror")
