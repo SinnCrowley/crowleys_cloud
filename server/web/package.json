@@ -10,7 +10,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "rm -rf ../public/assets && vite build",
+    "build": "node -e \"fs.rmSync('../public/assets', {recursive: true, force: true})\" && vite build",
     "preview": "vite preview",
     "check:i18n": "node ../../tool/check_localization_keys.mjs"
   },

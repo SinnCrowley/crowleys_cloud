@@ -30,6 +30,9 @@
 #include <spawn.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
 extern "C" char **environ;
 #endif
 
@@ -132,6 +135,82 @@ inline bool isSubpath(const std::filesystem::path &candidate, const std::filesys
     return true;
   }
   return candidateStr.size() >= rootStr.size() && candidateStr.compare(0, rootStr.size(), rootStr) == 0;
+}
+
+/**
+ * Retrieve the absolute canonical path of the currently executing binary.
+ * Works across Linux, macOS, and Windows.
+ */
+inline std::filesystem::path getExecutablePath() {
+#if defined(_WIN32)
+  std::vector<wchar_t> buffer(MAX_PATH);
+  DWORD length = 0;
+  while (buffer.size() <= 65536) {
+    SetLastError(ERROR_SUCCESS);
+    length = GetModuleFileNameW(NULL, buffer.data(), static_cast<DWORD>(buffer.size()));
+    if (length == 0) {
+      break;
+    }
+    if (length < buffer.size() && GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+      break;
+    }
+    buffer.resize(buffer.size() * 2);
+  }
+  if (length > 0) {
+    std::error_code ec;
+    std::filesystem::path p(buffer.data(), buffer.data() + length);
+    auto abs = std::filesystem::absolute(p, ec);
+    auto cp = std::filesystem::weakly_canonical(abs, ec);
+    return (!ec && !cp.empty()) ? cp : abs;
+  }
+#elif defined(__APPLE__)
+  uint32_t size = 1024;
+  std::vector<char> buffer(size);
+  if (_NSGetExecutablePath(buffer.data(), &size) != 0) {
+    buffer.resize(size);
+    if (_NSGetExecutablePath(buffer.data(), &size) != 0) {
+      return {};
+    }
+  }
+  std::error_code ec;
+  std::filesystem::path p(buffer.data());
+  auto abs = std::filesystem::absolute(p, ec);
+  auto cp = std::filesystem::weakly_canonical(abs, ec);
+  return (!ec && !cp.empty()) ? cp : abs;
+#elif defined(__linux__) || defined(__unix__) || defined(__posix)
+  std::error_code ec;
+  auto p = std::filesystem::read_symlink("/proc/self/exe", ec);
+  if (ec || p.empty()) {
+    p = std::filesystem::read_symlink("/proc/curproc/file", ec);
+  }
+  if (ec || p.empty()) {
+    p = std::filesystem::read_symlink("/proc/self/path/a.out", ec);
+  }
+  if (!ec && !p.empty()) {
+    std::string s = p.generic_string();
+    if (s.size() > 10 && s.rfind(" (deleted)") == s.size() - 10) {
+      std::filesystem::path stripped(s.substr(0, s.size() - 10));
+      if (std::filesystem::exists(stripped, ec)) {
+        p = stripped;
+      }
+    }
+    auto abs = std::filesystem::absolute(p, ec);
+    auto cp = std::filesystem::weakly_canonical(abs, ec);
+    return (!ec && !cp.empty()) ? cp : abs;
+  }
+#endif
+  return {};
+}
+
+/**
+ * Retrieve the directory containing the currently executing binary.
+ */
+inline std::filesystem::path getExecutableDir() {
+  auto exe = getExecutablePath();
+  if (!exe.empty()) {
+    return exe.parent_path();
+  }
+  return {};
 }
 
 }  // namespace server::utils

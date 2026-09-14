@@ -44,5 +44,6 @@ struct Config {
 };
 
 Config loadConfig(const std::string &path);
+std::string resolveConfigPath(int argc, char *argv[]);
 
 }  // namespace server::utils

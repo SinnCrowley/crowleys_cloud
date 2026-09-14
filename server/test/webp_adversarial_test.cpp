@@ -24,9 +24,11 @@
 #include <random>
 #include <chrono>
 #include <cstdlib>
+#if !defined(_WIN32)
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#endif
 
 #include <webp/decode.h>
 #include <webp/encode.h>
@@ -71,7 +73,11 @@ void testZeroExternalProcessInvoked() {
 
   // Set PATH to empty - if anything tries to execute ffmpeg or any CLI tool via posix_spawnp/execvp/system,
   // it would fail if it relied on external binaries.
+#if defined(_WIN32)
+  _putenv_s("PATH", "C:\\non_existent_path_for_testing");
+#else
   setenv("PATH", "/proc/non_existent_path_for_testing", 1);
+#endif
 
   const int w = 200;
   const int h = 150;
@@ -102,9 +108,17 @@ void testZeroExternalProcessInvoked() {
 
   // Restore PATH
   if (!savedPath.empty()) {
+#if defined(_WIN32)
+    _putenv_s("PATH", savedPath.c_str());
+#else
     setenv("PATH", savedPath.c_str(), 1);
+#endif
   } else {
+#if defined(_WIN32)
+    _putenv("PATH=");
+#else
     unsetenv("PATH");
+#endif
   }
 
   std::filesystem::remove_all(tmpDir);

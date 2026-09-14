@@ -25,20 +25,26 @@
 #include <chrono>
 
 int main(int argc, char *argv[]) {
-  const std::string configPath = (argc > 1) ? argv[1] : "./config/config.json";
+  const std::string configPath = server::utils::resolveConfigPath(argc, argv);
 
   auto &appCtx = server::ctx();
   appCtx.config = server::utils::loadConfig(configPath);
 
   drogon::app().setUploadPath(appCtx.config.tempUploadDir);
-  std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "users");
-  std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "shared");
-  std::filesystem::create_directories(appCtx.config.tempUploadDir);
+  std::error_code dirEc;
+  std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "users", dirEc);
+  if (dirEc) LOG_WARN << "Failed to create storage users directory: " << dirEc.message();
+  std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "shared", dirEc);
+  if (dirEc) LOG_WARN << "Failed to create storage shared directory: " << dirEc.message();
+  std::filesystem::create_directories(appCtx.config.tempUploadDir, dirEc);
+  if (dirEc) LOG_WARN << "Failed to create temp upload directory: " << dirEc.message();
   auto dbParent = std::filesystem::path(appCtx.config.dbPath).parent_path();
   if (!dbParent.empty()) {
-    std::filesystem::create_directories(dbParent);
+    std::filesystem::create_directories(dbParent, dirEc);
+    if (dirEc) LOG_WARN << "Failed to create database parent directory: " << dirEc.message();
   }
-  std::filesystem::create_directories(appCtx.config.logDir);
+  std::filesystem::create_directories(appCtx.config.logDir, dirEc);
+  if (dirEc) LOG_WARN << "Failed to create log directory: " << dirEc.message();
 
   appCtx.database = std::make_unique<server::db::Database>(appCtx.config.dbPath);
   appCtx.database->migrate();
@@ -135,6 +141,8 @@ int main(int argc, char *argv[]) {
       drogon::app().registerHandler("/shared/browse/{subpath}", handleBrowseSpa, {drogon::Get});
     }
     LOG_INFO << "Web interface enabled from: " << publicDir;
+  } else {
+    LOG_WARN << "Web interface directory not found at: " << publicDir << " (static web UI disabled)";
   }
 
   // Periodic cleanup of expired trash and logs (every hour) using Drogon native event loop timer.

@@ -1,0 +1,13 @@
+{
+  "name": "crowleys-cloud-server",
+  "version-string": "0.6.0",
+  "description": "Crowley's Cloud C++ backend server",
+  "dependencies": [
+    "openssl",
+    "sqlite3",
+    "zlib",
+    "protobuf",
+    "libwebp",
+    "jsoncpp"
+  ]
+}

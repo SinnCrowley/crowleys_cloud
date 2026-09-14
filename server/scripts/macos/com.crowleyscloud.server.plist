@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.crowleyscloud.server</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/crowleys_cloud_server</string>
+        <string>/usr/local/etc/crowleys_cloud/config.json</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/crowleys_cloud_server.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/crowleys_cloud_server_err.log</string>
+    <key>ProcessType</key>
+    <string>Standard</string>
+</dict>
+</plist>

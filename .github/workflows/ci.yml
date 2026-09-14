@@ -42,6 +42,165 @@ jobs:
       - name: Compile Server Binary
         run: cmake --build server/build --parallel $(nproc)
 
+      - name: Run Server Test Suite
+        run: ctest --test-dir server/build --output-on-failure
+
+  # ------------------------------------------------------------------------------
+  # 1b. C++ Backend Server build & test check on macOS (Apple Clang, ARM64)
+  # ------------------------------------------------------------------------------
+  build-server-macos:
+    name: Build & Test Server (macOS)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Install System Dependencies
+        run: |
+          brew install openssl@3 protobuf webp sqlite zlib jsoncpp
+
+      - name: Configure CMake
+        run: |
+          cmake -S server -B server/build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix openssl@3);$(brew --prefix protobuf);$(brew --prefix webp);$(brew --prefix sqlite);$(brew --prefix jsoncpp)"
+
+      - name: Compile Server & Test Suite
+        run: cmake --build server/build --parallel $(sysctl -n hw.ncpu)
+
+      - name: Run Server Test Suite
+        run: ctest --test-dir server/build --output-on-failure
+
+      - name: Set up Node.js
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: 'npm'
+          cache-dependency-path: server/web/package-lock.json
+
+      - name: Build Web Client Bundle
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          npm --prefix server/web ci
+          npm --prefix server/web run build
+
+      - name: Package macOS Release Archive
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          mkdir -p dist/crowleys-cloud-server-macos-arm64/config
+          mkdir -p dist/crowleys-cloud-server-macos-arm64/public
+          mkdir -p dist/crowleys-cloud-server-macos-arm64/services
+          if [ -f server/build/Release/crowleys_cloud_server ]; then
+            cp server/build/Release/crowleys_cloud_server dist/crowleys-cloud-server-macos-arm64/
+          elif [ -f server/build/crowleys_cloud_server ]; then
+            cp server/build/crowleys_cloud_server dist/crowleys-cloud-server-macos-arm64/
+          else
+            echo "Error: crowleys_cloud_server does not exist in server/build or server/build/Release!"
+            exit 1
+          fi
+          chmod +x dist/crowleys-cloud-server-macos-arm64/crowleys_cloud_server
+          cp server/scripts/macos/run.sh dist/crowleys-cloud-server-macos-arm64/
+          chmod +x dist/crowleys-cloud-server-macos-arm64/run.sh
+          cp server/scripts/macos/com.crowleyscloud.server.plist dist/crowleys-cloud-server-macos-arm64/services/
+          cp server/scripts/macos/README.md dist/crowleys-cloud-server-macos-arm64/services/
+          cp -R server/config/. dist/crowleys-cloud-server-macos-arm64/config/
+          cp -R server/public/. dist/crowleys-cloud-server-macos-arm64/public/
+          tar -czvf crowleys-cloud-server-macos-arm64.tar.gz -C dist/crowleys-cloud-server-macos-arm64 .
+
+      - name: Upload macOS Server Artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-macos-arm64
+          path: crowleys-cloud-server-macos-arm64.tar.gz
+          retention-days: 30
+
+  # ------------------------------------------------------------------------------
+  # 1c. C++ Backend Server build & test check on Windows (MSVC 2022, x64)
+  # ------------------------------------------------------------------------------
+  build-server-windows:
+    name: Build & Test Server (Windows)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Setup vcpkg Caching
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/Users/runneradmin/AppData/Local/vcpkg/archives
+            C:/vcpkg/installed
+          key: vcpkg-${{ runner.os }}-x64-windows-static-${{ hashFiles('server/vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-x64-windows-static-
+
+      - name: Install Dependencies via vcpkg
+        run: |
+          vcpkg install --x-manifest-root=server --triplet x64-windows-static --host-triplet x64-windows
+
+      - name: Configure CMake
+        run: |
+          cmake -S server -B server/build `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DVCPKG_HOST_TRIPLET=x64-windows
+
+      - name: Compile Server & Test Suite
+        run: cmake --build server/build --config Release --parallel
+
+      - name: Run Server Test Suite
+        run: ctest --test-dir server/build -C Release --output-on-failure
+
+      - name: Set up Node.js
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: 'npm'
+          cache-dependency-path: server/web/package-lock.json
+
+      - name: Build Web Client Bundle
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          npm --prefix server/web ci
+          npm --prefix server/web run build
+
+      - name: Package Windows Release Archive
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/crowleys-cloud-server-windows-x64/config
+          New-Item -ItemType Directory -Force -Path dist/crowleys-cloud-server-windows-x64/public
+          New-Item -ItemType Directory -Force -Path dist/crowleys-cloud-server-windows-x64/services
+          if (Test-Path server/build/Release/crowleys_cloud_server.exe) {
+            Copy-Item server/build/Release/crowleys_cloud_server.exe dist/crowleys-cloud-server-windows-x64/
+          } elseif (Test-Path server/build/crowleys_cloud_server.exe) {
+            Copy-Item server/build/crowleys_cloud_server.exe dist/crowleys-cloud-server-windows-x64/
+          } else {
+            throw "crowleys_cloud_server.exe not found in server/build/Release or server/build!"
+          }
+          Copy-Item server/scripts/windows/run.bat dist/crowleys-cloud-server-windows-x64/
+          Copy-Item server/scripts/windows/install-service.bat dist/crowleys-cloud-server-windows-x64/services/
+          Copy-Item server/scripts/windows/README.md dist/crowleys-cloud-server-windows-x64/services/
+          Copy-Item server/config/* dist/crowleys-cloud-server-windows-x64/config/ -Recurse -Force
+          Copy-Item server/public/* dist/crowleys-cloud-server-windows-x64/public/ -Recurse -Force
+          $distDir = (Resolve-Path "dist/crowleys-cloud-server-windows-x64").Path
+          $zipPath = Join-Path $PWD "crowleys-cloud-server-windows-x64.zip"
+          Push-Location $distDir
+          Compress-Archive -Force -Path * -DestinationPath $zipPath
+          Pop-Location
+
+      - name: Upload Windows Server Artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-windows-x64
+          path: crowleys-cloud-server-windows-x64.zip
+          retention-days: 30
+
   # ------------------------------------------------------------------------------
   # 2. Web Frontend Build & Verification (runs on every push/PR)
   # ------------------------------------------------------------------------------
@@ -331,7 +490,7 @@ jobs:
   # ------------------------------------------------------------------------------
   create-release:
     name: Publish GitHub Release
-    needs: [build-server, test-web, build-android, build-ios, merge-docker-manifest]
+    needs: [build-server, build-server-macos, build-server-windows, test-web, build-android, build-ios, merge-docker-manifest]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -344,11 +503,25 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: android-apk
+          path: .
 
       - name: Download Web Bundle Artifact
         uses: actions/download-artifact@v8
         with:
           name: web-bundle
+          path: .
+
+      - name: Download Windows Server Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: server-windows-x64
+          path: .
+
+      - name: Download macOS Server Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: server-macos-arm64
+          path: .
 
       - name: Rename APK with Version
         run: |
@@ -369,6 +542,12 @@ jobs:
           echo "" >> release_notes.md
           echo "" >> release_notes.md
           echo "---" >> release_notes.md
+          echo "### macOS Server" >> release_notes.md
+          echo "Download \`crowleys-cloud-server-macos-arm64.tar.gz\`, extract, and execute \`./run.sh\`." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Windows Server" >> release_notes.md
+          echo "Download \`crowleys-cloud-server-windows-x64.zip\`, extract, and double-click \`run.bat\`." >> release_notes.md
+          echo "" >> release_notes.md
           echo "### Android App" >> release_notes.md
           echo "Download the APK file below and install it on your Android device." >> release_notes.md
           echo "" >> release_notes.md
@@ -387,6 +566,8 @@ jobs:
           files: |
             ${{ env.APK_NAME }}
             crowleys-cloud-web-*.tar.gz
+            crowleys-cloud-server-windows-x64.zip
+            crowleys-cloud-server-macos-arm64.tar.gz
           draft: false
           prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-rc') || contains(github.ref, '-alpha') }}
         env:
