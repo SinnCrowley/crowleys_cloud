@@ -121,6 +121,7 @@ jobs:
   # ------------------------------------------------------------------------------
   build-server-windows:
     name: Build & Test Server (Windows)
+    runs-on: windows-latest
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg_cache
     steps:
