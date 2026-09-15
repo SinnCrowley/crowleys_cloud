@@ -353,86 +353,91 @@ static void testPhotoWebPAndBlurHashPipeline() {
   auto sourceImage = tempDir / "test_photo.webp";
   auto thumbWebp = tempDir / "test_thumb.webp";
 
-  // Create SQLite DB
-  db::Database db(dbPath.string());
-  db.migrate();
+  {
+    // Create SQLite DB
+    db::Database db(dbPath.string());
+    db.migrate();
 
-  utils::Config config;
-  config.storageRoot = tempDir.string();
-  config.dbPath = dbPath.string();
+    utils::Config config;
+    config.storageRoot = tempDir.string();
+    config.dbPath = dbPath.string();
 
-  FileService fileService(config);
-  FileIndexService fileIndexService(db, fileService);
+    FileService fileService(config);
+    FileIndexService fileIndexService(db, fileService);
 
-  // Generate a test uncompressed RGBA image and save as WebP
-  const int w = 128, h = 128;
-  std::vector<uint8_t> rgba(w * h * 4);
-  for (int y = 0; y < h; ++y) {
-    for (int x = 0; x < w; ++x) {
-      int idx = (y * w + x) * 4;
-      rgba[idx] = static_cast<uint8_t>((x * 255) / w);
-      rgba[idx + 1] = static_cast<uint8_t>((y * 255) / h);
-      rgba[idx + 2] = 128;
-      rgba[idx + 3] = 255;
+    // Generate a test uncompressed RGBA image and save as WebP
+    const int w = 128, h = 128;
+    std::vector<uint8_t> rgba(w * h * 4);
+    for (int y = 0; y < h; ++y) {
+      for (int x = 0; x < w; ++x) {
+        int idx = (y * w + x) * 4;
+        rgba[idx] = static_cast<uint8_t>((x * 255) / w);
+        rgba[idx + 1] = static_cast<uint8_t>((y * 255) / h);
+        rgba[idx + 2] = 128;
+        rgba[idx + 3] = 255;
+      }
     }
-  }
 
-  uint8_t *webpData = nullptr;
-  size_t webpSize = WebPEncodeRGBA(rgba.data(), w, h, w * 4, 90.0f, &webpData);
-  TEST_ASSERT(webpSize > 0 && webpData != nullptr);
-  std::ofstream out(sourceImage, std::ios::binary);
-  out.write(reinterpret_cast<const char *>(webpData), webpSize);
-  out.close();
-  WebPFree(webpData);
+    uint8_t *webpData = nullptr;
+    size_t webpSize = WebPEncodeRGBA(rgba.data(), w, h, w * 4, 90.0f, &webpData);
+    TEST_ASSERT(webpSize > 0 && webpData != nullptr);
+    std::ofstream out(sourceImage, std::ios::binary);
+    out.write(reinterpret_cast<const char *>(webpData), webpSize);
+    out.close();
+    WebPFree(webpData);
 
-  // Upsert file into SQLite index
-  std::string sha256 = utils::sha256Hex(std::string(reinterpret_cast<char *>(rgba.data()), rgba.size()));
-  fileIndexService.upsertFileExplicit(1, StorageScope::Private, "photos/test.webp", "test.webp", webpSize, 123456789, "photo", "image/webp", 1, sha256);
+    // Upsert file into SQLite index
+    std::string sha256 = utils::sha256Hex(std::string(reinterpret_cast<char *>(rgba.data()), rgba.size()));
+    fileIndexService.upsertFileExplicit(1, StorageScope::Private, "photos/test.webp", "test.webp", webpSize, 123456789, "photo", "image/webp", 1, sha256);
 
-  // Initialize ThumbnailQueue with genuine services and 1 worker
-  ThumbnailQueue queue(config, &fileService, &fileIndexService, 100, 1);
-  queue.start();
+    // Initialize ThumbnailQueue with genuine services and 1 worker
+    ThumbnailQueue queue(config, &fileService, &fileIndexService, 100, 1);
+    queue.start();
 
-  TEST_ASSERT(queue.scheduleThumbnail(1, 1, StorageScope::Private, "photos/test.webp", sourceImage, "photo", sha256, 64, false, "", false, 0, thumbWebp));
+    TEST_ASSERT(queue.scheduleThumbnail(1, 1, StorageScope::Private, "photos/test.webp", sourceImage, "photo", sha256, 64, false, "", false, 0, thumbWebp));
 
-  // Wait for worker to finish
-  for (int i = 0; i < 100; ++i) {
-    if (std::filesystem::exists(thumbWebp) && queue.inFlightCount() == 0) break;
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
-  }
-
-  queue.stop();
-
-  // Verify WebP thumbnail exists
-  TEST_ASSERT(std::filesystem::exists(thumbWebp));
-  TEST_ASSERT(std::filesystem::file_size(thumbWebp) > 0);
-
-  // Verify WebP header
-  std::ifstream thumbIn(thumbWebp, std::ios::binary);
-  char header[12];
-  thumbIn.read(header, 12);
-  TEST_ASSERT(std::string_view(header, 4) == "RIFF");
-  TEST_ASSERT(std::string_view(header + 8, 4) == "WEBP");
-
-  // Verify SQLite file_index has blurhash column populated
-  ListIndexQuery q;
-  q.ownerUserId = 1;
-  q.scope = StorageScope::Private;
-  q.currentPath = "photos";
-  auto entries = fileIndexService.listDirectory(q);
-  TEST_ASSERT(!entries.empty());
-  bool foundBlurHash = false;
-  for (const auto &entry : entries) {
-    if (entry.name == "test.webp") {
-      TEST_ASSERT(!entry.blurhash.empty());
-      std::cout << "  [INFO] Computed BlurHash: " << entry.blurhash << std::endl;
-      foundBlurHash = true;
-      break;
+    // Wait for worker to finish
+    for (int i = 0; i < 100; ++i) {
+      if (std::filesystem::exists(thumbWebp) && queue.inFlightCount() == 0) break;
+      std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
-  }
-  TEST_ASSERT(foundBlurHash);
 
-  std::filesystem::remove_all(tempDir);
+    queue.stop();
+
+    // Verify WebP thumbnail exists
+    TEST_ASSERT(std::filesystem::exists(thumbWebp));
+    TEST_ASSERT(std::filesystem::file_size(thumbWebp) > 0);
+
+    // Verify WebP header
+    {
+      std::ifstream thumbIn(thumbWebp, std::ios::binary);
+      char header[12];
+      thumbIn.read(header, 12);
+      TEST_ASSERT(std::string_view(header, 4) == "RIFF");
+      TEST_ASSERT(std::string_view(header + 8, 4) == "WEBP");
+    }
+
+    // Verify SQLite file_index has blurhash column populated
+    ListIndexQuery q;
+    q.ownerUserId = 1;
+    q.scope = StorageScope::Private;
+    q.currentPath = "photos";
+    auto entries = fileIndexService.listDirectory(q);
+    TEST_ASSERT(!entries.empty());
+    bool foundBlurHash = false;
+    for (const auto &entry : entries) {
+      if (entry.name == "test.webp") {
+        TEST_ASSERT(!entry.blurhash.empty());
+        std::cout << "  [INFO] Computed BlurHash: " << entry.blurhash << std::endl;
+        foundBlurHash = true;
+        break;
+      }
+    }
+    TEST_ASSERT(foundBlurHash);
+  }
+
+  std::error_code ec;
+  std::filesystem::remove_all(tempDir, ec);
   std::cout << "  [PASS] End-to-End Photo WebP + BlurHash Pipeline passed." << std::endl;
 }
 
@@ -487,7 +492,8 @@ static void testCorruptedImageResilience() {
   TEST_ASSERT(std::filesystem::exists(thumbValid));
   TEST_ASSERT(queue.inFlightCount() == 0);
 
-  std::filesystem::remove_all(tempDir);
+  std::error_code ec;
+  std::filesystem::remove_all(tempDir, ec);
   std::cout << "  [PASS] Corrupted Image Resilience passed." << std::endl;
 }
 

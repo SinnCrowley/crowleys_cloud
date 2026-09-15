@@ -53,6 +53,13 @@ std::string resolveConfigPath(int argc, char *argv[]) {
       auto cp = std::filesystem::weakly_canonical(p3, ec);
       return (!ec && !cp.empty()) ? cp.generic_string() : p3.generic_string();
     }
+
+    // <exeDir>/../../config/config.json (e.g. build/Release/ or build/Debug/ in multi-config generators)
+    auto p4 = exeDir / ".." / ".." / "config" / "config.json";
+    if (std::filesystem::exists(p4, ec)) {
+      auto cp = std::filesystem::weakly_canonical(p4, ec);
+      return (!ec && !cp.empty()) ? cp.generic_string() : p4.generic_string();
+    }
   }
 
   // 2. Current working directory: ./config/config.json
@@ -88,6 +95,12 @@ Config loadConfig(const std::string &path) {
         if (std::filesystem::exists(parentCandidate, ec)) {
           auto cp = std::filesystem::weakly_canonical(parentCandidate, ec);
           actualPath = (!ec && !cp.empty()) ? cp.generic_string() : parentCandidate.generic_string();
+        } else {
+          auto grandParentCandidate = exeDir / ".." / ".." / path;
+          if (std::filesystem::exists(grandParentCandidate, ec)) {
+            auto cp = std::filesystem::weakly_canonical(grandParentCandidate, ec);
+            actualPath = (!ec && !cp.empty()) ? cp.generic_string() : grandParentCandidate.generic_string();
+          }
         }
       }
     }
@@ -150,6 +163,9 @@ Config loadConfig(const std::string &path) {
     } else if (std::filesystem::exists(exeDir.parent_path() / "public", ec) ||
                std::filesystem::exists(exeDir.parent_path() / "config", ec)) {
       baseDir = exeDir.parent_path();
+    } else if (std::filesystem::exists(exeDir.parent_path().parent_path() / "public", ec) ||
+               std::filesystem::exists(exeDir.parent_path().parent_path() / "config", ec)) {
+      baseDir = exeDir.parent_path().parent_path();
     } else {
       baseDir = exeDir;
     }
@@ -176,6 +192,11 @@ Config loadConfig(const std::string &path) {
           auto exeParentCandidate = exeDir.parent_path() / p;
           if (std::filesystem::exists(exeParentCandidate, ec)) {
             resolved = exeParentCandidate;
+          } else {
+            auto exeGrandParentCandidate = exeDir.parent_path().parent_path() / p;
+            if (std::filesystem::exists(exeGrandParentCandidate, ec)) {
+              resolved = exeGrandParentCandidate;
+            }
           }
         }
       }

@@ -537,7 +537,8 @@ static void testPathologicalPayloads() {
   TEST_ASSERT(queue.inFlightCount() == 0);
   TEST_ASSERT(queue.activeCount() == 0);
 
-  std::filesystem::remove_all(tempDir);
+  std::error_code ec;
+  std::filesystem::remove_all(tempDir, ec);
   std::cout << "  [PASS] CHALLENGE 5: Pathological Payloads & Resilience passed!" << std::endl;
 }
 
@@ -552,97 +553,101 @@ static void testConcurrentMultiUserUploadPipeline() {
   auto tempDir = createTempDir("multiuser_upload_test");
   auto dbPath = tempDir / "cloud.db";
 
-  db::Database db(dbPath.string());
-  db.migrate();
-
-  utils::Config config;
-  config.storageRoot = tempDir.string();
-  config.dbPath = dbPath.string();
-  config.encryptionKey = "adversarial_secret_key_12345678";
-
-  FileService fileService(config);
-  FileIndexService fileIndexService(db, fileService);
-
-  ThumbnailQueue queue(config, &fileService, &fileIndexService, 500, 2);
-  queue.start();
-
   const int numUsers = 5;
   const int photosPerUser = 10;
-  std::vector<std::thread> userUploadThreads;
-  userUploadThreads.reserve(numUsers);
 
-  std::atomic<size_t> totalUploadsScheduled{0};
+  {
+    db::Database db(dbPath.string());
+    db.migrate();
 
-  for (int u = 1; u <= numUsers; ++u) {
-    userUploadThreads.emplace_back([&, u]() {
-      for (int p = 0; p < photosPerUser; ++p) {
-        // 1. Create a dummy photo
-        const int w = 32, h = 32;
-        std::vector<uint8_t> rgba(w * h * 4, static_cast<uint8_t>((u * 30 + p * 10) % 255));
-        uint8_t *webpData = nullptr;
-        size_t webpSize = WebPEncodeRGBA(rgba.data(), w, h, w * 4, 80.0f, &webpData);
+    utils::Config config;
+    config.storageRoot = tempDir.string();
+    config.dbPath = dbPath.string();
+    config.encryptionKey = "adversarial_secret_key_12345678";
 
-        std::string plainData(reinterpret_cast<char *>(webpData), webpSize);
-        std::string sha256 = utils::sha256Hex(plainData);
-        std::string cipherData = utils::encryptAes256(plainData, config.encryptionKey);
-        WebPFree(webpData);
+    FileService fileService(config);
+    FileIndexService fileIndexService(db, fileService);
 
-        auto userDir = tempDir / "data" / std::to_string(u);
-        std::filesystem::create_directories(userDir);
-        auto physicalFile = userDir / sha256;
+    ThumbnailQueue queue(config, &fileService, &fileIndexService, 500, 2);
+    queue.start();
 
-        std::ofstream out(physicalFile, std::ios::binary);
-        out.write(cipherData.data(), cipherData.size());
-        out.close();
+    std::vector<std::thread> userUploadThreads;
+    userUploadThreads.reserve(numUsers);
 
-        std::string relPath = "photos/img_" + std::to_string(p) + ".webp";
-        fileIndexService.upsertFileExplicit(
-            u, StorageScope::Private, relPath, "img_" + std::to_string(p) + ".webp",
-            webpSize, 12345678, "photo", "image/webp", u, sha256);
+    std::atomic<size_t> totalUploadsScheduled{0};
 
-        // 2. Non-blocking thumbnail enqueue
-        auto thumbDest = tempDir / ".thumbs" / std::to_string(u) / (sha256 + "_256.webp");
-        bool scheduled = queue.scheduleThumbnail(
-            u, u, StorageScope::Private, relPath, physicalFile, "photo", sha256, 256,
-            true, config.encryptionKey, false, 0, thumbDest);
+    for (int u = 1; u <= numUsers; ++u) {
+      userUploadThreads.emplace_back([&, u]() {
+        for (int p = 0; p < photosPerUser; ++p) {
+          // 1. Create a dummy photo
+          const int w = 32, h = 32;
+          std::vector<uint8_t> rgba(w * h * 4, static_cast<uint8_t>((u * 30 + p * 10) % 255));
+          uint8_t *webpData = nullptr;
+          size_t webpSize = WebPEncodeRGBA(rgba.data(), w, h, w * 4, 80.0f, &webpData);
 
-        TEST_ASSERT(scheduled);
-        totalUploadsScheduled.fetch_add(1, std::memory_order_relaxed);
+          std::string plainData(reinterpret_cast<char *>(webpData), webpSize);
+          std::string sha256 = utils::sha256Hex(plainData);
+          std::string cipherData = utils::encryptAes256(plainData, config.encryptionKey);
+          WebPFree(webpData);
+
+          auto userDir = tempDir / "data" / std::to_string(u);
+          std::filesystem::create_directories(userDir);
+          auto physicalFile = userDir / sha256;
+
+          std::ofstream out(physicalFile, std::ios::binary);
+          out.write(cipherData.data(), cipherData.size());
+          out.close();
+
+          std::string relPath = "photos/img_" + std::to_string(p) + ".webp";
+          fileIndexService.upsertFileExplicit(
+              u, StorageScope::Private, relPath, "img_" + std::to_string(p) + ".webp",
+              webpSize, 12345678, "photo", "image/webp", u, sha256);
+
+          // 2. Non-blocking thumbnail enqueue
+          auto thumbDest = tempDir / ".thumbs" / std::to_string(u) / (sha256 + "_256.webp");
+          bool scheduled = queue.scheduleThumbnail(
+              u, u, StorageScope::Private, relPath, physicalFile, "photo", sha256, 256,
+              true, config.encryptionKey, false, 0, thumbDest);
+
+          TEST_ASSERT(scheduled);
+          totalUploadsScheduled.fetch_add(1, std::memory_order_relaxed);
+        }
+      });
+    }
+
+    for (auto &t : userUploadThreads) {
+      t.join();
+    }
+
+    std::cout << "  [INFO] Scheduled " << totalUploadsScheduled.load() << " encrypted uploads across " << numUsers << " users." << std::endl;
+
+    // Wait for workers to finish all thumbnails
+    for (int i = 0; i < 300; ++i) {
+      if (queue.inFlightCount() == 0) break;
+      std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+
+    queue.stop();
+
+    TEST_ASSERT(queue.inFlightCount() == 0);
+
+    // Verify all photos in SQLite have blurhash populated
+    for (int u = 1; u <= numUsers; ++u) {
+      ListIndexQuery q;
+      q.ownerUserId = u;
+      q.scope = StorageScope::Private;
+      q.currentPath = "photos";
+      auto entries = fileIndexService.listDirectory(q);
+      TEST_ASSERT(entries.size() == static_cast<size_t>(photosPerUser));
+      for (const auto &entry : entries) {
+        TEST_ASSERT(!entry.blurhash.empty());
+        TEST_ASSERT(entry.blurhash.length() >= 10);
       }
-    });
-  }
-
-  for (auto &t : userUploadThreads) {
-    t.join();
-  }
-
-  std::cout << "  [INFO] Scheduled " << totalUploadsScheduled.load() << " encrypted uploads across " << numUsers << " users." << std::endl;
-
-  // Wait for workers to finish all thumbnails
-  for (int i = 0; i < 300; ++i) {
-    if (queue.inFlightCount() == 0) break;
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
-  }
-
-  queue.stop();
-
-  TEST_ASSERT(queue.inFlightCount() == 0);
-
-  // Verify all photos in SQLite have blurhash populated
-  for (int u = 1; u <= numUsers; ++u) {
-    ListIndexQuery q;
-    q.ownerUserId = u;
-    q.scope = StorageScope::Private;
-    q.currentPath = "photos";
-    auto entries = fileIndexService.listDirectory(q);
-    TEST_ASSERT(entries.size() == static_cast<size_t>(photosPerUser));
-    for (const auto &entry : entries) {
-      TEST_ASSERT(!entry.blurhash.empty());
-      TEST_ASSERT(entry.blurhash.length() >= 10);
     }
   }
 
-  std::filesystem::remove_all(tempDir);
+  std::error_code ec;
+  std::filesystem::remove_all(tempDir, ec);
   std::cout << "  [PASS] CHALLENGE 6: Multi-User Non-Blocking Upload Simulation passed!" << std::endl;
 }
 
