@@ -31,7 +31,7 @@ endif()
 
 # Windows & MSVC definitions and compiler options
 if(WIN32)
-  add_compile_definitions(NOMINMAX _CRT_SECURE_NO_WARNINGS _WINSOCK_DEPRECATED_NO_WARNINGS)
+  add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS _WINSOCK_DEPRECATED_NO_WARNINGS)
 endif()
 
 if(MSVC)
@@ -83,7 +83,7 @@ if(WIN32)
     file(READ "${TRANTOR_OPENSSL_PROVIDER}" _provider_content)
     if(NOT _provider_content MATCHES "wincrypt\\.h")
       string(REGEX REPLACE "(#ifdef[ \t]+_WIN32)"
-        "\\1\n#include <windows.h>\n#include <wincrypt.h>\n#undef X509_NAME\n#undef X509_CERT_PAIR\n#undef X509_EXTENSIONS\n#undef PKCS7_ISSUER_AND_SERIAL\n#undef OCSP_REQUEST\n#undef OCSP_RESPONSE"
+        "\\1\n#include <winsock2.h>\n#include <windows.h>\n#include <wincrypt.h>\n#undef X509_NAME\n#undef X509_CERT_PAIR\n#undef X509_EXTENSIONS\n#undef PKCS7_ISSUER_AND_SERIAL\n#undef OCSP_REQUEST\n#undef OCSP_RESPONSE"
         _provider_content "${_provider_content}")
       file(WRITE "${TRANTOR_OPENSSL_PROVIDER}" "${_provider_content}")
     endif()
@@ -98,11 +98,6 @@ if(TARGET trantor)
     CXX_EXTENSIONS OFF
   )
   if(WIN32)
-    if(MSVC)
-      target_compile_options(trantor PRIVATE /FI"${PROJECT_SOURCE_DIR}/include/server/utils/trantor_wincrypt_fix.h")
-    else()
-      target_compile_options(trantor PRIVATE -include "${PROJECT_SOURCE_DIR}/include/server/utils/trantor_wincrypt_fix.h")
-    endif()
     target_link_libraries(trantor PRIVATE crypt32 ws2_32)
   endif()
   get_target_property(TRANTOR_OPTS trantor COMPILE_OPTIONS)

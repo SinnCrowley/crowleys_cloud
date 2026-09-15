@@ -121,17 +121,17 @@ jobs:
   # ------------------------------------------------------------------------------
   build-server-windows:
     name: Build & Test Server (Windows)
-    runs-on: windows-latest
+    env:
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg_cache
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
 
-      - name: Setup vcpkg Caching
-        uses: actions/cache@v4
+      - name: Restore vcpkg Binary Cache
+        uses: actions/cache/restore@v4
+        id: vcpkg-cache
         with:
-          path: |
-            C:/Users/runneradmin/AppData/Local/vcpkg/archives
-            C:/vcpkg/installed
+          path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-${{ runner.os }}-x64-windows-static-${{ hashFiles('server/vcpkg.json') }}
           restore-keys: |
             vcpkg-${{ runner.os }}-x64-windows-static-
@@ -139,6 +139,13 @@ jobs:
       - name: Install Dependencies via vcpkg
         run: |
           vcpkg install --x-manifest-root=server --triplet x64-windows-static --host-triplet x64-windows
+
+      - name: Save vcpkg Binary Cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg_cache
+          key: vcpkg-${{ runner.os }}-x64-windows-static-${{ hashFiles('server/vcpkg.json') }}
 
       - name: Configure CMake
         run: |
