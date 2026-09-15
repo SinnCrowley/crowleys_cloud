@@ -30,7 +30,7 @@ class DirEntry extends $pb.GeneratedMessage {
     $fixnum.Int64? id,
     $core.String? blurhash,
   }) {
-    final result = create();
+    final result = DirEntry._();
     if (name != null) result.name = name;
     if (path != null) result.path = path;
     if (isDir != null) result.isDir = isDir;
@@ -48,15 +48,15 @@ class DirEntry extends $pb.GeneratedMessage {
 
   factory DirEntry.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
+      DirEntry()..mergeFromBuffer(data, registry);
   factory DirEntry.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+      DirEntry()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DirEntry',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'server.proto'),
-      createEmptyInstance: create)
+      createEmptyInstance: DirEntry.$_createMessage)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..aOS(2, _omitFieldNames ? '' : 'path')
     ..aOB(3, _omitFieldNames ? '' : 'isDir')
@@ -80,12 +80,14 @@ class DirEntry extends $pb.GeneratedMessage {
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use DirEntry() / DirEntry.new instead')
   static DirEntry create() => DirEntry._();
+  static $pb.GeneratedMessage $_createMessage() => DirEntry._();
   @$core.override
-  DirEntry createEmptyInstance() => create();
+  DirEntry createEmptyInstance() => DirEntry._();
   @$core.pragma('dart2js:noInline')
-  static DirEntry getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DirEntry>(create);
+  static DirEntry getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DirEntry>(DirEntry.$_createMessage);
   static DirEntry? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -183,7 +185,7 @@ class DirResponse extends $pb.GeneratedMessage {
   factory DirResponse({
     $core.Iterable<DirEntry>? entries,
   }) {
-    final result = create();
+    final result = DirResponse._();
     if (entries != null) result.entries.addAll(entries);
     return result;
   }
@@ -192,17 +194,17 @@ class DirResponse extends $pb.GeneratedMessage {
 
   factory DirResponse.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
+      DirResponse()..mergeFromBuffer(data, registry);
   factory DirResponse.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+      DirResponse()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DirResponse',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'server.proto'),
-      createEmptyInstance: create)
+      createEmptyInstance: DirResponse.$_createMessage)
     ..pPM<DirEntry>(1, _omitFieldNames ? '' : 'entries',
-        subBuilder: DirEntry.create)
+        subBuilder: DirEntry.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -216,12 +218,15 @@ class DirResponse extends $pb.GeneratedMessage {
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use DirResponse() / DirResponse.new instead')
   static DirResponse create() => DirResponse._();
+  static $pb.GeneratedMessage $_createMessage() => DirResponse._();
   @$core.override
-  DirResponse createEmptyInstance() => create();
+  DirResponse createEmptyInstance() => DirResponse._();
   @$core.pragma('dart2js:noInline')
-  static DirResponse getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<DirResponse>(create);
+  static DirResponse getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DirResponse>(
+          DirResponse.$_createMessage);
   static DirResponse? _defaultInstance;
 
   @$pb.TagNumber(1)

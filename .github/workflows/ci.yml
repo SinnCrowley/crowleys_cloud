@@ -137,6 +137,10 @@ jobs:
           restore-keys: |
             vcpkg-${{ runner.os }}-x64-windows-static-
 
+      - name: Create vcpkg Cache Directory
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path "${{ github.workspace }}/vcpkg_cache" | Out-Null
+
       - name: Install Dependencies via vcpkg
         run: |
           vcpkg install --x-manifest-root=server --triplet x64-windows-static --host-triplet x64-windows
@@ -268,9 +272,6 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Setup Dart SDK (to activate protoc_plugin)
-        uses: dart-lang/setup-dart@v1
-
       - name: Install Protobuf Compiler
         run: |
           sudo apt-get update
@@ -278,7 +279,6 @@ jobs:
 
       - name: Generate Protobuf Files
         run: |
-          dart pub global activate protoc_plugin
           chmod +x scripts/generate_proto.sh
           ./scripts/generate_proto.sh
 
@@ -318,9 +318,6 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Setup Dart SDK (to activate protoc_plugin)
-        uses: dart-lang/setup-dart@v1
-
       - name: Install Protobuf Compiler
         run: |
           sudo apt-get update
@@ -328,7 +325,6 @@ jobs:
 
       - name: Generate Protobuf Files
         run: |
-          dart pub global activate protoc_plugin
           chmod +x scripts/generate_proto.sh
           ./scripts/generate_proto.sh
 
@@ -363,15 +359,11 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Setup Dart SDK (to activate protoc_plugin)
-        uses: dart-lang/setup-dart@v1
-
       - name: Install Protobuf Compiler
         run: brew install protobuf
 
       - name: Generate Protobuf Files
         run: |
-          dart pub global activate protoc_plugin
           chmod +x scripts/generate_proto.sh
           ./scripts/generate_proto.sh
 
