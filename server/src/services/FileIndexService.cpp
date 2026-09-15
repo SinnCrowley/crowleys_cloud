@@ -763,6 +763,7 @@ std::optional<std::int64_t> FileIndexService::getSharedFileOwner(const std::stri
   std::string temp = normalizeRelPath(relPath);
   if (temp.empty()) return std::nullopt;
 
+  std::string curr = temp;
   while (true) {
     const char *sql =
         "SELECT owner_user_id FROM file_index "
@@ -771,18 +772,34 @@ std::optional<std::int64_t> FileIndexService::getSharedFileOwner(const std::stri
 
     auto stmtGuard = db_.getStatement(sql);
     auto *stmt = stmtGuard.get();
-    sqlite3_bind_text(stmt, 1, temp.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 1, curr.c_str(), -1, SQLITE_TRANSIENT);
 
     if (sqlite3_step(stmt) == SQLITE_ROW) {
       return sqlite3_column_int64(stmt, 0);
     }
 
-    auto slash = temp.find_last_of('/');
+    auto slash = curr.find_last_of('/');
     if (slash == std::string::npos) {
       break;
     }
-    temp = temp.substr(0, slash);
+    curr = curr.substr(0, slash);
   }
+
+  // Check if any descendant of relPath is shared
+  const auto pattern = temp + "/%";
+  const char *descSql =
+      "SELECT owner_user_id FROM file_index "
+      "WHERE (rel_path LIKE ? OR parent_path = ? OR parent_path LIKE ?) AND is_shared = 1 AND is_deleted = 0 "
+      "LIMIT 1";
+  auto descGuard = db_.getStatement(descSql);
+  auto *descStmt = descGuard.get();
+  sqlite3_bind_text(descStmt, 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(descStmt, 2, temp.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(descStmt, 3, pattern.c_str(), -1, SQLITE_TRANSIENT);
+  if (sqlite3_step(descStmt) == SQLITE_ROW) {
+    return sqlite3_column_int64(descStmt, 0);
+  }
+
   return std::nullopt;
 }
 
