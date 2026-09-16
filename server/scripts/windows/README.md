@@ -1,4 +1,6 @@
-# Crowley's Cloud Server - Windows Setup Guide
+# Crowley's Cloud Server - Windows Setup Guide (x64 & ARM64)
+
+Crowley's Cloud Server for Windows is distributed as a native self-contained package for both **x64** (Intel/AMD) and **ARM64** (Windows on Arm / Qualcomm Snapdragon X Elite, etc.).
 
 ## Quick Launch
 Double-click `run.bat`. This will:
