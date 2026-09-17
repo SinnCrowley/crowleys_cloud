@@ -6,18 +6,73 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 jobs:
   # ------------------------------------------------------------------------------
-  # 1. C++ Backend Server build & test check (runs on every push/PR)
+  # Path filtering to detect changed components
+  # ------------------------------------------------------------------------------
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      server: ${{ steps.filter.outputs.server }}
+      web: ${{ steps.filter.outputs.web }}
+      client: ${{ steps.filter.outputs.client }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Path Filter
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            server:
+              - 'server/**'
+              - '!server/web/**'
+              - '!server/README.md'
+              - 'proto/**'
+              - '.github/workflows/ci.yml'
+            web:
+              - 'server/web/**'
+              - 'tool/**'
+              - '.github/workflows/ci.yml'
+            client:
+              - 'lib/**'
+              - 'test/**'
+              - 'android/**'
+              - 'ios/**'
+              - 'assets/**'
+              - 'proto/**'
+              - 'scripts/**'
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              - 'analysis_options.yaml'
+              - 'l10n.yaml'
+              - '.github/workflows/ci.yml'
+
+  # ------------------------------------------------------------------------------
+  # 1. C++ Backend Server build & test check (runs on changes / tags / dispatch)
+  # Fast Linux x64 server validation
   # ------------------------------------------------------------------------------
   build-server:
     name: Build & Test Server
+    needs: changes
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' || needs.changes.outputs.server == 'true'
     runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 1G
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
@@ -25,68 +80,96 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev
+          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev ccache
 
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@v1
+      - name: Configure ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ccache-linux-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ccache-linux-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-
+            ccache-linux-
 
-      - name: Generate Protobuf Files
-        run: |
-          dart pub global activate protoc_plugin
-          chmod +x scripts/generate_proto.sh
-          ./scripts/generate_proto.sh
+      - name: Zero ccache statistics
+        run: ccache -z
 
       - name: Configure CMake
-        run: cmake -S server -B server/build -DCMAKE_BUILD_TYPE=Release
+        run: |
+          cmake -S server -B server/build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Compile Server Binary
         run: cmake --build server/build --parallel $(nproc)
+
+      - name: Show ccache statistics
+        if: always()
+        run: ccache -s
 
       - name: Run Server Test Suite
         run: ctest --test-dir server/build --output-on-failure
 
   # ------------------------------------------------------------------------------
   # 1b. C++ Backend Server build & test check on macOS (Apple Clang, ARM64)
+  # Reserved strictly for release tags (v*) and manual workflow_dispatch
   # ------------------------------------------------------------------------------
   build-server-macos:
     name: Build & Test Server (macOS)
+    needs: test-web
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 1G
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
 
       - name: Install System Dependencies
         run: |
-          brew install openssl@3 protobuf webp sqlite zlib jsoncpp
+          brew install openssl@3 protobuf webp sqlite zlib jsoncpp ccache
+
+      - name: Configure ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ccache-macos-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ccache-macos-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-
+            ccache-macos-
+
+      - name: Zero ccache statistics
+        run: ccache -z
 
       - name: Configure CMake
         run: |
           cmake -S server -B server/build \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix openssl@3);$(brew --prefix protobuf);$(brew --prefix webp);$(brew --prefix sqlite);$(brew --prefix jsoncpp)"
 
       - name: Compile Server & Test Suite
         run: cmake --build server/build --parallel $(sysctl -n hw.ncpu)
 
+      - name: Show ccache statistics
+        if: always()
+        run: ccache -s
+
       - name: Run Server Test Suite
         run: ctest --test-dir server/build --output-on-failure
 
-      - name: Set up Node.js
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: actions/setup-node@v7
+      - name: Download Web Client Bundle
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        uses: actions/download-artifact@v8
         with:
-          node-version: 26
-          cache: 'npm'
-          cache-dependency-path: server/web/package-lock.json
-
-      - name: Build Web Client Bundle
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          npm --prefix server/web ci
-          npm --prefix server/web run build
+          name: web-static-assets
+          path: server/public
 
       - name: Package macOS Release Archive
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         run: |
           mkdir -p dist/crowleys-cloud-server-macos-arm64/config
           mkdir -p dist/crowleys-cloud-server-macos-arm64/public
@@ -109,7 +192,7 @@ jobs:
           tar -czvf crowleys-cloud-server-macos-arm64.tar.gz -C dist/crowleys-cloud-server-macos-arm64 .
 
       - name: Upload macOS Server Artifact
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v7
         with:
           name: server-macos-arm64
@@ -117,11 +200,13 @@ jobs:
           retention-days: 30
 
   # ------------------------------------------------------------------------------
-  # ------------------------------------------------------------------------------
   # 1c. C++ Backend Server build & test check on Windows (x64 and ARM64)
+  # Reserved strictly for release tags (v*) and manual workflow_dispatch
   # ------------------------------------------------------------------------------
   build-server-windows:
     name: Build & Test Server (Windows ${{ matrix.arch }})
+    needs: test-web
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -139,9 +224,40 @@ jobs:
             cmake_arch: ARM64
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg_cache
+      SCCACHE_DIR: ${{ github.workspace }}/.sccache
+      SCCACHE_CACHE_SIZE: 1G
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
+
+      - name: Setup sccache
+        shell: pwsh
+        run: |
+          if (Get-Command sccache -ErrorAction SilentlyContinue) {
+            Write-Host "sccache is already installed."
+          } else {
+            $tag = "v0.8.2"
+            $archive = "$env:RUNNER_TEMP\sccache.tar.gz"
+            Invoke-WebRequest -Uri "https://github.com/mozilla/sccache/releases/download/$tag/sccache-$tag-x86_64-pc-windows-msvc.tar.gz" -OutFile $archive
+            tar -xzf $archive -C $env:RUNNER_TEMP
+            $extractedDir = (Get-ChildItem -Path $env:RUNNER_TEMP -Filter "sccache-*" -Directory | Select-Object -First 1).FullName
+            Add-Content -Path $env:GITHUB_PATH -Value $extractedDir
+          }
+
+      - name: Configure sccache cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.sccache
+          key: sccache-windows-${{ matrix.arch }}-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            sccache-windows-${{ matrix.arch }}-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-
+            sccache-windows-${{ matrix.arch }}-
+
+      - name: Start sccache
+        shell: pwsh
+        run: |
+          sccache --start-server
+          sccache --zero-stats
 
       - name: Restore vcpkg Binary Cache
         uses: actions/cache/restore@v4
@@ -174,30 +290,32 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} `
             -DVCPKG_HOST_TRIPLET=${{ matrix.host_triplet }} `
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
             -A ${{ matrix.cmake_arch }}
 
       - name: Compile Server & Test Suite
         run: cmake --build server/build --config Release --parallel
 
+      - name: Show sccache statistics
+        if: always()
+        shell: pwsh
+        run: |
+          sccache --show-stats
+          sccache --stop-server
+
       - name: Run Server Test Suite
         run: ctest --test-dir server/build -C Release --output-on-failure
 
-      - name: Set up Node.js
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: actions/setup-node@v7
+      - name: Download Web Client Bundle
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        uses: actions/download-artifact@v8
         with:
-          node-version: 26
-          cache: 'npm'
-          cache-dependency-path: server/web/package-lock.json
-
-      - name: Build Web Client Bundle
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          npm --prefix server/web ci
-          npm --prefix server/web run build
+          name: web-static-assets
+          path: server/public
 
       - name: Package Windows Release Archive
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         shell: pwsh
         run: |
           $distName = "crowleys-cloud-server-windows-${{ matrix.arch }}"
@@ -223,7 +341,7 @@ jobs:
           Pop-Location
 
       - name: Upload Windows Server Artifact
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v7
         with:
           name: server-windows-${{ matrix.arch }}
@@ -231,10 +349,12 @@ jobs:
           retention-days: 30
 
   # ------------------------------------------------------------------------------
-  # 2. Web Frontend Build & Verification (runs on every push/PR)
+  # 2. Web Frontend Build & Verification (runs on changes / tags / dispatch)
   # ------------------------------------------------------------------------------
   test-web:
     name: Build & Verify Web Client
+    needs: changes
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' || needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -259,13 +379,13 @@ jobs:
         working-directory: server/web
         run: npm run build
 
-      - name: Package Web Client Bundle
+      - name: Package Web Client Release Archive
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"
           tar -czvf "crowleys-cloud-web-${VERSION}.tar.gz" -C server public
 
-      - name: Upload Web Client Artifact
+      - name: Upload Web Client Release Archive
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
@@ -273,11 +393,21 @@ jobs:
           path: crowleys-cloud-web-*.tar.gz
           retention-days: 30
 
+      - name: Upload Web Static Assets
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-static-assets
+          path: server/public/
+          retention-days: 1
+
   # ------------------------------------------------------------------------------
-  # 3. Flutter Mobile Application Verification (runs on every push/PR)
+  # 3. Flutter Mobile Application Verification (runs on changes / tags / dispatch)
   # ------------------------------------------------------------------------------
   test-client:
     name: Test & Analyze Client
+    needs: changes
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' || needs.changes.outputs.client == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -312,7 +442,38 @@ jobs:
         run: flutter test
 
   # ------------------------------------------------------------------------------
-  # 3. Android APK Release Build (runs ONLY on version tag push)
+  # 4. CI Status Gate (runs on every push/PR)
+  # Ensures status checks pass reliably without hanging when jobs are skipped.
+  # ------------------------------------------------------------------------------
+  ci-gate:
+    name: CI Status Gate
+    if: always()
+    needs: [changes, build-server, test-web, test-client]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate status check results
+        run: |
+          echo "Changes: ${{ needs.changes.result }}"
+          echo "build-server: ${{ needs.build-server.result }}"
+          echo "test-web: ${{ needs.test-web.result }}"
+          echo "test-client: ${{ needs.test-client.result }}"
+
+          if [[ "${{ needs.changes.result }}" != "success" ]]; then
+            echo "Error: Changes detection failed or was cancelled."
+            exit 1
+          fi
+
+          for result in "${{ needs.build-server.result }}" "${{ needs.test-web.result }}" "${{ needs.test-client.result }}"; do
+            if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
+              echo "Error: One or more required validation jobs failed or were cancelled."
+              exit 1
+            fi
+          done
+
+          echo "All validation checks passed or were safely skipped."
+
+  # ------------------------------------------------------------------------------
+  # 5. Android APK Release Build (runs ONLY on version tag push)
   # ------------------------------------------------------------------------------
   build-android:
     name: Build Android APK
@@ -359,7 +520,7 @@ jobs:
           retention-days: 30
 
   # ------------------------------------------------------------------------------
-  # 4. iOS App Release Build (runs ONLY on version tag push)
+  # 6. iOS App Release Build (runs ONLY on version tag push)
   # ------------------------------------------------------------------------------
   build-ios:
     name: Build iOS App
@@ -394,13 +555,16 @@ jobs:
         run: flutter build ios --no-codesign
 
   # ------------------------------------------------------------------------------
-  # 5. Build Server Docker Images natively per architecture (runs ONLY on version tag push)
+  # 7. Build Server Docker Images natively per architecture (runs ONLY on version tag push)
   # ------------------------------------------------------------------------------
   build-docker-image:
     name: Docker (${{ matrix.arch }})
     needs: build-server
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         include:
@@ -453,13 +617,15 @@ jobs:
           retention-days: 1
 
   # ------------------------------------------------------------------------------
-  # 6. Merge per-arch images into a single multi-arch manifest
+  # 8. Merge per-arch images into a single multi-arch manifest
   # ------------------------------------------------------------------------------
   merge-docker-manifest:
     name: Publish Multi-Arch Manifest
     needs: build-docker-image
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -503,13 +669,15 @@ jobs:
             $(printf "${IMAGE}@sha256:%s " *)
 
   # ------------------------------------------------------------------------------
-  # 7. Create GitHub Release with APK and Web Client (triggers only on version tags)
+  # 9. Create GitHub Release with APK and Web Client (triggers only on version tags)
   # ------------------------------------------------------------------------------
   create-release:
     name: Publish GitHub Release
     needs: [build-server, build-server-macos, build-server-windows, test-web, build-android, build-ios, merge-docker-manifest]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
