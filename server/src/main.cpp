@@ -23,12 +23,26 @@
 
 #include <filesystem>
 #include <chrono>
+#include <cstdlib>
 
 int main(int argc, char *argv[]) {
   const std::string configPath = server::utils::resolveConfigPath(argc, argv);
 
   auto &appCtx = server::ctx();
-  appCtx.config = server::utils::loadConfig(configPath);
+  try {
+    appCtx.config = server::utils::loadConfig(configPath, true);
+  } catch (const std::exception &e) {
+    LOG_ERROR << e.what();
+    return 1;
+  }
+
+  if (appCtx.config.jwtSecret.size() < 32 || appCtx.config.jwtSecret == "change-this-secret" ||
+      (appCtx.config.hashFiles && (appCtx.config.encryptionKey.size() < 32 ||
+       appCtx.config.encryptionKey == "default-local-encryption-key-for-testing"))) {
+    LOG_ERROR << "Configure unique jwt_secret and (with hash_files) encryption_key, at least 32 characters, "
+                 "or CROWLEYS_JWT_SECRET / CROWLEYS_ENCRYPTION_KEY. Do not replace an existing storage key without migrating data.";
+    return 1;
+  }
 
   drogon::app().setUploadPath(appCtx.config.tempUploadDir);
   std::error_code dirEc;

@@ -26,6 +26,8 @@ const selectedPaths = writable(new Set());
 const isLoading = writable(false);
 const error = writable(null);
 
+let loadGeneration = 0;
+
 export const filesStore = {
   scope,
   currentPath,
@@ -38,6 +40,7 @@ export const filesStore = {
   error,
 
   clear() {
+    loadGeneration++;
     entries.set([]);
     selectedPaths.set(new Set());
     error.set(null);
@@ -45,6 +48,7 @@ export const filesStore = {
   },
 
   async loadDirectory(silent = false) {
+    const generation = ++loadGeneration;
     if (!silent) {
       isLoading.set(true);
       error.set(null);
@@ -65,13 +69,13 @@ export const filesStore = {
         order: sort.order
       });
 
-      entries.set(res.entries || []);
+      if (generation === loadGeneration) entries.set(res.entries || []);
     } catch (err) {
-      if (!silent) {
+      if (generation === loadGeneration && !silent) {
         error.set(err.message || 'Failed to load directory');
       }
     } finally {
-      if (!silent) {
+      if (generation === loadGeneration) {
         isLoading.set(false);
       }
     }

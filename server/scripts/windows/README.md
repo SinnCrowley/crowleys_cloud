@@ -5,8 +5,25 @@ Crowley's Cloud Server for Windows is distributed as a native self-contained pac
 ## Quick Launch
 Double-click `run.bat`. This will:
 1. Load configuration from `config\config.json`.
-2. Open your default web browser to the web interface (default: `http://localhost:8080`).
+2. Initialize missing secrets on a fresh installation in `config\config.local.json`.
 3. Run the Crowley's Cloud server in a console window.
+
+After startup, open `http://localhost:8080` yourself (or your overridden port).
+The launcher does not open a browser automatically. Extract the entire package
+to a permanent writable user folder, not `Program Files`. Keep `public/` and
+`config/` alongside the executable. Local settings belong in
+`config\config.local.json`; omitted settings inherit the shipped defaults.
+
+Video thumbnails require FFmpeg installed separately. Set `ffmpeg_binary` to
+its full path for background tasks, or set `video_thumbs_enabled` to `false`.
+
+## Updates and backups
+
+Stop the server before replacing files. Back up `config\config.local.json`,
+`data/` and `storage/` together. Extract the new archive into the same folder;
+it excludes local config and runtime data. Preserve the generated keys. If
+moving to a new directory, move these files too and recreate the background
+task. Missing keys with existing data stop startup instead of regenerating keys.
 
 ## Running in the Background as a Service
 You can run `crowleys_cloud_server.exe` in the background automatically when Windows boots or when you log in.
@@ -19,7 +36,7 @@ Run `services\install-service.bat` (or `install-service.bat`):
 Command Prompt equivalents:
 ```cmd
 rem Run at user logon (non-admin)
-schtasks /create /tn "CrowleysCloudServer" /tr "\"C:\Full\Path\To\crowleys_cloud_server.exe\"" /sc onlogon /rl highest /f
+schtasks /create /tn "CrowleysCloudServer" /tr "\"C:\Full\Path\To\crowleys_cloud_server.exe\"" /sc onlogon /rl limited /f
 
 rem Run at system startup (admin)
 schtasks /create /tn "CrowleysCloudServer" /tr "\"C:\Full\Path\To\crowleys_cloud_server.exe\"" /sc onstart /ru "SYSTEM" /rl highest /f

@@ -22,3 +22,9 @@ server/logs/
 server/storage/
 server/uploads/
 server/web/node_modules/
+
+# Machine-specific config must never be baked into an image.
+**/config.local.json
+**/config.local.json.init-lock
+.env
+*.env

@@ -15,9 +15,13 @@
 
 #include "server/utils/Config.hpp"
 #include "server/utils/PlatformUtils.hpp"
+#include "server/utils/Crypto.hpp"
 
 #include <fstream>
 #include <filesystem>
+#include <stdexcept>
+#include <cstdlib>
+
 
 #include <drogon/drogon.h>
 
@@ -77,7 +81,7 @@ std::string resolveConfigPath(int argc, char *argv[]) {
   return "./config/config.json";
 }
 
-Config loadConfig(const std::string &path) {
+Config loadConfig(const std::string &path, bool initializeSecrets) {
   Config cfg;
   std::string actualPath = path;
   std::error_code ec;
@@ -106,42 +110,64 @@ Config loadConfig(const std::string &path) {
     }
   }
 
+  // Passing config.local.json explicitly still includes its sibling base config.
+  if (std::filesystem::path(actualPath).filename() == "config.local.json") {
+    actualPath = (std::filesystem::path(actualPath).parent_path() / "config.json").string();
+  }
+
+  auto applyFile = [&](const std::filesystem::path &file, bool local) {
+    try {
+      std::ifstream input(file);
+      if (!input.is_open()) throw std::runtime_error("Cannot open configuration");
+      Json::Value json;
+      input >> json;
+      if (!json.isObject()) throw std::runtime_error("Configuration must be an object");
+      if (local) {
+        for (const auto &name : json.getMemberNames()) {
+          if (json[name].isNull()) throw std::runtime_error("Null override is not supported");
+        }
+      }
+      // Apply atomically: a bad field must not leave a partially loaded config.
+      Config updated = cfg;
+      updated.host = json.get("host", updated.host).asString();
+      updated.port = static_cast<uint16_t>(json.get("port", updated.port).asUInt());
+      updated.storageRoot = json.get("storage_root", updated.storageRoot).asString();
+      updated.dbPath = json.get("db_path", updated.dbPath).asString();
+      updated.tempUploadDir = json.get("temp_upload_dir", updated.tempUploadDir).asString();
+      updated.publicDir = json.get("public_dir", updated.publicDir).asString();
+      updated.jwtSecret = json.get("jwt_secret", updated.jwtSecret).asString();
+      updated.uploadLimitBytes = json.get("upload_limit_bytes", Json::Int64(updated.uploadLimitBytes)).asInt64();
+      updated.rateLimitPerMinute = json.get("rate_limit_per_minute", updated.rateLimitPerMinute).asInt();
+      updated.accessTokenTtlSeconds = json.get("access_token_ttl_seconds", Json::Int64(updated.accessTokenTtlSeconds)).asInt64();
+      updated.refreshTokenTtlSeconds = json.get("refresh_token_ttl_seconds", Json::Int64(updated.refreshTokenTtlSeconds)).asInt64();
+      updated.logDir = json.get("log_dir", updated.logDir).asString();
+      updated.logLevel = json.get("log_level", updated.logLevel).asString();
+      updated.accessLogEnabled = json.get("access_log_enabled", updated.accessLogEnabled).asBool();
+      updated.videoThumbsEnabled = json.get("video_thumbs_enabled", updated.videoThumbsEnabled).asBool();
+      updated.ffmpegBinary = json.get("ffmpeg_binary", updated.ffmpegBinary).asString();
+      updated.logRetentionDays = json.get("log_retention_days", updated.logRetentionDays).asInt();
+      updated.hashFiles = json.get("hash_files", updated.hashFiles).asBool();
+      updated.encryptionKey = json.get("encryption_key", updated.encryptionKey).asString();
+      updated.trashRetentionDays = json.get("trash_retention_days", updated.trashRetentionDays).asInt();
+      cfg = std::move(updated);
+    } catch (...) {
+      // Parser errors can include secret values; report only the file path.
+      if (local || initializeSecrets) throw std::runtime_error("Invalid or unreadable config: " + file.string());
+      LOG_ERROR << "Invalid or unreadable config at " << file.string() << ", using defaults";
+    }
+  };
+
   if (actualPath.empty() || !std::filesystem::is_regular_file(actualPath, ec)) {
     LOG_WARN << "Config file not found or not a regular file at " << path << ", using defaults";
   } else {
-    std::ifstream input(actualPath);
-    if (!input.is_open()) {
-      LOG_WARN << "Config file could not be opened at " << actualPath << ", using defaults";
-    } else {
-      try {
-        Json::Value json;
-        input >> json;
+    applyFile(actualPath, false);
+  }
 
-        cfg.host = json.get("host", cfg.host).asString();
-        cfg.port = static_cast<uint16_t>(json.get("port", cfg.port).asUInt());
-        cfg.storageRoot = json.get("storage_root", cfg.storageRoot).asString();
-        cfg.dbPath = json.get("db_path", cfg.dbPath).asString();
-        cfg.tempUploadDir = json.get("temp_upload_dir", cfg.tempUploadDir).asString();
-        cfg.publicDir = json.get("public_dir", cfg.publicDir).asString();
-        cfg.jwtSecret = json.get("jwt_secret", cfg.jwtSecret).asString();
-        cfg.uploadLimitBytes = json.get("upload_limit_bytes", Json::Int64(cfg.uploadLimitBytes)).asInt64();
-        cfg.rateLimitPerMinute = json.get("rate_limit_per_minute", cfg.rateLimitPerMinute).asInt();
-        cfg.accessTokenTtlSeconds = json.get("access_token_ttl_seconds", Json::Int64(cfg.accessTokenTtlSeconds)).asInt64();
-        cfg.refreshTokenTtlSeconds = json.get("refresh_token_ttl_seconds", Json::Int64(cfg.refreshTokenTtlSeconds)).asInt64();
-        cfg.logDir = json.get("log_dir", cfg.logDir).asString();
-        cfg.logLevel = json.get("log_level", cfg.logLevel).asString();
-        cfg.accessLogEnabled = json.get("access_log_enabled", cfg.accessLogEnabled).asBool();
-        cfg.videoThumbsEnabled = json.get("video_thumbs_enabled", cfg.videoThumbsEnabled).asBool();
-        cfg.ffmpegBinary = json.get("ffmpeg_binary", cfg.ffmpegBinary).asString();
-        cfg.logRetentionDays = json.get("log_retention_days", cfg.logRetentionDays).asInt();
-        cfg.hashFiles = json.get("hash_files", cfg.hashFiles).asBool();
-        cfg.encryptionKey = json.get("encryption_key", cfg.encryptionKey).asString();
-        cfg.trashRetentionDays = json.get("trash_retention_days", cfg.trashRetentionDays).asInt();
-      } catch (const std::exception &e) {
-        LOG_ERROR << "Failed to parse config file at " << actualPath << ": " << e.what() << ", using defaults";
-      } catch (...) {
-        LOG_ERROR << "Failed to parse config file at " << actualPath << " (unknown error), using defaults";
-      }
+  // Never discover overrides from CWD: they belong to the selected base file.
+  if (!actualPath.empty() && !std::filesystem::is_directory(actualPath)) {
+    const auto localPath = std::filesystem::path(actualPath).parent_path() / "config.local.json";
+    if (std::filesystem::exists(localPath)) {
+      applyFile(localPath, true);
     }
   }
 
@@ -215,6 +241,73 @@ Config loadConfig(const std::string &path) {
   cfg.tempUploadDir = resolveRelative(cfg.tempUploadDir);
   cfg.publicDir = resolveRelative(cfg.publicDir, true);
   cfg.logDir = resolveRelative(cfg.logDir);
+
+  if (initializeSecrets) {
+    auto environment = [&] {
+      if (const auto value = std::getenv("CROWLEYS_JWT_SECRET")) cfg.jwtSecret = value;
+      if (const auto value = std::getenv("CROWLEYS_ENCRYPTION_KEY")) cfg.encryptionKey = value;
+    };
+    auto missingJwt = [&] { return cfg.jwtSecret.empty() || cfg.jwtSecret == "change-this-secret"; };
+    auto missingKey = [&] { return cfg.encryptionKey.empty() || cfg.encryptionKey == "default-local-encryption-key-for-testing"; };
+    environment();
+    if (missingJwt() || (cfg.hashFiles && missingKey())) {
+      if (actualPath.empty() || !std::filesystem::is_regular_file(actualPath)) {
+        throw std::runtime_error("Secret initialization requires an existing base config file");
+      }
+      const auto local = std::filesystem::path(actualPath).parent_path() / "config.local.json";
+      const auto lock = std::filesystem::path(local.string() + ".init-lock");
+      if (!std::filesystem::create_directory(lock)) {
+        throw std::runtime_error("Secret initialization is locked; stop other server processes before removing " + lock.string());
+      }
+      struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code ignored; std::filesystem::remove_all(path, ignored); }
+      } cleanup{lock};
+#ifndef _WIN32
+      std::filesystem::permissions(lock, std::filesystem::perms::owner_all);
+#endif
+      // Re-read after taking the lock: another first launch may have just finished.
+      cfg = loadConfig(actualPath);
+      environment();
+      if (missingJwt() || (cfg.hashFiles && missingKey())) {
+        if (std::filesystem::exists(cfg.dbPath) ||
+            (std::filesystem::exists(cfg.storageRoot) && !std::filesystem::is_empty(cfg.storageRoot))) {
+          throw std::runtime_error("Secrets are missing but server data already exists. Restore config.local.json or configure the original secrets; automatic regeneration is disabled.");
+        }
+        // Explicit environment settings must be fixed by the operator, not persisted or replaced.
+        if ((missingJwt() && std::getenv("CROWLEYS_JWT_SECRET")) ||
+            (missingKey() && std::getenv("CROWLEYS_ENCRYPTION_KEY"))) {
+          throw std::runtime_error("Secret environment variables must contain non-placeholder values");
+        }
+        Json::Value overrides(Json::objectValue);
+        if (std::filesystem::exists(local)) {
+          std::ifstream input(local);
+          input >> overrides;
+          if (!input || !overrides.isObject()) throw std::runtime_error("Cannot read local overrides");
+        }
+        if (missingJwt()) overrides["jwt_secret"] = cfg.jwtSecret = randomTokenHex();
+        if (missingKey()) overrides["encryption_key"] = cfg.encryptionKey = randomTokenHex();
+        const auto temporary = lock / "config.json";
+        {
+          std::ofstream output(temporary, std::ios::binary);
+#ifndef _WIN32
+          std::filesystem::permissions(temporary, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write);
+#endif
+          output << overrides << "\n";
+          output.close();
+          if (!output) throw std::runtime_error("Cannot save generated secrets");
+        }
+#ifdef _WIN32
+        if (!MoveFileExW(temporary.c_str(), local.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+          throw std::runtime_error("Cannot replace local config with generated secrets");
+        }
+#else
+        std::filesystem::rename(temporary, local);
+#endif
+        LOG_INFO << "Initialized secrets in " << local.string() << "; back up this file with your data";
+      }
+    }
+  }
 
   return cfg;
 }

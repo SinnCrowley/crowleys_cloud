@@ -35,6 +35,9 @@
 #include <stdexcept>
 #include <vector>
 #include <fstream>
+#include <memory>
+#include <cstring>
+#include <algorithm>
 
 namespace server::utils {
 
@@ -490,6 +493,53 @@ bool decryptFileAes256(const std::filesystem::path &srcPath, const std::filesyst
 
   EVP_CIPHER_CTX_free(ctx);
   return true;
+}
+
+// Pull-based reading works with both keep-alive and Connection: close in Drogon.
+std::function<std::size_t(char *, std::size_t)> decryptedFileReader(
+    const std::filesystem::path &path, const std::string &keySource) {
+  struct Reader {
+    std::ifstream input;
+    std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> context{EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free};
+    std::vector<unsigned char> pending;
+    std::size_t offset{0};
+    bool finished{false};
+    explicit Reader(const std::filesystem::path &path) : input(path, std::ios::binary) {}
+  };
+  auto reader = std::make_shared<Reader>(path);
+  unsigned char iv[16];
+  const auto key = derive32ByteKey(keySource);
+  if (!reader->input.read(reinterpret_cast<char *>(iv), sizeof(iv)) || !reader->context ||
+      EVP_DecryptInit_ex(reader->context.get(), EVP_aes_256_cbc(), nullptr,
+                        reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) {
+    throw std::runtime_error("Cannot open encrypted download");
+  }
+  return [reader](char *output, std::size_t capacity) -> std::size_t {
+    if (!output || capacity == 0) return 0;
+    while (reader->offset == reader->pending.size() && !reader->finished) {
+      unsigned char encrypted[65536];
+      reader->input.read(reinterpret_cast<char *>(encrypted), sizeof(encrypted));
+      const auto count = reader->input.gcount();
+      reader->pending.resize(sizeof(encrypted) + EVP_MAX_BLOCK_LENGTH);
+      reader->offset = 0;
+      int length = 0;
+      int ok;
+      if (count > 0) {
+        ok = EVP_DecryptUpdate(reader->context.get(), reader->pending.data(), &length,
+                               encrypted, static_cast<int>(count));
+      } else {
+        reader->finished = true;
+        ok = reader->input.bad() ? 0 : EVP_DecryptFinal_ex(
+            reader->context.get(), reader->pending.data(), &length);
+      }
+      if (ok != 1) { reader->finished = true; length = 0; }
+      reader->pending.resize(length);
+    }
+    const auto count = std::min(capacity, reader->pending.size() - reader->offset);
+    if (count) std::memcpy(output, reader->pending.data() + reader->offset, count);
+    reader->offset += count;
+    return count;
+  };
 }
 
 bool decryptFileToStream(const std::filesystem::path &srcPath, const std::string &keySource, const std::function<void(const char* data, size_t size)> &chunkCallback) {

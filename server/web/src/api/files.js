@@ -80,7 +80,7 @@ export const filesApi = {
     URL.revokeObjectURL(link.href);
   },
 
-  uploadFileSingle({ scope = 'private', path, file, onProgress }, isRetry = false) {
+  uploadFileSingle({ scope = 'private', path, file, onProgress, signal }, isRetry = false) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       const params = new URLSearchParams({ scope, path });
@@ -99,6 +99,11 @@ export const filesApi = {
         };
       }
 
+      const abort = () => xhr.abort();
+      xhr.onabort = () => reject(new DOMException('Upload aborted', 'AbortError'));
+      xhr.onloadend = () => signal?.removeEventListener('abort', abort);
+      if (signal?.aborted) { reject(new DOMException('Upload aborted', 'AbortError')); return; }
+      signal?.addEventListener('abort', abort, { once: true });
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
@@ -133,9 +138,10 @@ export const filesApi = {
               refreshToken: refreshData.refresh_token
             });
 
-            const retryResult = await this.uploadFileSingle({ scope, path, file, onProgress }, true);
+            const retryResult = await this.uploadFileSingle({ scope, path, file, onProgress, signal }, true);
             resolve(retryResult);
           } catch (err) {
+            if (signal?.aborted) { reject(err); return; }
             authStore.clearSession();
             reject(new Error(apiMessage('api.upload_failed_status', { status: 401 })));
           }
@@ -202,13 +208,13 @@ export const filesApi = {
     });
   },
 
-  async uploadFileChunked({ scope = 'private', path, file, chunkSize = 5 * 1024 * 1024, onProgress }) {
+  async uploadFileChunked({ scope = 'private', path, file, chunkSize = 5 * 1024 * 1024, onProgress, signal }) {
     const totalSize = file.size;
     let offset = 0;
 
     // Check resume status first
     try {
-      const status = await this.getUploadStatus({ scope, path });
+      const status = await this.getUploadStatus({ scope, path, signal });
       if (status && typeof status.bytes_received === 'number') {
         offset = status.bytes_received;
       }
@@ -216,7 +222,10 @@ export const filesApi = {
       // Offset remains 0 if status query fails
     }
 
+    signal?.throwIfAborted();
+    if (offset >= totalSize) offset = 0;
     while (offset < totalSize) {
+      signal?.throwIfAborted();
       const chunkEnd = Math.min(offset + chunkSize, totalSize);
       const isLast = chunkEnd >= totalSize;
       const chunk = file.slice(offset, chunkEnd);
@@ -229,7 +238,7 @@ export const filesApi = {
         is_last: isLast.toString()
       });
 
-      await apiPost(`/api/files?${params.toString()}`, chunk);
+      await apiPost(`/api/files?${params.toString()}`, chunk, { signal });
       offset = chunkEnd;
 
       if (onProgress) {
@@ -240,9 +249,9 @@ export const filesApi = {
     return { ok: true, completed: true };
   },
 
-  async getUploadStatus({ scope = 'private', path }) {
+  async getUploadStatus({ scope = 'private', path, signal }) {
     const params = new URLSearchParams({ scope, path });
-    return apiGet(`/api/files/upload-status?${params.toString()}`);
+    return apiGet(`/api/files/upload-status?${params.toString()}`, { signal });
   },
 
   getThumbnailUrl({ scope = 'private', path, trashId, size = 256 }) {

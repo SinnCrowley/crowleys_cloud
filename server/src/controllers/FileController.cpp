@@ -31,6 +31,7 @@
 #include "dir_entry.pb.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstdlib>
 #include <fstream>
@@ -51,6 +52,9 @@ using server::utils::jsonOk;
 using server::utils::getAuth;
 
 namespace {
+
+// Bound lock storage while allowing unrelated uploads to proceed concurrently.
+std::array<std::mutex, 64> uploadLocks;
 
 struct FileZipCleanupHelper {
   std::filesystem::path tmpZipPath;
@@ -160,7 +164,7 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
     if (*scope != services::StorageScope::Shared) {
       if (server::ctx().config.hashFiles) {
         if (!relPrefix.empty()) {
-          const char *sql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND is_deleted = 0 LIMIT 1";
+          const char *sql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR instr(parent_path, ?) = 1) AND is_deleted = 0 LIMIT 1";
           auto stmtGuard = server::ctx().database->getStatement(sql);
           auto *stmt = stmtGuard.get();
           sqlite3_bind_int64(stmt, 1, ownerUserId);
@@ -168,7 +172,7 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
           sqlite3_bind_text(stmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
           sqlite3_bind_text(stmt, 3, relPrefix.c_str(), -1, SQLITE_TRANSIENT);
           sqlite3_bind_text(stmt, 4, relPrefix.c_str(), -1, SQLITE_TRANSIENT);
-          const auto pattern = relPrefix + "/%";
+          const auto pattern = relPrefix + "/";
           sqlite3_bind_text(stmt, 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
           bool exists = (sqlite3_step(stmt) == SQLITE_ROW);
           if (!exists) {
@@ -549,12 +553,13 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
 
     if (hashFiles) {
       std::string sha256Val;
+      std::uint64_t plainSize = 0;
       std::string fileName;
       std::string mimeType = "application/octet-stream";
 
       if (!trashIdStr.empty()) {
         std::int64_t trashId = std::stoll(trashIdStr);
-        const char *sql = "SELECT owner_user_id, original_path, name, mime_type, sha256 FROM trash WHERE id = ?";
+        const char *sql = "SELECT owner_user_id, original_path, name, mime_type, sha256, size_bytes FROM trash WHERE id = ?";
         auto stmtGuard = server::ctx().database->getStatement(sql);
         auto *stmt = stmtGuard.get();
         sqlite3_bind_int64(stmt, 1, trashId);
@@ -566,6 +571,7 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
         std::string origPath = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
         fileName = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
         mimeType = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
+        plainSize = sqlite3_column_int64(stmt, 5);
         const auto shaDirectRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4));
         if (shaDirectRaw && std::string(shaDirectRaw).size() > 0) {
           sha256Val = shaDirectRaw;
@@ -608,7 +614,7 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
 
         const auto queryScopeStr = (*scope == services::StorageScope::Shared) ? "private" : services::FileIndexService::scopeToString(*scope);
 
-        const char *sql = "SELECT sha256, mime_type, name FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1";
+        const char *sql = "SELECT sha256, mime_type, name, size_bytes FROM file_index WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0 LIMIT 1";
         auto stmtGuard = server::ctx().database->getStatement(sql);
         auto *stmt = stmtGuard.get();
         sqlite3_bind_int64(stmt, 1, fileOwnerId);
@@ -622,6 +628,7 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
           if (mimeRaw) mimeType = mimeRaw;
           const auto nameRaw = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
           if (nameRaw) fileName = nameRaw;
+          plainSize = sqlite3_column_int64(stmt, 3);
         }
       }
 
@@ -660,31 +667,14 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
         resp->addHeader("Content-Disposition", std::string(dispositionType) + "; filename=\"" + fileName + "\"");
         resp->addHeader("ETag", fileEtag);
         resp->addHeader("Cache-Control", "private, no-cache");
-        resp->addHeader("Accept-Ranges", "bytes");
-        std::error_code ec;
-        auto fileSize = std::filesystem::file_size(physicalPath, ec);
-        if (!ec) {
-          resp->addHeader("Content-Length", std::to_string(fileSize));
-        }
+        resp->addHeader("Content-Length", std::to_string(plainSize));
         callback(resp);
         return;
       }
 
-      auto resp = drogon::HttpResponse::newAsyncStreamResponse([physicalPath, key = server::ctx().config.encryptionKey](drogon::ResponseStreamPtr stream) {
-        std::thread([stream = std::move(stream), physicalPath, key]() mutable {
-          try {
-            utils::decryptFileToStream(physicalPath, key, [&stream](const char* data, size_t size) {
-              stream->send(std::string(data, size));
-            });
-          } catch (const std::exception &e) {
-            LOG_ERROR << "FileController::downloadFile async stream exception: " << e.what();
-          } catch (...) {
-            LOG_ERROR << "FileController::downloadFile async stream unknown exception";
-          }
-          stream->close();
-        }).detach();
-      });
-
+      auto resp = drogon::HttpResponse::newStreamResponse(
+        utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey));
+      resp->addHeader("Content-Length", std::to_string(plainSize));
       if (!mimeType.empty()) {
         resp->setContentTypeString(mimeType);
       } else {
@@ -811,11 +801,11 @@ void FileController::downloadZip(const drogon::HttpRequestPtr &req,
           const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE is_shared = 1 AND type != 'directory' AND is_deleted = 0";
           stmtGuard = server::ctx().database->getStatement(sql);
         } else {
-          const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE is_shared = 1 AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND type != 'directory' AND is_deleted = 0";
+          const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE is_shared = 1 AND (rel_path = ? OR parent_path = ? OR instr(parent_path, ?) = 1) AND type != 'directory' AND is_deleted = 0";
           stmtGuard = server::ctx().database->getStatement(sql);
           sqlite3_bind_text(stmtGuard.get(), 1, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
           sqlite3_bind_text(stmtGuard.get(), 2, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
-          const auto pattern = targetRelPath + "/%";
+          const auto pattern = targetRelPath + "/";
           sqlite3_bind_text(stmtGuard.get(), 3, pattern.c_str(), -1, SQLITE_TRANSIENT);
         }
       } else {
@@ -825,13 +815,13 @@ void FileController::downloadZip(const drogon::HttpRequestPtr &req,
           sqlite3_bind_int64(stmtGuard.get(), 1, userId);
           sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         } else {
-          const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND type != 'directory' AND is_deleted = 0";
+          const char *sql = "SELECT rel_path, sha256 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR instr(parent_path, ?) = 1) AND type != 'directory' AND is_deleted = 0";
           stmtGuard = server::ctx().database->getStatement(sql);
           sqlite3_bind_int64(stmtGuard.get(), 1, userId);
           sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
           sqlite3_bind_text(stmtGuard.get(), 3, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
           sqlite3_bind_text(stmtGuard.get(), 4, targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
-          const auto pattern = targetRelPath + "/%";
+          const auto pattern = targetRelPath + "/";
           sqlite3_bind_text(stmtGuard.get(), 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
         }
       }
@@ -914,7 +904,9 @@ void FileController::uploadStatus(const drogon::HttpRequestPtr &req,
   try {
     const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
     const auto tmpDir = std::filesystem::path(server::ctx().config.storageRoot) / ".tmp_uploads";
-    const auto tmpPath = tmpDir / (std::to_string(userId) + "_" + utils::sha256Hex(relPath));
+    const auto uploadKey = std::to_string(userId) + "_" + utils::sha256Hex(req->getParameter("scope") + ":" + relPath);
+    std::lock_guard<std::mutex> uploadLock(uploadLocks[std::hash<std::string>{}(uploadKey) % uploadLocks.size()]);
+    const auto tmpPath = tmpDir / uploadKey;
 
     std::error_code ec;
     const auto sz = std::filesystem::file_size(tmpPath, ec);
@@ -1061,17 +1053,29 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
       const auto tmpDir = std::filesystem::path(server::ctx().config.storageRoot) / ".tmp_uploads";
       std::filesystem::create_directories(tmpDir);
-      const auto tmpPath = tmpDir / (std::to_string(userId) + "_" + utils::sha256Hex(relPath));
+      const auto uploadKey = std::to_string(userId) + "_" + utils::sha256Hex(req->getParameter("scope") + ":" + relPath);
+      std::lock_guard<std::mutex> uploadLock(uploadLocks[std::hash<std::string>{}(uploadKey) % uploadLocks.size()]);
+      const auto tmpPath = tmpDir / uploadKey;
 
+      std::error_code sizeError;
+      const auto existingSize = std::filesystem::file_size(tmpPath, sizeError);
+      if (total == 0 || offset > total || req->bodyLength() > total - offset ||
+          (isLast && offset + req->bodyLength() != total)) {
+        callback(jsonError(drogon::k400BadRequest, "Invalid upload range"));
+        return;
+      }
+      if (offset != 0 && (sizeError || existingSize != offset)) {
+        callback(jsonError(drogon::k409Conflict, "Upload offset does not match stored bytes"));
+        return;
+      }
       auto mode = (offset == 0) ? (std::ios::binary | std::ios::trunc) : (std::ios::binary | std::ios::app);
       std::ofstream out(tmpPath, mode);
-      if (req->bodyLength() > 0) {
-        out.write(req->bodyData(), static_cast<std::streamsize>(req->bodyLength()));
-      }
+      out.write(req->bodyData(), static_cast<std::streamsize>(req->bodyLength()));
       out.close();
+      if (!out) throw std::runtime_error("Failed to write upload chunk");
 
       const auto currentSize = std::filesystem::file_size(tmpPath);
-      const bool completed = (total > 0 && currentSize >= total) || isLast;
+      const bool completed = currentSize == total;
 
       if (completed) {
         const bool hashFiles = server::ctx().config.hashFiles;
@@ -1376,9 +1380,9 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
       // 1. Check if source exists in index
       bool exists = false;
       {
-        const std::string prefixPattern = src + "/%";
+        const std::string prefixPattern = src + "/";
         auto stmtGuard = server::ctx().database->getStatement(
-            "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND is_deleted = 0 LIMIT 1");
+            "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR instr(rel_path, ?) = 1) AND is_deleted = 0 LIMIT 1");
         sqlite3_bind_int64(stmtGuard.get(), 1, ownerUserId);
         sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmtGuard.get(), 3, src.c_str(), -1, SQLITE_TRANSIENT);
@@ -1393,9 +1397,9 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
       // Check if destination path already exists
       bool destExists = false;
       {
-        const std::string prefixPattern = dest + "/%";
+        const std::string prefixPattern = dest + "/";
         auto stmtGuard = server::ctx().database->getStatement(
-            "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND is_deleted = 0 LIMIT 1");
+            "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR instr(rel_path, ?) = 1) AND is_deleted = 0 LIMIT 1");
         sqlite3_bind_int64(stmtGuard.get(), 1, ownerUserId);
         sqlite3_bind_text(stmtGuard.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmtGuard.get(), 3, dest.c_str(), -1, SQLITE_TRANSIENT);
@@ -1410,24 +1414,23 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
       // 2. Perform database update for renaming/moving the index entry and its descendants
       const auto newName = std::filesystem::path(dest).filename().string();
       const auto destParent = services::FileIndexService::normalizeRelPath(std::filesystem::path(dest).parent_path().generic_string());
-      const int srcLen = static_cast<int>(src.length());
       
       auto stmtGuard = server::ctx().database->getStatement(
           "UPDATE file_index SET "
-          "  rel_path = ?1 || substr(rel_path, ?2), "
-          "  parent_path = CASE WHEN rel_path = ?3 THEN ?4 ELSE ?1 || substr(parent_path, ?2) END, "
+          "  rel_path = ?1 || substr(rel_path, length(?2) + 1), "
+          "  parent_path = CASE WHEN rel_path = ?3 THEN ?4 ELSE ?1 || substr(parent_path, length(?2) + 1) END, "
           "  name = CASE WHEN rel_path = ?3 THEN ?5 ELSE name END "
-          "WHERE owner_user_id = ?6 AND scope = ?7 AND (rel_path = ?8 OR rel_path LIKE ?9) AND is_deleted = 0");
+          "WHERE owner_user_id = ?6 AND scope = ?7 AND (rel_path = ?8 OR instr(rel_path, ?9) = 1) AND is_deleted = 0");
           
       sqlite3_bind_text(stmtGuard.get(), 1, dest.c_str(), -1, SQLITE_TRANSIENT);
-      sqlite3_bind_int(stmtGuard.get(), 2, srcLen + 1);
+      sqlite3_bind_text(stmtGuard.get(), 2, src.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_bind_text(stmtGuard.get(), 3, src.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_bind_text(stmtGuard.get(), 4, destParent.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_bind_text(stmtGuard.get(), 5, newName.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_bind_int64(stmtGuard.get(), 6, ownerUserId);
       sqlite3_bind_text(stmtGuard.get(), 7, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_bind_text(stmtGuard.get(), 8, src.c_str(), -1, SQLITE_TRANSIENT);
-      std::string prefixPattern = src + "/%";
+      std::string prefixPattern = src + "/";
       sqlite3_bind_text(stmtGuard.get(), 9, prefixPattern.c_str(), -1, SQLITE_TRANSIENT);
       
       if (sqlite3_step(stmtGuard.get()) != SQLITE_DONE) {
@@ -1440,20 +1443,20 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
           server::ctx().fileIndexService->isAncestorShared(ownerUserId, dest));
 
       if (destParentShared) {
-        const std::string destPrefixPattern = dest + "/%";
+        const std::string destPrefixPattern = dest + "/";
         auto sharedUpd = server::ctx().database->getStatement(
             "UPDATE file_index SET is_shared = 1 "
-            "WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND is_deleted = 0");
+            "WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR instr(rel_path, ?) = 1) AND is_deleted = 0");
         sqlite3_bind_int64(sharedUpd.get(), 1, ownerUserId);
         sqlite3_bind_text(sharedUpd.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(sharedUpd.get(), 3, dest.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(sharedUpd.get(), 4, destPrefixPattern.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_step(sharedUpd.get());
       } else {
-        const std::string destPrefixPattern = dest + "/%";
+        const std::string destPrefixPattern = dest + "/";
         auto unsharedUpd = server::ctx().database->getStatement(
             "UPDATE file_index SET is_shared = 0 "
-            "WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?) AND is_explicit_shared = 0 AND is_deleted = 0");
+            "WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR instr(rel_path, ?) = 1) AND is_explicit_shared = 0 AND is_deleted = 0");
         sqlite3_bind_int64(unsharedUpd.get(), 1, ownerUserId);
         sqlite3_bind_text(unsharedUpd.get(), 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(unsharedUpd.get(), 3, dest.c_str(), -1, SQLITE_TRANSIENT);

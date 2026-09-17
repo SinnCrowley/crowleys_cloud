@@ -203,10 +203,10 @@ void FileIndexService::markDeletedPrefix(std::int64_t ownerUserId,
                                          StorageScope scope,
                                          const std::string &relPrefix) {
   const auto normalizedPrefix = normalizeRelPath(relPrefix);
-  const auto pattern = normalizedPrefix.empty() ? "%" : normalizedPrefix + "/%";
+  const auto pattern = normalizedPrefix.empty() ? "" : normalizedPrefix + "/";
 
   auto stmtGuard = db_.getStatement(
-      "UPDATE file_index SET is_deleted = 1, is_shared = 0 WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR rel_path LIKE ?)");
+      "UPDATE file_index SET is_deleted = 1, is_shared = 0 WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR instr(rel_path, ?) = 1)");
   auto *stmt = stmtGuard.get();
   sqlite3_bind_int64(stmt, 1, ownerUserId);
   const auto scopeRaw = scopeToString(scope);
@@ -219,7 +219,7 @@ void FileIndexService::markDeletedPrefix(std::int64_t ownerUserId,
 std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuery &query) const {
   const auto currentPath = normalizeRelPath(query.currentPath);
   const auto dirPrefix = normalizeDirPrefix(currentPath);
-  const auto pattern = dirPrefix.empty() ? "%" : dirPrefix + "%";
+  const auto pattern = dirPrefix;
   const bool recursiveFiles = query.recursiveFiles;
 
   std::unordered_set<std::string> explicitlySharedDirs;
@@ -240,13 +240,13 @@ std::vector<IndexedDirEntry> FileIndexService::listDirectory(const ListIndexQuer
     stmtGuard = db_.getStatement(
         "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path, is_shared, uploader_user_id, blurhash "
         "FROM file_index "
-        "WHERE is_shared = 1 AND is_deleted = 0 AND rel_path LIKE ?");
+        "WHERE is_shared = 1 AND is_deleted = 0 AND instr(rel_path, ?) = 1");
     sqlite3_bind_text(stmtGuard.get(), 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
   } else {
     stmtGuard = db_.getStatement(
         "SELECT rel_path, name, type, mime_type, size_bytes, modified_at, thumbnail_path, is_shared, uploader_user_id, blurhash "
         "FROM file_index "
-        "WHERE owner_user_id = ? AND scope = ? AND is_deleted = 0 AND rel_path LIKE ?");
+        "WHERE owner_user_id = ? AND scope = ? AND is_deleted = 0 AND instr(rel_path, ?) = 1");
     sqlite3_bind_int64(stmtGuard.get(), 1, query.ownerUserId);
     const auto scopeRaw = scopeToString(query.scope);
     sqlite3_bind_text(stmtGuard.get(), 2, scopeRaw.c_str(), -1, SQLITE_TRANSIENT);
@@ -462,12 +462,12 @@ bool FileIndexService::canDeletePath(std::int64_t ownerUserId,
   const auto normalizedRel = normalizeRelPath(relPath);
   if (normalizedRel.empty()) return false;
   const auto scopeRaw = scopeToString(scope);
-  const auto pattern = normalizedRel + "/%";
+  const auto pattern = normalizedRel + "/";
 
   const char *sql = isDirectory
       ? "SELECT uploader_user_id FROM file_index "
         "WHERE owner_user_id = ? AND scope = ? AND is_deleted = 0 "
-        "AND (rel_path = ? OR rel_path LIKE ?)"
+        "AND (rel_path = ? OR instr(rel_path, ?) = 1)"
       : "SELECT uploader_user_id FROM file_index "
         "WHERE owner_user_id = ? AND scope = ? AND is_deleted = 0 AND rel_path = ?";
   auto stmtGuard = db_.getStatement(sql);
@@ -666,12 +666,12 @@ void FileIndexService::setSharedFlag(std::int64_t ownerUserId,
   }
   // 2. Check if there are any child entries in DB whose parent_path is normalized or starts with normalized/
   if (!isDir && !normalized.empty()) {
-    const char *dirSql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = 'private' AND (parent_path = ? OR parent_path LIKE ? OR rel_path LIKE ?) AND is_deleted = 0 LIMIT 1";
+    const char *dirSql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = 'private' AND (parent_path = ? OR instr(parent_path, ?) = 1 OR instr(rel_path, ?) = 1) AND is_deleted = 0 LIMIT 1";
     auto dirGuard = db_.getStatement(dirSql);
     auto *dirStmt = dirGuard.get();
     sqlite3_bind_int64(dirStmt, 1, ownerUserId);
     sqlite3_bind_text(dirStmt, 2, normalized.c_str(), -1, SQLITE_TRANSIENT);
-    const auto pattern = normalized + "/%";
+    const auto pattern = normalized + "/";
     sqlite3_bind_text(dirStmt, 3, pattern.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(dirStmt, 4, pattern.c_str(), -1, SQLITE_TRANSIENT);
     if (sqlite3_step(dirStmt) == SQLITE_ROW) {
@@ -712,10 +712,10 @@ void FileIndexService::setSharedFlag(std::int64_t ownerUserId,
       sqlite3_step(stmt);
 
       // 2. Mark all files inside this directory as is_shared = 1
-      const auto pattern = normalized + "/%";
+      const auto pattern = normalized + "/";
       const char *updSql =
           "UPDATE file_index SET is_shared = 1 "
-          "WHERE owner_user_id = ? AND scope = 'private' AND (rel_path LIKE ? OR parent_path = ? OR parent_path LIKE ?)";
+          "WHERE owner_user_id = ? AND scope = 'private' AND (instr(rel_path, ?) = 1 OR parent_path = ? OR instr(parent_path, ?) = 1)";
       auto updGuard = db_.getStatement(updSql);
       auto *updStmt = updGuard.get();
       sqlite3_bind_int64(updStmt, 1, ownerUserId);
@@ -738,10 +738,10 @@ void FileIndexService::setSharedFlag(std::int64_t ownerUserId,
     // Unshare
     if (isDir) {
       // Unsharing a directory unshares the directory itself AND everything inside it.
-      const auto pattern = normalized + "/%";
+      const auto pattern = normalized + "/";
       const char *sql =
           "UPDATE file_index SET is_shared = 0, is_explicit_shared = 0 "
-          "WHERE owner_user_id = ? AND scope = 'private' AND (rel_path = ? OR rel_path LIKE ? OR parent_path = ? OR parent_path LIKE ?)";
+          "WHERE owner_user_id = ? AND scope = 'private' AND (rel_path = ? OR instr(rel_path, ?) = 1 OR parent_path = ? OR instr(parent_path, ?) = 1)";
       auto stmtGuard = db_.getStatement(sql);
       auto *stmt = stmtGuard.get();
       sqlite3_bind_int64(stmt, 1, ownerUserId);
@@ -791,10 +791,10 @@ std::optional<std::int64_t> FileIndexService::getSharedFileOwner(const std::stri
   }
 
   // Check if any descendant of relPath is shared
-  const auto pattern = temp + "/%";
+  const auto pattern = temp + "/";
   const char *descSql =
       "SELECT owner_user_id FROM file_index "
-      "WHERE (rel_path LIKE ? OR parent_path = ? OR parent_path LIKE ?) AND is_shared = 1 AND is_deleted = 0 "
+      "WHERE (instr(rel_path, ?) = 1 OR parent_path = ? OR instr(parent_path, ?) = 1) AND is_shared = 1 AND is_deleted = 0 "
       "LIMIT 1";
   auto descGuard = db_.getStatement(descSql);
   auto *descStmt = descGuard.get();

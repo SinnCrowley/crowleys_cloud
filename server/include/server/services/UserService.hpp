@@ -71,6 +71,7 @@ class UserService {
   bool verifyPassword(const std::string &password, const std::string &storedHash) const;
   std::string makeAccessToken(const UserRecord &user) const;
   std::string makeRefreshToken() const;
+  std::string tokenSigningKey(std::int64_t userId) const;
 };
 
 }  // namespace server::services

@@ -684,7 +684,7 @@ class HttpSyncApiClient implements SyncApiClient {
 
     const chunkSize = 2 * 1024 * 1024;
     int offset = await getUploadStatus(server: server, remotePath: remotePath);
-    if (offset >= totalBytes) return;
+    if (offset >= totalBytes) offset = 0;
 
     final raf = await file.open(mode: FileMode.read);
     try {

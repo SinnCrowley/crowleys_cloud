@@ -61,6 +61,7 @@ ORIGINAL_REQUEST.md
 .env
 *.env
 server/config/config.local.json
+server/config/config.local.json.init-lock/
 
 # Web client (Svelte / Vite / Node)
 node_modules/

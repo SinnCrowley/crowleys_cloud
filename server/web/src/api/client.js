@@ -182,16 +182,15 @@ export async function apiFetch(endpoint, options = {}) {
       processQueue(null, refreshData.access_token);
       isRefreshing = false;
 
-      // Retry original request with new token
       headers.set('Authorization', `Bearer ${refreshData.access_token}`);
-      const retryResponse = await fetch(url, { ...fetchOptions, headers });
-      return parseResponse(retryResponse, options.responseType);
     } catch (refreshErr) {
       processQueue(refreshErr, null);
       isRefreshing = false;
       authStore.clearSession();
       throw new ApiError(401, apiMessage('api.session_expired_login'));
     }
+    const retryResponse = await fetch(url, { ...fetchOptions, headers });
+    return parseResponse(retryResponse, options.responseType);
   }
 
   return parseResponse(response, options.responseType);

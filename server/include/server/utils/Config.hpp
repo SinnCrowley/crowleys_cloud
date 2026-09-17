@@ -27,7 +27,7 @@ struct Config {
   std::string dbPath{"./data/server.sqlite3"};
   std::string tempUploadDir{"./uploads"};
   std::string publicDir{"./public"};
-  std::string jwtSecret{"change-this-secret"};
+  std::string jwtSecret{};
   std::int64_t uploadLimitBytes{10LL * 1024 * 1024 * 1024};
   int rateLimitPerMinute{10};
   std::int64_t accessTokenTtlSeconds{24 * 60 * 60};
@@ -43,7 +43,11 @@ struct Config {
   int trashRetentionDays{30};
 };
 
-Config loadConfig(const std::string &path);
+// Loads the base file, then its optional sibling config.local.json.
+// Invalid local overrides throw rather than silently reverting settings.
+// With initialization enabled, apply secret environment overrides and persist missing
+// secrets for an empty installation. Existing data prevents automatic regeneration.
+Config loadConfig(const std::string &path, bool initializeSecrets = false);
 std::string resolveConfigPath(int argc, char *argv[]);
 
 }  // namespace server::utils

@@ -5,7 +5,7 @@
   "db_path": "./data/server.sqlite3",
   "temp_upload_dir": "./uploads",
   "public_dir": "./public",
-  "jwt_secret": "change-this-secret",
+  "jwt_secret": "",
   "upload_limit_bytes": 10737418240,
   "rate_limit_per_minute": 10,
   "access_token_ttl_seconds": 86400,
@@ -17,6 +17,6 @@
   "ffmpeg_binary": "ffmpeg",
   "log_retention_days": 30,
   "hash_files": true,
-  "encryption_key": "default-local-encryption-key-for-testing",
+  "encryption_key": "",
   "trash_retention_days": 7
 }

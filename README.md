@@ -181,3 +181,29 @@ This project relies on open-source frameworks and libraries:
 
 For full copyright notices and complete license texts for each dependency, see [THIRD_PARTY_LICENSES.md](file:///home/crowley/Projects/crowleys_cloud/THIRD_PARTY_LICENSES.md).
 
+
+## Android release signing
+
+Release APKs require a persistent private signing key; debug signing is never
+used for release builds. Copy `android/key.properties.example` to the ignored
+`android/key.properties` and configure your keystore, or set
+`ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and
+`ANDROID_KEY_PASSWORD`. Keep the same key for subsequent releases.
+
+GitHub releases additionally require the `ANDROID_KEYSTORE_BASE64` repository
+secret (the base64-encoded keystore), plus the password and alias secrets above.
+Do not commit keystores or passwords. An existing APK signed by another key
+cannot be updated in place with the new key.
+
+To configure GitHub Actions, open the repository's **Settings → Secrets and
+variables → Actions → New repository secret** and add the four names above.
+For the local signing setup, their values are in the corresponding
+`android/signing/ANDROID_*.txt` files. Copy the complete file contents, not
+the file path. These private files and `android/key.properties` are ignored
+by Git. Back up the keystore and its passwords outside this checkout before
+deleting or moving the project; Git cannot restore them.
+
+The existing workflow builds a signed APK on a pushed `v*` tag. Commit and
+push the workflow changes before publishing a new version tag, and increase
+the Flutter build number in `pubspec.yaml` for subsequent releases. Local
+builds use `flutter build apk --release` with the same signing key.

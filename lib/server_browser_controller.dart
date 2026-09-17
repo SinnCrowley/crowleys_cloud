@@ -976,9 +976,13 @@ class ServerBrowserController extends ChangeNotifier {
       return false;
     }
     final file = File(targetPath);
+    Directory? stagingDirectory;
+    IOSink? sink;
     try {
       await file.parent.create(recursive: true);
-      final sink = file.openWrite();
+      stagingDirectory = await file.parent.createTemp('.crowley-download-');
+      final stagingFile = File(p.join(stagingDirectory.path, 'download'));
+      sink = stagingFile.openWrite();
       var received = 0;
       await for (final chunk in response.stream) {
         transferManager?.throwIfCanceled();
@@ -997,9 +1001,16 @@ class ServerBrowserController extends ChangeNotifier {
       }
       await sink.flush();
       await sink.close();
+      sink = null;
+      final expectedBytes = response.contentLength ?? item.size;
+      if (received != expectedBytes) {
+        throw const FileSystemException('Incomplete download');
+      }
       if (transferItem != null) {
         transferManager?.throwIfItemCanceled(transferItem);
       }
+      transferManager?.throwIfCanceled();
+      await stagingFile.rename(targetPath);
       if (transferItem != null) transferManager?.completeItem(transferItem);
       if (Platform.isIOS) {
         try {
@@ -1023,18 +1034,8 @@ class ServerBrowserController extends ChangeNotifier {
       }
       return true;
     } on TransferItemCanceledException {
-      if (await file.exists()) {
-        try {
-          await file.delete();
-        } catch (_) {}
-      }
       rethrow;
     } on TransferCanceledException {
-      if (await file.exists()) {
-        try {
-          await file.delete();
-        } catch (_) {}
-      }
       rethrow;
     } catch (e) {
       debugPrint('Failed to download single file: $e');
@@ -1045,6 +1046,15 @@ class ServerBrowserController extends ChangeNotifier {
         );
       }
       return false;
+    } finally {
+      try {
+        await sink?.close();
+      } catch (_) {}
+      if (stagingDirectory != null) {
+        try {
+          await stagingDirectory.delete(recursive: true);
+        } catch (_) {}
+      }
     }
   }
 

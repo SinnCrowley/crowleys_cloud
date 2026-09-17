@@ -12,4 +12,7 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
       - ./config:/app/config
+    environment:
+      CROWLEYS_JWT_SECRET: ${CROWLEYS_JWT_SECRET:?Set a unique JWT secret of at least 32 characters}
+      CROWLEYS_ENCRYPTION_KEY: ${CROWLEYS_ENCRYPTION_KEY:?Set the storage encryption key}
     restart: always

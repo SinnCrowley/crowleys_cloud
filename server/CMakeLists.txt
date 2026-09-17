@@ -290,6 +290,10 @@ add_executable(crowleys_cloud_server
 # ------------------------------------------------------------------------------
 # 4. Include Directories & Linked Libraries
 # ------------------------------------------------------------------------------
+if(APPLE)
+  target_link_options(crowleys_cloud_server PRIVATE "-Wl,-headerpad_max_install_names")
+endif()
+
 target_include_directories(crowleys_cloud_server PRIVATE
   include
   "${PROTO_GEN_DIR}"
@@ -580,17 +584,30 @@ add_test(NAME thumbnail_adversarial_test COMMAND thumbnail_adversarial_test)
 add_executable(config_resolution_test
   test/config_resolution_test.cpp
   src/utils/Config.cpp
+  src/utils/Crypto.cpp
 )
 target_include_directories(config_resolution_test PRIVATE include)
-target_link_libraries(config_resolution_test PRIVATE drogon Threads::Threads ${PLATFORM_LIBS})
+target_link_libraries(config_resolution_test PRIVATE drogon OpenSSL::Crypto Threads::Threads ${PLATFORM_LIBS})
 add_test(NAME config_resolution_test COMMAND config_resolution_test)
+
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+  add_test(NAME http_regression_test
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/http_regression_test.py $<TARGET_FILE:crowleys_cloud_server>)
+  set_tests_properties(http_regression_test PROPERTIES TIMEOUT 120)
+  add_test(NAME release_smoke_test
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/release_smoke_test.py $<TARGET_FILE:crowleys_cloud_server>)
+  set_tests_properties(release_smoke_test PROPERTIES TIMEOUT 120)
+endif()
 
 # ------------------------------------------------------------------------------
 # 6. Installation Rules (for .deb, .rpm, PKGBUILD, Homebrew)
 # ------------------------------------------------------------------------------
 include(GNUInstallDirs)
 install(TARGETS crowleys_cloud_server DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(DIRECTORY config/ DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/crowleys_cloud)
+install(DIRECTORY config/ DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/crowleys_cloud
+  PATTERN "config.local.json" EXCLUDE
+  PATTERN "config.local.json.init-lock" EXCLUDE)
 
 # ------------------------------------------------------------------------------
 # 7. Licensing

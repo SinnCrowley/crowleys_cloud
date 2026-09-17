@@ -96,7 +96,7 @@ Configuration settings are loaded from `server/config/config.json`. Below is a b
 | `db_path` | String | `"./data/server.sqlite3"` | File path to the SQLite3 database. |
 | `temp_upload_dir` | String | `"./uploads"` | Directory used for temporary HTTP upload streams. |
 | `public_dir` | String | `"./public"` | Directory path containing static web client assets (Svelte SPA build & static HTML/JS/CSS). |
-| `jwt_secret` | String | `"your-jwt-secret"` | Signature secret key used to issue and verify JWT access tokens. |
+| `jwt_secret` | String | `""` | Generated once into the local config on a fresh installation; signs access tokens. |
 | `upload_limit_bytes` | Number | `10737418240` | Maximum allowed size of an uploaded file in bytes (e.g., 10 GB). |
 | `rate_limit_per_minute` | Number | `10` | IP-based request threshold per minute for critical auth endpoints. |
 | `access_token_ttl_seconds` | Number | `86400` | Expiry duration for JWT Access Tokens. |
@@ -108,7 +108,7 @@ Configuration settings are loaded from `server/config/config.json`. Below is a b
 | `ffmpeg_binary` | String | `"ffmpeg"` | System path to the `ffmpeg` executable. |
 | `log_retention_days` | Number | `30` | Automated rotation and deletion period for server logs. |
 | `hash_files` | Boolean | `true` | If `true`, enables **Hashed Storage Layout** (files stored on disk by SHA-256 hash). |
-| `encryption_key` | String | `"aes-key"` | 256-bit AES key used to encrypt raw files inside `storage/` on disk. |
+| `encryption_key` | String | `""` | Generated once for a fresh installation; used to derive the AES-256 storage key. Preserve it with the data. |
 | `trash_retention_days` | Number | `7` | Retention period in days for files in the trash before automated permanent deletion. Set to `-1` to disable automatic deletion (keep deleted files forever). |
 
 ---
@@ -427,3 +427,82 @@ If you modify this schema, run the generation script from the project root:
 ./scripts/generate_proto.sh
 ```
 This updates both C++ headers inside the server build target and Dart serialization files inside the Flutter app.
+
+## Local configuration overrides
+
+The server loads its selected base config (`config/config.json` by default),
+then automatically applies **`config.local.json` from the same directory**.
+If it does not exist yet, you can create it from `config/config.local.example.json`; include only the
+values that should differ on your machine, for example:
+
+```json
+{
+  "port": 9090,
+  "log_level": "DEBUG",
+  "access_log_enabled": false
+}
+```
+
+All omitted fields come from the base config, including parameters added by a
+new server release. `{}` changes nothing. Values such as `false`, `0`, and
+`""` are explicit overrides; `null` is not supported. Malformed/unreadable local
+files stop startup instead of silently reverting the configuration.
+
+Start the server normally, or supply the **base file** as its first argument:
+
+```bash
+./build/crowleys_cloud_server config/config.json
+```
+
+An explicitly supplied `config.local.json` also includes the adjacent
+`config.json`. For other custom base filenames, the override is still named
+`config.local.json` in the same directory. Relative storage/log/database paths
+keep their usual base-config application directory, regardless of the shell's
+working directory.
+
+Precedence: built-in defaults → base JSON → local JSON → supported environment
+variables (`CROWLEYS_JWT_SECRET`, `CROWLEYS_ENCRYPTION_KEY`). Local configuration
+does not bypass secret validation or rotate keys. Preserve the existing storage
+key when configuring a populated server.
+
+The local file is ignored by Git and excluded from CMake installation, release
+archives and Docker build context. Updating files in an existing installation
+preserves it; if installing into a new directory, copy it along with the data.
+Back it up, and do not copy the entire base config into it, or new defaults for
+those copied fields will remain overridden.
+
+## First startup and persistent secrets
+
+On a fresh installation, start the server normally. Missing or shipped example
+secrets are replaced with independent random 32-byte values (64 hexadecimal
+characters), saved to `config.local.json` alongside the selected base config.
+Existing local fields are preserved. Subsequent launches, `git pull` and release
+updates reuse these values; they do not rewrite the local file.
+
+You can instead supply `jwt_secret` and `encryption_key` in local configuration,
+or `CROWLEYS_JWT_SECRET` / `CROWLEYS_ENCRYPTION_KEY` in the environment. Environment
+values take precedence and are not copied into the local file. Each secret must
+have at least 32 characters; the encryption key is required with `hash_files=true`.
+Docker Compose continues to require the explicitly configured environment secrets.
+
+Automatic initialization refuses to proceed if a database or nonempty storage
+already exists. Restore the original keys, or, for a disposable test installation,
+stop the server and move the old database and storage out of the configured paths
+before starting fresh. Never replace a populated storage key without migrating
+the encrypted data. Back up `config.local.json` with the database and storage.
+
+Initialization writes a temporary file before replacing the local config and
+uses a `config.local.json.init-lock` directory to exclude concurrent writers.
+On Linux/macOS the generated file has mode `0600`; on Windows it inherits the
+user folder's permissions. If a crash leaves the lock behind, stop all server
+processes before removing that directory and retrying. Failure to save secrets
+stops startup; the server does not use temporary in-memory keys.
+
+For Windows/macOS, unpack the complete release into a permanent writable folder.
+Stop the server before extracting an update into the same folder. Keep the local
+config and data if moving to another folder. See the platform guides in
+`server/scripts/windows/README.md` and `server/scripts/macos/README.md`.
+
+Access and background-sync tokens are now bound to the user's password hash.
+Upgrading invalidates previously issued access/sync tokens; sign in again.
+Password changes and account deletion invalidate those tokens immediately.

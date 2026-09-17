@@ -12,7 +12,8 @@
     "dev": "vite",
     "build": "node -e \"fs.rmSync('../public/assets', {recursive: true, force: true})\" && vite build",
     "preview": "vite preview",
-    "check:i18n": "node ../../tool/check_localization_keys.mjs"
+    "check:i18n": "node ../../tool/check_localization_keys.mjs",
+    "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.0",

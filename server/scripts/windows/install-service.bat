@@ -48,7 +48,7 @@ set /p OPTION="Enter choice [1-5]: "
 if "%OPTION%"=="1" (
     echo.
     echo Installing Scheduled Task 'CrowleysCloudServer' (on logon)...
-    schtasks /create /tn "CrowleysCloudServer" /tr "\"!EXE_PATH!\"" /sc onlogon /rl highest /f
+    schtasks /create /tn "CrowleysCloudServer" /tr "\"!EXE_PATH!\"" /sc onlogon /rl limited /f
     if errorlevel 1 (
         echo [ERROR] Failed to create scheduled task.
     ) else (

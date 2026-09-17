@@ -64,6 +64,8 @@ void JwtMiddleware::doFilter(const drogon::HttpRequestPtr &req,
       // Restrict 'sync' role to file listing/upload/download and folder creation endpoints only
       if (path == "/api/files") {
         allowed = (method == drogon::Post || method == drogon::Head || method == drogon::Get);
+      } else if (path == "/api/files/upload-status") {
+        allowed = (method == drogon::Get);
       } else if (path == "/api/files/check-hashes") {
         allowed = (method == drogon::Post);
       } else if (path == "/api/folders") {

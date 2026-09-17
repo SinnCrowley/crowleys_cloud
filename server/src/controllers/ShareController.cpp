@@ -21,6 +21,7 @@
 #include "server/controllers/ShareController.hpp"
 
 #include "server/AppContext.hpp"
+#include "server/utils/PlatformUtils.hpp"
 #include "server/utils/Crypto.hpp"
 #include "server/utils/HttpHelpers.hpp"
 #include "server/utils/TimeUtils.hpp"
@@ -87,22 +88,15 @@ std::optional<SharedTargetInfo> resolveSharedTargetInfo(
   info.scopeStr = services::FileIndexService::scopeToString(info.scope);
   info.shareRelPath = services::FileIndexService::normalizeRelPath(share->relPath);
 
-  const auto cleanSub = std::filesystem::path(subParam).lexically_normal().relative_path().generic_string();
-  if (cleanSub.empty() || cleanSub == ".") {
-    info.targetRelPath = info.shareRelPath;
-  } else if (info.shareRelPath.empty()) {
-    info.targetRelPath = cleanSub;
-  } else {
-    info.targetRelPath = info.shareRelPath + "/" + cleanSub;
+  const auto subPath = std::filesystem::path(subParam);
+  if (subPath.is_absolute()) { outError = "Invalid path"; return std::nullopt; }
+  for (const auto &part : subPath) {
+    if (part == "..") { outError = "Invalid path"; return std::nullopt; }
   }
-
-  if (!info.shareRelPath.empty()) {
-    if (info.targetRelPath.size() < info.shareRelPath.size() ||
-        info.targetRelPath.compare(0, info.shareRelPath.size(), info.shareRelPath) != 0) {
-      outError = "Invalid path";
-      return std::nullopt;
-    }
-  }
+  info.targetRelPath = subPath.empty() || subPath == "." ? info.shareRelPath :
+      services::FileIndexService::normalizeRelPath(
+          (std::filesystem::path(info.shareRelPath) / subPath).generic_string());
+  while (!info.targetRelPath.empty() && info.targetRelPath.back() == '/') info.targetRelPath.pop_back();
 
   const bool hashFiles = server::ctx().config.hashFiles;
   if (hashFiles) {
@@ -138,13 +132,13 @@ std::optional<SharedTargetInfo> resolveSharedTargetInfo(
       return info;
     }
 
-    const char *dirSql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (parent_path = ? OR parent_path LIKE ?) AND is_deleted = 0 LIMIT 1";
+    const char *dirSql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (parent_path = ? OR instr(parent_path, ?) = 1) AND is_deleted = 0 LIMIT 1";
     auto dirGuard = server::ctx().database->getStatement(dirSql);
     auto *dirStmt = dirGuard.get();
     sqlite3_bind_int64(dirStmt, 1, queryOwnerUserId);
     sqlite3_bind_text(dirStmt, 2, info.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(dirStmt, 3, info.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
-    const auto dirPattern = info.targetRelPath + "/%";
+    const auto dirPattern = info.targetRelPath + "/";
     sqlite3_bind_text(dirStmt, 4, dirPattern.c_str(), -1, SQLITE_TRANSIENT);
 
     if (sqlite3_step(dirStmt) == SQLITE_ROW) {
@@ -162,6 +156,12 @@ std::optional<SharedTargetInfo> resolveSharedTargetInfo(
     try {
       const auto root = server::ctx().fileService->resolvePath(
           info.ownerUserId, "user", info.scope, info.targetRelPath, false);
+      const auto shareRoot = server::ctx().fileService->resolvePath(
+          info.ownerUserId, "user", info.scope, info.shareRelPath, false);
+      if (!utils::isSubpath(root, shareRoot)) {
+        outError = "Invalid path";
+        return std::nullopt;
+      }
       if (!std::filesystem::exists(root)) {
         outError = "Shared resource not found";
         return std::nullopt;
@@ -214,7 +214,7 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
       if (relPath.empty()) {
         exists = true;
       } else {
-        const char *sql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND is_deleted = 0 LIMIT 1";
+        const char *sql = "SELECT 1 FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR instr(parent_path, ?) = 1) AND is_deleted = 0 LIMIT 1";
         auto stmtGuard = server::ctx().database->getStatement(sql);
         auto *stmt = stmtGuard.get();
         const auto ownerId = *scope == services::StorageScope::Shared ? 0 : userId;
@@ -223,7 +223,7 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
         sqlite3_bind_text(stmt, 2, scopeStr.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 3, relPath.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 4, relPath.c_str(), -1, SQLITE_TRANSIENT);
-        const auto pattern = relPath + "/%";
+        const auto pattern = relPath + "/";
         sqlite3_bind_text(stmt, 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
         if (sqlite3_step(stmt) == SQLITE_ROW) {
           exists = true;
@@ -402,31 +402,9 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
       return;
     }
 
-    auto resp = drogon::HttpResponse::newAsyncStreamResponse([physicalPath, key = server::ctx().config.encryptionKey](drogon::ResponseStreamPtr stream) {
-      std::thread([stream = std::move(stream), physicalPath, key]() mutable {
-        try {
-          if (!key.empty()) {
-            utils::decryptFileToStream(physicalPath, key, [&stream](const char* data, size_t size) {
-              stream->send(std::string(data, size));
-            });
-          } else {
-            std::ifstream in(physicalPath, std::ios::binary);
-            if (in) {
-              constexpr size_t bufferSize = 65536;
-              std::vector<char> buffer(bufferSize);
-              while (in.read(buffer.data(), bufferSize) || in.gcount() > 0) {
-                stream->send(std::string(buffer.data(), in.gcount()));
-              }
-            }
-          }
-        } catch (const std::exception &e) {
-          LOG_ERROR << "ShareController::rawFile async stream exception: " << e.what();
-        } catch (...) {
-          LOG_ERROR << "ShareController::rawFile async stream unknown exception";
-        }
-        stream->close();
-      }).detach();
-    });
+    auto resp = drogon::HttpResponse::newStreamResponse(
+        utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey));
+    resp->addHeader("Content-Length", std::to_string(target.size));
     resp->setContentTypeString(target.mimeType.empty() ? "application/octet-stream" : target.mimeType);
     resp->addHeader("Content-Disposition", std::string(disposition) + "; filename=\"" + target.name + "\"");
     callback(resp);
@@ -473,13 +451,13 @@ void ShareController::downloadZip(const drogon::HttpRequestPtr &req,
       sqlite3_bind_int64(stmtGuard.get(), 1, queryOwnerUserId);
       sqlite3_bind_text(stmtGuard.get(), 2, target.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
     } else {
-      const char *sql = "SELECT rel_path, sha256, name FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR parent_path LIKE ?) AND type != 'directory' AND is_deleted = 0";
+      const char *sql = "SELECT rel_path, sha256, name FROM file_index WHERE owner_user_id = ? AND scope = ? AND (rel_path = ? OR parent_path = ? OR instr(parent_path, ?) = 1) AND type != 'directory' AND is_deleted = 0";
       stmtGuard = server::ctx().database->getStatement(sql);
       sqlite3_bind_int64(stmtGuard.get(), 1, queryOwnerUserId);
       sqlite3_bind_text(stmtGuard.get(), 2, target.scopeStr.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_bind_text(stmtGuard.get(), 3, target.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_bind_text(stmtGuard.get(), 4, target.targetRelPath.c_str(), -1, SQLITE_TRANSIENT);
-      const auto pattern = target.targetRelPath + "/%";
+      const auto pattern = target.targetRelPath + "/";
       sqlite3_bind_text(stmtGuard.get(), 5, pattern.c_str(), -1, SQLITE_TRANSIENT);
     }
 
@@ -523,7 +501,8 @@ void ShareController::downloadZip(const drogon::HttpRequestPtr &req,
   } else {
     if (std::filesystem::exists(target.physicalPath) && std::filesystem::is_directory(target.physicalPath)) {
       for (const auto &entry : std::filesystem::recursive_directory_iterator(target.physicalPath)) {
-        if (!entry.is_regular_file()) continue;
+        if (!entry.is_regular_file() || !utils::isSubpath(
+            std::filesystem::weakly_canonical(entry.path()), target.physicalPath)) continue;
         auto rel = std::filesystem::relative(entry.path(), target.physicalPath).generic_string();
         if (zipWriter.addFileFromDisk(rel, entry.path())) {
           hasEntries = true;

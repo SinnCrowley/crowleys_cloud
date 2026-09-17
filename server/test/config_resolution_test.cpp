@@ -17,6 +17,7 @@
 #include "server/utils/PlatformUtils.hpp"
 
 #include <cassert>
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -247,6 +248,83 @@ static void testMalformedAndEdgeCaseConfigs() {
   std::cout << "  -> Verified empty path, directory path, non-existent path, and malformed JSON resilience" << std::endl;
 }
 
+static void testLocalConfigOverrides() {
+  std::cout << "[TEST] Partial local overrides, upgrades, paths, and invalid overrides..." << std::endl;
+  const auto root = std::filesystem::temp_directory_path() /
+      ("config_overlay_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+  const auto configDir = root / "app" / "config";
+  const auto base = configDir / "config.json";
+  const auto local = configDir / "config.local.json";
+  std::filesystem::create_directories(configDir);
+  std::filesystem::create_directories(root / "unrelated");
+  const auto originalCwd = std::filesystem::current_path();
+  const auto write = [](const std::filesystem::path &file, const std::string &json) {
+    std::ofstream out(file);
+    out << json;
+  };
+  write(base, R"({"port":8100,"host":"0.0.0.0","log_level":"WARN","access_log_enabled":true,
+      "log_retention_days":30,"jwt_secret":"base-token-key","encryption_key":"base-storage-key",
+      "storage_root":"./original-storage"})");
+  write(root / "unrelated" / "config.local.json", R"({"port":9999})");
+  std::filesystem::current_path(root / "unrelated");
+  try {
+    auto cfg = loadConfig(base.string());
+    TEST_ASSERT(cfg.port == 8100, "Unrelated CWD override must not apply");
+    write(local, "{}");
+    TEST_ASSERT(loadConfig(base.string()).logLevel == "WARN", "Empty override must inherit base settings");
+    const std::string overrides = R"({"port":8200,"access_log_enabled":false,"log_retention_days":0,
+        "storage_root":"./local-storage","jwt_secret":"local-token-key","encryption_key":""})";
+    write(local, overrides);
+    cfg = loadConfig(base.string());
+    TEST_ASSERT(cfg.port == 8200 && cfg.logLevel == "WARN", "Only specified fields must be overridden");
+    TEST_ASSERT(!cfg.accessLogEnabled && cfg.logRetentionDays == 0, "False and zero must override true and nonzero");
+    TEST_ASSERT(cfg.jwtSecret == "local-token-key" && cfg.encryptionKey.empty(), "Strings including empty strings must override");
+    TEST_ASSERT(cfg.storageRoot == std::filesystem::weakly_canonical(root / "app" / "local-storage").generic_string(),
+                "Overridden paths must use the base config application directory");
+    cfg = loadConfig(local.string());
+    TEST_ASSERT(cfg.port == 8200 && cfg.logLevel == "WARN", "Explicit local file must still inherit sibling config.json");
+
+    // Simulate installing a newer base config without touching the local file.
+    write(base, R"({"port":8300,"log_level":"ERROR","trash_retention_days":42,"upload_limit_bytes":123456})");
+    cfg = loadConfig(base.string());
+    TEST_ASSERT(cfg.port == 8200 && cfg.logLevel == "ERROR" && cfg.trashRetentionDays == 42 && cfg.uploadLimitBytes == 123456,
+                "Updated and newly introduced base settings must be inherited without replacing local overrides");
+    std::ifstream unchanged(local);
+    const std::string localContents((std::istreambuf_iterator<char>(unchanged)), {});
+    unchanged.close();
+    TEST_ASSERT(localContents == overrides, "Loading must never rewrite the local file");
+
+    const auto custom = configDir / "custom.json";
+    write(custom, R"({"log_level":"DEBUG"})");
+    TEST_ASSERT(loadConfig(custom.string()).logLevel == "DEBUG" && loadConfig(custom.string()).port == 8200,
+                "Explicit custom base must use overrides from its own directory");
+
+    for (const std::string invalid : {"", "[]", "null", "{\"secret-canary\":", "{\"port\": []}", "{\"port\": null}"}) {
+      write(local, invalid);
+      bool rejected = false;
+      try { loadConfig(base.string()); }
+      catch (const std::exception &e) {
+        rejected = true;
+        TEST_ASSERT(std::string(e.what()).find("secret-canary") == std::string::npos,
+                    "Error messages must not expose configuration contents");
+      }
+      TEST_ASSERT(rejected, "Malformed local overrides must fail instead of silently using base settings");
+    }
+    std::filesystem::remove(local);
+    TEST_ASSERT(loadConfig(base.string()).port == 8300, "Missing optional override must use the base file");
+    std::filesystem::create_directory(local);
+    bool rejected = false;
+    try { loadConfig(base.string()); } catch (const std::exception &) { rejected = true; }
+    TEST_ASSERT(rejected, "A directory cannot be used as a local configuration file");
+  } catch (...) {
+    std::filesystem::current_path(originalCwd);
+    std::filesystem::remove_all(root);
+    throw;
+  }
+  std::filesystem::current_path(originalCwd);
+  std::filesystem::remove_all(root);
+}
+
 int main(int argc, char *argv[]) {
   std::cout << "========================================" << std::endl;
   std::cout << "Running Config & Runtime Path Resolution Tests" << std::endl;
@@ -259,6 +337,7 @@ int main(int argc, char *argv[]) {
   testAdversarialCwdHijackResistance();
   testNonExistentDirectoryResolution();
   testMalformedAndEdgeCaseConfigs();
+  testLocalConfigOverrides();
 
   std::cout << "\n[ALL TESTS PASSED CLEANLY]\n" << std::endl;
   return 0;

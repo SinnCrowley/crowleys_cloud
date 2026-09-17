@@ -175,6 +175,10 @@ void AuthController::deleteAccount(const drogon::HttpRequestPtr &req,
 
 void AuthController::requestReset(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  if (!server::ctx().authRateLimiter->allow("password-reset:" + requestIp(req))) {
+    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
+    return;
+  }
   const auto json = req->getJsonObject();
   if (!json || !json->isMember("username")) {
     callback(jsonError(drogon::k400BadRequest, "username is required"));
@@ -199,6 +203,10 @@ void AuthController::requestReset(const drogon::HttpRequestPtr &req,
 
 void AuthController::verifyReset(const drogon::HttpRequestPtr &req,
                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  if (!server::ctx().authRateLimiter->allow("password-reset:" + requestIp(req))) {
+    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
+    return;
+  }
   const auto json = req->getJsonObject();
   if (!json || !json->isMember("username") || !json->isMember("code") || !json->isMember("new_password")) {
     callback(jsonError(drogon::k400BadRequest, "username, code and new_password are required"));

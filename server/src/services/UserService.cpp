@@ -20,6 +20,9 @@
 
 #include <trantor/utils/Logger.h>
 #include <sqlite3.h>
+#include <openssl/rand.h>
+#include <openssl/crypto.h>
+#include <limits>
 
 #include <chrono>
 #include <filesystem>
@@ -98,11 +101,19 @@ std::optional<UserRecord> UserService::authenticate(const std::string &username,
   return UserRecord{.id = id, .username = username, .role = roleStr};
 }
 
+std::string UserService::tokenSigningKey(std::int64_t userId) const {
+  auto guard = db_.getStatement("SELECT password_hash FROM users WHERE id = ?");
+  sqlite3_bind_int64(guard.get(), 1, userId);
+  if (sqlite3_step(guard.get()) != SQLITE_ROW) throw std::runtime_error("User not found");
+  const auto hash = reinterpret_cast<const char *>(sqlite3_column_text(guard.get(), 0));
+  return utils::hmacSha256Hex(config_.jwtSecret, hash ? hash : "");
+}
+
 std::string UserService::makeAccessToken(const UserRecord &user) const {
   const auto now = utils::nowSeconds();
   const auto exp = now + config_.accessTokenTtlSeconds;
   const auto payload = std::to_string(user.id) + "|" + user.role + "|" + std::to_string(exp);
-  const auto sig = utils::hmacSha256Hex(config_.jwtSecret, payload);
+  const auto sig = utils::hmacSha256Hex(tokenSigningKey(user.id), payload);
   return payload + "|" + sig;
 }
 
@@ -110,7 +121,7 @@ std::string UserService::makeSyncToken(std::int64_t userId) const {
   const auto now = utils::nowSeconds();
   const auto exp = now + 365 * 24 * 60 * 60; // 365 days
   const auto payload = std::to_string(userId) + "|sync|" + std::to_string(exp);
-  const auto sig = utils::hmacSha256Hex(config_.jwtSecret, payload);
+  const auto sig = utils::hmacSha256Hex(tokenSigningKey(userId), payload);
   return payload + "|" + sig;
 }
 
@@ -224,8 +235,10 @@ std::optional<AccessClaims> UserService::verifyAccessToken(const std::string &ac
   if (parts.size() != 4) return std::nullopt;
 
   const auto payload = parts[0] + "|" + parts[1] + "|" + parts[2];
-  const auto sig = utils::hmacSha256Hex(config_.jwtSecret, payload);
-  if (sig != parts[3]) return std::nullopt;
+  std::string sig;
+  try { sig = utils::hmacSha256Hex(tokenSigningKey(std::stoll(parts[0])), payload); }
+  catch (...) { return std::nullopt; }
+  if (sig.size() != parts[3].size() || CRYPTO_memcmp(sig.data(), parts[3].data(), sig.size()) != 0) return std::nullopt;
 
   const auto exp = std::stoll(parts[2]);
   if (exp <= utils::nowSeconds()) return std::nullopt;
@@ -313,13 +326,24 @@ bool UserService::requestPasswordReset(const std::string &username, std::string 
     userId = sqlite3_column_int64(stmt, 0);
   }
 
-  std::srand(static_cast<unsigned int>(std::time(nullptr)));
-  const int randomNum = 100000 + (std::rand() % 900000);
+  std::uint32_t randomValue;
+  constexpr auto limit = std::numeric_limits<std::uint32_t>::max() -
+                         (std::numeric_limits<std::uint32_t>::max() % 900000);
+  do {
+    if (RAND_bytes(reinterpret_cast<unsigned char *>(&randomValue), sizeof(randomValue)) != 1)
+      throw std::runtime_error("Cannot generate recovery code");
+  } while (randomValue >= limit);
+  const int randomNum = 100000 + (randomValue % 900000);
   const std::string code = std::to_string(randomNum);
   codeOut = code;
 
   const auto now = utils::nowSeconds();
   const auto expiresAt = now + 600;
+  {
+    auto guard = db_.getStatement("DELETE FROM password_resets WHERE user_id = ?");
+    sqlite3_bind_int64(guard.get(), 1, userId);
+    sqlite3_step(guard.get());
+  }
 
   {
     auto insertGuard = db_.getStatement(
@@ -363,11 +387,11 @@ bool UserService::verifyPasswordReset(const std::string &username, const std::st
   }
 
   {
-    auto useGuard = db_.getStatement("UPDATE password_resets SET used_at = ? WHERE id = ?");
+    auto useGuard = db_.getStatement("UPDATE password_resets SET used_at = ? WHERE id = ? AND used_at IS NULL");
     auto *useStmt = useGuard.get();
     sqlite3_bind_int64(useStmt, 1, utils::nowSeconds());
     sqlite3_bind_int64(useStmt, 2, resetId);
-    sqlite3_step(useStmt);
+    if (sqlite3_step(useStmt) != SQLITE_DONE || sqlite3_changes(db_.raw()) != 1) return false;
   }
 
   return changePassword(userId, newPassword);

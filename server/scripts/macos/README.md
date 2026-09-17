@@ -1,37 +1,55 @@
-# Crowley's Cloud Server - macOS Setup Guide
+# macOS server (Apple Silicon / ARM64)
 
-## Quick Launch
-Execute `run.sh` in the terminal or double-click it in Finder:
-```bash
+Extract the complete archive into a permanent, writable user folder, for example
+`~/Applications/CrowleysCloudServer`. Keep the executable, bundled `.dylib`
+libraries, `public/`, `config/` and `services/` together. Homebrew is not required
+for the packaged server. This archive does not support Intel Macs.
+
+Run from Terminal:
+
+```sh
+cd ~/Applications/CrowleysCloudServer
 ./run.sh
 ```
-This will:
-1. Load configuration from `config/config.json`.
-2. Open your default browser to `http://localhost:8080`.
-3. Launch `crowleys_cloud_server`.
 
-## Running in the Background via launchd
-macOS manages background daemons and user agents through `launchd`.
+On a fresh installation the server writes random secrets to
+`config/config.local.json`, preserving any local settings. Open
+`http://localhost:8080` after startup (use your overridden port if configured).
+The launcher does not open a browser automatically. To change settings, put
+only those fields in `config/config.local.json`, then restart.
 
-### Step 1: Install Binary and Configuration
-```bash
-sudo cp crowleys_cloud_server /usr/local/bin/
-sudo mkdir -p /usr/local/etc/crowleys_cloud
-sudo cp config/config.json /usr/local/etc/crowleys_cloud/
+The executable and bundled libraries are ad-hoc signed, not Developer ID signed
+or notarized. macOS may require explicit approval for a downloaded application;
+see [Apple's instructions](https://support.apple.com/en-gb/102445).
+
+Video thumbnails require an optional separate FFmpeg installation; configure
+`ffmpeg_binary` with its absolute path for background launches, or set
+`video_thumbs_enabled` to `false`.
+
+## Start at login
+
+First verify foreground startup, then stop it with Ctrl+C. From the same package:
+
+```sh
+bash services/install-agent.sh
 ```
 
-### Step 2: Install LaunchAgent (User Session)
-To run automatically whenever you log in:
-```bash
-cp services/com.crowleyscloud.server.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.crowleyscloud.server.plist
+This installs a user LaunchAgent pointing to the complete package in its current
+location; it does not move files into `/usr/local`. Logs are in
+`logs/launchd.stdout.log` and `logs/launchd.stderr.log`. To stop the agent:
+
+```sh
+launchctl bootout "gui/$(id -u)/com.crowleyscloud.server"
 ```
 
-To stop or unload:
-```bash
-launchctl unload ~/Library/LaunchAgents/com.crowleyscloud.server.plist
-```
+To remove it permanently, also remove
+`~/Library/LaunchAgents/com.crowleyscloud.server.plist`.
 
-Logs are written to:
-- Output: `/tmp/crowleys_cloud_server.log`
-- Errors: `/tmp/crowleys_cloud_server_err.log`
+## Update and backup
+
+Stop the server, back up `config/config.local.json` together with `data/` and
+`storage/`, and extract the new release into the same folder. The release does
+not contain a local config or runtime data. Keep the generated secrets unchanged.
+Run `bash services/install-agent.sh` again to restart the login agent.
+If moving to another directory, move the local config and data too and reinstall
+the agent. A missing secret with existing data is an error, not a new installation.

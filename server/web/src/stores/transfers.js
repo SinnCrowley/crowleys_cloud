@@ -13,10 +13,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 import { filesApi } from '../api/files.js';
 
 const queue = writable([]);
+const activeRequests = new Map();
 const isDrawerOpen = writable(false);
 
 /**
@@ -104,31 +105,25 @@ export const transfersStore = {
     this.processQueue();
   },
 
-  async processQueue() {
-    queue.update((q) => {
-      const runningCount = q.filter((t) => t.status === 'running').length;
-      let available = Math.max(0, 3 - runningCount);
-
-      if (available <= 0) return q;
-
-      return q.map((item) => {
-        if (item.status === 'queued' && available > 0) {
-          available--;
-          this.executeUpload(item);
-          return { ...item, status: 'running', lastTime: Date.now(), lastLoaded: 0, speed: 0 };
-        }
-        return item;
-      });
-    });
+  processQueue() {
+    for (const item of get(queue)) {
+      if (activeRequests.size >= 3) break;
+      if (item.status !== 'queued' || activeRequests.has(item.id)) continue;
+      const controller = new AbortController();
+      activeRequests.set(item.id, controller);
+      queue.update(q => q.map(t => t.id === item.id
+        ? { ...t, status: 'running', lastTime: Date.now(), lastLoaded: 0, speed: 0 } : t));
+      this.executeUpload(item, controller);
+    }
   },
 
-  async executeUpload(item) {
+  async executeUpload(item, controller) {
     const updateProgress = (loaded, total) => {
       const now = Date.now();
       queue.update((q) =>
         q.map((t) => {
           if (t.id !== item.id) return t;
-          if (t.status !== 'running') return t;
+          if (t.status !== 'running' || controller.signal.aborted) return t;
 
           const dt = (now - (t.lastTime || now)) / 1000;
           let newSpeed = t.speed || 0;
@@ -157,7 +152,8 @@ export const transfersStore = {
           scope: item.scope,
           path: item.path,
           file: item.file,
-          onProgress: updateProgress
+          onProgress: updateProgress,
+          signal: controller.signal
         });
       } else {
         // Single upload for small files
@@ -165,14 +161,15 @@ export const transfersStore = {
           scope: item.scope,
           path: item.path,
           file: item.file,
-          onProgress: updateProgress
+          onProgress: updateProgress,
+          signal: controller.signal
         });
       }
 
       queue.update((q) =>
         q.map((t) => {
           if (t.id !== item.id) return t;
-          if (t.status !== 'running') return t;
+          if (t.status !== 'running' || controller.signal.aborted) return t;
           return { ...t, status: 'completed', progress: 100, transferred: item.size, speed: 0 };
         })
       );
@@ -180,11 +177,12 @@ export const transfersStore = {
       queue.update((q) =>
         q.map((t) => {
           if (t.id !== item.id) return t;
-          if (t.status === 'cancelled' || t.status === 'paused') return t;
+          if (controller.signal.aborted || t.status === 'cancelled' || t.status === 'paused') return t;
           return { ...t, status: 'failed', error: err.message || 'Upload failed', speed: 0 };
         })
       );
     } finally {
+      activeRequests.delete(item.id);
       this.processQueue();
     }
   },
@@ -193,6 +191,7 @@ export const transfersStore = {
     queue.update((q) =>
       q.map((t) => (t.id === id && (t.status === 'running' || t.status === 'queued') ? { ...t, status: 'paused', speed: 0 } : t))
     );
+    activeRequests.get(id)?.abort();
   },
 
   resumeTransfer(id) {
@@ -206,6 +205,7 @@ export const transfersStore = {
     queue.update((q) =>
       q.map((t) => (t.id === id && t.status !== 'completed' && t.status !== 'failed' && t.status !== 'cancelled' ? { ...t, status: 'cancelled', speed: 0 } : t))
     );
+    activeRequests.get(id)?.abort();
     this.processQueue();
   },
 
@@ -217,6 +217,7 @@ export const transfersStore = {
           : t
       )
     );
+    for (const controller of activeRequests.values()) controller.abort();
   },
 
   resumeAll() {
@@ -247,6 +248,7 @@ export const transfersStore = {
           : t
       )
     );
+    for (const controller of activeRequests.values()) controller.abort();
     this.processQueue();
   },
 

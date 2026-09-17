@@ -24,6 +24,7 @@ import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_browser_controller.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
+import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:crowleys_cloud/shared/proto/dir_entry.pb.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/widgets.dart';
@@ -975,6 +976,43 @@ void main() {
       },
     );
   });
+  for (final mode in ['success', 'truncated', 'error', 'cancelled']) {
+    test(
+      'download $mode preserves existing data until successful completion',
+      () async {
+        final directory = await Directory.systemTemp.createTemp(
+          'download_atomic_test',
+        );
+        addTearDown(() => directory.delete(recursive: true));
+        SharedPreferences.setMockInitialValues({
+          AppSettingsService.downloadDirectoryPathKey: directory.path,
+        });
+        final original = File(p.join(directory.path, 'test.txt'));
+        await original.writeAsString('original data');
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv',
+          accessToken: 'token',
+          refreshToken: 'refresh',
+        );
+        final client = _DownloadFailureClient(mode);
+        final controller = _controller(store: store, client: client);
+        controller.toggleSelection(
+          _serverItem(name: 'test.txt', path: 'test.txt'),
+        );
+        await controller.downloadSelectedFiles();
+        expect(
+          await original.readAsString(),
+          mode == 'success' ? 'file-content' : 'original data',
+        );
+        expect(directory.listSync().map((entry) => p.basename(entry.path)), [
+          'test.txt',
+        ]);
+        controller.disposeController();
+        controller.dispose();
+      },
+    );
+  }
 }
 
 ServerBrowserController _controller({
@@ -1020,4 +1058,28 @@ String _cacheKey() {
     'order': 'asc',
     'showHiddenFiles': false,
   });
+}
+
+class _DownloadFailureClient extends http.BaseClient {
+  _DownloadFailureClient(this.mode);
+  final String mode;
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.url.path != '/api/files') {
+      return http.StreamedResponse(
+        Stream.value(utf8.encode('{"entries":[]}')),
+        200,
+      );
+    }
+    Stream<List<int>> bytes() async* {
+      yield utf8.encode('file-');
+      if (mode == 'error') {
+        throw const SocketException('Connection interrupted');
+      }
+      if (mode == 'cancelled') throw TransferCanceledException();
+      if (mode == 'success') yield utf8.encode('content');
+    }
+
+    return http.StreamedResponse(bytes(), 200, contentLength: 12);
+  }
 }
