@@ -245,7 +245,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .search-pill:focus {
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(250, 82, 82, 0.15);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 20%, transparent);
   }
 
   .clear-search-btn {

@@ -106,7 +106,10 @@ class _FileBrowserScreenState extends State<FileBrowser> {
             onDeleteItem: (deleteItem) async {
               _controller.clearSelection();
               _controller.toggleSelection(deleteItem);
-              await _deleteSelectedFiles();
+              final success = await _controller.deleteSelectedFiles();
+              if (!success) {
+                throw Exception('Failed to delete file');
+              }
             },
             onAddToFolderItem: (folderItem) async {
               _controller.clearSelection();
@@ -158,7 +161,17 @@ class _FileBrowserScreenState extends State<FileBrowser> {
     );
 
     if (confirmed == true) {
-      await _controller.deleteSelectedFiles();
+      final selectedItems = _controller.selectedFiles.toList();
+      final success = await _controller.deleteSelectedFiles();
+      if (!success && mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        final failedName = selectedItems.isNotEmpty
+            ? selectedItems.first.name
+            : '';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.errorDeletingFile(failedName, ''))),
+        );
+      }
     }
   }
 

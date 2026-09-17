@@ -1145,20 +1145,31 @@ class FileBrowserController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> deleteSelectedFiles() async {
-    for (final item in selectedFiles.toList()) {
+  Future<bool> deleteSelectedFiles() async {
+    final successfullyDeleted = <FileItem>[];
+    final itemsToDelete = selectedFiles.toList();
+    for (final item in itemsToDelete) {
       try {
         if (item.isAsset) {
           final file = await item.asset!.originFile;
-          if (file != null && await file.exists()) {
-            await file.delete();
+          if (file != null) {
+            if (await file.exists()) {
+              await file.delete();
+            }
+            AssetSizeCache.remove(item.asset!.id);
+            successfullyDeleted.add(item);
           }
-          AssetSizeCache.remove(item.asset!.id);
         } else if (item.fsEntity != null) {
-          if (item.fsEntity is Directory) {
-            await item.fsEntity!.delete(recursive: true);
+          final entity = item.fsEntity!;
+          if (!await entity.exists()) {
+            successfullyDeleted.add(item);
           } else {
-            await item.fsEntity!.delete();
+            if (entity is Directory) {
+              await entity.delete(recursive: true);
+            } else {
+              await entity.delete();
+            }
+            successfullyDeleted.add(item);
           }
         }
       } catch (_) {
@@ -1167,10 +1178,12 @@ class FileBrowserController extends ChangeNotifier {
     }
 
     _invalidateCategoryCache();
-    files.removeWhere(selectedFiles.contains);
+    files.removeWhere(successfullyDeleted.contains);
     selectedFiles.clear();
     _selectAllActive = false;
     notifyListeners();
+    return itemsToDelete.isNotEmpty &&
+        successfullyDeleted.length == itemsToDelete.length;
   }
 
   void _invalidateCategoryCache() {

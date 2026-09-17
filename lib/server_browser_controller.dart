@@ -475,13 +475,13 @@ class ServerBrowserController extends ChangeNotifier {
     return path;
   }
 
-  Future<void> deleteSelectedFiles([AppLocalizations? l10n]) async {
+  Future<bool> deleteSelectedFiles([AppLocalizations? l10n]) async {
     final local = _getL10n(l10n);
     operationMessage = null;
     final itemsToDelete = selectedFiles.toList();
     if (itemsToDelete.isEmpty) {
       notifyListeners();
-      return;
+      return true;
     }
 
     final paths = itemsToDelete.map((e) => e.path).toList();
@@ -495,22 +495,43 @@ class ServerBrowserController extends ChangeNotifier {
         'paths': paths,
       });
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        Set<String>? deletedPathsSet;
         try {
           final payload = jsonDecode(response.body) as Map<String, Object?>;
           deleted =
               (payload['deleted'] as num?)?.toInt() ?? itemsToDelete.length;
           failed = (payload['failed'] as num?)?.toInt() ?? 0;
+          if (payload['deleted_paths'] is List) {
+            deletedPathsSet = (payload['deleted_paths'] as List)
+                .map((e) => e.toString())
+                .toSet();
+          }
         } catch (_) {
           deleted = itemsToDelete.length;
           failed = 0;
         }
 
+        final itemsToRemove = <ServerFileItem>[];
         for (final item in itemsToDelete) {
+          final wasDeleted = deletedPathsSet != null
+              ? deletedPathsSet.contains(item.path)
+              : (failed == 0);
+
+          if (wasDeleted) {
+            itemsToRemove.add(item);
+          }
+        }
+
+        for (final item in itemsToRemove) {
           files.remove(item);
           await _invalidateDirectory(
             scope: scope,
             path: _parentPath(item.path),
           );
+        }
+
+        if (deletedPathsSet == null && failed > 0 && deleted > 0) {
+          await reload();
         }
       } else {
         failed = itemsToDelete.length;
@@ -524,6 +545,7 @@ class ServerBrowserController extends ChangeNotifier {
         : local.deletedNItemsFailedM(deleted, failed);
     selectedFiles.clear();
     notifyListeners();
+    return failed == 0 && deleted > 0;
   }
 
   Future<void> shareSelectedFiles([AppLocalizations? l10n]) async {

@@ -1007,7 +1007,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <input type="text" class="form-input text-code" readonly value={shareModal.url} />
         <div class="dialog-actions">
           <button class="btn btn-secondary" on:click={() => (shareModal = null)}>{$t('common.close')}</button>
-          <button class="btn btn-primary" on:click={copyShareUrl}>📋 {$t('modals.share.copy_link')}</button>
+          <button class="btn btn-primary" on:click={copyShareUrl} style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">content_copy</span>
+            {$t('modals.share.copy_link')}
+          </button>
         </div>
       </div>
     </div>

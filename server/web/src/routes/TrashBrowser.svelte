@@ -688,7 +688,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .trash-grid-card:hover {
     background-color: var(--bg-surface-hover);
-    border-color: rgba(250, 82, 82, 0.15);
+    border-color: var(--accent-color);
   }
 
   .trash-grid-card.selected {
@@ -788,7 +788,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .trash-table-row:not(.table-header):hover {
     background-color: var(--bg-surface-hover);
-    border-color: var(--border-color);
+    border-color: var(--accent-color);
   }
 
   .trash-table-row.selected {

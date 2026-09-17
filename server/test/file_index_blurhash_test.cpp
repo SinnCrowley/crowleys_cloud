@@ -366,12 +366,45 @@ static void testSharedDirectoryPropagation() {
   std::cout << "  [PASS] Shared directory dynamic propagation passed." << std::endl;
 }
 
+static void testHashedRebuildPreservesIndex() {
+  auto dbPath = createTempDbPath();
+  {
+    db::Database db(dbPath.string());
+    db.migrate();
+    utils::Config config;
+    config.hashFiles = true;
+    config.storageRoot = (dbPath.parent_path() / "storage").string();
+    FileService files(config);
+    FileIndexService index(db, files);
+    index.upsertFileExplicit(1, StorageScope::Private, "0006.jpg", "0006.jpg",
+                             123, 456, "photo", "image/jpeg", 1, "test-hash");
+    const auto root = files.resolvePath(1, "user", StorageScope::Private, "", false);
+    bool rejected = false;
+    try {
+      index.rebuildIndex(1, StorageScope::Private, root);
+    } catch (const std::runtime_error &) {
+      rejected = true;
+    }
+    if (!rejected || !index.findFileByHash(1, StorageScope::Private, "test-hash")) {
+      throw std::runtime_error("Hashed rebuild must reject scanning and preserve metadata");
+    }
+    // The same empty directory can still be reindexed in filesystem mode.
+    config.hashFiles = false;
+    if (index.rebuildIndex(1, StorageScope::Private, root) != 0 ||
+        index.findFileByHash(1, StorageScope::Private, "test-hash")) {
+      throw std::runtime_error("Filesystem rebuild must still remove absent files");
+    }
+  }
+  std::filesystem::remove_all(dbPath.parent_path());
+}
+
 int main() {
   std::cout << "========================================" << std::endl;
   std::cout << "   FileIndex BlurHash & Migration Test  " << std::endl;
   std::cout << "========================================" << std::endl;
 
   testFreshDatabaseMigration();
+  testHashedRebuildPreservesIndex();
   testLegacyDatabaseDynamicMigration();
   testFileIndexBlurHashOperations();
   testProtobufSerialization();

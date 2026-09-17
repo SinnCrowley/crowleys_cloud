@@ -51,6 +51,9 @@ if (typeof localStorage !== 'undefined') {
     localStorage.setItem('cc_accent', accent);
     if (typeof document !== 'undefined') {
       document.documentElement.style.setProperty('--color-primary', accent);
+      document.documentElement.style.setProperty('--accent-color', accent);
+      document.documentElement.style.setProperty('--color-primary-hover', `color-mix(in srgb, ${accent} 85%, white)`);
+      document.documentElement.style.setProperty('--accent-hover', `color-mix(in srgb, ${accent} 85%, white)`);
     }
     if (broadcastChannel && !isInternalSync) {
       broadcastChannel.postMessage({ type: 'ACCENT_CHANGE', accent });

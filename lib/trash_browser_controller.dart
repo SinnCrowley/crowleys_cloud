@@ -281,8 +281,8 @@ class TrashBrowserController extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteSelected() async {
-    if (selectedFiles.isEmpty) return;
+  Future<bool> deleteSelected() async {
+    if (selectedFiles.isEmpty) return true;
     isLoading = true;
     notifyListeners();
 
@@ -298,8 +298,10 @@ class TrashBrowserController extends ChangeNotifier {
         );
       }
       selectedFiles.clear();
+      return true;
     } catch (e) {
       error = e.toString();
+      return false;
     } finally {
       isLoading = false;
       await reload();

@@ -46,12 +46,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       --bg-surface-hover: #353535;
       --bg-input: #1E1E1E;
       --accent-color: #FA5252;
-      --accent-hover: #FF6B6B;
+      --accent-hover: color-mix(in srgb, var(--accent-color) 85%, white);
       --text-main: #FFFFFF;
       --text-sub: #A0A0A0;
       --border-color: #3D3D3D;
-      --selection-bg: rgba(250, 82, 82, 0.15);
-      --selection-border: #FA5252;
+      --selection-bg: color-mix(in srgb, var(--accent-color) 15%, transparent);
+      --selection-border: var(--accent-color);
       --color-danger: #FF5252;
     }
 
@@ -62,12 +62,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       --bg-surface-hover: #F8F9FA;
       --bg-input: #F4F5F8;
       --accent-color: #FA5252;
-      --accent-hover: #FF6B6B;
+      --accent-hover: color-mix(in srgb, var(--accent-color) 88%, black);
       --text-main: #1F2937;
       --text-sub: #6B7280;
       --border-color: #E5E7EB;
-      --selection-bg: rgba(250, 82, 82, 0.12);
-      --selection-border: #FA5252;
+      --selection-bg: color-mix(in srgb, var(--accent-color) 12%, transparent);
+      --selection-border: var(--accent-color);
       --color-danger: #FF5252;
     }
 
@@ -130,6 +130,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       color: var(--accent-color);
     }
 
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     .search-section {
       flex: 1;
       max-width: 440px;
@@ -166,7 +178,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
     .search-pill:focus {
       border-color: var(--accent-color);
-      box-shadow: 0 0 0 2px rgba(250, 82, 82, 0.15);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 20%, transparent);
     }
 
     .clear-search-btn {
@@ -342,7 +354,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
     .grid-item:hover {
       background-color: var(--bg-surface-hover);
-      border-color: rgba(250, 82, 82, 0.15);
+      border-color: var(--accent-color);
     }
 
     .grid-item-thumbnail {
@@ -458,6 +470,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
     .list-row:hover {
       background-color: var(--bg-surface-hover);
+      border-color: var(--accent-color);
     }
 
     .list-icon {
@@ -927,12 +940,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     <!-- Live Search Pill Input -->
     <div class="search-section">
       <div class="search-wrapper">
+        <label for="searchInput" class="visually-hidden">Filter files</label>
         <span class="material-symbols-outlined search-icon">search</span>
         <input
           type="text"
           class="search-pill"
           id="searchInput"
           placeholder="Filter files..."
+          aria-label="Filter files"
           oninput="onFilterChange(this.value)"
         />
         <button

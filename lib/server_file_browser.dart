@@ -129,8 +129,11 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
             if (selectedServerItem == null) return;
             controller.clearSelection();
             controller.toggleSelection(selectedServerItem);
-            await controller.deleteSelectedFiles();
+            final success = await controller.deleteSelectedFiles();
             _showOperationMessage();
+            if (!success) {
+              throw Exception(controller.operationMessage ?? 'Delete failed');
+            }
           },
           onRenameItem: (selectedImageItem) async {
             final selectedServerItem = selectedImageItem.serverFile;

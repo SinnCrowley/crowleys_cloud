@@ -302,5 +302,73 @@ void main() {
         }
       },
     );
+
+    test(
+      'deleteSelectedFiles deletes existing file and removes it from files list',
+      () async {
+        final tempDir = await Directory.systemTemp.createTemp('del_test');
+        try {
+          final file = File('${tempDir.path}/del.txt');
+          await file.writeAsString('delete me');
+
+          final item = FileItem.fromEntity(file);
+          final controller = FileBrowserController(
+            category: const FileCategory('All files', Icons.folder),
+            loadOnInit: false,
+          );
+          controller.setViewStateForTest(visibleFiles: [item], loading: false);
+          controller.toggleSelection(item);
+
+          final success = await controller.deleteSelectedFiles();
+
+          expect(success, isTrue);
+          expect(await file.exists(), isFalse);
+          expect(controller.files, isEmpty);
+
+          controller.disposeController();
+        } finally {
+          if (await tempDir.exists()) await tempDir.delete(recursive: true);
+        }
+      },
+    );
+
+    test(
+      'deleteSelectedFiles does not remove file from list when file delete fails',
+      () async {
+        final tempDir = await Directory.systemTemp.createTemp('del_fail_test');
+        try {
+          final subDir = Directory('${tempDir.path}/sub');
+          await subDir.create();
+          final file = File('${subDir.path}/locked.txt');
+          await file.writeAsString('cannot delete');
+
+          // Make directory non-writable so file deletion fails
+          await Process.run('chmod', ['555', subDir.path]);
+
+          final item = FileItem.fromEntity(file);
+          final controller = FileBrowserController(
+            category: const FileCategory('All files', Icons.folder),
+            loadOnInit: false,
+          );
+          controller.setViewStateForTest(visibleFiles: [item], loading: false);
+          controller.toggleSelection(item);
+
+          final success = await controller.deleteSelectedFiles();
+
+          // Restore permissions so cleanup works
+          await Process.run('chmod', ['777', subDir.path]);
+
+          expect(success, isFalse);
+          // File must NOT disappear from controller.files!
+          expect(controller.files.contains(item), isTrue);
+          expect(controller.files.length, 1);
+
+          controller.disposeController();
+        } finally {
+          await Process.run('chmod', ['777', tempDir.path]);
+          if (await tempDir.exists()) await tempDir.delete(recursive: true);
+        }
+      },
+    );
   });
 }

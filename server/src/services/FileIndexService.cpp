@@ -501,6 +501,11 @@ struct DbFileMeta {
 std::int64_t FileIndexService::rebuildIndex(std::int64_t ownerUserId,
                                             StorageScope scope,
                                             const std::filesystem::path &rootPath) {
+  // Virtual paths exist only in the database when blobs are stored by hash.
+  // Scanning the empty user directory would erase their only metadata.
+  if (fileService_.usesHashedStorage()) {
+    throw std::runtime_error("Filesystem index rebuild is unavailable for hashed storage");
+  }
   const auto scopeRaw = scopeToString(scope);
 
   // RAII Transaction Management

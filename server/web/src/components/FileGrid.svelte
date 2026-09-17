@@ -539,7 +539,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     right: 0;
     bottom: 0;
     z-index: 800;
-    background-color: rgba(250, 82, 82, 0.1);
+    background-color: color-mix(in srgb, var(--accent-color) 10%, transparent);
     border: 2px dashed var(--accent-color);
     backdrop-filter: blur(4px);
     display: flex;
@@ -602,7 +602,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .grid-item:hover {
     background-color: var(--bg-surface-hover);
-    border-color: rgba(250, 82, 82, 0.15);
+    border-color: var(--accent-color);
   }
 
   .grid-item.selected {
@@ -612,9 +612,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .grid-item.folder-drop-target {
     border-color: var(--accent-color) !important;
-    background-color: rgba(250, 82, 82, 0.15) !important;
+    background-color: color-mix(in srgb, var(--accent-color) 15%, transparent) !important;
     transform: scale(1.02);
-    box-shadow: 0 0 12px rgba(250, 82, 82, 0.4);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--accent-color) 40%, transparent);
   }
 
   .grid-item-thumbnail {

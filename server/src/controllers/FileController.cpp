@@ -1554,6 +1554,8 @@ void FileController::deleteFile(const drogon::HttpRequestPtr &req,
 
   int deleted = 0;
   int failed = 0;
+  Json::Value deletedPaths(Json::arrayValue);
+  Json::Value failedPaths(Json::arrayValue);
 
   for (const auto &relPath : paths) {
     try {
@@ -1561,6 +1563,7 @@ void FileController::deleteFile(const drogon::HttpRequestPtr &req,
         auto ownerId = server::ctx().fileIndexService->getSharedFileOwner(relPath);
         if (!ownerId.has_value() || *ownerId != userId) {
           failed++;
+          failedPaths.append(relPath);
           continue;
         }
         server::ctx().fileIndexService->setSharedFlag(*ownerId, relPath, false);
@@ -1568,8 +1571,10 @@ void FileController::deleteFile(const drogon::HttpRequestPtr &req,
         server::ctx().trashService->moveToTrash(userId, *scope, relPath);
       }
       deleted++;
+      deletedPaths.append(relPath);
     } catch (...) {
       failed++;
+      failedPaths.append(relPath);
     }
   }
 
@@ -1577,6 +1582,8 @@ void FileController::deleteFile(const drogon::HttpRequestPtr &req,
   body["ok"] = true;
   body["deleted"] = deleted;
   body["failed"] = failed;
+  body["deleted_paths"] = deletedPaths;
+  body["failed_paths"] = failedPaths;
   callback(drogon::HttpResponse::newHttpJsonResponse(body));
 }
 
@@ -1589,7 +1596,12 @@ void FileController::rebuildIndex(const drogon::HttpRequestPtr &req,
     return;
   }
 
-  const auto scopeRaw = req->getParameter("scope");
+  std::string scopeRaw = req->getParameter("scope");
+  auto json = req->getJsonObject();
+  if (scopeRaw.empty() && json && json->isMember("scope") && (*json)["scope"].isString()) {
+    scopeRaw = (*json)["scope"].asString();
+  }
+
   const auto scope = services::parseScope(scopeRaw.empty() ? "private" : scopeRaw);
   if (!scope.has_value()) {
     callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
@@ -1606,6 +1618,7 @@ void FileController::rebuildIndex(const drogon::HttpRequestPtr &req,
     body["ok"] = true;
     body["indexed"] = static_cast<Json::Int64>(indexed);
     body["scope"] = *scope == services::StorageScope::Private ? "private" : "shared";
+    body["message"] = "Index rebuilt successfully";
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));
@@ -1782,6 +1795,41 @@ void FileController::getTrashSettings(const drogon::HttpRequestPtr &req,
   try {
     std::int64_t days = server::ctx().trashService->getTrashRetentionDays(userId);
     Json::Value body;
+    body["trash_retention_days"] = static_cast<Json::Int64>(days);
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
+  } catch (const std::exception &e) {
+    callback(jsonError(drogon::k400BadRequest, e.what()));
+  }
+}
+
+void FileController::setTrashSettings(const drogon::HttpRequestPtr &req,
+                                      std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::int64_t userId;
+  std::string role;
+  if (!getAuth(req, userId, role)) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+
+  auto json = req->getJsonObject();
+  std::int64_t days = 30;
+  if (json && json->isMember("days") && (*json)["days"].isInt64()) {
+    days = (*json)["days"].asInt64();
+  } else if (json && json->isMember("days") && (*json)["days"].isInt()) {
+    days = (*json)["days"].asInt();
+  } else {
+    const auto p = req->getParameter("days");
+    if (!p.empty()) {
+      try {
+        days = std::stoll(p);
+      } catch (...) {}
+    }
+  }
+
+  try {
+    server::ctx().trashService->setTrashRetentionDays(userId, days);
+    Json::Value body;
+    body["ok"] = true;
     body["trash_retention_days"] = static_cast<Json::Int64>(days);
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {

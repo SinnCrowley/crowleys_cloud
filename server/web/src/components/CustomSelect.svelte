@@ -171,7 +171,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   }
 
   .custom-select-option.selected {
-    background-color: rgba(250, 82, 82, 0.08);
+    background-color: color-mix(in srgb, var(--accent-color) 10%, transparent);
     color: var(--accent-color);
     font-weight: 700;
   }

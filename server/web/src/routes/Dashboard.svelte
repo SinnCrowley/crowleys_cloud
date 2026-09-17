@@ -127,7 +127,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="bento-card bento-card-large" on:click={() => handleNavigate('all', 'private')}>
       <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div class="bento-card-icon-container primary-light">
+        <div class="bento-card-icon-container neutral-light">
           <span class="material-symbols-outlined">folder_open</span>
         </div>
       </div>
@@ -242,7 +242,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     right: 0;
     bottom: 0;
     z-index: 800;
-    background-color: rgba(250, 82, 82, 0.1);
+    background-color: color-mix(in srgb, var(--accent-color) 10%, transparent);
     border: 2px dashed var(--accent-color);
     backdrop-filter: blur(4px);
     display: flex;
@@ -328,9 +328,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .storage-widget-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--accent-color, #fa5252) 0%, #ff8787 100%);
+    background: linear-gradient(90deg, var(--accent-color, #fa5252) 0%, color-mix(in srgb, var(--accent-color, #fa5252) 65%, white) 100%);
     border-radius: 4px;
-    box-shadow: 0 0 12px rgba(250, 82, 82, 0.6);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--accent-color, #fa5252) 50%, transparent);
   }
 
   .storage-widget-footer {

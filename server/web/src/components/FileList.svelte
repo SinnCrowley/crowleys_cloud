@@ -593,7 +593,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     right: 0;
     bottom: 0;
     z-index: 800;
-    background-color: rgba(250, 82, 82, 0.1);
+    background-color: color-mix(in srgb, var(--accent-color) 10%, transparent);
     border: 2px dashed var(--accent-color);
     backdrop-filter: blur(4px);
     display: flex;
@@ -712,7 +712,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .list-item:hover {
     background-color: var(--bg-surface-hover);
-    border-color: rgba(250, 82, 82, 0.15);
+    border-color: var(--accent-color);
   }
 
   .list-item.selected {
@@ -722,8 +722,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .list-item.folder-drop-target {
     border-color: var(--accent-color) !important;
-    background-color: rgba(250, 82, 82, 0.15) !important;
-    box-shadow: 0 0 10px rgba(250, 82, 82, 0.3);
+    background-color: color-mix(in srgb, var(--accent-color) 15%, transparent) !important;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent-color) 30%, transparent);
   }
 
   .cell-content {

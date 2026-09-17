@@ -36,5 +36,11 @@ export const trashApi = {
 
   async getTrashSettings() {
     return apiGet('/api/trash/settings');
+  },
+
+  async setTrashSettings(days) {
+    const params = new URLSearchParams({ days: days.toString() });
+    return apiPost(`/api/trash/settings?${params.toString()}`, { days });
   }
 };
+

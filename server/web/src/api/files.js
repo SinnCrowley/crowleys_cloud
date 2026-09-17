@@ -292,7 +292,22 @@ export const filesApi = {
     return apiPost(`/api/files/share?${params.toString()}`);
   },
 
+  async rebuildIndex({ scope = 'private' } = {}) {
+    const params = new URLSearchParams({ scope });
+    return apiPost(`/api/index/rebuild?${params.toString()}`, { scope });
+  },
+
+  async getTrashSettings() {
+    return apiGet('/api/trash/settings');
+  },
+
+  async setTrashSettings(days) {
+    const params = new URLSearchParams({ days: days.toString() });
+    return apiPost(`/api/trash/settings?${params.toString()}`, { days });
+  },
+
   async getAccountStats() {
     return apiGet('/api/account/stats');
   }
 };
+

@@ -45,6 +45,8 @@ class FileService {
  public:
   explicit FileService(const utils::Config &config);
 
+  bool usesHashedStorage() const { return config_.hashFiles; }
+
   /**
    * Resolves a relative user or shared path into a absolute physical filesystem path.
    * Performs strict canonical path boundary checks to prevent directory traversal (`..`)
@@ -80,4 +82,3 @@ class FileService {
 std::optional<StorageScope> parseScope(const std::string &value);
 
 }  // namespace server::services
-

@@ -820,6 +820,118 @@ void main() {
     );
 
     test(
+      'deleteSelectedFiles preserves files in list when deletion fails on server',
+      () async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv',
+          accessToken: 'token',
+          refreshToken: 'refresh',
+        );
+
+        final item1 = _serverItem(name: 'file1.txt', path: 'file1.txt');
+        final item2 = _serverItem(name: 'file2.txt', path: 'file2.txt');
+
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/files' && request.method == 'DELETE') {
+            return http.Response(
+              jsonEncode({
+                'ok': true,
+                'deleted': 0,
+                'failed': 2,
+                'deleted_paths': <String>[],
+                'failed_paths': ['file1.txt', 'file2.txt'],
+              }),
+              200,
+            );
+          }
+          return http.Response(
+            jsonEncode({
+              'entries': [item1.toJson(), item2.toJson()],
+            }),
+            200,
+          );
+        });
+
+        final controller = _controller(store: store, client: client);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(controller.files.length, 2);
+        controller.toggleSelection(item1);
+        controller.toggleSelection(item2);
+
+        final success = await controller.deleteSelectedFiles(l10n);
+
+        expect(success, isFalse);
+        // Files must NOT disappear from the list!
+        expect(controller.files.length, 2);
+        expect(controller.files.contains(item1), isTrue);
+        expect(controller.files.contains(item2), isTrue);
+        expect(controller.operationMessage, l10n.deletedNItemsFailedM(0, 2));
+
+        controller.disposeController();
+        controller.dispose();
+      },
+    );
+
+    test(
+      'deleteSelectedFiles only removes successfully deleted files when partial failure occurs',
+      () async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        final store = InMemorySecretStore();
+        await store.saveTokens(
+          serverId: 'srv',
+          accessToken: 'token',
+          refreshToken: 'refresh',
+        );
+
+        final itemSuccess = _serverItem(name: 'good.txt', path: 'good.txt');
+        final itemFailed = _serverItem(name: 'bad.txt', path: 'bad.txt');
+
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/files' && request.method == 'DELETE') {
+            return http.Response(
+              jsonEncode({
+                'ok': true,
+                'deleted': 1,
+                'failed': 1,
+                'deleted_paths': ['good.txt'],
+                'failed_paths': ['bad.txt'],
+              }),
+              200,
+            );
+          }
+          return http.Response(
+            jsonEncode({
+              'entries': [itemSuccess.toJson(), itemFailed.toJson()],
+            }),
+            200,
+          );
+        });
+
+        final controller = _controller(store: store, client: client);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(controller.files.length, 2);
+        controller.toggleSelection(itemSuccess);
+        controller.toggleSelection(itemFailed);
+
+        final success = await controller.deleteSelectedFiles(l10n);
+
+        expect(success, isFalse);
+        // good.txt was deleted, so removed from list
+        expect(controller.files.contains(itemSuccess), isFalse);
+        // bad.txt failed to delete, so MUST remain in list
+        expect(controller.files.contains(itemFailed), isTrue);
+        expect(controller.files.length, 1);
+
+        controller.disposeController();
+        controller.dispose();
+      },
+    );
+
+    test(
       'downloadSelectedFiles strips leading slashes and saves inside target folder',
       () async {
         final tempRoot = await Directory.systemTemp.createTemp(

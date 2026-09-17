@@ -221,7 +221,10 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
             if (selectedServerItem == null) return;
             controller.selectedFiles.clear();
             controller.selectedFiles.add(selectedServerItem);
-            await controller.deleteSelected();
+            final success = await controller.deleteSelected();
+            if (!success) {
+              throw Exception(controller.error ?? 'Delete failed');
+            }
           },
         ),
       ),
