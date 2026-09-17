@@ -1,6 +1,6 @@
 services:
   server:
-    image: ghcr.io/sinncrowley/crowleys_cloud/crowleys-cloud-server:v0.6.0
+    image: ghcr.io/sinncrowley/crowleys_cloud/crowleys-cloud-server:v0.7.0
     build:
       context: ../
       dockerfile: server/Dockerfile
