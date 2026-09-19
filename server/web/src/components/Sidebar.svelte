@@ -16,10 +16,25 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <script>
   import { createEventDispatcher } from 'svelte';
   import { t } from '../stores/i18n.js';
+  import { authStore } from '../stores/auth.js';
+  import { statsStore } from '../stores/stats.js';
+  const { user } = authStore;
 
   export let currentRoute = 'dashboard';
   export let filterType = 'all';
   export let scope = 'private';
+
+  function formatSize(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  $: quotaLimit = Number($user?.quota_bytes ?? $statsStore.limitBytes ?? 0);
+  $: quotaUsed = Number($user?.used_bytes ?? $statsStore.usedBytes ?? $statsStore.totalSize ?? 0);
+  $: quotaPercent = quotaLimit > 0 ? Math.min(100, Math.round((quotaUsed / quotaLimit) * 100)) : 100;
 
   const dispatch = createEventDispatcher();
 
@@ -65,6 +80,23 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <span class="material-symbols-outlined">dashboard</span>
       <span>{$t('nav.dashboard')}</span>
     </button>
+
+    <div class="sidebar-storage-widget-container" style="padding: 2px 4px 6px 4px;">
+      <div class="storage-quota-widget" title="{formatSize(quotaUsed)} / {quotaLimit > 0 ? formatSize(quotaLimit) : '∞'}" style="padding: 8px 12px; border-radius: var(--radius-md); background: var(--bg-surface-hover); flex-direction: column; align-items: stretch; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 15px; color: var(--accent-color);">cloud</span>
+            <span style="font-size: 11px; font-weight: 600;">{$t('dashboard.storage_used')}</span>
+          </span>
+          <span style="font-size: 11px; opacity: 0.85;">{formatSize(quotaUsed)} / {quotaLimit > 0 ? formatSize(quotaLimit) : '∞'}</span>
+        </div>
+        {#if quotaLimit > 0}
+          <div class="storage-quota-progress-container" style="width: 100%; height: 4px;">
+            <div class="storage-quota-progress-fill" style="width: {quotaPercent}%;"></div>
+          </div>
+        {/if}
+      </div>
+    </div>
 
     <div class="sidebar-divider"></div>
 
@@ -128,6 +160,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   </nav>
 
   <div class="sidebar-footer">
+    {#if $user?.role === 'admin'}
+      <button class="sidebar-item {currentRoute === 'admin' ? 'active' : ''}" on:click={() => selectRoute('admin')}>
+        <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span><span>{$t('admin.title')}</span>
+      </button>
+    {/if}
     <button
       class="sidebar-item {currentRoute === 'trash' ? 'active' : ''}"
       on:click={() => selectRoute('trash')}

@@ -794,10 +794,24 @@ void main() {
           expect(find.text('Сброс пароля'), findsWidgets);
           expect(find.text(ruL10n.resetPasswordStep1Body), findsOneWidget);
 
-          // Tap Send Code without username
-          await tester.tap(find.text('Отправить код'));
+          // Entering the admin-issued code requires a username first
+          await tester.tap(find.text(ruL10n.enterResetCodeTitle));
           await tester.pumpAndSettle();
           expect(find.text(ruL10n.usernameIsRequired), findsOneWidget);
+
+          await tester.enterText(
+            find
+                .descendant(
+                  of: find.byType(AlertDialog),
+                  matching: find.byType(TextField),
+                )
+                .first,
+            'recover-user',
+          );
+          await tester.tap(find.text(ruL10n.enterResetCodeTitle));
+          await tester.pumpAndSettle();
+          expect(find.text(ruL10n.resetPasswordStep2Body), findsOneWidget);
+          expect(find.text(ruL10n.usernameIsRequired), findsNothing);
 
           // Cancel dialog
           await tester.tap(find.text('Отмена'));
@@ -840,10 +854,24 @@ void main() {
           expect(find.text('Reset Password'), findsWidgets);
           expect(find.text(enL10n.resetPasswordStep1Body), findsOneWidget);
 
-          // Tap Send Code without username
-          await tester.tap(find.text('Send Code'));
+          // Entering the admin-issued code requires a username first
+          await tester.tap(find.text(enL10n.enterResetCodeTitle));
           await tester.pumpAndSettle();
           expect(find.text(enL10n.usernameIsRequired), findsOneWidget);
+
+          await tester.enterText(
+            find
+                .descendant(
+                  of: find.byType(AlertDialog),
+                  matching: find.byType(TextField),
+                )
+                .first,
+            'recover-user',
+          );
+          await tester.tap(find.text(enL10n.enterResetCodeTitle));
+          await tester.pumpAndSettle();
+          expect(find.text(enL10n.resetPasswordStep2Body), findsOneWidget);
+          expect(find.text(enL10n.usernameIsRequired), findsNothing);
 
           // Cancel dialog
           await tester.tap(find.text('Cancel'));

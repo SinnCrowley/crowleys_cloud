@@ -767,11 +767,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'Introduzca su nombre de usuario. El código de verificación de 6 dígitos aparecerá en los registros o consola del servidor.';
+      'Introduzca su nombre de usuario y pida a un administrador un código de recuperación de seis dígitos.';
 
   @override
   String get resetPasswordStep2Body =>
-      'El código de verificación se ha mostrado en la consola del servidor. Introduzca el código de 6 dígitos y la nueva contraseña.';
+      'Introduzca el código de seis dígitos proporcionado por un administrador y su nueva contraseña.';
 
   @override
   String get resetCodeLabel => 'Código de restablecimiento';
@@ -1815,4 +1815,33 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get language => 'Idioma';
+
+  @override
+  String get registrationPending =>
+      'Solicitud enviada. Espere la aprobación de un administrador.';
+
+  @override
+  String get registrationClosed => 'El registro está cerrado.';
+
+  @override
+  String get accountBlocked =>
+      'Esta cuenta está bloqueada. Contacte con un administrador.';
+
+  @override
+  String get passwordResetRequired =>
+      'Debe restablecer su contraseña. Pida un código de recuperación a un administrador.';
+
+  @override
+  String get serverMaintenance =>
+      'El servidor está en mantenimiento. Las operaciones con archivos se reanudarán más tarde.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'Se ha superado la cuota de almacenamiento. Elimine archivos o pida a un administrador que aumente el límite.';
+
+  @override
+  String get systemDefault => 'Predeterminado del sistema';
+
+  @override
+  String get errorPickingFiles => 'Error al seleccionar archivos';
 }

@@ -766,11 +766,11 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'Введіть ім’я користувача. 6-значний код підтвердження буде надруковано в журналах або консолі сервера.';
+      'Введіть ім’я користувача та попросіть адміністратора надати шестизначний код відновлення.';
 
   @override
   String get resetPasswordStep2Body =>
-      'Код підтвердження надруковано в консолі сервера. Введіть 6-значний код і новий пароль.';
+      'Введіть шестизначний код від адміністратора та новий пароль.';
 
   @override
   String get resetCodeLabel => 'Код скидання';
@@ -1796,4 +1796,33 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get language => 'Мова';
+
+  @override
+  String get registrationPending =>
+      'Заявку надіслано. Очікуйте схвалення адміністратора.';
+
+  @override
+  String get registrationClosed => 'Реєстрацію закрито.';
+
+  @override
+  String get accountBlocked =>
+      'Обліковий запис заблоковано. Зверніться до адміністратора.';
+
+  @override
+  String get passwordResetRequired =>
+      'Потрібно скинути пароль. Отримайте код відновлення в адміністратора.';
+
+  @override
+  String get serverMaintenance =>
+      'Сервер на обслуговуванні. Операції з файлами відновляться пізніше.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'Перевищено ліміт сховища. Видаліть файли або попросіть адміністратора збільшити ліміт.';
+
+  @override
+  String get systemDefault => 'Системне значення';
+
+  @override
+  String get errorPickingFiles => 'Помилка вибору файлів';
 }

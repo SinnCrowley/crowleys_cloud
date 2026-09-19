@@ -762,11 +762,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'Masukkan nama pengguna Anda. Kode verifikasi 6 digit akan dicetak ke log/konsol server.';
+      'Masukkan nama pengguna dan minta kode pemulihan enam digit kepada administrator.';
 
   @override
   String get resetPasswordStep2Body =>
-      'Kode verifikasi telah dicetak ke konsol server. Masukkan kode 6 digit dan kata sandi baru Anda.';
+      'Masukkan kode enam digit dari administrator dan kata sandi baru Anda.';
 
   @override
   String get resetCodeLabel => 'Kode Atur Ulang';
@@ -1801,4 +1801,32 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get language => 'Bahasa';
+
+  @override
+  String get registrationPending =>
+      'Permohonan pendaftaran dikirim. Tunggu persetujuan administrator.';
+
+  @override
+  String get registrationClosed => 'Pendaftaran ditutup.';
+
+  @override
+  String get accountBlocked => 'Akun ini diblokir. Hubungi administrator.';
+
+  @override
+  String get passwordResetRequired =>
+      'Kata sandi harus diatur ulang. Minta kode pemulihan kepada administrator.';
+
+  @override
+  String get serverMaintenance =>
+      'Server sedang dalam pemeliharaan. Operasi berkas akan dilanjutkan nanti.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'Kuota penyimpanan terlampaui. Hapus berkas atau minta administrator menaikkan batas Anda.';
+
+  @override
+  String get systemDefault => 'Bawaan sistem';
+
+  @override
+  String get errorPickingFiles => 'Gagal memilih file';
 }

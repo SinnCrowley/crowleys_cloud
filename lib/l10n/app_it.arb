@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Forgot password dialog title step 2"
   },
-  "resetPasswordStep1Body": "Inserisci il nome utente. Il codice di verifica a 6 cifre verrà mostrato nei registri o nella console del server.",
+  "resetPasswordStep1Body": "Inserisci il nome utente e chiedi a un amministratore un codice di recupero di sei cifre.",
   "@resetPasswordStep1Body": {
     "description": "Forgot password step 1 instruction"
   },
-  "resetPasswordStep2Body": "Il codice di verifica è stato mostrato nella console del server. Inserisci il codice a 6 cifre e la nuova password.",
+  "resetPasswordStep2Body": "Inserisci il codice di sei cifre fornito da un amministratore e la nuova password.",
   "@resetPasswordStep2Body": {
     "description": "Forgot password step 2 instruction"
   },
@@ -2658,5 +2658,13 @@
   "language": "Lingua",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Richiesta inviata. Attendi l’approvazione di un amministratore.",
+  "registrationClosed": "Le registrazioni sono chiuse.",
+  "accountBlocked": "Questo account è bloccato. Contatta un amministratore.",
+  "passwordResetRequired": "Devi reimpostare la password. Chiedi un codice di recupero a un amministratore.",
+  "serverMaintenance": "Il server è in manutenzione. Le operazioni sui file riprenderanno più tardi.",
+  "storageQuotaExceeded": "Quota di archiviazione superata. Elimina dei file o chiedi a un amministratore di aumentare il limite.",
+  "systemDefault": "Predefinito di sistema",
+  "errorPickingFiles": "Errore nella selezione dei file"
 }

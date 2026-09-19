@@ -79,3 +79,8 @@ pnpm-debug.log*
 Thumbs.db
 *~
 *.lock
+
+# In-progress encryption rotation contains both storage keys.
+**/encryption-rotation.keys.json
+**/encryption-rotation.keys.json.*.tmp
+**/config.local.json.*.tmp

@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "با هر بار بستن برنامه",
+    "login_15_minutes": "۱۵ دقیقه",
+    "login_1_hour": "۱ ساعت",
+    "login_1_day": "۱ روز",
+    "login_30_days": "۳۰ روز",
+    "login_never": "هرگز"
   },
   "toasts": {
     "login_success": "با موفقیت وارد شدید!",
@@ -362,5 +368,185 @@
     "network_upload": "خطای شبکه هنگام بارگذاری",
     "batch_upload_failed": "بارگذاری دسته‌ای ناموفق بود ({status})",
     "network_batch_upload": "خطای شبکه هنگام بارگذاری دسته‌ای"
+  },
+  "account_status": {
+    "registrationPending": "درخواست ثبت‌نام ارسال شد. منتظر تأیید مدیر بمانید.",
+    "registrationClosed": "ثبت‌نام بسته است.",
+    "accountBlocked": "این حساب مسدود شده است. با مدیر تماس بگیرید.",
+    "passwordResetRequired": "گذرواژه باید بازنشانی شود. از مدیر کد بازیابی بخواهید.",
+    "serverMaintenance": "سرور در حال نگهداری است. عملیات فایل‌ها بعداً از سر گرفته می‌شود.",
+    "storageQuotaExceeded": "سهمیهٔ فضای ذخیره‌سازی تمام شده است. فایل‌ها را حذف کنید یا از مدیر افزایش سهمیه بخواهید.",
+    "resetPasswordStep1Body": "نام کاربری را وارد کنید و از مدیر یک کد بازیابی شش‌رقمی بخواهید.",
+    "resetPasswordStep2Body": "کد شش‌رقمی ارائه‌شده توسط مدیر و گذرواژهٔ جدید را وارد کنید."
+  },
+  "recovery": {
+    "resetPasswordTitle": "بازنشانی گذرواژه",
+    "resetCodeLabel": "کد بازنشانی",
+    "passwordResetSuccessfully": "گذرواژه با موفقیت بازنشانی شد!",
+    "newPasswordLabel": "گذرواژه جدید",
+    "codeAndPasswordRequired": "کد و گذرواژه جدید الزامی هستند."
+  },
+  "admin": {
+    "title": "مدیریت",
+    "users": "کاربران",
+    "applications": "درخواست‌های ثبت‌نام",
+    "configuration": "تنظیمات سرور",
+    "maintenance": "نگهداری",
+    "saved": "ذخیره شد.",
+    "role": "نقش",
+    "user": "کاربر",
+    "administrator": "مدیر",
+    "status": "وضعیت",
+    "active": "فعال",
+    "blocked": "مسدود",
+    "quota": "سهمیهٔ فضای ذخیره‌سازی",
+    "inherit": "استفاده از پیش‌فرض سرور",
+    "unlimited": "نامحدود",
+    "limited": "محدودیت سفارشی",
+    "bytes": "محدودیت به بایت",
+    "used": "استفاده‌شده",
+    "reserved": "رزروشده",
+    "reset_password": "بازنشانی گذرواژه",
+    "revoke_sessions": "خروج از همهٔ دستگاه‌ها",
+    "approve": "تأیید",
+    "reject": "رد",
+    "no_applications": "درخواست ثبت‌نام در انتظار بررسی وجود ندارد.",
+    "deleting": "حذف کامل نشده است. مشکل فضای ذخیره‌سازی را برطرف و دوباره تلاش کنید.",
+    "retry": "ادامه",
+    "rotation": "تغییر کلید رمزنگاری",
+    "new_secret": "راز جدید (حداقل ۳۲ نویسه)",
+    "rotate": "تغییر راز",
+    "pending": "مقدار فعلی؛ تغییر ذخیره‌شده به راه‌اندازی مجدد نیاز دارد",
+    "rotation_failed": "عملیات متوقف شده است. مشکل فضای ذخیره‌سازی را برطرف کنید و ادامه دهید. دسترسی به فایل‌ها همچنان معلق می‌ماند.",
+    "recovery_hint": "این کد یک‌بارمصرف را کپی کنید و به کاربر بدهید. پس از ۱۰ دقیقه منقضی می‌شود و فقط اینجا نمایش داده می‌شود.",
+    "config_hint": "تنظیمات با برچسب «راه‌اندازی مجدد» نیازمند راه‌اندازی مجدد سرور توسط مسئول آن هستند. جابه‌جایی فضای ذخیره‌سازی یا پایگاه دادهٔ موجود به انتقال دستی نیاز دارد. سهمیهٔ صفر به معنای نامحدود است.",
+    "environment_hint": "این راز از محیط استقرار گرفته شده و در اینجا قابل تغییر نیست.",
+    "confirm_reset": "گذرواژهٔ {name} بازنشانی شود؟ گذرواژهٔ فعلی و همهٔ نشست‌های او از کار خواهند افتاد.",
+    "confirm_delete": "{name} حذف شود؟ فایل‌های شخصی و سطل زباله حذف خواهند شد. فایل‌های اشتراکی به حساب شما منتقل و در سهمیهٔ شما محاسبه می‌شوند.",
+    "confirm_signing": "راز امضا تغییر کند؟ همهٔ دستگاه‌ها، از جمله این مرورگر، از حساب خارج می‌شوند.",
+    "confirm_encryption": "کلید رمزنگاری تغییر کند؟ دسترسی به فایل‌ها تا پایان رمزنگاری مجدد همهٔ فایل‌ها معلق می‌شود. پس از آغاز، لغو عملیات ممکن نیست.",
+    "apply": {
+      "live": "اعمال فوری",
+      "restart": "نیازمند راه‌اندازی مجدد",
+      "migration": "انتقال دستی در سرور دارای داده",
+      "rotation": "عملیات جداگانه"
+    },
+    "source": {
+      "environment": "محیط استقرار",
+      "local": "تنظیمات محلی",
+      "base": "پیکربندی پایه",
+      "default": "پیش‌فرض"
+    },
+    "registration": {
+      "approval": "تأیید مدیر",
+      "open": "باز",
+      "closed": "بسته"
+    },
+    "phase": {
+      "idle": "عملیاتی در حال اجرا نیست",
+      "enumerating": "در حال آماده‌سازی فایل‌ها",
+      "rotating": "در حال رمزنگاری مجدد فایل‌ها",
+      "finalizing": "در حال بررسی و اعمال کلید جدید",
+      "complete": "تکمیل شد"
+    },
+    "errors": {
+      "forbidden": "دسترسی مدیر لازم است.",
+      "last_admin": "آخرین مدیر فعال باید در دسترس بماند.",
+      "invalid_quota": "محدودیت معتبر برای فضای ذخیره‌سازی وارد کنید.",
+      "quota_exceeded": "سهمیهٔ فضای ذخیره‌سازی برای این عملیات کافی نیست.",
+      "config_conflict": "تنظیمات در جای دیگری تغییر کرده‌اند. صفحه را تازه کنید و تغییرات را دوباره اعمال کنید.",
+      "invalid_config_value": "یک یا چند مقدار تنظیمات نامعتبر است.",
+      "manual_migration_required": "پیش از تغییر این تنظیم باید داده‌های موجود را به‌صورت دستی منتقل کنید.",
+      "config_from_environment": "این تنظیم توسط محیط استقرار کنترل می‌شود.",
+      "rotation_required": "از عملیات جداگانهٔ تغییر راز استفاده کنید.",
+      "invalid_secret": "راز متفاوتی با طول ۳۲ تا ۴۰۹۶ نویسه وارد کنید.",
+      "deletion_incomplete": "حذف کامل نشده است. دسترسی به فضای ذخیره‌سازی را بررسی و دوباره تلاش کنید.",
+      "maintenance": "سرور در حال نگهداری است. پس از پایان دوباره تلاش کنید.",
+      "absolute_path_required": "یک مسیر مطلق وارد کنید.",
+      "rotation_running": "یک عملیات رمزنگاری در حال اجراست.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

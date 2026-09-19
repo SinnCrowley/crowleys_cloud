@@ -32,6 +32,11 @@ bool isLegacyPasswordHash(const std::string &storedHash);
 std::string encryptAes256(const std::string &plainText, const std::string &keySource);
 std::string decryptAes256(const std::string &cipherText, const std::string &keySource);
 bool encryptFileAes256(const std::filesystem::path &srcPath, const std::filesystem::path &dstPath, const std::string &keySource, std::string &outPlainSha256);
+bool verifyEncryptedFile(const std::filesystem::path &path, const std::string &key,
+                         const std::string &expectedHash, std::uintmax_t &plainSize);
+bool reencryptFile(const std::filesystem::path &source, const std::filesystem::path &destination,
+                   const std::string &oldKey, const std::string &newKey,
+                   const std::string &expectedHash, std::uintmax_t &plainSize);
 bool decryptFileAes256(const std::filesystem::path &srcPath, const std::filesystem::path &dstPath, const std::string &keySource);
 std::function<std::size_t(char *, std::size_t)> decryptedFileReader(const std::filesystem::path &path, const std::string &keySource);
 bool decryptFileToStream(const std::filesystem::path &srcPath, const std::string &keySource, const std::function<void(const char* data, size_t size)> &chunkCallback);

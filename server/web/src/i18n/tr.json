@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "Uygulama her kapatıldığında",
+    "login_15_minutes": "15 dakika",
+    "login_1_hour": "1 saat",
+    "login_1_day": "1 gün",
+    "login_30_days": "30 gün",
+    "login_never": "Asla"
   },
   "toasts": {
     "login_success": "Oturum başarıyla açıldı!",
@@ -362,5 +368,185 @@
     "network_upload": "Yükleme sırasında ağ hatası",
     "batch_upload_failed": "Toplu yükleme başarısız oldu ({status})",
     "network_batch_upload": "Toplu yükleme sırasında ağ hatası"
+  },
+  "account_status": {
+    "registrationPending": "Kayıt başvurusu gönderildi. Yönetici onayını bekleyin.",
+    "registrationClosed": "Kayıt kapalı.",
+    "accountBlocked": "Bu hesap engellendi. Bir yöneticiyle iletişime geçin.",
+    "passwordResetRequired": "Parolanızın sıfırlanması gerekiyor. Bir yöneticiden kurtarma kodu isteyin.",
+    "serverMaintenance": "Sunucu bakımda. Dosya işlemleri daha sonra devam edecek.",
+    "storageQuotaExceeded": "Depolama kotası aşıldı. Dosyaları silin veya yöneticiden sınırınızı artırmasını isteyin.",
+    "resetPasswordStep1Body": "Kullanıcı adınızı girin ve bir yöneticiden altı haneli kurtarma kodu isteyin.",
+    "resetPasswordStep2Body": "Yöneticinin verdiği altı haneli kodu ve yeni parolanızı girin."
+  },
+  "recovery": {
+    "resetPasswordTitle": "Şifreyi Sıfırla",
+    "resetCodeLabel": "Sıfırlama Kodu",
+    "passwordResetSuccessfully": "Şifre başarıyla sıfırlandı!",
+    "newPasswordLabel": "Yeni Şifre",
+    "codeAndPasswordRequired": "Kod ve yeni şifre gereklidir."
+  },
+  "admin": {
+    "title": "Yönetim",
+    "users": "Kullanıcılar",
+    "applications": "Kayıt başvuruları",
+    "configuration": "Sunucu ayarları",
+    "maintenance": "Bakım",
+    "saved": "Kaydedildi.",
+    "role": "Rol",
+    "user": "Kullanıcı",
+    "administrator": "Yönetici",
+    "status": "Durum",
+    "active": "Etkin",
+    "blocked": "Engellenmiş",
+    "quota": "Depolama kotası",
+    "inherit": "Sunucu varsayılanını kullan",
+    "unlimited": "Sınırsız",
+    "limited": "Özel sınır",
+    "bytes": "Bayt cinsinden sınır",
+    "used": "Kullanılan",
+    "reserved": "Ayrılan",
+    "reset_password": "Parolayı sıfırla",
+    "revoke_sessions": "Tüm cihazlardan çıkış yap",
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "no_applications": "Bekleyen kayıt başvurusu yok.",
+    "deleting": "Silme tamamlanmadı. Depolama sorununu giderip yeniden deneyin.",
+    "retry": "Devam et",
+    "rotation": "Şifreleme anahtarını değiştirme",
+    "new_secret": "Yeni gizli değer (en az 32 karakter)",
+    "rotate": "Gizli değeri değiştir",
+    "pending": "Geçerli değer; kaydedilen değişiklik yeniden başlatma gerektirir",
+    "rotation_failed": "İşlem duraklatıldı. Depolama sorununu giderip devam edin. Dosya erişimi askıda kalır.",
+    "recovery_hint": "Bu tek kullanımlık kodu kopyalayıp kullanıcıya verin. 10 dakika sonra sona erer ve yalnızca burada gösterilir.",
+    "config_hint": "“Yeniden başlatma” işaretli ayarlar için sunucunun işletici tarafından yeniden başlatılması gerekir. Mevcut depolamanın veya veritabanının taşınması elle geçiş gerektirir. Sıfır kota sınırsız demektir.",
+    "environment_hint": "Bu gizli değer dağıtım ortamından gelir ve burada değiştirilemez.",
+    "confirm_reset": "{name} kullanıcısının parolası sıfırlansın mı? Geçerli parolası ve tüm oturumları geçersiz olacaktır.",
+    "confirm_delete": "{name} silinsin mi? Kişisel dosyalar ve çöp kutusu silinecektir. Paylaşılan dosyalar hesabınıza aktarılacak ve kotanıza dahil edilecektir.",
+    "confirm_signing": "İmzalama gizli değeri değiştirilsin mi? Bu tarayıcı dahil tüm cihazlarda oturum kapatılacaktır.",
+    "confirm_encryption": "Şifreleme anahtarı değiştirilsin mi? Tüm dosyalar yeniden şifrelenene kadar dosya erişimi askıya alınacaktır. İşlem başladıktan sonra iptal edilemez.",
+    "apply": {
+      "live": "Hemen uygulanır",
+      "restart": "Yeniden başlatma gerekli",
+      "migration": "Veri içeren sunucuda elle geçiş",
+      "rotation": "Ayrı işlem"
+    },
+    "source": {
+      "environment": "Dağıtım ortamı",
+      "local": "Yerel ayarlar",
+      "base": "Temel yapılandırma",
+      "default": "Varsayılan"
+    },
+    "registration": {
+      "approval": "Yönetici onayı",
+      "open": "Açık",
+      "closed": "Kapalı"
+    },
+    "phase": {
+      "idle": "Devam eden işlem yok",
+      "enumerating": "Dosyalar hazırlanıyor",
+      "rotating": "Dosyalar yeniden şifreleniyor",
+      "finalizing": "Yeni anahtar doğrulanıyor ve uygulanıyor",
+      "complete": "Tamamlandı"
+    },
+    "errors": {
+      "forbidden": "Yönetici erişimi gerekli.",
+      "last_admin": "Son etkin yönetici erişilebilir kalmalıdır.",
+      "invalid_quota": "Geçerli bir depolama sınırı girin.",
+      "quota_exceeded": "Bu işlem için depolama kotası yetersiz.",
+      "config_conflict": "Ayarlar başka bir yerde değiştirildi. Yenileyip değişikliklerinizi tekrar uygulayın.",
+      "invalid_config_value": "Bir veya daha fazla ayar değeri geçersiz.",
+      "manual_migration_required": "Bu ayarı değiştirmeden önce mevcut veriler elle taşınmalıdır.",
+      "config_from_environment": "Bu ayar dağıtım ortamı tarafından yönetilir.",
+      "rotation_required": "Gizli değer değişikliği için ayrı işlemi kullanın.",
+      "invalid_secret": "32 ile 4096 karakter arasında farklı bir gizli değer kullanın.",
+      "deletion_incomplete": "Silme tamamlanmadı. Depolama erişimini kontrol edip yeniden deneyin.",
+      "maintenance": "Sunucu bakımda. Tamamlandığında yeniden deneyin.",
+      "absolute_path_required": "Mutlak bir yol girin.",
+      "rotation_running": "Zaten bir şifreleme işlemi devam ediyor.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

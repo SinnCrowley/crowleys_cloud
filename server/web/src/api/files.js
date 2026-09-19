@@ -17,6 +17,16 @@ import { apiGet, apiPost, apiDelete, apiMessage } from './client.js';
 import { get } from 'svelte/store';
 import { authStore } from '../stores/auth.js';
 
+function uploadError(xhr) {
+  let data = null;
+  try { data = JSON.parse(xhr.responseText); } catch (_) {}
+  const key = data?.code === 'maintenance' ? 'serverMaintenance' : data?.code === 'quota_exceeded' ? 'storageQuotaExceeded' : null;
+  const error = new Error(key ? apiMessage(`account_status.${key}`) : data?.error || apiMessage('api.upload_failed_status', { status: xhr.status }));
+  error.status = xhr.status;
+  error.data = data;
+  return error;
+}
+
 export const filesApi = {
   async listDir({ scope = 'private', path = '', type = 'all', q = '', sort = 'name', order = 'asc' } = {}) {
     const params = new URLSearchParams({ scope });
@@ -112,6 +122,7 @@ export const filesApi = {
             resolve({ ok: true });
           }
         } else if (xhr.status === 401 && !isRetry) {
+          let refreshed = false;
           try {
             const refreshToken = get(authStore.refreshToken);
             if (!refreshToken) {
@@ -138,15 +149,16 @@ export const filesApi = {
               refreshToken: refreshData.refresh_token
             });
 
+            refreshed = true;
             const retryResult = await this.uploadFileSingle({ scope, path, file, onProgress, signal }, true);
             resolve(retryResult);
           } catch (err) {
-            if (signal?.aborted) { reject(err); return; }
+            if (refreshed || signal?.aborted) { reject(err); return; }
             authStore.clearSession();
             reject(new Error(apiMessage('api.upload_failed_status', { status: 401 })));
           }
         } else {
-          reject(new Error(apiMessage('api.upload_failed_status', { status: xhr.status })));
+          reject(uploadError(xhr));
         }
       };
 
@@ -192,14 +204,7 @@ export const filesApi = {
             resolve({ ok: true });
           }
         } else {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            reject(new Error(
-              data.error || apiMessage('api.batch_upload_failed', { status: xhr.status }),
-            ));
-          } catch (e) {
-            reject(new Error(apiMessage('api.batch_upload_failed', { status: xhr.status })));
-          }
+          reject(uploadError(xhr));
         }
       };
 

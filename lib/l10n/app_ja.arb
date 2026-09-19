@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Reset password step 2 title"
   },
-  "resetPasswordStep1Body": "ユーザー名を入力してください。6桁の確認コードがサーバーログ/コンソールに出力されます。",
+  "resetPasswordStep1Body": "ユーザー名を入力し、管理者に6桁の復旧コードを依頼してください。",
   "@resetPasswordStep1Body": {
     "description": "Reset password step 1 instructions"
   },
-  "resetPasswordStep2Body": "確認コードがサーバーコンソールに出力されました。6桁のコードと新しいパスワードを入力してください。",
+  "resetPasswordStep2Body": "管理者から受け取った6桁のコードと新しいパスワードを入力してください。",
   "@resetPasswordStep2Body": {
     "description": "Reset password step 2 instructions"
   },
@@ -2658,5 +2658,13 @@
   "language": "言語",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "登録申請を送信しました。管理者の承認をお待ちください。",
+  "registrationClosed": "新規登録は停止されています。",
+  "accountBlocked": "このアカウントはブロックされています。管理者にお問い合わせください。",
+  "passwordResetRequired": "パスワードの再設定が必要です。管理者から復旧コードを受け取ってください。",
+  "serverMaintenance": "サーバーはメンテナンス中です。ファイル操作は後ほど再開されます。",
+  "storageQuotaExceeded": "ストレージの上限を超えました。ファイルを削除するか、管理者に上限の引き上げを依頼してください。",
+  "systemDefault": "システムのデフォルト",
+  "errorPickingFiles": "ファイルの選択中にエラーが発生しました"
 }

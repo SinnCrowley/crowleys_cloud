@@ -758,11 +758,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'أدخل اسم المستخدم الخاص بك. ستتم طباعة رمز التحقق المكون من 6 أرقام في سجلات/وحدة تحكم الخادم.';
+      'أدخل اسم المستخدم واطلب من المسؤول رمز استرداد من ستة أرقام.';
 
   @override
   String get resetPasswordStep2Body =>
-      'تمت طباعة رمز التحقق في وحدة تحكم الخادم. أدخل الرمز المكون من 6 أرقام وكلمة المرور الجديدة.';
+      'أدخل الرمز المكوّن من ستة أرقام الذي قدّمه المسؤول وكلمة المرور الجديدة.';
 
   @override
   String get resetCodeLabel => 'رمز إعادة التعيين';
@@ -1780,4 +1780,32 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get language => 'اللغة';
+
+  @override
+  String get registrationPending =>
+      'تم إرسال طلب التسجيل. انتظر موافقة المسؤول.';
+
+  @override
+  String get registrationClosed => 'التسجيل مغلق.';
+
+  @override
+  String get accountBlocked => 'هذا الحساب محظور. تواصل مع المسؤول.';
+
+  @override
+  String get passwordResetRequired =>
+      'يجب إعادة تعيين كلمة المرور. اطلب رمز استرداد من المسؤول.';
+
+  @override
+  String get serverMaintenance =>
+      'الخادم قيد الصيانة. ستُستأنف عمليات الملفات لاحقًا.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'تم تجاوز حصة التخزين. احذف ملفات أو اطلب من المسؤول زيادة الحد.';
+
+  @override
+  String get systemDefault => 'افتراضي النظام';
+
+  @override
+  String get errorPickingFiles => 'خطأ في اختيار الملفات';
 }

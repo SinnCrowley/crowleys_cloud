@@ -73,6 +73,54 @@ void main() {
   });
 
   test(
+    'pending registration creates no session or saved credentials',
+    () async {
+      final secrets = InMemorySecretStore();
+      final service = AuthService(
+        secretStore: secrets,
+        gateway: HttpAuthGateway(
+          client: MockClient((request) async {
+            expect(request.url.path, '/api/register');
+            return http.Response(
+              '{"status":"pending","code":"registration_pending"}',
+              202,
+            );
+          }),
+        ),
+      );
+      expect(
+        await service.authenticate(
+          serverId: 'pending',
+          baseUrl: 'http://localhost:8080',
+          username: 'new-user',
+          password: 'secret',
+          mode: AuthMode.register,
+        ),
+        isFalse,
+      );
+      expect(await secrets.readToken('pending'), isNull);
+      expect(await secrets.readRefreshToken('pending'), isNull);
+      expect(await secrets.readLastUsername('pending'), isNull);
+      expect(await secrets.readSavedPassword('pending'), isNull);
+    },
+  );
+
+  test('account error codes have localized messages', () {
+    for (final code in [
+      'registration_pending',
+      'registration_closed',
+      'account_blocked',
+      'password_reset_required',
+      'maintenance',
+      'quota_exceeded',
+    ]) {
+      final message = accountErrorMessage(jsonEncode({'code': code}));
+      expect(message, isNotNull);
+      expect(message, isNot(code));
+    }
+  });
+
+  test(
     'secure store keeps tokens process-only across store instances',
     () async {
       SharedPreferences.setMockInitialValues({

@@ -90,6 +90,7 @@ std::vector<TrashEntry> TrashService::listTrash(std::int64_t userId, StorageScop
 }
 
 void TrashService::moveToTrash(std::int64_t userId, StorageScope scope, const std::string &relPath) {
+  std::lock_guard<std::recursive_mutex> storageLock(server::ctx().storageMutex);
   const auto role = "user"; // Default role
   const auto configHashFiles = server::ctx().config.hashFiles;
   const auto ownerUserId = (scope == StorageScope::Shared) ? 0 : userId;
@@ -387,6 +388,7 @@ std::vector<TrashConflict> TrashService::checkRestoreConflicts(std::int64_t user
 }
 
 void TrashService::restoreFromTrash(std::int64_t userId, const std::vector<std::int64_t> &ids, bool overwrite) {
+  std::lock_guard<std::recursive_mutex> storageLock(server::ctx().storageMutex);
   const auto configHashFiles = server::ctx().config.hashFiles;
   for (const auto id : ids) {
     std::string scopeStr = "private";
@@ -628,6 +630,7 @@ void TrashService::restoreFromTrash(std::int64_t userId, const std::vector<std::
 }
 
 void TrashService::deletePermanently(std::int64_t userId, const std::vector<std::int64_t> &ids) {
+  std::lock_guard<std::recursive_mutex> storageLock(server::ctx().storageMutex);
   const auto configHashFiles = server::ctx().config.hashFiles;
   for (const auto id : ids) {
     std::string scopeStr = "private";
@@ -706,6 +709,7 @@ void TrashService::deletePermanently(std::int64_t userId, const std::vector<std:
 }
 
 void TrashService::purgeTrash(std::int64_t userId) {
+  std::lock_guard<std::recursive_mutex> storageLock(server::ctx().storageMutex);
   std::vector<std::int64_t> ids;
   {
     auto stmtGuard = db_.getStatement("SELECT id FROM trash WHERE owner_user_id = ?");
@@ -720,6 +724,7 @@ void TrashService::purgeTrash(std::int64_t userId) {
 }
 
 void TrashService::cleanupExpiredTrash() {
+  std::lock_guard<std::recursive_mutex> storageLock(server::ctx().storageMutex);
   const auto retentionDays = server::ctx().config.trashRetentionDays;
   if (retentionDays <= 0) return;
 

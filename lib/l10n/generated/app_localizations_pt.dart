@@ -768,11 +768,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'Introduza o seu nome de utilizador. O código de verificação de 6 dígitos será apresentado na consola/registos do servidor.';
+      'Introduza o nome de utilizador e peça a um administrador um código de recuperação de seis dígitos.';
 
   @override
   String get resetPasswordStep2Body =>
-      'O código de verificação foi apresentado na consola do servidor. Introduza o código de 6 dígitos e a sua nova palavra-passe.';
+      'Introduza o código de seis dígitos fornecido por um administrador e a nova palavra-passe.';
 
   @override
   String get resetCodeLabel => 'Código de reposição';
@@ -1810,6 +1810,35 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get language => 'Idioma';
+
+  @override
+  String get registrationPending =>
+      'Pedido enviado. Aguarde a aprovação de um administrador.';
+
+  @override
+  String get registrationClosed => 'O registo está fechado.';
+
+  @override
+  String get accountBlocked =>
+      'Esta conta está bloqueada. Contacte um administrador.';
+
+  @override
+  String get passwordResetRequired =>
+      'É necessário repor a palavra-passe. Peça um código de recuperação a um administrador.';
+
+  @override
+  String get serverMaintenance =>
+      'O servidor está em manutenção. As operações com ficheiros serão retomadas mais tarde.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'A quota de armazenamento foi excedida. Elimine ficheiros ou peça a um administrador para aumentar o limite.';
+
+  @override
+  String get systemDefault => 'Predefinição do sistema';
+
+  @override
+  String get errorPickingFiles => 'Erro ao selecionar ficheiros';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -2574,11 +2603,11 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get resetPasswordStep1Body =>
-      'Digite seu nome de usuário. O código de verificação de 6 dígitos será impresso nos logs/console do servidor.';
+      'Digite o nome de usuário e peça a um administrador um código de recuperação de seis dígitos.';
 
   @override
   String get resetPasswordStep2Body =>
-      'O código de verificação foi impresso no console do servidor. Digite o código de 6 dígitos e sua nova senha.';
+      'Digite o código de seis dígitos fornecido por um administrador e a nova senha.';
 
   @override
   String get resetCodeLabel => 'Código de redefinição';
@@ -3615,4 +3644,33 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get language => 'Idioma';
+
+  @override
+  String get registrationPending =>
+      'Solicitação enviada. Aguarde a aprovação de um administrador.';
+
+  @override
+  String get registrationClosed => 'O cadastro está fechado.';
+
+  @override
+  String get accountBlocked =>
+      'Esta conta está bloqueada. Entre em contato com um administrador.';
+
+  @override
+  String get passwordResetRequired =>
+      'É necessário redefinir a senha. Peça um código de recuperação a um administrador.';
+
+  @override
+  String get serverMaintenance =>
+      'O servidor está em manutenção. As operações com arquivos serão retomadas mais tarde.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'A cota de armazenamento foi excedida. Exclua arquivos ou peça a um administrador para aumentar o limite.';
+
+  @override
+  String get systemDefault => 'Padrão do sistema';
+
+  @override
+  String get errorPickingFiles => 'Erro ao selecionar arquivos';
 }

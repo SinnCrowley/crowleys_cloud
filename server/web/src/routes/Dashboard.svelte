@@ -16,9 +16,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import { statsStore, refreshStats } from '../stores/stats.js';
+  import { authStore } from '../stores/auth.js';
   import { t } from '../stores/i18n.js';
 
   const dispatch = createEventDispatcher();
+  const { user } = authStore;
 
   let isDragActive = false;
   let dragCounter = 0;
@@ -34,6 +36,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
+
+  $: quotaLimit = Number($user?.quota_bytes ?? $statsStore.limitBytes ?? 0);
+  $: quotaUsed = Number($user?.used_bytes ?? $statsStore.usedBytes ?? $statsStore.totalSize ?? 0);
+  $: quotaPercent = quotaLimit > 0 ? Math.min(100, (quotaUsed / quotaLimit) * 100) : 100;
 
   function handleNavigate(filterType = 'all', scope = 'private') {
     dispatch('navigate', { route: 'files', filterType, scope });
@@ -110,10 +116,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <span class="material-symbols-outlined storage-icon">cloud</span>
           <span>{$t('dashboard.storage_used')}</span>
         </div>
-        <span class="storage-widget-size">{formatSize($statsStore.totalSize)} / ∞</span>
+        <span class="storage-widget-size">{formatSize(quotaUsed)} / {quotaLimit > 0 ? formatSize(quotaLimit) : '∞'}</span>
       </div>
       <div class="storage-widget-bar">
-        <div class="storage-widget-fill" style="width: 100%;"></div>
+        <div class="storage-widget-fill" style="width: {quotaPercent}%;"></div>
       </div>
       <div class="storage-widget-footer">
         <span>{$t('dashboard.items_stored', { count: $statsStore.totalCount })}</span>

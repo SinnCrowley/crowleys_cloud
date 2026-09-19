@@ -28,3 +28,7 @@ server/web/node_modules/
 **/config.local.json.init-lock
 .env
 *.env
+
+**/encryption-rotation.keys.json
+**/encryption-rotation.keys.json.*.tmp
+**/config.local.json.*.tmp

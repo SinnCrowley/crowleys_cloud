@@ -17,6 +17,42 @@ import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  test('maintenance retains transfer progress and resumes', () async {
+    final manager = TransferManager();
+    final item = manager.addItem(
+      name: 'pending',
+      direction: TransferDirection.upload,
+      totalBytes: 10,
+    );
+    manager.startItem(item);
+    item.transferredBytes = 4;
+    final pending = manager.waitForMaintenance(
+      item,
+      const Duration(milliseconds: 1),
+    );
+    expect(item.status, TransferStatus.paused);
+    expect(item.error, isNotNull);
+    await pending;
+    expect(item.status, TransferStatus.running);
+    expect(item.transferredBytes, 4);
+    manager.dispose();
+  });
+  test('maintenance wait respects cancellation', () async {
+    final manager = TransferManager();
+    final item = manager.addItem(
+      name: 'pending',
+      direction: TransferDirection.upload,
+      totalBytes: 10,
+    );
+    final pending = manager.waitForMaintenance(
+      item,
+      const Duration(milliseconds: 1),
+    );
+    manager.cancelItem(item);
+    await expectLater(pending, throwsA(isA<TransferItemCanceledException>()));
+    manager.dispose();
+  });
   test('cancelItem only cancels one transfer', () {
     final manager = TransferManager();
     final first = manager.addItem(

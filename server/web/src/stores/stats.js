@@ -15,6 +15,7 @@
 
 import { writable } from 'svelte/store';
 import { filesApi } from '../api/files.js';
+import { authStore } from './auth.js';
 
 const STORAGE_KEY = 'cc_user_stats';
 
@@ -22,6 +23,9 @@ function getInitialStats() {
   const defaultStats = {
     totalCount: 0,
     totalSize: 0,
+    usedBytes: 0,
+    limitBytes: 0,
+    reservedBytes: 0,
     photoCount: 0,
     photoSize: 0,
     videoCount: 0,
@@ -71,6 +75,9 @@ export async function refreshStats() {
       const newStats = {
         totalCount: res.total_count || 0,
         totalSize: res.total_size || 0,
+        usedBytes: res.used_bytes ?? res.total_size ?? 0,
+        limitBytes: res.limit_bytes ?? 0,
+        reservedBytes: res.reserved_bytes ?? 0,
         photoCount: res.photo_count || 0,
         photoSize: res.photo_size || 0,
         videoCount: res.video_count || 0,
@@ -86,6 +93,7 @@ export async function refreshStats() {
         isLoading: false
       };
       statsStore.set(newStats);
+      authStore.user.update((u) => u ? ({ ...u, quota_bytes: res.limit_bytes, used_bytes: res.used_bytes, reserved_bytes: res.reserved_bytes }) : u);
     }
   } catch (err) {
     console.error('Failed to load storage stats:', err);

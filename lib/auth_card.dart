@@ -424,7 +424,7 @@ class _ForgotPasswordDialog extends StatefulWidget {
 }
 
 class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
-  int _step = 1; // 1: request code, 2: verify code & change password
+  int _step = 1; // 1: identify account, 2: enter admin-issued code
   bool _isLoading = false;
   String _error = '';
   String _success = '';
@@ -441,40 +441,16 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
     super.dispose();
   }
 
-  Future<void> _sendCode() async {
+  void _enterCode() {
     final l10n = AppLocalizations.of(context)!;
-    final username = _usernameController.text.trim();
-    if (username.isEmpty) {
+    if (_usernameController.text.trim().isEmpty) {
       setState(() => _error = l10n.usernameIsRequired);
       return;
     }
-
     setState(() {
-      _isLoading = true;
       _error = '';
+      _step = 2;
     });
-
-    try {
-      final authService = AuthService(secretStore: _DummySecretStore());
-      await authService.requestPasswordReset(
-        baseUrl: widget.baseUrl,
-        username: username,
-      );
-      setState(() {
-        _step = 2;
-        _isLoading = false;
-      });
-    } on AuthException catch (e) {
-      setState(() {
-        _error = e.message;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = l10n.failedToRequestReset;
-        _isLoading = false;
-      });
-    }
   }
 
   Future<void> _resetPassword() async {
@@ -624,7 +600,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
               FilledButton(
                 onPressed: _isLoading
                     ? null
-                    : (_step == 1 ? _sendCode : _resetPassword),
+                    : (_step == 1 ? _enterCode : _resetPassword),
                 style: FilledButton.styleFrom(
                   backgroundColor: appAccent,
                   shape: RoundedRectangleBorder(
@@ -640,7 +616,9 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                         ),
                       )
                     : Text(
-                        _step == 1 ? l10n.sendCode : l10n.resetPasswordTitle,
+                        _step == 1
+                            ? l10n.enterResetCodeTitle
+                            : l10n.resetPasswordTitle,
                       ),
               ),
             ],

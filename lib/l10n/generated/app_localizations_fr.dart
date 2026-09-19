@@ -771,11 +771,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'Saisissez votre nom d’utilisateur. Le code de vérification à 6 chiffres sera affiché dans les journaux ou la console du serveur.';
+      'Saisissez votre nom d’utilisateur et demandez un code de récupération à six chiffres à un administrateur.';
 
   @override
   String get resetPasswordStep2Body =>
-      'Le code de vérification a été affiché dans la console du serveur. Saisissez le code à 6 chiffres et votre nouveau mot de passe.';
+      'Saisissez le code à six chiffres fourni par un administrateur et votre nouveau mot de passe.';
 
   @override
   String get resetCodeLabel => 'Code de réinitialisation';
@@ -1819,4 +1819,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get language => 'Langue';
+
+  @override
+  String get registrationPending =>
+      'Demande envoyée. Attendez l’approbation d’un administrateur.';
+
+  @override
+  String get registrationClosed => 'Les inscriptions sont fermées.';
+
+  @override
+  String get accountBlocked =>
+      'Ce compte est bloqué. Contactez un administrateur.';
+
+  @override
+  String get passwordResetRequired =>
+      'Votre mot de passe doit être réinitialisé. Demandez un code de récupération à un administrateur.';
+
+  @override
+  String get serverMaintenance =>
+      'Le serveur est en maintenance. Les opérations sur les fichiers reprendront plus tard.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'Le quota de stockage est dépassé. Supprimez des fichiers ou demandez à un administrateur d’augmenter votre limite.';
+
+  @override
+  String get systemDefault => 'Valeur par défaut du système';
+
+  @override
+  String get errorPickingFiles => 'Erreur lors de la sélection des fichiers';
 }

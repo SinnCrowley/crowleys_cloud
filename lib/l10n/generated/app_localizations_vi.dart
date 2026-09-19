@@ -761,11 +761,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'Nhập tên người dùng của bạn. Mã xác nhận gồm 6 chữ số sẽ được xuất ra nhật ký/bảng điều khiển máy chủ.';
+      'Nhập tên người dùng và xin mã khôi phục gồm sáu chữ số từ quản trị viên.';
 
   @override
   String get resetPasswordStep2Body =>
-      'Mã xác nhận đã được gửi đến bảng điều khiển máy chủ. Nhập mã gồm 6 chữ số và mật khẩu mới của bạn.';
+      'Nhập mã sáu chữ số do quản trị viên cung cấp và mật khẩu mới.';
 
   @override
   String get resetCodeLabel => 'Mã đặt lại';
@@ -1791,4 +1791,33 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get language => 'Ngôn ngữ';
+
+  @override
+  String get registrationPending =>
+      'Đã gửi yêu cầu đăng ký. Vui lòng chờ quản trị viên phê duyệt.';
+
+  @override
+  String get registrationClosed => 'Đăng ký đã đóng.';
+
+  @override
+  String get accountBlocked =>
+      'Tài khoản này bị chặn. Hãy liên hệ quản trị viên.';
+
+  @override
+  String get passwordResetRequired =>
+      'Bạn cần đặt lại mật khẩu. Hãy xin mã khôi phục từ quản trị viên.';
+
+  @override
+  String get serverMaintenance =>
+      'Máy chủ đang bảo trì. Các thao tác với tệp sẽ được tiếp tục sau.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'Đã vượt hạn mức lưu trữ. Hãy xóa tệp hoặc yêu cầu quản trị viên tăng hạn mức.';
+
+  @override
+  String get systemDefault => 'Mặc định của hệ thống';
+
+  @override
+  String get errorPickingFiles => 'Lỗi khi chọn tệp';
 }

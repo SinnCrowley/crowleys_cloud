@@ -23,27 +23,36 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   const dispatch = createEventDispatcher();
   const { isAuthenticated, user, refreshToken } = authStore;
 
-  let activeTab = 'login'; // 'login' | 'register'
+  let activeTab = 'login'; // 'login' | 'register' | 'recovery'
+  let recoveryCode = '';
   let username = '';
   let password = '';
   let confirmPassword = '';
   let serverUrl = window.location.origin;
   let errorMessage = '';
+  let statusMessage = '';
   let isLoading = false;
 
   async function handleSubmit() {
     errorMessage = '';
+    statusMessage = '';
     if (!username || !password) {
       errorMessage = $t('modals.auth.fill_all_fields');
       return;
     }
-    if (activeTab === 'register' && password !== confirmPassword) {
+    if (activeTab !== 'login' && password !== confirmPassword) {
       errorMessage = $t('modals.auth.passwords_mismatch');
       return;
     }
 
     isLoading = true;
     try {
+      if (activeTab === 'recovery') {
+        await authApi.resetPassword({ username, code: recoveryCode, newPassword: password });
+        statusMessage = $t('recovery.passwordResetSuccessfully');
+        activeTab = 'login'; password = ''; confirmPassword = ''; recoveryCode = '';
+        return;
+      }
       let res;
       if (activeTab === 'login') {
         res = await authApi.login({ username, password });
@@ -51,12 +60,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         res = await authApi.register({ username, password });
       }
 
+      if (res.status === 'pending') {
+        statusMessage = $t('account_status.registrationPending');
+        activeTab = 'login';
+        password = '';
+        confirmPassword = '';
+        return;
+      }
       const payload = {
         accessToken: res.access_token,
         refreshToken: res.refresh_token,
         access_token: res.access_token,
         refresh_token: res.refresh_token,
-        user: { username }
+        user: res.user || { username }
       };
 
       authStore.setSession(payload);
@@ -105,10 +121,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <p class="text-body">{$t('modals.auth.logged_in_as', { username: $user?.username || $t('nav.user') })}</p>
         <button
           type="button"
-          class="btn btn-danger full-width"
+          class="btn btn-primary full-width"
+          style="display: flex; align-items: center; justify-content: center; gap: 8px;"
           disabled={isLoading}
           on:click={handleLogout}
         >
+          {#if !isLoading}
+            <span class="material-symbols-outlined" style="font-size: 18px;">logout</span>
+          {/if}
           {isLoading ? $t('common.loading') : $t('nav.sign_out')}
         </button>
       </div>
@@ -128,8 +148,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         >
           {$t('modals.auth.register_btn')}
         </button>
+        <button type="button" class="tab-btn {activeTab === 'recovery' ? 'active' : ''}" on:click={() => { activeTab = 'recovery'; errorMessage = ''; statusMessage = ''; }}>
+          {$t('recovery.resetPasswordTitle')}
+        </button>
       </div>
 
+      {#if activeTab === 'recovery'}<p>{$t('account_status.resetPasswordStep2Body')}</p>{/if}
+      {#if statusMessage}
+        <p role="status">{statusMessage}</p>
+      {/if}
       {#if errorMessage}
         <div class="error-banner text-sub">
           {errorMessage}
@@ -161,7 +188,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="password">{$t('modals.auth.password')}</label>
+          <label class="form-label" for="password">{$t(activeTab === 'recovery' ? 'recovery.newPasswordLabel' : 'modals.auth.password')}</label>
           <input
             id="password"
             type="password"
@@ -172,7 +199,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           />
         </div>
 
-        {#if activeTab === 'register'}
+        {#if activeTab === 'recovery'}
+          <div class="form-group">
+            <label class="form-label" for="recoveryCode">{$t('recovery.resetCodeLabel')}</label>
+            <input id="recoveryCode" class="form-input" type="text" inputmode="numeric" autocomplete="one-time-code" pattern={'[0-9]{6}'} maxlength="6" bind:value={recoveryCode} required />
+          </div>
+        {/if}
+        {#if activeTab !== 'login'}
           <div class="form-group">
             <label class="form-label" for="confirmPassword">{$t('modals.auth.confirm_password')}</label>
             <input
@@ -188,7 +221,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
         <div class="auth-actions">
           <button type="submit" class="btn btn-primary full-width" disabled={isLoading}>
-            {isLoading ? $t('common.loading') : activeTab === 'login' ? $t('nav.sign_in') : $t('modals.auth.register_btn')}
+            {isLoading ? $t('common.loading') : activeTab === 'login' ? $t('nav.sign_in') : activeTab === 'recovery' ? $t('recovery.resetPasswordTitle') : $t('modals.auth.register_btn')}
           </button>
         </div>
       </form>
@@ -255,15 +288,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     width: 100%;
     height: 44px;
     margin-top: var(--spacing-md);
-  }
-
-  .btn-danger {
-    background-color: var(--color-danger);
-    color: #FFFFFF;
-  }
-
-  .btn-danger:hover {
-    background-color: var(--color-danger-hover);
   }
 
   .auth-actions {

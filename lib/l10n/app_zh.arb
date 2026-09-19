@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Reset password step 2 title"
   },
-  "resetPasswordStep1Body": "輸入您的使用者名稱。6 位數確認碼將輸出到伺服器日誌/主控台。",
+  "resetPasswordStep1Body": "輸入使用者名稱，並向管理員索取六位數復原碼。",
   "@resetPasswordStep1Body": {
     "description": "Reset password step 1 instructions"
   },
-  "resetPasswordStep2Body": "確認碼已發送到伺服器主控台。請輸入 6 位數代碼與您的新密碼。",
+  "resetPasswordStep2Body": "輸入管理員提供的六位數復原碼和新密碼。",
   "@resetPasswordStep2Body": {
     "description": "Reset password step 2 instructions"
   },
@@ -2658,5 +2658,13 @@
   "language": "語言",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "註冊申請已提交，請等待管理員核准。",
+  "registrationClosed": "註冊已關閉。",
+  "accountBlocked": "此帳號已被封鎖，請聯絡管理員。",
+  "passwordResetRequired": "您需要重設密碼，請向管理員索取復原碼。",
+  "serverMaintenance": "伺服器正在維護，檔案操作稍後恢復。",
+  "storageQuotaExceeded": "已超出儲存配額，請刪除檔案或聯絡管理員提高限額。",
+  "systemDefault": "系统默认",
+  "errorPickingFiles": "选择文件时出错"
 }

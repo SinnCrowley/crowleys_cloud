@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "Every app close",
+    "login_15_minutes": "15 minutes",
+    "login_1_hour": "1 hour",
+    "login_1_day": "1 day",
+    "login_30_days": "30 days",
+    "login_never": "Never"
   },
   "toasts": {
     "login_success": "Logged in successfully!",
@@ -362,5 +368,185 @@
     "network_upload": "Network upload error",
     "batch_upload_failed": "Batch upload failed ({status})",
     "network_batch_upload": "Network batch upload error"
+  },
+  "account_status": {
+    "registrationPending": "Registration submitted. Await administrator approval.",
+    "registrationClosed": "Registration is closed.",
+    "accountBlocked": "This account is blocked. Contact an administrator.",
+    "passwordResetRequired": "Your password must be reset. Ask an administrator for a recovery code.",
+    "serverMaintenance": "The server is under maintenance. File operations will resume later.",
+    "storageQuotaExceeded": "Storage quota exceeded. Delete files or ask an administrator to increase your limit.",
+    "resetPasswordStep1Body": "Enter your username and ask an administrator for a 6-digit recovery code.",
+    "resetPasswordStep2Body": "Enter the 6-digit code provided by an administrator and your new password."
+  },
+  "admin": {
+    "title": "Administration",
+    "users": "Users",
+    "applications": "Registration requests",
+    "configuration": "Server settings",
+    "maintenance": "Maintenance",
+    "saved": "Saved.",
+    "role": "Role",
+    "user": "User",
+    "administrator": "Administrator",
+    "status": "Status",
+    "active": "Active",
+    "blocked": "Blocked",
+    "quota": "Storage quota",
+    "inherit": "Use server default",
+    "unlimited": "Unlimited",
+    "limited": "Custom limit",
+    "bytes": "Limit in bytes",
+    "used": "Used",
+    "reserved": "Reserved",
+    "reset_password": "Reset password",
+    "revoke_sessions": "Sign out all devices",
+    "approve": "Approve",
+    "reject": "Reject",
+    "no_applications": "No pending registration requests.",
+    "deleting": "Deletion is incomplete. Resolve the storage issue and retry.",
+    "retry": "Continue",
+    "rotation": "Encryption key rotation",
+    "new_secret": "New secret (at least 32 characters)",
+    "rotate": "Change secret",
+    "pending": "Current value; saved change requires restart",
+    "rotation_failed": "The operation is paused. Correct the storage problem and continue. File access remains suspended.",
+    "recovery_hint": "Copy this one-time code and give it to the user. It expires in 10 minutes and is shown only here.",
+    "config_hint": "Settings marked “Restart” require an operator to restart the server. Moving existing storage or the database requires a manual migration. A zero storage quota means unlimited.",
+    "environment_hint": "This secret comes from the deployment environment and cannot be changed here.",
+    "confirm_reset": "Reset the password for {name}? Their current password and all sessions will stop working.",
+    "confirm_delete": "Delete {name}? Personal files and trash will be removed. Shared files will be transferred to your account and count toward your quota.",
+    "confirm_signing": "Change the signing secret? All devices, including this browser, will be signed out.",
+    "confirm_encryption": "Change the encryption key? File access will be suspended until every file is reencrypted. This operation cannot be cancelled after it starts.",
+    "apply": {
+      "live": "Applies immediately",
+      "restart": "Restart required",
+      "migration": "Manual migration on a nonempty server",
+      "rotation": "Separate operation"
+    },
+    "source": {
+      "environment": "Deployment environment",
+      "local": "Local settings",
+      "base": "Base configuration",
+      "default": "Default"
+    },
+    "registration": {
+      "approval": "Administrator approval",
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "phase": {
+      "idle": "No operation in progress",
+      "enumerating": "Preparing files",
+      "rotating": "Reencrypting files",
+      "finalizing": "Verifying and applying the new key",
+      "complete": "Completed"
+    },
+    "errors": {
+      "forbidden": "Administrator access is required.",
+      "last_admin": "The last active administrator must remain available.",
+      "invalid_quota": "Enter a valid storage limit.",
+      "quota_exceeded": "The storage quota is insufficient for this operation.",
+      "config_conflict": "Settings changed elsewhere. Refresh and apply your changes again.",
+      "invalid_config_value": "One or more setting values are invalid.",
+      "manual_migration_required": "Existing data must be migrated manually before changing this setting.",
+      "config_from_environment": "This setting is controlled by the deployment environment.",
+      "rotation_required": "Use the separate secret rotation operation.",
+      "invalid_secret": "Use a different secret with 32 to 4096 characters.",
+      "deletion_incomplete": "Deletion is incomplete. Check storage access and retry.",
+      "maintenance": "The server is under maintenance. Try again when it completes.",
+      "absolute_path_required": "Enter an absolute path.",
+      "rotation_running": "An encryption operation is already in progress.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
+  },
+  "recovery": {
+    "resetPasswordTitle": "Reset Password",
+    "resetCodeLabel": "Reset Code",
+    "passwordResetSuccessfully": "Password reset successfully!",
+    "newPasswordLabel": "New Password",
+    "codeAndPasswordRequired": "Code and new password are required."
   }
 }

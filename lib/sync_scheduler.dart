@@ -471,7 +471,16 @@ Future<bool> runBackgroundSync({
       },
     );
 
-    if (result.status == SyncRunStatus.serverUnreachable ||
+    if (result.status == SyncRunStatus.maintenance) {
+      anyFailure = true;
+      await SyncNotificationService.instance.showCompleteNotification(
+        id: notificationId,
+        title: resolvedL10n.syncNotificationPausedTitle(serverName),
+        body: resolvedL10n.serverMaintenance,
+        isError: false,
+      );
+      // Keep the scheduled job and file state: the next run resumes the same files.
+    } else if (result.status == SyncRunStatus.serverUnreachable ||
         result.status == SyncRunStatus.authRequired) {
       anyFailure = true;
       final isUnreachable = result.status == SyncRunStatus.serverUnreachable;

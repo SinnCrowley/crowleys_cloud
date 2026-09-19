@@ -35,6 +35,11 @@ class RateLimiter {
    * Evaluates if a request for the given key is within allowed rate limits.
    * Resets window counts every minute and triggers periodic bucket eviction.
    */
+  void setLimit(int maxPerMinute) {
+    std::lock_guard<std::mutex> lock(mu_);
+    maxPerMinute_ = maxPerMinute;
+  }
+
   bool allow(const std::string &key) {
     const auto now = std::chrono::steady_clock::now();
     std::lock_guard<std::mutex> lock(mu_);

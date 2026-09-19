@@ -32,13 +32,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import TrashBrowser from './routes/TrashBrowser.svelte';
   import Dashboard from './routes/Dashboard.svelte';
   import Settings from './routes/Settings.svelte';
+  import Administration from './routes/Administration.svelte';
+  import { apiGet } from './api/client.js';
 
   import { filesStore } from './stores/files.js';
   import { transfersStore, activeCount } from './stores/transfers.js';
   import { authStore } from './stores/auth.js';
   import { themeState } from './stores/theme.js';
   import { filesApi } from './api/files.js';
-  import { refreshStats } from './stores/stats.js';
+  import { statsStore, refreshStats } from './stores/stats.js';
   import { shareApi } from './api/share.js';
   import { t, i18n } from './stores/i18n.js';
 
@@ -60,13 +62,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   }
 
   function getUrlForState(route, scopeVal, filterVal, pathVal) {
-    const r = (route === 'trash' || route === 'settings' || (route === 'dashboard' && filterVal === 'all' && scopeVal === 'private' && !pathVal))
+    const r = (route === 'trash' || route === 'settings' || route === 'admin' || (route === 'dashboard' && filterVal === 'all' && scopeVal === 'private' && !pathVal))
       ? route
       : 'files';
 
     if (r === 'dashboard') return '/dashboard';
     if (r === 'trash') return '/trash';
     if (r === 'settings') return '/settings';
+    if (r === 'admin') return '/admin';
 
     if (r === 'files') {
       if (scopeVal === 'shared') {
@@ -94,6 +97,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     if (cleanPath === '/trash') {
       return { route: 'trash', scope: 'private', filterType: 'all', currentPath: '' };
     }
+    if (cleanPath === '/admin') return { route: 'admin', scope: 'private', filterType: 'all', currentPath: '' };
     if (cleanPath === '/settings') {
       return { route: 'settings', scope: 'private', filterType: 'all', currentPath: '' };
     }
@@ -263,6 +267,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     };
 
     window.addEventListener('popstate', handlePopState);
+    const refreshAccount = async () => {
+      if (!get(authStore.isAuthenticated)) return;
+      try { authStore.user.set(await apiGet('/api/account')); } catch (_) {}
+      refreshStats();
+    };
+    refreshAccount();
+    window.addEventListener('focus', refreshAccount);
+    const onVisibilityChange = () => { if (!document.hidden) refreshAccount(); };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    const accountTimer = setInterval(refreshAccount, 30000);
 
     if (get(authStore.isAuthenticated)) {
       refreshStats();
@@ -270,6 +284,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('focus', refreshAccount);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      clearInterval(accountTimer);
     };
   });
 
@@ -365,6 +382,33 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     }
   }
 
+  async function enqueueUploads(filesToUpload) {
+    let account = null;
+    try {
+      account = await apiGet('/api/account');
+      authStore.user.set(account);
+    } catch (_) {
+      account = $user;
+    }
+    const limit = Number(account?.quota_bytes ?? $statsStore.limitBytes ?? 0);
+    let available = limit > 0
+      ? Math.max(0, limit - (Number(account?.used_bytes ?? $statsStore.usedBytes ?? 0) + Number(account?.reserved_bytes ?? $statsStore.reservedBytes ?? 0)))
+      : Infinity;
+    const allowed = [];
+    let rejected = false;
+    for (const item of filesToUpload) {
+      const size = Number(item.file?.size || 0);
+      if (size > available) {
+        rejected = true;
+      } else {
+        allowed.push(item);
+        if (limit > 0) available -= size;
+      }
+    }
+    if (rejected) showToast($t('account_status.storageQuotaExceeded'), 'error');
+    if (allowed.length) transfersStore.enqueueBatch(allowed, $scope, $currentPath);
+  }
+
   function processUploadQueue(payload) {
     let filesToUpload = [];
     if (Array.isArray(payload)) {
@@ -419,7 +463,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     if (conflicts.length > 0) {
       uploadConflictModal = { conflicts, nonConflicts };
     } else {
-      transfersStore.enqueueBatch(filesToUpload, $scope, $currentPath);
+      enqueueUploads(filesToUpload);
     }
   }
 
@@ -933,6 +977,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           on:toast={handleToastEvent}
         />
       </main>
+    {:else if currentRoute === 'admin'}
+      <main class="main-content">
+        {#if $user?.role === 'admin'}<Administration on:toast={handleToastEvent} />{:else}<p role="alert">{$t('admin.errors.forbidden')}</p>{/if}
+      </main>
     {:else if currentRoute === 'settings'}
       <main class="main-content">
         <Settings on:toast={handleToastEvent} />
@@ -1097,7 +1145,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       on:resolve={(e) => {
         const { confirmed } = e.detail;
         if (confirmed && confirmed.length > 0) {
-          transfersStore.enqueueBatch(confirmed, $scope, $currentPath);
+          enqueueUploads(confirmed);
         }
         uploadConflictModal = null;
       }}

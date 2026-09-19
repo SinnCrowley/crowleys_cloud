@@ -47,18 +47,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   const cacheOptions = [
     { value: 50 * 1024 * 1024, label: '50 MB' },
     { value: 100 * 1024 * 1024, label: '100 MB' },
-    { value: 500 * 1024 * 1024, label: '500 MB (default)' },
+    { value: 500 * 1024 * 1024, label: '500 MB' },
     { value: 1024 * 1024 * 1024, label: '1 GB' },
     { value: 5 * 1024 * 1024 * 1024, label: '5 GB' }
   ];
 
-  const loginOptions = [
-    { value: 'everyOpen', label: 'Every app close' },
-    { value: '15min', label: '15 minutes' },
-    { value: '1hour', label: '1 hour' },
-    { value: '1day', label: '1 day' },
-    { value: '30days', label: '30 days (default)' },
-    { value: 'never', label: 'Never' }
+  $: loginOptions = [
+    { value: 'everyOpen', label: $t('settings.login_every_close') },
+    { value: '15min', label: $t('settings.login_15_minutes') },
+    { value: '1hour', label: $t('settings.login_1_hour') },
+    { value: '1day', label: $t('settings.login_1_day') },
+    { value: '30days', label: $t('settings.login_30_days') },
+    { value: 'never', label: $t('settings.login_never') }
   ];
 
   let isRebuilding = false;

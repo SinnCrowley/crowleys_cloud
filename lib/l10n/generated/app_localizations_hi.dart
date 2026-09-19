@@ -763,11 +763,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'अपना उपयोगकर्ता नाम दर्ज करें। 6-अंकीय सत्यापन कोड सर्वर लॉग/कंसोल में मुद्रित होगा।';
+      'उपयोगकर्ता नाम दर्ज करें और व्यवस्थापक से छह अंकों का रिकवरी कोड माँगें।';
 
   @override
   String get resetPasswordStep2Body =>
-      'सत्यापन कोड सर्वर कंसोल पर मुद्रित किया गया है। 6-अंकीय कोड और अपना नया पासवर्ड दर्ज करें।';
+      'व्यवस्थापक से मिला छह अंकों का कोड और अपना नया पासवर्ड दर्ज करें।';
 
   @override
   String get resetCodeLabel => 'रीसेट कोड';
@@ -1801,4 +1801,32 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get language => 'भाषा';
+
+  @override
+  String get registrationPending =>
+      'पंजीकरण अनुरोध भेज दिया गया है। व्यवस्थापक की स्वीकृति की प्रतीक्षा करें।';
+
+  @override
+  String get registrationClosed => 'पंजीकरण बंद है।';
+
+  @override
+  String get accountBlocked => 'यह खाता अवरुद्ध है। व्यवस्थापक से संपर्क करें।';
+
+  @override
+  String get passwordResetRequired =>
+      'पासवर्ड रीसेट करना आवश्यक है। व्यवस्थापक से रिकवरी कोड माँगें।';
+
+  @override
+  String get serverMaintenance =>
+      'सर्वर का रखरखाव चल रहा है। फ़ाइल संचालन बाद में फिर शुरू होंगे।';
+
+  @override
+  String get storageQuotaExceeded =>
+      'स्टोरेज सीमा पार हो गई है। फ़ाइलें हटाएँ या व्यवस्थापक से सीमा बढ़ाने को कहें।';
+
+  @override
+  String get systemDefault => 'सिस्टम डिफ़ॉल्ट';
+
+  @override
+  String get errorPickingFiles => 'फ़ाइलें चुनने में त्रुटि';
 }

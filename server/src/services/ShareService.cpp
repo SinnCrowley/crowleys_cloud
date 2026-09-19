@@ -53,7 +53,7 @@ std::string ShareService::createShare(std::int64_t ownerUserId,
 
 std::optional<ShareRecord> ShareService::resolveShare(const std::string &token) {
   auto stmtGuard = db_.getStatement(
-      "SELECT owner_user_id, scope, rel_path, expires_at, disabled_at FROM share_links WHERE token = ?");
+      "SELECT owner_user_id, scope, rel_path, expires_at, disabled_at FROM share_links WHERE token = ? AND EXISTS(SELECT 1 FROM users WHERE users.id = share_links.owner_user_id AND users.status = 'active')");
   auto *stmt = stmtGuard.get();
 
   sqlite3_bind_text(stmt, 1, token.c_str(), -1, SQLITE_TRANSIENT);

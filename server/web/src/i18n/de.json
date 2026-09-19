@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "Bei jedem Schließen der App",
+    "login_15_minutes": "15 Minuten",
+    "login_1_hour": "1 Stunde",
+    "login_1_day": "1 Tag",
+    "login_30_days": "30 Tage",
+    "login_never": "Nie"
   },
   "toasts": {
     "login_success": "Erfolgreich angemeldet!",
@@ -362,5 +368,185 @@
     "network_upload": "Netzwerkfehler beim Upload",
     "batch_upload_failed": "Stapel-Upload fehlgeschlagen ({status})",
     "network_batch_upload": "Netzwerkfehler beim Stapel-Upload"
+  },
+  "account_status": {
+    "registrationPending": "Registrierung eingereicht. Warten Sie auf die Freigabe durch einen Administrator.",
+    "registrationClosed": "Die Registrierung ist geschlossen.",
+    "accountBlocked": "Dieses Konto ist gesperrt. Wenden Sie sich an einen Administrator.",
+    "passwordResetRequired": "Ihr Passwort muss zurückgesetzt werden. Bitten Sie einen Administrator um einen Wiederherstellungscode.",
+    "serverMaintenance": "Der Server wird gewartet. Dateioperationen werden später fortgesetzt.",
+    "storageQuotaExceeded": "Das Speicherlimit wurde überschritten. Löschen Sie Dateien oder bitten Sie einen Administrator um ein höheres Limit.",
+    "resetPasswordStep1Body": "Geben Sie Ihren Benutzernamen ein und bitten Sie einen Administrator um einen sechsstelligen Wiederherstellungscode.",
+    "resetPasswordStep2Body": "Geben Sie den sechsstelligen Code des Administrators und Ihr neues Passwort ein."
+  },
+  "recovery": {
+    "resetPasswordTitle": "Passwort zurücksetzen",
+    "resetCodeLabel": "Zurücksetzungscode",
+    "passwordResetSuccessfully": "Passwort erfolgreich zurückgesetzt!",
+    "newPasswordLabel": "Neues Passwort",
+    "codeAndPasswordRequired": "Code und neues Passwort sind erforderlich."
+  },
+  "admin": {
+    "title": "Verwaltung",
+    "users": "Benutzer",
+    "applications": "Registrierungsanträge",
+    "configuration": "Servereinstellungen",
+    "maintenance": "Wartung",
+    "saved": "Gespeichert.",
+    "role": "Rolle",
+    "user": "Benutzer",
+    "administrator": "Administrator",
+    "status": "Status",
+    "active": "Aktiv",
+    "blocked": "Gesperrt",
+    "quota": "Speicherlimit",
+    "inherit": "Serverstandard verwenden",
+    "unlimited": "Unbegrenzt",
+    "limited": "Eigenes Limit",
+    "bytes": "Limit in Bytes",
+    "used": "Belegt",
+    "reserved": "Reserviert",
+    "reset_password": "Passwort zurücksetzen",
+    "revoke_sessions": "Alle Geräte abmelden",
+    "approve": "Genehmigen",
+    "reject": "Ablehnen",
+    "no_applications": "Keine offenen Registrierungsanträge.",
+    "deleting": "Löschung unvollständig. Beheben Sie das Speicherproblem und versuchen Sie es erneut.",
+    "retry": "Fortsetzen",
+    "rotation": "Verschlüsselungsschlüssel wechseln",
+    "new_secret": "Neues Geheimnis (mindestens 32 Zeichen)",
+    "rotate": "Geheimnis ändern",
+    "pending": "Aktueller Wert; gespeicherte Änderung erfordert Neustart",
+    "rotation_failed": "Der Vorgang ist angehalten. Beheben Sie das Speicherproblem und setzen Sie ihn fort. Der Dateizugriff bleibt gesperrt.",
+    "recovery_hint": "Kopieren Sie diesen Einmalcode und geben Sie ihn dem Benutzer. Er ist 10 Minuten gültig und wird nur hier angezeigt.",
+    "config_hint": "Mit „Neustart“ markierte Einstellungen erfordern einen Neustart des Servers durch den Betreiber. Bestehende Speicher oder Datenbanken müssen manuell migriert werden. Ein Speicherlimit von null bedeutet unbegrenzt.",
+    "environment_hint": "Dieses Geheimnis stammt aus der Bereitstellungsumgebung und kann hier nicht geändert werden.",
+    "confirm_reset": "Passwort für {name} zurücksetzen? Das aktuelle Passwort und alle Sitzungen werden ungültig.",
+    "confirm_delete": "{name} löschen? Persönliche Dateien und Papierkorb werden gelöscht. Geteilte Dateien werden Ihrem Konto übertragen und auf Ihr Limit angerechnet.",
+    "confirm_signing": "Signaturgeheimnis ändern? Alle Geräte einschließlich dieses Browsers werden abgemeldet.",
+    "confirm_encryption": "Verschlüsselungsschlüssel ändern? Der Dateizugriff wird gesperrt, bis alle Dateien neu verschlüsselt sind. Nach dem Start kann der Vorgang nicht abgebrochen werden.",
+    "apply": {
+      "live": "Gilt sofort",
+      "restart": "Neustart erforderlich",
+      "migration": "Manuelle Migration bei vorhandenem Datenbestand",
+      "rotation": "Separater Vorgang"
+    },
+    "source": {
+      "environment": "Bereitstellungsumgebung",
+      "local": "Lokale Einstellungen",
+      "base": "Basiskonfiguration",
+      "default": "Standard"
+    },
+    "registration": {
+      "approval": "Genehmigung durch Administrator",
+      "open": "Offen",
+      "closed": "Geschlossen"
+    },
+    "phase": {
+      "idle": "Kein laufender Vorgang",
+      "enumerating": "Dateien werden vorbereitet",
+      "rotating": "Dateien werden neu verschlüsselt",
+      "finalizing": "Neuer Schlüssel wird geprüft und angewendet",
+      "complete": "Abgeschlossen"
+    },
+    "errors": {
+      "forbidden": "Administratorrechte erforderlich.",
+      "last_admin": "Der letzte aktive Administrator muss verfügbar bleiben.",
+      "invalid_quota": "Geben Sie ein gültiges Speicherlimit ein.",
+      "quota_exceeded": "Das Speicherlimit reicht für diesen Vorgang nicht aus.",
+      "config_conflict": "Einstellungen wurden anderweitig geändert. Aktualisieren Sie die Seite und wenden Sie Ihre Änderungen erneut an.",
+      "invalid_config_value": "Mindestens ein Einstellungswert ist ungültig.",
+      "manual_migration_required": "Vor dieser Änderung müssen vorhandene Daten manuell migriert werden.",
+      "config_from_environment": "Diese Einstellung wird durch die Bereitstellungsumgebung gesteuert.",
+      "rotation_required": "Verwenden Sie den separaten Vorgang zum Geheimniswechsel.",
+      "invalid_secret": "Verwenden Sie ein anderes Geheimnis mit 32 bis 4096 Zeichen.",
+      "deletion_incomplete": "Löschung unvollständig. Prüfen Sie den Speicherzugriff und versuchen Sie es erneut.",
+      "maintenance": "Der Server wird gewartet. Versuchen Sie es nach Abschluss erneut.",
+      "absolute_path_required": "Geben Sie einen absoluten Pfad ein.",
+      "rotation_running": "Ein Verschlüsselungsvorgang läuft bereits.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

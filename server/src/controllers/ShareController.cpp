@@ -24,6 +24,7 @@
 #include "server/utils/PlatformUtils.hpp"
 #include "server/utils/Crypto.hpp"
 #include "server/utils/HttpHelpers.hpp"
+#include "server/utils/StorageResponses.hpp"
 #include "server/utils/TimeUtils.hpp"
 #include "server/utils/ZipWriter.hpp"
 
@@ -40,14 +41,6 @@ using server::utils::nowSeconds;
 
 namespace {
 
-struct ZipCleanupHelper {
-  std::filesystem::path path;
-  drogon::HttpResponsePtr resp;
-  ~ZipCleanupHelper() {
-    std::error_code ec;
-    std::filesystem::remove(path, ec);
-  }
-};
 
 struct SharedTargetInfo {
   bool exists{false};
@@ -186,6 +179,9 @@ std::optional<SharedTargetInfo> resolveSharedTargetInfo(
 
 void ShareController::createShare(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   if (!req->attributes()->find("user_id") || !req->attributes()->find("role")) {
     callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
     return;
@@ -260,6 +256,9 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
 void ShareController::getShareInfo(const drogon::HttpRequestPtr &req,
                                    std::function<void(const drogon::HttpResponsePtr &)> &&callback,
                                    const std::string &token) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::string error;
   const auto subParam = req->getParameter("p");
   const auto targetOpt = resolveSharedTargetInfo(token, subParam, error);
@@ -354,6 +353,9 @@ void ShareController::getShareInfo(const drogon::HttpRequestPtr &req,
 void ShareController::sharePage(const drogon::HttpRequestPtr &req,
                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback,
                                 const std::string &token) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   auto share = server::ctx().shareService->resolveShare(token);
   if (!share.has_value()) {
     callback(jsonError(drogon::k404NotFound, "Invalid or expired share token"));
@@ -372,6 +374,9 @@ void ShareController::sharePage(const drogon::HttpRequestPtr &req,
 void ShareController::rawFile(const drogon::HttpRequestPtr &req,
                              std::function<void(const drogon::HttpResponsePtr &)> &&callback,
                              const std::string &token) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::string error;
   const auto subParam = req->getParameter("p");
   const auto targetOpt = resolveSharedTargetInfo(token, subParam, error);
@@ -403,13 +408,15 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
     }
 
     auto resp = drogon::HttpResponse::newStreamResponse(
-        utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey));
+        [reader = utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey), activity](char *data, size_t size) mutable {
+          return reader(data, size);
+        });
     resp->addHeader("Content-Length", std::to_string(target.size));
     resp->setContentTypeString(target.mimeType.empty() ? "application/octet-stream" : target.mimeType);
     resp->addHeader("Content-Disposition", std::string(disposition) + "; filename=\"" + target.name + "\"");
     callback(resp);
   } else {
-    auto resp = drogon::HttpResponse::newFileResponse(target.physicalPath.string());
+    auto resp = utils::storageFileResponse(target.physicalPath, activity, target.mimeType);
     resp->addHeader("Content-Disposition", std::string(disposition) + "; filename=\"" + target.name + "\"");
     callback(resp);
   }
@@ -418,6 +425,9 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
 void ShareController::downloadZip(const drogon::HttpRequestPtr &req,
                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback,
                                 const std::string &token) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::string error;
   const auto subParam = req->getParameter("p");
   const auto targetOpt = resolveSharedTargetInfo(token, subParam, error);
@@ -516,17 +526,17 @@ void ShareController::downloadZip(const drogon::HttpRequestPtr &req,
     return;
   }
 
-  auto resp = drogon::HttpResponse::newFileResponse(tmpZipPath.string());
+  auto resp = utils::storageFileResponse(tmpZipPath, activity, "application/zip", true);
   resp->addHeader("Content-Disposition", "attachment; filename=\"" + zipFilename + "\"");
-  
-  auto helper = std::make_shared<ZipCleanupHelper>(tmpZipPath, resp);
-  drogon::HttpResponsePtr aliasedResp(helper, resp.get());
-  callback(aliasedResp);
+    callback(resp);
 }
 
 void ShareController::publicAsset(const drogon::HttpRequestPtr &req,
                                    std::function<void(const drogon::HttpResponsePtr &)> &&callback,
                                    const std::string &filename) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   const std::string cleanName = std::filesystem::path(filename).filename().string();
   const std::string assetPath =
       (std::filesystem::path(server::ctx().config.publicDir) / cleanName).generic_string();

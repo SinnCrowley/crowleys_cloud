@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Reset password step 2 title"
   },
-  "resetPasswordStep1Body": "Nhập tên người dùng của bạn. Mã xác nhận gồm 6 chữ số sẽ được xuất ra nhật ký/bảng điều khiển máy chủ.",
+  "resetPasswordStep1Body": "Nhập tên người dùng và xin mã khôi phục gồm sáu chữ số từ quản trị viên.",
   "@resetPasswordStep1Body": {
     "description": "Reset password step 1 instructions"
   },
-  "resetPasswordStep2Body": "Mã xác nhận đã được gửi đến bảng điều khiển máy chủ. Nhập mã gồm 6 chữ số và mật khẩu mới của bạn.",
+  "resetPasswordStep2Body": "Nhập mã sáu chữ số do quản trị viên cung cấp và mật khẩu mới.",
   "@resetPasswordStep2Body": {
     "description": "Reset password step 2 instructions"
   },
@@ -2658,5 +2658,13 @@
   "language": "Ngôn ngữ",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Đã gửi yêu cầu đăng ký. Vui lòng chờ quản trị viên phê duyệt.",
+  "registrationClosed": "Đăng ký đã đóng.",
+  "accountBlocked": "Tài khoản này bị chặn. Hãy liên hệ quản trị viên.",
+  "passwordResetRequired": "Bạn cần đặt lại mật khẩu. Hãy xin mã khôi phục từ quản trị viên.",
+  "serverMaintenance": "Máy chủ đang bảo trì. Các thao tác với tệp sẽ được tiếp tục sau.",
+  "storageQuotaExceeded": "Đã vượt hạn mức lưu trữ. Hãy xóa tệp hoặc yêu cầu quản trị viên tăng hạn mức.",
+  "systemDefault": "Mặc định của hệ thống",
+  "errorPickingFiles": "Lỗi khi chọn tệp"
 }

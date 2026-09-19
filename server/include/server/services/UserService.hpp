@@ -20,6 +20,8 @@
 
 #include <optional>
 #include <string>
+#include <vector>
+#include <json/json.h>
 
 namespace server::services {
 
@@ -27,6 +29,10 @@ struct UserRecord {
   std::int64_t id;
   std::string username;
   std::string role;
+  std::string status{"active"};
+  std::optional<std::int64_t> quotaBytes;
+  std::int64_t createdAt{0};
+  bool passwordResetRequired{false};
 };
 
 struct AuthTokens {
@@ -49,7 +55,6 @@ class UserService {
   std::optional<UserRecord> authenticate(const std::string &username,
                                          const std::string &password);
 
-  bool requestPasswordReset(const std::string &username, std::string &codeOut);
   bool verifyPasswordReset(const std::string &username, const std::string &code, const std::string &newPassword);
 
   AuthTokens issueTokens(const UserRecord &user);
@@ -59,11 +64,22 @@ class UserService {
   std::string makeSyncToken(std::int64_t userId) const;
 
   void revokeAllRefreshTokens(std::int64_t userId);
-  std::optional<UserRecord> getUserById(std::int64_t userId);
+  std::optional<UserRecord> getUserById(std::int64_t userId) const;
+  std::vector<UserRecord> listUsers(bool pending) const;
+  bool updateUser(std::int64_t actorId, std::int64_t userId, const Json::Value &patch, std::string &error);
+  bool decideApplication(std::int64_t actorId, std::int64_t userId, bool approve, std::string &error);
+  bool adminResetPassword(std::int64_t actorId, std::int64_t userId, std::string &code, std::string &error);
+  void revokeSessions(std::int64_t userId);
+  void audit(std::int64_t actorId, const std::string &action, std::int64_t targetId);
+  bool isLastActiveAdmin(std::int64_t userId) const;
   bool changePassword(std::int64_t userId, const std::string &newPassword);
   bool deleteAccount(std::int64_t userId);
+  bool deleteUser(std::int64_t actorId, std::int64_t userId, std::string &error);
+  void resumeDeletions();
+  void finishDeletion(std::int64_t userId);
 
  private:
+  bool requestPasswordReset(const std::string &username, std::string &codeOut);
   db::Database &db_;
   const utils::Config &config_;
 

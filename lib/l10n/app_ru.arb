@@ -218,8 +218,8 @@
   "registrationFailed": "Ошибка регистрации: {error}",
   "resetPasswordTitle": "Сброс пароля",
   "enterResetCodeTitle": "Введите код сброса",
-  "resetPasswordStep1Body": "Введите имя пользователя. 6-значный код подтверждения будет выведен в логи/консоль сервера.",
-  "resetPasswordStep2Body": "Код подтверждения выведен в консоль сервера. Введите 6-значный код и новый пароль.",
+  "resetPasswordStep1Body": "Введите имя пользователя и запросите у администратора шестизначный код восстановления.",
+  "resetPasswordStep2Body": "Введите шестизначный код от администратора и новый пароль.",
   "resetCodeLabel": "Код сброса",
   "resetCodeHint": "Введите 6-значный код",
   "newPasswordLabel": "Новый пароль",
@@ -511,5 +511,13 @@
   "language": "Язык",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Заявка отправлена. Ожидайте одобрения администратора.",
+  "registrationClosed": "Регистрация закрыта.",
+  "accountBlocked": "Учётная запись заблокирована. Обратитесь к администратору.",
+  "passwordResetRequired": "Необходимо сбросить пароль. Получите код восстановления у администратора.",
+  "serverMaintenance": "Сервер на обслуживании. Операции с файлами возобновятся позже.",
+  "storageQuotaExceeded": "Превышен лимит хранения. Удалите файлы или попросите администратора увеличить лимит.",
+  "systemDefault": "По умолчанию системы",
+  "errorPickingFiles": "Ошибка выбора файлов"
 }

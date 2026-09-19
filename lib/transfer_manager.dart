@@ -224,6 +224,31 @@ class TransferManager extends ChangeNotifier {
     _notifyNow();
   }
 
+  Future<void> waitForMaintenance(
+    TransferItem item,
+    Duration retryAfter,
+  ) async {
+    throwIfCanceled();
+    throwIfItemCanceled(item);
+    item.status = TransferStatus.paused;
+    item.error = platformAppLocalizations().serverMaintenance;
+    _notifyNow();
+    for (
+      var remaining = retryAfter.inMilliseconds;
+      remaining > 0;
+      remaining -= 250
+    ) {
+      await Future<void>.delayed(
+        Duration(milliseconds: remaining.clamp(1, 250)),
+      );
+      throwIfCanceled();
+      throwIfItemCanceled(item);
+    }
+    await waitIfPaused();
+    throwIfItemCanceled(item);
+    startItem(item);
+  }
+
   Future<void> waitIfPaused() async {
     if (_canceled) throw TransferCanceledException();
     while (_paused) {

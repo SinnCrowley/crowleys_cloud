@@ -760,11 +760,11 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'نام کاربری خود را وارد کنید. کد تأیید ۶ رقمی در لاگ‌ها/کنسول سرور چاپ خواهد شد.';
+      'نام کاربری را وارد کنید و از مدیر یک کد بازیابی شش‌رقمی بخواهید.';
 
   @override
   String get resetPasswordStep2Body =>
-      'کد تأیید در کنسول سرور چاپ شده است. کد ۶ رقمی و گذرواژه جدید خود را وارد کنید.';
+      'کد شش‌رقمی ارائه‌شده توسط مدیر و گذرواژهٔ جدید را وارد کنید.';
 
   @override
   String get resetCodeLabel => 'کد بازنشانی';
@@ -1790,4 +1790,32 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get language => 'زبان';
+
+  @override
+  String get registrationPending =>
+      'درخواست ثبت‌نام ارسال شد. منتظر تأیید مدیر بمانید.';
+
+  @override
+  String get registrationClosed => 'ثبت‌نام بسته است.';
+
+  @override
+  String get accountBlocked => 'این حساب مسدود شده است. با مدیر تماس بگیرید.';
+
+  @override
+  String get passwordResetRequired =>
+      'گذرواژه باید بازنشانی شود. از مدیر کد بازیابی بخواهید.';
+
+  @override
+  String get serverMaintenance =>
+      'سرور در حال نگهداری است. عملیات فایل‌ها بعداً از سر گرفته می‌شود.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'سهمیهٔ فضای ذخیره‌سازی تمام شده است. فایل‌ها را حذف کنید یا از مدیر افزایش سهمیه بخواهید.';
+
+  @override
+  String get systemDefault => 'پیش‌فرض سیستم';
+
+  @override
+  String get errorPickingFiles => 'خطا در انتخاب فایل‌ها';
 }

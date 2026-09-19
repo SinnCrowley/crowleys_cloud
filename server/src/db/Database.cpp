@@ -41,8 +41,8 @@ Database::Database(const std::string &path) {
   exec("PRAGMA foreign_keys = ON;");
   // 2. Enable Write-Ahead Logging (WAL) mode for concurrent readers and single writer.
   exec("PRAGMA journal_mode = WAL;");
-  // 3. Set synchronous mode to NORMAL for optimal WAL persistence without fsync bottlenecks.
-  exec("PRAGMA synchronous = NORMAL;");
+  // Administrative journals must survive power loss before filesystem cleanup.
+  exec("PRAGMA synchronous = FULL;");
   // 4. Store temporary tables and indices in memory.
   exec("PRAGMA temp_store = MEMORY;");
   // 5. Configure page cache size to ~64MB (-64000 KB).
@@ -59,7 +59,7 @@ Database::~Database() {
   }
 }
 
-Database::TransactionGuard::TransactionGuard(Database &db, bool immediate) : db_(db) {
+Database::TransactionGuard::TransactionGuard(Database &db, bool immediate) : db_(db), lock_(db.connectionMutex_) {
   // Begin transaction (IMMEDIATE acquires write lock immediately to prevent deadlocks)
   if (immediate) {
     db_.exec("BEGIN IMMEDIATE TRANSACTION;");
@@ -87,6 +87,7 @@ void Database::TransactionGuard::commit() {
 }
 
 void Database::clearStatementCache() {
+  std::lock_guard<std::recursive_mutex> connectionLock(connectionMutex_);
   // Protect statement cache map during teardown
   std::lock_guard<std::mutex> lock(cacheMutex_);
   for (auto &[sql, cached] : stmtCache_) {
@@ -103,6 +104,7 @@ void Database::clearStatementCache() {
 }
 
 Database::StatementGuard Database::getStatement(const std::string &sql) {
+  std::unique_lock<std::recursive_mutex> connectionLock(connectionMutex_);
   std::shared_ptr<CachedStmt> cached;
   {
     // Step 1: Look up or create cached prepared statement object under cacheMutex_
@@ -124,10 +126,11 @@ Database::StatementGuard Database::getStatement(const std::string &sql) {
 
   // Step 2: Acquire per-statement unique lock to guarantee thread isolation while active
   std::unique_lock<std::mutex> stmtLock(cached->mutex);
-  return StatementGuard(cached->stmt, std::move(stmtLock));
+  return StatementGuard(cached->stmt, std::move(stmtLock), std::move(connectionLock));
 }
 
 void Database::exec(const std::string &sql) {
+  std::lock_guard<std::recursive_mutex> connectionLock(connectionMutex_);
   char *err = nullptr;
   if (sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, &err) != SQLITE_OK) {
     std::string msg = err == nullptr ? "sqlite error" : err;
@@ -267,6 +270,62 @@ void Database::migrate() {
       }
     }
   }
+
+  TransactionGuard transaction(*this);
+  exec("CREATE TABLE IF NOT EXISTS schema_migrations(name TEXT PRIMARY KEY)");
+  bool adminMigrated = false;
+  {
+    auto guard = getStatement("SELECT 1 FROM schema_migrations WHERE name = 'administration_v1'");
+    adminMigrated = sqlite3_step(guard.get()) == SQLITE_ROW;
+  }
+  if (!adminMigrated) {
+    exec("ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active'");
+    exec("ALTER TABLE users ADD COLUMN quota_bytes INTEGER DEFAULT NULL CHECK(quota_bytes IS NULL OR quota_bytes >= 0)");
+    exec("ALTER TABLE users ADD COLUMN auth_version INTEGER NOT NULL DEFAULT 0");
+    exec("ALTER TABLE users ADD COLUMN password_reset_required INTEGER NOT NULL DEFAULT 0");
+    exec("ALTER TABLE password_resets ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0");
+    // Previous recovery codes were plaintext; invalidate them at the upgrade boundary.
+    exec("DELETE FROM password_resets");
+    exec("UPDATE users SET role = 'admin' WHERE id = (SELECT id FROM users ORDER BY created_at, id LIMIT 1) "
+         "AND NOT EXISTS(SELECT 1 FROM users WHERE role = 'admin')");
+    exec("INSERT INTO schema_migrations(name) VALUES('administration_v1')");
+  }
+  exec(R"(
+    CREATE TABLE IF NOT EXISTS encryption_rotation (
+      id INTEGER PRIMARY KEY CHECK(id = 1), job_id TEXT NOT NULL,
+      phase TEXT NOT NULL, actor_user_id INTEGER NOT NULL,
+      created_at INTEGER NOT NULL, error_code TEXT NOT NULL DEFAULT ''
+    );
+    CREATE TABLE IF NOT EXISTS encryption_objects (
+      name TEXT PRIMARY KEY, state TEXT NOT NULL DEFAULT 'pending',
+      cipher_bytes INTEGER NOT NULL, plain_bytes INTEGER NOT NULL DEFAULT 0,
+      old_digest TEXT NOT NULL DEFAULT '', new_digest TEXT NOT NULL DEFAULT ''
+    );
+    CREATE TABLE IF NOT EXISTS upload_reservations (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      scope TEXT NOT NULL,
+      rel_path TEXT NOT NULL,
+      bytes INTEGER NOT NULL CHECK(bytes >= 0),
+      expires_at INTEGER NOT NULL,
+      PRIMARY KEY(user_id, scope, rel_path)
+    );
+    CREATE TABLE IF NOT EXISTS admin_audit (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      actor_user_id INTEGER NOT NULL,
+      action TEXT NOT NULL,
+      target_user_id INTEGER,
+      created_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS account_deletions (
+      user_id INTEGER PRIMARY KEY,
+      recipient_user_id INTEGER NOT NULL,
+      manifest TEXT NOT NULL,
+      phase TEXT NOT NULL DEFAULT 'copying',
+      created_at INTEGER NOT NULL
+    );
+  )");
+  transaction.commit();
+
 }
 
 }  // namespace server::db

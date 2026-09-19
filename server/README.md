@@ -506,3 +506,10 @@ config and data if moving to another folder. See the platform guides in
 Access and background-sync tokens are now bound to the user's password hash.
 Upgrading invalidates previously issued access/sync tokens; sign in again.
 Password changes and account deletion invalidate those tokens immediately.
+
+## Administration
+
+See [the administration guide](../docs/administration.md) for account approval,
+roles and quotas, live configuration, session revocation and recoverable encryption
+key rotation. New installations default to registration approval after the first
+administrator account; existing accounts stay active during the upgrade.

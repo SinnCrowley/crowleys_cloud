@@ -1447,13 +1447,13 @@ abstract class AppLocalizations {
   /// Forgot password step 1 instruction
   ///
   /// In en, this message translates to:
-  /// **'Enter your username. The 6-digit verification code will be printed to the server logs/console.'**
+  /// **'Enter your username and ask an administrator for a 6-digit recovery code.'**
   String get resetPasswordStep1Body;
 
   /// Forgot password step 2 instruction
   ///
   /// In en, this message translates to:
-  /// **'Verification code has been printed to the server console. Enter the 6-digit code and your new password.'**
+  /// **'Enter the 6-digit code provided by an administrator and your new password.'**
   String get resetPasswordStep2Body;
 
   /// Reset code field label
@@ -3189,6 +3189,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// No description provided for @registrationPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration submitted. Await administrator approval.'**
+  String get registrationPending;
+
+  /// No description provided for @registrationClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration is closed.'**
+  String get registrationClosed;
+
+  /// No description provided for @accountBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is blocked. Contact an administrator.'**
+  String get accountBlocked;
+
+  /// No description provided for @passwordResetRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password must be reset. Ask an administrator for a recovery code.'**
+  String get passwordResetRequired;
+
+  /// No description provided for @serverMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is under maintenance. File operations will resume later.'**
+  String get serverMaintenance;
+
+  /// No description provided for @storageQuotaExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage quota exceeded. Delete files or ask an administrator to increase your limit.'**
+  String get storageQuotaExceeded;
+
+  /// No description provided for @systemDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get systemDefault;
+
+  /// No description provided for @errorPickingFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Error picking files'**
+  String get errorPickingFiles;
 }
 
 class _AppLocalizationsDelegate

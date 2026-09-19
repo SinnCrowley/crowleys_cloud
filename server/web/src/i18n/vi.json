@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "Mỗi khi đóng ứng dụng",
+    "login_15_minutes": "15 phút",
+    "login_1_hour": "1 giờ",
+    "login_1_day": "1 ngày",
+    "login_30_days": "30 ngày",
+    "login_never": "Không bao giờ"
   },
   "toasts": {
     "login_success": "Đăng nhập thành công!",
@@ -362,5 +368,185 @@
     "network_upload": "Lỗi mạng khi tải lên",
     "batch_upload_failed": "Tải lên hàng loạt thất bại ({status})",
     "network_batch_upload": "Lỗi mạng khi tải lên hàng loạt"
+  },
+  "account_status": {
+    "registrationPending": "Đã gửi yêu cầu đăng ký. Vui lòng chờ quản trị viên phê duyệt.",
+    "registrationClosed": "Đăng ký đã đóng.",
+    "accountBlocked": "Tài khoản này bị chặn. Hãy liên hệ quản trị viên.",
+    "passwordResetRequired": "Bạn cần đặt lại mật khẩu. Hãy xin mã khôi phục từ quản trị viên.",
+    "serverMaintenance": "Máy chủ đang bảo trì. Các thao tác với tệp sẽ được tiếp tục sau.",
+    "storageQuotaExceeded": "Đã vượt hạn mức lưu trữ. Hãy xóa tệp hoặc yêu cầu quản trị viên tăng hạn mức.",
+    "resetPasswordStep1Body": "Nhập tên người dùng và xin mã khôi phục gồm sáu chữ số từ quản trị viên.",
+    "resetPasswordStep2Body": "Nhập mã sáu chữ số do quản trị viên cung cấp và mật khẩu mới."
+  },
+  "recovery": {
+    "resetPasswordTitle": "Đặt lại mật khẩu",
+    "resetCodeLabel": "Mã đặt lại",
+    "passwordResetSuccessfully": "Đặt lại mật khẩu thành công!",
+    "newPasswordLabel": "Mật khẩu mới",
+    "codeAndPasswordRequired": "Cần có cả mã xác nhận và mật khẩu mới."
+  },
+  "admin": {
+    "title": "Quản trị",
+    "users": "Người dùng",
+    "applications": "Yêu cầu đăng ký",
+    "configuration": "Cài đặt máy chủ",
+    "maintenance": "Bảo trì",
+    "saved": "Đã lưu.",
+    "role": "Vai trò",
+    "user": "Người dùng",
+    "administrator": "Quản trị viên",
+    "status": "Trạng thái",
+    "active": "Hoạt động",
+    "blocked": "Bị chặn",
+    "quota": "Hạn mức lưu trữ",
+    "inherit": "Dùng mặc định của máy chủ",
+    "unlimited": "Không giới hạn",
+    "limited": "Giới hạn tùy chỉnh",
+    "bytes": "Giới hạn theo byte",
+    "used": "Đã dùng",
+    "reserved": "Đã dành trước",
+    "reset_password": "Đặt lại mật khẩu",
+    "revoke_sessions": "Đăng xuất mọi thiết bị",
+    "approve": "Chấp thuận",
+    "reject": "Từ chối",
+    "no_applications": "Không có yêu cầu đăng ký đang chờ.",
+    "deleting": "Xóa chưa hoàn tất. Khắc phục sự cố lưu trữ rồi thử lại.",
+    "retry": "Tiếp tục",
+    "rotation": "Đổi khóa mã hóa",
+    "new_secret": "Bí mật mới (ít nhất 32 ký tự)",
+    "rotate": "Đổi bí mật",
+    "pending": "Giá trị hiện tại; thay đổi đã lưu cần khởi động lại",
+    "rotation_failed": "Thao tác đã tạm dừng. Khắc phục sự cố lưu trữ rồi tiếp tục. Quyền truy cập tệp vẫn bị tạm ngưng.",
+    "recovery_hint": "Sao chép mã dùng một lần này và đưa cho người dùng. Mã hết hạn sau 10 phút và chỉ hiển thị tại đây.",
+    "config_hint": "Cài đặt có nhãn “Khởi động lại” yêu cầu người vận hành khởi động lại máy chủ. Di chuyển bộ nhớ hoặc cơ sở dữ liệu hiện có cần thực hiện thủ công. Hạn mức bằng không nghĩa là không giới hạn.",
+    "environment_hint": "Bí mật này đến từ môi trường triển khai và không thể thay đổi tại đây.",
+    "confirm_reset": "Đặt lại mật khẩu của {name}? Mật khẩu hiện tại và tất cả phiên đăng nhập sẽ mất hiệu lực.",
+    "confirm_delete": "Xóa {name}? Tệp cá nhân và thùng rác sẽ bị xóa. Tệp chia sẻ sẽ được chuyển sang tài khoản của bạn và tính vào hạn mức của bạn.",
+    "confirm_signing": "Đổi bí mật ký? Mọi thiết bị, kể cả trình duyệt này, sẽ bị đăng xuất.",
+    "confirm_encryption": "Đổi khóa mã hóa? Truy cập tệp sẽ tạm ngưng cho đến khi mọi tệp được mã hóa lại. Không thể hủy thao tác sau khi bắt đầu.",
+    "apply": {
+      "live": "Áp dụng ngay",
+      "restart": "Cần khởi động lại",
+      "migration": "Di chuyển thủ công nếu máy chủ có dữ liệu",
+      "rotation": "Thao tác riêng"
+    },
+    "source": {
+      "environment": "Môi trường triển khai",
+      "local": "Cài đặt cục bộ",
+      "base": "Cấu hình cơ sở",
+      "default": "Mặc định"
+    },
+    "registration": {
+      "approval": "Quản trị viên chấp thuận",
+      "open": "Mở",
+      "closed": "Đóng"
+    },
+    "phase": {
+      "idle": "Không có thao tác đang chạy",
+      "enumerating": "Đang chuẩn bị tệp",
+      "rotating": "Đang mã hóa lại tệp",
+      "finalizing": "Đang kiểm tra và áp dụng khóa mới",
+      "complete": "Hoàn tất"
+    },
+    "errors": {
+      "forbidden": "Cần quyền quản trị viên.",
+      "last_admin": "Quản trị viên hoạt động cuối cùng phải luôn khả dụng.",
+      "invalid_quota": "Nhập giới hạn lưu trữ hợp lệ.",
+      "quota_exceeded": "Hạn mức lưu trữ không đủ cho thao tác này.",
+      "config_conflict": "Cài đặt đã được thay đổi ở nơi khác. Tải lại và áp dụng thay đổi của bạn lần nữa.",
+      "invalid_config_value": "Một hoặc nhiều giá trị cài đặt không hợp lệ.",
+      "manual_migration_required": "Phải di chuyển dữ liệu hiện có theo cách thủ công trước khi đổi cài đặt này.",
+      "config_from_environment": "Cài đặt này do môi trường triển khai kiểm soát.",
+      "rotation_required": "Sử dụng thao tác đổi bí mật riêng.",
+      "invalid_secret": "Dùng bí mật khác có từ 32 đến 4096 ký tự.",
+      "deletion_incomplete": "Xóa chưa hoàn tất. Kiểm tra quyền truy cập bộ nhớ rồi thử lại.",
+      "maintenance": "Máy chủ đang bảo trì. Thử lại khi hoàn tất.",
+      "absolute_path_required": "Nhập đường dẫn tuyệt đối.",
+      "rotation_running": "Một thao tác mã hóa đang diễn ra.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

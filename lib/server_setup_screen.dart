@@ -108,7 +108,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
     );
 
     try {
-      await widget.authService.authenticate(
+      final authorized = await widget.authService.authenticate(
         serverId: profile.id,
         baseUrl: profile.connectionUrl,
         username: username,
@@ -118,6 +118,14 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
       );
 
       if (!mounted) return;
+      if (!authorized) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.registrationPending),
+          ),
+        );
+        return;
+      }
       Navigator.of(context).pop(
         ServerSetupResult(
           profile: profile,

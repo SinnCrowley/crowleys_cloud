@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "عند إغلاق التطبيق",
+    "login_15_minutes": "١٥ دقيقة",
+    "login_1_hour": "ساعة واحدة",
+    "login_1_day": "يوم واحد",
+    "login_30_days": "٣٠ يومًا",
+    "login_never": "أبدًا"
   },
   "toasts": {
     "login_success": "تم تسجيل الدخول بنجاح!",
@@ -362,5 +368,185 @@
     "network_upload": "خطأ في الشبكة أثناء الرفع",
     "batch_upload_failed": "فشل الرفع الدفعي ({status})",
     "network_batch_upload": "خطأ في الشبكة أثناء الرفع الدفعي"
+  },
+  "account_status": {
+    "registrationPending": "تم إرسال طلب التسجيل. انتظر موافقة المسؤول.",
+    "registrationClosed": "التسجيل مغلق.",
+    "accountBlocked": "هذا الحساب محظور. تواصل مع المسؤول.",
+    "passwordResetRequired": "يجب إعادة تعيين كلمة المرور. اطلب رمز استرداد من المسؤول.",
+    "serverMaintenance": "الخادم قيد الصيانة. ستُستأنف عمليات الملفات لاحقًا.",
+    "storageQuotaExceeded": "تم تجاوز حصة التخزين. احذف ملفات أو اطلب من المسؤول زيادة الحد.",
+    "resetPasswordStep1Body": "أدخل اسم المستخدم واطلب من المسؤول رمز استرداد من ستة أرقام.",
+    "resetPasswordStep2Body": "أدخل الرمز المكوّن من ستة أرقام الذي قدّمه المسؤول وكلمة المرور الجديدة."
+  },
+  "recovery": {
+    "resetPasswordTitle": "إعادة تعيين كلمة المرور",
+    "resetCodeLabel": "رمز إعادة التعيين",
+    "passwordResetSuccessfully": "تمت إعادة تعيين كلمة المرور بنجاح!",
+    "newPasswordLabel": "كلمة المرور الجديدة",
+    "codeAndPasswordRequired": "الرمز وكلمة المرور الجديدة مطلوبان."
+  },
+  "admin": {
+    "title": "الإدارة",
+    "users": "المستخدمون",
+    "applications": "طلبات التسجيل",
+    "configuration": "إعدادات الخادم",
+    "maintenance": "الصيانة",
+    "saved": "تم الحفظ.",
+    "role": "الدور",
+    "user": "مستخدم",
+    "administrator": "مسؤول",
+    "status": "الحالة",
+    "active": "نشط",
+    "blocked": "محظور",
+    "quota": "حصة التخزين",
+    "inherit": "استخدام القيمة الافتراضية للخادم",
+    "unlimited": "بلا حدود",
+    "limited": "حد مخصص",
+    "bytes": "الحد بالبايت",
+    "used": "المستخدم",
+    "reserved": "المحجوز",
+    "reset_password": "إعادة تعيين كلمة المرور",
+    "revoke_sessions": "تسجيل الخروج من جميع الأجهزة",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "no_applications": "لا توجد طلبات تسجيل معلقة.",
+    "deleting": "لم يكتمل الحذف. عالج مشكلة التخزين ثم أعد المحاولة.",
+    "retry": "متابعة",
+    "rotation": "تغيير مفتاح التشفير",
+    "new_secret": "سر جديد (32 حرفًا على الأقل)",
+    "rotate": "تغيير السر",
+    "pending": "القيمة الحالية؛ التغيير المحفوظ يتطلب إعادة التشغيل",
+    "rotation_failed": "العملية متوقفة مؤقتًا. عالج مشكلة التخزين ثم تابع. يظل الوصول إلى الملفات معلقًا.",
+    "recovery_hint": "انسخ هذا الرمز أحادي الاستخدام وأعطه للمستخدم. تنتهي صلاحيته بعد 10 دقائق ويُعرض هنا فقط.",
+    "config_hint": "الإعدادات الموسومة «إعادة التشغيل» تتطلب أن يعيد المشغل تشغيل الخادم. نقل التخزين أو قاعدة البيانات الحالية يتطلب ترحيلًا يدويًا. حصة التخزين صفر تعني بلا حدود.",
+    "environment_hint": "هذا السر مصدره بيئة النشر ولا يمكن تغييره هنا.",
+    "confirm_reset": "إعادة تعيين كلمة مرور {name}؟ ستتوقف كلمة المرور الحالية وجميع الجلسات عن العمل.",
+    "confirm_delete": "حذف {name}؟ ستُحذف الملفات الشخصية وسلة المهملات. ستُنقل الملفات المشتركة إلى حسابك وتُحتسب ضمن حصتك.",
+    "confirm_signing": "تغيير سر التوقيع؟ سيُسجَّل الخروج من جميع الأجهزة، بما فيها هذا المتصفح.",
+    "confirm_encryption": "تغيير مفتاح التشفير؟ سيُعلَّق الوصول إلى الملفات حتى تُعاد جميعها إلى التشفير بالمفتاح الجديد. لا يمكن إلغاء العملية بعد بدئها.",
+    "apply": {
+      "live": "يُطبَّق فورًا",
+      "restart": "إعادة التشغيل مطلوبة",
+      "migration": "ترحيل يدوي إذا كان الخادم يحتوي على بيانات",
+      "rotation": "عملية مستقلة"
+    },
+    "source": {
+      "environment": "بيئة النشر",
+      "local": "الإعدادات المحلية",
+      "base": "الإعداد الأساسي",
+      "default": "الافتراضي"
+    },
+    "registration": {
+      "approval": "موافقة المسؤول",
+      "open": "مفتوح",
+      "closed": "مغلق"
+    },
+    "phase": {
+      "idle": "لا توجد عملية جارية",
+      "enumerating": "جارٍ تجهيز الملفات",
+      "rotating": "جارٍ إعادة تشفير الملفات",
+      "finalizing": "جارٍ التحقق من المفتاح الجديد وتطبيقه",
+      "complete": "مكتمل"
+    },
+    "errors": {
+      "forbidden": "صلاحيات المسؤول مطلوبة.",
+      "last_admin": "يجب أن يظل آخر مسؤول نشط متاحًا.",
+      "invalid_quota": "أدخل حد تخزين صالحًا.",
+      "quota_exceeded": "حصة التخزين غير كافية لهذه العملية.",
+      "config_conflict": "تغيّرت الإعدادات في مكان آخر. حدّث الصفحة وأعد تطبيق تغييراتك.",
+      "invalid_config_value": "قيمة إعداد واحدة أو أكثر غير صالحة.",
+      "manual_migration_required": "يجب ترحيل البيانات الحالية يدويًا قبل تغيير هذا الإعداد.",
+      "config_from_environment": "تتحكم بيئة النشر في هذا الإعداد.",
+      "rotation_required": "استخدم العملية المستقلة لتغيير السر.",
+      "invalid_secret": "استخدم سرًا مختلفًا بطول يتراوح بين 32 و4096 حرفًا.",
+      "deletion_incomplete": "لم يكتمل الحذف. تحقق من الوصول إلى التخزين ثم أعد المحاولة.",
+      "maintenance": "الخادم قيد الصيانة. أعد المحاولة بعد انتهائها.",
+      "absolute_path_required": "أدخل مسارًا مطلقًا.",
+      "rotation_running": "هناك عملية تشفير جارية بالفعل.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "Setiap aplikasi ditutup",
+    "login_15_minutes": "15 menit",
+    "login_1_hour": "1 jam",
+    "login_1_day": "1 hari",
+    "login_30_days": "30 hari",
+    "login_never": "Tidak pernah"
   },
   "toasts": {
     "login_success": "Berhasil masuk!",
@@ -362,5 +368,185 @@
     "network_upload": "Kesalahan jaringan saat mengunggah",
     "batch_upload_failed": "Unggahan batch gagal ({status})",
     "network_batch_upload": "Kesalahan jaringan saat unggahan batch"
+  },
+  "account_status": {
+    "registrationPending": "Permohonan pendaftaran dikirim. Tunggu persetujuan administrator.",
+    "registrationClosed": "Pendaftaran ditutup.",
+    "accountBlocked": "Akun ini diblokir. Hubungi administrator.",
+    "passwordResetRequired": "Kata sandi harus diatur ulang. Minta kode pemulihan kepada administrator.",
+    "serverMaintenance": "Server sedang dalam pemeliharaan. Operasi berkas akan dilanjutkan nanti.",
+    "storageQuotaExceeded": "Kuota penyimpanan terlampaui. Hapus berkas atau minta administrator menaikkan batas Anda.",
+    "resetPasswordStep1Body": "Masukkan nama pengguna dan minta kode pemulihan enam digit kepada administrator.",
+    "resetPasswordStep2Body": "Masukkan kode enam digit dari administrator dan kata sandi baru Anda."
+  },
+  "recovery": {
+    "resetPasswordTitle": "Atur Ulang Kata Sandi",
+    "resetCodeLabel": "Kode Atur Ulang",
+    "passwordResetSuccessfully": "Kata sandi berhasil diatur ulang!",
+    "newPasswordLabel": "Kata Sandi Baru",
+    "codeAndPasswordRequired": "Kode dan kata sandi baru diperlukan."
+  },
+  "admin": {
+    "title": "Administrasi",
+    "users": "Pengguna",
+    "applications": "Permohonan pendaftaran",
+    "configuration": "Pengaturan server",
+    "maintenance": "Pemeliharaan",
+    "saved": "Tersimpan.",
+    "role": "Peran",
+    "user": "Pengguna",
+    "administrator": "Administrator",
+    "status": "Status",
+    "active": "Aktif",
+    "blocked": "Diblokir",
+    "quota": "Kuota penyimpanan",
+    "inherit": "Gunakan bawaan server",
+    "unlimited": "Tanpa batas",
+    "limited": "Batas khusus",
+    "bytes": "Batas dalam byte",
+    "used": "Terpakai",
+    "reserved": "Dicadangkan",
+    "reset_password": "Atur ulang kata sandi",
+    "revoke_sessions": "Keluar dari semua perangkat",
+    "approve": "Setujui",
+    "reject": "Tolak",
+    "no_applications": "Tidak ada permohonan pendaftaran yang menunggu.",
+    "deleting": "Penghapusan belum selesai. Atasi masalah penyimpanan lalu coba lagi.",
+    "retry": "Lanjutkan",
+    "rotation": "Penggantian kunci enkripsi",
+    "new_secret": "Rahasia baru (minimal 32 karakter)",
+    "rotate": "Ganti rahasia",
+    "pending": "Nilai saat ini; perubahan tersimpan memerlukan mulai ulang",
+    "rotation_failed": "Operasi dijeda. Atasi masalah penyimpanan lalu lanjutkan. Akses berkas tetap ditangguhkan.",
+    "recovery_hint": "Salin kode sekali pakai ini dan berikan kepada pengguna. Kode berlaku 10 menit dan hanya ditampilkan di sini.",
+    "config_hint": "Pengaturan bertanda “Mulai ulang” mengharuskan operator memulai ulang server. Memindahkan penyimpanan atau basis data yang sudah ada memerlukan migrasi manual. Kuota nol berarti tanpa batas.",
+    "environment_hint": "Rahasia ini berasal dari lingkungan penerapan dan tidak dapat diubah di sini.",
+    "confirm_reset": "Atur ulang kata sandi {name}? Kata sandi saat ini dan semua sesinya tidak akan berlaku lagi.",
+    "confirm_delete": "Hapus {name}? Berkas pribadi dan sampah akan dihapus. Berkas bersama akan dipindahkan ke akun Anda dan dihitung dalam kuota Anda.",
+    "confirm_signing": "Ganti rahasia penandatanganan? Semua perangkat, termasuk peramban ini, akan keluar.",
+    "confirm_encryption": "Ganti kunci enkripsi? Akses berkas akan ditangguhkan hingga semua berkas dienkripsi ulang. Operasi tidak dapat dibatalkan setelah dimulai.",
+    "apply": {
+      "live": "Langsung berlaku",
+      "restart": "Perlu mulai ulang",
+      "migration": "Migrasi manual jika server berisi data",
+      "rotation": "Operasi terpisah"
+    },
+    "source": {
+      "environment": "Lingkungan penerapan",
+      "local": "Pengaturan lokal",
+      "base": "Konfigurasi dasar",
+      "default": "Bawaan"
+    },
+    "registration": {
+      "approval": "Persetujuan administrator",
+      "open": "Terbuka",
+      "closed": "Tertutup"
+    },
+    "phase": {
+      "idle": "Tidak ada operasi yang berjalan",
+      "enumerating": "Menyiapkan berkas",
+      "rotating": "Mengenkripsi ulang berkas",
+      "finalizing": "Memverifikasi dan menerapkan kunci baru",
+      "complete": "Selesai"
+    },
+    "errors": {
+      "forbidden": "Akses administrator diperlukan.",
+      "last_admin": "Administrator aktif terakhir harus tetap tersedia.",
+      "invalid_quota": "Masukkan batas penyimpanan yang valid.",
+      "quota_exceeded": "Kuota penyimpanan tidak mencukupi untuk operasi ini.",
+      "config_conflict": "Pengaturan diubah di tempat lain. Muat ulang lalu terapkan perubahan Anda kembali.",
+      "invalid_config_value": "Satu atau beberapa nilai pengaturan tidak valid.",
+      "manual_migration_required": "Data yang sudah ada harus dimigrasikan secara manual sebelum mengubah pengaturan ini.",
+      "config_from_environment": "Pengaturan ini dikendalikan oleh lingkungan penerapan.",
+      "rotation_required": "Gunakan operasi penggantian rahasia yang terpisah.",
+      "invalid_secret": "Gunakan rahasia berbeda dengan panjang 32 hingga 4096 karakter.",
+      "deletion_incomplete": "Penghapusan belum selesai. Periksa akses penyimpanan lalu coba lagi.",
+      "maintenance": "Server sedang dipelihara. Coba lagi setelah selesai.",
+      "absolute_path_required": "Masukkan jalur absolut.",
+      "rotation_running": "Operasi enkripsi sedang berlangsung.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

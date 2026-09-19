@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Forgot password dialog title step 2"
   },
-  "resetPasswordStep1Body": "Digite seu nome de usuário. O código de verificação de 6 dígitos será impresso nos logs/console do servidor.",
+  "resetPasswordStep1Body": "Digite o nome de usuário e peça a um administrador um código de recuperação de seis dígitos.",
   "@resetPasswordStep1Body": {
     "description": "Forgot password step 1 instruction"
   },
-  "resetPasswordStep2Body": "O código de verificação foi impresso no console do servidor. Digite o código de 6 dígitos e sua nova senha.",
+  "resetPasswordStep2Body": "Digite o código de seis dígitos fornecido por um administrador e a nova senha.",
   "@resetPasswordStep2Body": {
     "description": "Forgot password step 2 instruction"
   },
@@ -2658,5 +2658,13 @@
   "language": "Idioma",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Solicitação enviada. Aguarde a aprovação de um administrador.",
+  "registrationClosed": "O cadastro está fechado.",
+  "accountBlocked": "Esta conta está bloqueada. Entre em contato com um administrador.",
+  "passwordResetRequired": "É necessário redefinir a senha. Peça um código de recuperação a um administrador.",
+  "serverMaintenance": "O servidor está em manutenção. As operações com arquivos serão retomadas mais tarde.",
+  "storageQuotaExceeded": "A cota de armazenamento foi excedida. Exclua arquivos ou peça a um administrador para aumentar o limite.",
+  "systemDefault": "Padrão do sistema",
+  "errorPickingFiles": "Erro ao selecionar arquivos"
 }

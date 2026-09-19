@@ -40,6 +40,7 @@ enum SyncRunStatus {
   partialFailure,
   authRequired,
   serverUnreachable,
+  maintenance,
   noFiles,
   failed,
 }
@@ -678,7 +679,10 @@ class HttpSyncApiClient implements SyncApiClient {
       );
       if (response.statusCode >= 200 && response.statusCode < 300) return;
       throw SyncException(
-        platformAppLocalizations().uploadFailed('HTTP ${response.statusCode}'),
+        accountErrorMessage(response.body) ??
+            platformAppLocalizations().uploadFailed(
+              'HTTP ${response.statusCode}',
+            ),
       );
     }
 
@@ -721,9 +725,10 @@ class HttpSyncApiClient implements SyncApiClient {
 
         if (response.statusCode < 200 || response.statusCode >= 300) {
           throw SyncException(
-            platformAppLocalizations().uploadFailed(
-              'HTTP ${response.statusCode}',
-            ),
+            accountErrorMessage(response.body) ??
+                platformAppLocalizations().uploadFailed(
+                  'HTTP ${response.statusCode}',
+                ),
           );
         }
 
@@ -763,6 +768,17 @@ class HttpSyncApiClient implements SyncApiClient {
     required ServerProfile server,
     required Future<http.Response> Function(String token) send,
   }) async {
+    http.Response checked(http.Response response) {
+      if (response.statusCode == 503 &&
+          response.headers['x-crowley-maintenance'] == 'true') {
+        throw SyncException(
+          platformAppLocalizations().serverMaintenance,
+          isMaintenance: true,
+        );
+      }
+      return response;
+    }
+
     final authClient = AuthenticatedHttpClient(
       authService: authService,
       serverId: server.id,
@@ -773,7 +789,7 @@ class HttpSyncApiClient implements SyncApiClient {
       var syncToken = await authService.readSyncToken(server.id);
       if (syncToken != null && syncToken.isNotEmpty) {
         final response = await send(syncToken);
-        if (response.statusCode != 401) return response;
+        if (response.statusCode != 401) return checked(response);
       }
 
       try {
@@ -783,11 +799,13 @@ class HttpSyncApiClient implements SyncApiClient {
         );
         if (syncToken != null && syncToken.isNotEmpty) {
           final response = await send(syncToken);
-          if (response.statusCode != 401) return response;
+          if (response.statusCode != 401) return checked(response);
         }
+      } on SyncException {
+        rethrow;
       } catch (_) {}
 
-      return await authClient.sendAuthorized(send: send);
+      return checked(await authClient.sendAuthorized(send: send));
     } on SocketException {
       throw SyncException(
         platformAppLocalizations().serverIsUnreachable,
@@ -816,10 +834,15 @@ class HttpSyncApiClient implements SyncApiClient {
 }
 
 class SyncException implements Exception {
-  const SyncException(this.message, {this.isUnreachable = false});
+  const SyncException(
+    this.message, {
+    this.isUnreachable = false,
+    this.isMaintenance = false,
+  });
 
   final String message;
   final bool isUnreachable;
+  final bool isMaintenance;
 
   @override
   String toString() => 'SyncException($message)';
@@ -1042,7 +1065,8 @@ class SyncService {
           uploaded++;
         } on SyncException catch (e) {
           if (e.message == platformAppLocalizations().authenticationRequired ||
-              e.isUnreachable) {
+              e.isUnreachable ||
+              e.isMaintenance) {
             rethrow;
           }
           failed++;
@@ -1071,7 +1095,9 @@ class SyncService {
       await stateStore.saveLastResult(server.id, result);
       return result;
     } on SyncException catch (e) {
-      final status = e.isUnreachable
+      final status = e.isMaintenance
+          ? SyncRunStatus.maintenance
+          : e.isUnreachable
           ? SyncRunStatus.serverUnreachable
           : (e.message == platformAppLocalizations().authenticationRequired
                 ? SyncRunStatus.authRequired

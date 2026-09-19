@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Forgot password dialog title step 2"
   },
-  "resetPasswordStep1Body": "أدخل اسم المستخدم الخاص بك. ستتم طباعة رمز التحقق المكون من 6 أرقام في سجلات/وحدة تحكم الخادم.",
+  "resetPasswordStep1Body": "أدخل اسم المستخدم واطلب من المسؤول رمز استرداد من ستة أرقام.",
   "@resetPasswordStep1Body": {
     "description": "Forgot password step 1 instruction"
   },
-  "resetPasswordStep2Body": "تمت طباعة رمز التحقق في وحدة تحكم الخادم. أدخل الرمز المكون من 6 أرقام وكلمة المرور الجديدة.",
+  "resetPasswordStep2Body": "أدخل الرمز المكوّن من ستة أرقام الذي قدّمه المسؤول وكلمة المرور الجديدة.",
   "@resetPasswordStep2Body": {
     "description": "Forgot password step 2 instruction"
   },
@@ -2658,5 +2658,13 @@
   "language": "اللغة",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "تم إرسال طلب التسجيل. انتظر موافقة المسؤول.",
+  "registrationClosed": "التسجيل مغلق.",
+  "accountBlocked": "هذا الحساب محظور. تواصل مع المسؤول.",
+  "passwordResetRequired": "يجب إعادة تعيين كلمة المرور. اطلب رمز استرداد من المسؤول.",
+  "serverMaintenance": "الخادم قيد الصيانة. ستُستأنف عمليات الملفات لاحقًا.",
+  "storageQuotaExceeded": "تم تجاوز حصة التخزين. احذف ملفات أو اطلب من المسؤول زيادة الحد.",
+  "systemDefault": "افتراضي النظام",
+  "errorPickingFiles": "خطأ في اختيار الملفات"
 }

@@ -38,6 +38,7 @@ class _FakeApiClient implements SyncApiClient {
   String? failUploadPath;
   bool isServerUnreachable = false;
   bool authRequired = false;
+  bool maintenance = false;
 
   @override
   Future<bool> ping({required ServerProfile server}) async {
@@ -61,6 +62,9 @@ class _FakeApiClient implements SyncApiClient {
     required File file,
   }) async {
     if (authRequired) throw const SyncException('Authentication required');
+    if (maintenance) {
+      throw const SyncException('Maintenance', isMaintenance: true);
+    }
     if (remotePath == failUploadPath) {
       throw const SyncException('Upload failed');
     }
@@ -191,6 +195,47 @@ void main() {
     expect(result.skippedFiles, 1);
     expect(api.uploadedPaths, isEmpty);
   });
+
+  test(
+    'maintenance defers unconfirmed files and retries them next run',
+    () async {
+      final file = await writeTestFile(tempDir, 'pending.txt', 'content');
+      final api = _FakeApiClient()..maintenance = true;
+      final stateStore = FileSyncStateStore(
+        fileProvider: () async => File('${tempDir.path}/state.json'),
+      );
+      final service = SyncService(
+        scanner: _FakeScanner([
+          SyncCandidate(file: file, remotePath: 'pending.txt'),
+        ]),
+        apiClient: api,
+        stateStore: stateStore,
+      );
+      final deferred = await service.syncServer(server);
+      expect(deferred.status, SyncRunStatus.maintenance);
+      expect(deferred.uploadedFiles, 0);
+      expect(
+        await stateStore.readRecord(
+          server.id,
+          file.absolute.path,
+          'pending.txt',
+        ),
+        null,
+      );
+      api.maintenance = false;
+      final retried = await service.syncServer(server);
+      expect(retried.status, SyncRunStatus.success);
+      expect(api.uploadedPaths, ['pending.txt']);
+      expect(
+        await stateStore.readRecord(
+          server.id,
+          file.absolute.path,
+          'pending.txt',
+        ),
+        isNotNull,
+      );
+    },
+  );
 
   test('keeps prior manifest when upload fails', () async {
     final file = await writeTestFile(tempDir, 'video.mp4', 'new');

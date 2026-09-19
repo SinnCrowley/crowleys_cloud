@@ -26,11 +26,25 @@
 #include "server/utils/Config.hpp"
 
 #include <memory>
+#include <atomic>
+#include <mutex>
+#include <shared_mutex>
+#include "server/services/ConfigService.hpp"
+#include "server/services/QuotaService.hpp"
+#include "server/services/StorageActivity.hpp"
+#include "server/services/EncryptionRotationService.hpp"
 
 namespace server {
 
 struct AppContext {
   utils::Config config;
+  std::shared_mutex configMutex;
+  std::atomic<bool> accessLogEnabled{true};
+  std::unique_ptr<services::ConfigService> configService;
+  // ponytail: serialize storage mutations; per-account locks if throughput requires it.
+  std::recursive_mutex storageMutex;
+  services::StorageActivity storageActivity;
+  std::unique_ptr<services::QuotaService> quotaService;
   std::unique_ptr<db::Database> database;
   std::unique_ptr<services::UserService> userService;
   std::unique_ptr<services::FileService> fileService;
@@ -39,6 +53,7 @@ struct AppContext {
   std::unique_ptr<services::ShareService> shareService;
   std::unique_ptr<services::TrashService> trashService;
   std::unique_ptr<middleware::RateLimiter> authRateLimiter;
+  std::unique_ptr<services::EncryptionRotationService> encryptionRotation;
 };
 
 AppContext &ctx();

@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "アプリを閉じるたび",
+    "login_15_minutes": "15分",
+    "login_1_hour": "1時間",
+    "login_1_day": "1日",
+    "login_30_days": "30日",
+    "login_never": "なし"
   },
   "toasts": {
     "login_success": "サインインしました！",
@@ -362,5 +368,185 @@
     "network_upload": "アップロード時のネットワークエラー",
     "batch_upload_failed": "一括アップロードに失敗しました（{status}）",
     "network_batch_upload": "一括アップロード時のネットワークエラー"
+  },
+  "account_status": {
+    "registrationPending": "登録申請を送信しました。管理者の承認をお待ちください。",
+    "registrationClosed": "新規登録は停止されています。",
+    "accountBlocked": "このアカウントはブロックされています。管理者にお問い合わせください。",
+    "passwordResetRequired": "パスワードの再設定が必要です。管理者から復旧コードを受け取ってください。",
+    "serverMaintenance": "サーバーはメンテナンス中です。ファイル操作は後ほど再開されます。",
+    "storageQuotaExceeded": "ストレージの上限を超えました。ファイルを削除するか、管理者に上限の引き上げを依頼してください。",
+    "resetPasswordStep1Body": "ユーザー名を入力し、管理者に6桁の復旧コードを依頼してください。",
+    "resetPasswordStep2Body": "管理者から受け取った6桁のコードと新しいパスワードを入力してください。"
+  },
+  "recovery": {
+    "resetPasswordTitle": "パスワードを再設定",
+    "resetCodeLabel": "再設定コード",
+    "passwordResetSuccessfully": "パスワードを再設定しました！",
+    "newPasswordLabel": "新しいパスワード",
+    "codeAndPasswordRequired": "コードと新しいパスワードの両方が必要です。"
+  },
+  "admin": {
+    "title": "管理",
+    "users": "ユーザー",
+    "applications": "登録申請",
+    "configuration": "サーバー設定",
+    "maintenance": "メンテナンス",
+    "saved": "保存しました。",
+    "role": "権限",
+    "user": "ユーザー",
+    "administrator": "管理者",
+    "status": "状態",
+    "active": "有効",
+    "blocked": "ブロック中",
+    "quota": "ストレージ上限",
+    "inherit": "サーバーの既定値を使用",
+    "unlimited": "無制限",
+    "limited": "個別の上限",
+    "bytes": "上限（バイト）",
+    "used": "使用中",
+    "reserved": "予約済み",
+    "reset_password": "パスワードをリセット",
+    "revoke_sessions": "すべての端末からログアウト",
+    "approve": "承認",
+    "reject": "却下",
+    "no_applications": "承認待ちの登録申請はありません。",
+    "deleting": "削除が未完了です。ストレージの問題を解決して再試行してください。",
+    "retry": "続行",
+    "rotation": "暗号鍵の変更",
+    "new_secret": "新しい秘密情報（32文字以上）",
+    "rotate": "秘密情報を変更",
+    "pending": "現在の値。保存した変更には再起動が必要です",
+    "rotation_failed": "処理は一時停止中です。ストレージの問題を解決して続行してください。ファイルへのアクセスは引き続き停止されます。",
+    "recovery_hint": "このワンタイムコードをコピーしてユーザーに渡してください。有効期限は10分で、ここにのみ表示されます。",
+    "config_hint": "「再起動」と表示された設定には運用担当者によるサーバーの再起動が必要です。既存のストレージやデータベースの移動には手動移行が必要です。ストレージ上限の0は無制限を意味します。",
+    "environment_hint": "この秘密情報はデプロイ環境で設定されているため、ここでは変更できません。",
+    "confirm_reset": "{name} のパスワードをリセットしますか？現在のパスワードとすべてのセッションが無効になります。",
+    "confirm_delete": "{name} を削除しますか？個人ファイルとごみ箱が削除されます。共有ファイルはあなたのアカウントに移され、あなたのストレージ上限に計上されます。",
+    "confirm_signing": "署名用の秘密情報を変更しますか？このブラウザーを含むすべての端末がログアウトされます。",
+    "confirm_encryption": "暗号鍵を変更しますか？すべてのファイルの再暗号化が終わるまでファイルへのアクセスが停止されます。開始後は取り消せません。",
+    "apply": {
+      "live": "即時適用",
+      "restart": "再起動が必要",
+      "migration": "データがあるサーバーでは手動移行",
+      "rotation": "個別の操作"
+    },
+    "source": {
+      "environment": "デプロイ環境",
+      "local": "ローカル設定",
+      "base": "基本設定",
+      "default": "既定値"
+    },
+    "registration": {
+      "approval": "管理者の承認",
+      "open": "受付中",
+      "closed": "受付停止"
+    },
+    "phase": {
+      "idle": "実行中の処理はありません",
+      "enumerating": "ファイルを準備中",
+      "rotating": "ファイルを再暗号化中",
+      "finalizing": "新しい鍵を検証して適用中",
+      "complete": "完了"
+    },
+    "errors": {
+      "forbidden": "管理者権限が必要です。",
+      "last_admin": "最後の有効な管理者は利用可能な状態を維持する必要があります。",
+      "invalid_quota": "有効なストレージ上限を入力してください。",
+      "quota_exceeded": "この操作に必要なストレージ容量が不足しています。",
+      "config_conflict": "設定が別の場所で変更されました。再読み込みして変更を適用し直してください。",
+      "invalid_config_value": "無効な設定値があります。",
+      "manual_migration_required": "この設定を変更する前に、既存データを手動で移行する必要があります。",
+      "config_from_environment": "この設定はデプロイ環境で管理されています。",
+      "rotation_required": "秘密情報の変更専用の操作を使用してください。",
+      "invalid_secret": "32～4096文字の別の秘密情報を使用してください。",
+      "deletion_incomplete": "削除が未完了です。ストレージへのアクセスを確認して再試行してください。",
+      "maintenance": "サーバーはメンテナンス中です。完了後に再試行してください。",
+      "absolute_path_required": "絶対パスを入力してください。",
+      "rotation_running": "暗号化処理がすでに実行中です。",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

@@ -753,12 +753,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get enterResetCodeTitle => '재설정 코드 입력';
 
   @override
-  String get resetPasswordStep1Body =>
-      '사용자 이름을 입력하세요. 6자리 확인 코드가 서버 로그/콘솔에 출력됩니다.';
+  String get resetPasswordStep1Body => '사용자 이름을 입력하고 관리자에게 6자리 복구 코드를 요청하세요.';
 
   @override
-  String get resetPasswordStep2Body =>
-      '확인 코드가 서버 콘솔에 출력되었습니다. 6자리 코드와 새 비밀번호를 입력하세요.';
+  String get resetPasswordStep2Body => '관리자가 제공한 6자리 코드와 새 비밀번호를 입력하세요.';
 
   @override
   String get resetCodeLabel => '재설정 코드';
@@ -1758,4 +1756,29 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get language => '언어';
+
+  @override
+  String get registrationPending => '가입 신청이 제출되었습니다. 관리자의 승인을 기다려 주세요.';
+
+  @override
+  String get registrationClosed => '가입이 종료되었습니다.';
+
+  @override
+  String get accountBlocked => '차단된 계정입니다. 관리자에게 문의하세요.';
+
+  @override
+  String get passwordResetRequired => '비밀번호를 재설정해야 합니다. 관리자에게 복구 코드를 요청하세요.';
+
+  @override
+  String get serverMaintenance => '서버 점검 중입니다. 파일 작업은 나중에 재개됩니다.';
+
+  @override
+  String get storageQuotaExceeded =>
+      '저장 공간 한도를 초과했습니다. 파일을 삭제하거나 관리자에게 한도 상향을 요청하세요.';
+
+  @override
+  String get systemDefault => '시스템 기본값';
+
+  @override
+  String get errorPickingFiles => '파일 선택 중 오류가 발생했습니다';
 }

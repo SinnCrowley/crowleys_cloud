@@ -250,7 +250,8 @@ class AuthenticatedHttpClient {
     final message = platformAppLocalizations().serverIsUnreachable;
     try {
       final response = await action();
-      if (_isConnectionUnavailableStatus(response.statusCode)) {
+      if (_isConnectionUnavailableStatus(response.statusCode) &&
+          response.headers['x-crowley-maintenance'] != 'true') {
         _notifyConnectionLost(message);
       }
       return response;
@@ -278,7 +279,8 @@ class AuthenticatedHttpClient {
     final message = platformAppLocalizations().serverIsUnreachable;
     try {
       final response = await action();
-      if (_isConnectionUnavailableStatus(response.statusCode)) {
+      if (_isConnectionUnavailableStatus(response.statusCode) &&
+          response.headers['x-crowley-maintenance'] != 'true') {
         _notifyConnectionLost(message);
       }
       return response;

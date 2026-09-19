@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Forgot password dialog title step 2"
   },
-  "resetPasswordStep1Body": "Enter your username. The 6-digit verification code will be printed to the server logs/console.",
+  "resetPasswordStep1Body": "Enter your username and ask an administrator for a 6-digit recovery code.",
   "@resetPasswordStep1Body": {
     "description": "Forgot password step 1 instruction"
   },
-  "resetPasswordStep2Body": "Verification code has been printed to the server console. Enter the 6-digit code and your new password.",
+  "resetPasswordStep2Body": "Enter the 6-digit code provided by an administrator and your new password.",
   "@resetPasswordStep2Body": {
     "description": "Forgot password step 2 instruction"
   },
@@ -2658,5 +2658,13 @@
   "language": "Language",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Registration submitted. Await administrator approval.",
+  "registrationClosed": "Registration is closed.",
+  "accountBlocked": "This account is blocked. Contact an administrator.",
+  "passwordResetRequired": "Your password must be reset. Ask an administrator for a recovery code.",
+  "serverMaintenance": "The server is under maintenance. File operations will resume later.",
+  "storageQuotaExceeded": "Storage quota exceeded. Delete files or ask an administrator to increase your limit.",
+  "systemDefault": "System default",
+  "errorPickingFiles": "Error picking files"
 }

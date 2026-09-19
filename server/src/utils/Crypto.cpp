@@ -542,52 +542,84 @@ std::function<std::size_t(char *, std::size_t)> decryptedFileReader(
   };
 }
 
-bool decryptFileToStream(const std::filesystem::path &srcPath, const std::string &keySource, const std::function<void(const char* data, size_t size)> &chunkCallback) {
-  std::ifstream in(srcPath, std::ios::binary);
-  if (!in) return false;
-
+bool decryptFileToStream(const std::filesystem::path &srcPath, const std::string &keySource,
+                         const std::function<void(const char *, size_t)> &chunkCallback) {
+  std::ifstream input(srcPath, std::ios::binary);
   unsigned char iv[16];
-  if (!in.read(reinterpret_cast<char*>(iv), sizeof(iv))) return false;
-
-  std::string key = derive32ByteKey(keySource);
-
-  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  if (!ctx) return false;
-
-  if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, 
-                         reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) {
-    EVP_CIPHER_CTX_free(ctx);
-    return false;
+  if (!input.read(reinterpret_cast<char *>(iv), sizeof(iv))) return false;
+  const auto key = derive32ByteKey(keySource);
+  std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> context(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+  if (!context || EVP_DecryptInit_ex(context.get(), EVP_aes_256_cbc(), nullptr,
+      reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) return false;
+  unsigned char encrypted[65536], plain[65536 + EVP_MAX_BLOCK_LENGTH];
+  while (input.read(reinterpret_cast<char *>(encrypted), sizeof(encrypted)) || input.gcount() > 0) {
+    int length = 0;
+    if (EVP_DecryptUpdate(context.get(), plain, &length, encrypted, static_cast<int>(input.gcount())) != 1) return false;
+    if (length) chunkCallback(reinterpret_cast<const char *>(plain), length);
   }
-
-  constexpr size_t bufferSize = 65536; // 64KB
-  std::vector<char> buffer(bufferSize);
-  std::vector<unsigned char> plainBuffer(bufferSize + 16);
-
-  while (in.read(buffer.data(), bufferSize) || in.gcount() > 0) {
-    auto count = in.gcount();
-    int outLen = 0;
-    if (EVP_DecryptUpdate(ctx, plainBuffer.data(), &outLen,
-                           reinterpret_cast<const unsigned char*>(buffer.data()), static_cast<int>(count)) != 1) {
-      EVP_CIPHER_CTX_free(ctx);
-      return false;
-    }
-    if (outLen > 0) {
-      chunkCallback(reinterpret_cast<const char*>(plainBuffer.data()), outLen);
-    }
-  }
-
-  int outLen = 0;
-  if (EVP_DecryptFinal_ex(ctx, plainBuffer.data(), &outLen) != 1) {
-    EVP_CIPHER_CTX_free(ctx);
-    return false;
-  }
-  if (outLen > 0) {
-    chunkCallback(reinterpret_cast<const char*>(plainBuffer.data()), outLen);
-  }
-
-  EVP_CIPHER_CTX_free(ctx);
+  if (input.bad()) return false;
+  int length = 0;
+  if (EVP_DecryptFinal_ex(context.get(), plain, &length) != 1) return false;
+  if (length) chunkCallback(reinterpret_cast<const char *>(plain), length);
   return true;
+}
+
+bool verifyEncryptedFile(const std::filesystem::path &path, const std::string &key,
+                         const std::string &expectedHash, std::uintmax_t &plainSize) {
+  std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> digest(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+  if (!digest || EVP_DigestInit_ex(digest.get(), EVP_sha256(), nullptr) != 1) return false;
+  plainSize = 0;
+  if (!decryptFileToStream(path, key, [&](const char *data, size_t size) {
+    if (EVP_DigestUpdate(digest.get(), data, size) != 1) throw std::runtime_error("Cannot verify encrypted file");
+    plainSize += size;
+  })) return false;
+  unsigned char hash[EVP_MAX_MD_SIZE];
+  unsigned int length = 0;
+  if (EVP_DigestFinal_ex(digest.get(), hash, &length) != 1) return false;
+  std::ostringstream output;
+  for (unsigned int i = 0; i < length; ++i) output << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
+  return output.str() == expectedHash;
+}
+
+bool reencryptFile(const std::filesystem::path &source, const std::filesystem::path &destination,
+                   const std::string &oldKey, const std::string &newKey,
+                   const std::string &expectedHash, std::uintmax_t &plainSize) {
+  std::ofstream output(destination, std::ios::binary | std::ios::trunc);
+  if (!output) return false;
+  const auto key = derive32ByteKey(newKey);
+  unsigned char iv[16];
+  if (RAND_bytes(iv, sizeof(iv)) != 1) return false;
+  output.write(reinterpret_cast<const char *>(iv), sizeof(iv));
+  std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> context(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+  std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> digest(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+  if (!context || !digest || EVP_DigestInit_ex(digest.get(), EVP_sha256(), nullptr) != 1 ||
+      EVP_EncryptInit_ex(context.get(), EVP_aes_256_cbc(), nullptr,
+                        reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) return false;
+  plainSize = 0;
+  const bool decrypted = decryptFileToStream(source, oldKey, [&](const char *plain, size_t size) {
+    unsigned char encrypted[65536 + 2 * EVP_MAX_BLOCK_LENGTH];
+    int length = 0;
+    if (size > 65536 + EVP_MAX_BLOCK_LENGTH || EVP_DigestUpdate(digest.get(), plain, size) != 1 ||
+        EVP_EncryptUpdate(context.get(), encrypted, &length, reinterpret_cast<const unsigned char *>(plain), static_cast<int>(size)) != 1)
+      throw std::runtime_error("Cannot reencrypt file");
+    output.write(reinterpret_cast<const char *>(encrypted), length);
+    if (!output) throw std::runtime_error("Cannot write rotated file");
+    plainSize += size;
+  });
+  if (!decrypted) return false;
+  unsigned char final[EVP_MAX_BLOCK_LENGTH], hash[EVP_MAX_MD_SIZE];
+  int finalLength = 0;
+  unsigned int hashLength = 0;
+  if (EVP_EncryptFinal_ex(context.get(), final, &finalLength) != 1 ||
+      EVP_DigestFinal_ex(digest.get(), hash, &hashLength) != 1) return false;
+  output.write(reinterpret_cast<const char *>(final), finalLength);
+  output.close();
+  if (!output) return false;
+  std::ostringstream text;
+  for (unsigned int i = 0; i < hashLength; ++i) text << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
+  if (text.str() != expectedHash) return false;
+  std::uintmax_t checkedSize = 0;
+  return verifyEncryptedFile(destination, newKey, expectedHash, checkedSize) && checkedSize == plainSize;
 }
 
 bool decryptFileToMemory(const std::filesystem::path &srcPath,

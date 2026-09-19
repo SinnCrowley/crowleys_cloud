@@ -148,12 +148,21 @@ inline drogon::HttpResponsePtr makeNotModifiedResponse(
 /**
  * Creates an HTTP JSON response formatted with an "error" message field and status code.
  */
-inline drogon::HttpResponsePtr jsonError(drogon::HttpStatusCode code, const std::string &msg) {
+inline drogon::HttpResponsePtr jsonError(drogon::HttpStatusCode code, const std::string &msg, const std::string &errorCode = "") {
   Json::Value body;
   body["error"] = msg;
+  if (!errorCode.empty()) body["code"] = errorCode;
   auto resp = drogon::HttpResponse::newHttpJsonResponse(std::move(body));
   resp->setStatusCode(code);
   return resp;
+}
+
+inline drogon::HttpResponsePtr maintenanceResponse() {
+  auto response = jsonError(drogon::k503ServiceUnavailable, "Server maintenance in progress", "maintenance");
+  response->addHeader("Retry-After", "5");
+  response->addHeader("X-Crowley-Maintenance", "true");
+  response->addHeader("Cache-Control", "no-store");
+  return response;
 }
 
 /**

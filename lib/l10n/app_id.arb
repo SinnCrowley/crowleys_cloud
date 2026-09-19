@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Reset password step 2 title"
   },
-  "resetPasswordStep1Body": "Masukkan nama pengguna Anda. Kode verifikasi 6 digit akan dicetak ke log/konsol server.",
+  "resetPasswordStep1Body": "Masukkan nama pengguna dan minta kode pemulihan enam digit kepada administrator.",
   "@resetPasswordStep1Body": {
     "description": "Reset password step 1 instructions"
   },
-  "resetPasswordStep2Body": "Kode verifikasi telah dicetak ke konsol server. Masukkan kode 6 digit dan kata sandi baru Anda.",
+  "resetPasswordStep2Body": "Masukkan kode enam digit dari administrator dan kata sandi baru Anda.",
   "@resetPasswordStep2Body": {
     "description": "Reset password step 2 instructions"
   },
@@ -2658,5 +2658,13 @@
   "language": "Bahasa",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Permohonan pendaftaran dikirim. Tunggu persetujuan administrator.",
+  "registrationClosed": "Pendaftaran ditutup.",
+  "accountBlocked": "Akun ini diblokir. Hubungi administrator.",
+  "passwordResetRequired": "Kata sandi harus diatur ulang. Minta kode pemulihan kepada administrator.",
+  "serverMaintenance": "Server sedang dalam pemeliharaan. Operasi berkas akan dilanjutkan nanti.",
+  "storageQuotaExceeded": "Kuota penyimpanan terlampaui. Hapus berkas atau minta administrator menaikkan batas Anda.",
+  "systemDefault": "Bawaan sistem",
+  "errorPickingFiles": "Gagal memilih file"
 }

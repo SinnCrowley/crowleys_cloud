@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "À chaque fermeture de l’application",
+    "login_15_minutes": "15 minutes",
+    "login_1_hour": "1 heure",
+    "login_1_day": "1 jour",
+    "login_30_days": "30 jours",
+    "login_never": "Jamais"
   },
   "toasts": {
     "login_success": "Connexion réussie !",
@@ -362,5 +368,185 @@
     "network_upload": "Erreur réseau lors de l’importation",
     "batch_upload_failed": "Échec de l’importation groupée ({status})",
     "network_batch_upload": "Erreur réseau lors de l’importation groupée"
+  },
+  "account_status": {
+    "registrationPending": "Demande envoyée. Attendez l’approbation d’un administrateur.",
+    "registrationClosed": "Les inscriptions sont fermées.",
+    "accountBlocked": "Ce compte est bloqué. Contactez un administrateur.",
+    "passwordResetRequired": "Votre mot de passe doit être réinitialisé. Demandez un code de récupération à un administrateur.",
+    "serverMaintenance": "Le serveur est en maintenance. Les opérations sur les fichiers reprendront plus tard.",
+    "storageQuotaExceeded": "Le quota de stockage est dépassé. Supprimez des fichiers ou demandez à un administrateur d’augmenter votre limite.",
+    "resetPasswordStep1Body": "Saisissez votre nom d’utilisateur et demandez un code de récupération à six chiffres à un administrateur.",
+    "resetPasswordStep2Body": "Saisissez le code à six chiffres fourni par un administrateur et votre nouveau mot de passe."
+  },
+  "recovery": {
+    "resetPasswordTitle": "Réinitialiser le mot de passe",
+    "resetCodeLabel": "Code de réinitialisation",
+    "passwordResetSuccessfully": "Mot de passe réinitialisé !",
+    "newPasswordLabel": "Nouveau mot de passe",
+    "codeAndPasswordRequired": "Le code et le nouveau mot de passe sont requis."
+  },
+  "admin": {
+    "title": "Administration",
+    "users": "Utilisateurs",
+    "applications": "Demandes d’inscription",
+    "configuration": "Paramètres du serveur",
+    "maintenance": "Maintenance",
+    "saved": "Enregistré.",
+    "role": "Rôle",
+    "user": "Utilisateur",
+    "administrator": "Administrateur",
+    "status": "État",
+    "active": "Actif",
+    "blocked": "Bloqué",
+    "quota": "Quota de stockage",
+    "inherit": "Utiliser la valeur du serveur",
+    "unlimited": "Illimité",
+    "limited": "Limite personnalisée",
+    "bytes": "Limite en octets",
+    "used": "Utilisé",
+    "reserved": "Réservé",
+    "reset_password": "Réinitialiser le mot de passe",
+    "revoke_sessions": "Déconnecter tous les appareils",
+    "approve": "Approuver",
+    "reject": "Refuser",
+    "no_applications": "Aucune demande d’inscription en attente.",
+    "deleting": "Suppression inachevée. Résolvez le problème de stockage et réessayez.",
+    "retry": "Continuer",
+    "rotation": "Changement de clé de chiffrement",
+    "new_secret": "Nouveau secret (au moins 32 caractères)",
+    "rotate": "Changer le secret",
+    "pending": "Valeur actuelle ; la modification enregistrée nécessite un redémarrage",
+    "rotation_failed": "L’opération est en pause. Corrigez le problème de stockage et continuez. L’accès aux fichiers reste suspendu.",
+    "recovery_hint": "Copiez ce code à usage unique et transmettez-le à l’utilisateur. Il expire dans 10 minutes et n’est affiché qu’ici.",
+    "config_hint": "Les paramètres marqués « Redémarrage » nécessitent un redémarrage du serveur par l’opérateur. Déplacer le stockage ou la base existants exige une migration manuelle. Un quota nul signifie illimité.",
+    "environment_hint": "Ce secret provient de l’environnement de déploiement et ne peut pas être modifié ici.",
+    "confirm_reset": "Réinitialiser le mot de passe de {name} ? Son mot de passe actuel et toutes ses sessions seront invalidés.",
+    "confirm_delete": "Supprimer {name} ? Les fichiers personnels et la corbeille seront supprimés. Les fichiers partagés seront transférés à votre compte et compteront dans votre quota.",
+    "confirm_signing": "Changer le secret de signature ? Tous les appareils, y compris ce navigateur, seront déconnectés.",
+    "confirm_encryption": "Changer la clé de chiffrement ? L’accès aux fichiers sera suspendu jusqu’au rechiffrement de tous les fichiers. L’opération ne peut plus être annulée une fois lancée.",
+    "apply": {
+      "live": "Application immédiate",
+      "restart": "Redémarrage requis",
+      "migration": "Migration manuelle si le serveur contient des données",
+      "rotation": "Opération distincte"
+    },
+    "source": {
+      "environment": "Environnement de déploiement",
+      "local": "Paramètres locaux",
+      "base": "Configuration de base",
+      "default": "Par défaut"
+    },
+    "registration": {
+      "approval": "Approbation de l’administrateur",
+      "open": "Ouverte",
+      "closed": "Fermée"
+    },
+    "phase": {
+      "idle": "Aucune opération en cours",
+      "enumerating": "Préparation des fichiers",
+      "rotating": "Rechiffrement des fichiers",
+      "finalizing": "Vérification et application de la nouvelle clé",
+      "complete": "Terminé"
+    },
+    "errors": {
+      "forbidden": "Droits d’administrateur requis.",
+      "last_admin": "Le dernier administrateur actif doit rester disponible.",
+      "invalid_quota": "Saisissez une limite de stockage valide.",
+      "quota_exceeded": "Le quota de stockage est insuffisant pour cette opération.",
+      "config_conflict": "Les paramètres ont été modifiés ailleurs. Actualisez puis appliquez à nouveau vos modifications.",
+      "invalid_config_value": "Une ou plusieurs valeurs sont invalides.",
+      "manual_migration_required": "Les données existantes doivent être migrées manuellement avant cette modification.",
+      "config_from_environment": "Ce paramètre est contrôlé par l’environnement de déploiement.",
+      "rotation_required": "Utilisez l’opération distincte de changement du secret.",
+      "invalid_secret": "Utilisez un autre secret de 32 à 4096 caractères.",
+      "deletion_incomplete": "Suppression inachevée. Vérifiez l’accès au stockage et réessayez.",
+      "maintenance": "Le serveur est en maintenance. Réessayez une fois celle-ci terminée.",
+      "absolute_path_required": "Saisissez un chemin absolu.",
+      "rotation_running": "Une opération de chiffrement est déjà en cours.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

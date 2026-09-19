@@ -33,6 +33,7 @@ std::string requestIp(const drogon::HttpRequestPtr &req) {
 
 void AuthController::registerUser(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   auto &app = server::ctx();
   if (!app.authRateLimiter->allow(requestIp(req))) {
     callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
@@ -40,7 +41,7 @@ void AuthController::registerUser(const drogon::HttpRequestPtr &req,
   }
 
   const auto json = req->getJsonObject();
-  if (!json || !json->isMember("username") || !json->isMember("password")) {
+  if (!json || !(*json)["username"].isString() || !(*json)["password"].isString()) {
     callback(jsonError(drogon::k400BadRequest, "username and password are required"));
     return;
   }
@@ -51,7 +52,18 @@ void AuthController::registerUser(const drogon::HttpRequestPtr &req,
       (*json)["password"].asString(),
       error);
   if (!user.has_value()) {
-    callback(jsonError(drogon::k409Conflict, error));
+    callback(jsonError(error == "registration_closed" ? drogon::k403Forbidden :
+                       error == "invalid_credentials" ? drogon::k400BadRequest : drogon::k409Conflict, error, error));
+    return;
+  }
+
+  if (user->status == "pending") {
+    Json::Value body;
+    body["status"] = "pending";
+    body["code"] = "registration_pending";
+    auto response = drogon::HttpResponse::newHttpJsonResponse(body);
+    response->setStatusCode(drogon::k202Accepted);
+    callback(response);
     return;
   }
 
@@ -59,6 +71,10 @@ void AuthController::registerUser(const drogon::HttpRequestPtr &req,
   Json::Value body;
   body["access_token"] = tokens.accessToken;
   body["refresh_token"] = tokens.refreshToken;
+  body["user"]["id"] = Json::Int64(user->id);
+  body["user"]["username"] = user->username;
+  body["user"]["role"] = user->role;
+  body["user"]["status"] = user->status;
   body["token_type"] = "Bearer";
   body["expires_in"] = static_cast<Json::Int64>(app.config.accessTokenTtlSeconds);
   callback(drogon::HttpResponse::newHttpJsonResponse(body));
@@ -66,6 +82,7 @@ void AuthController::registerUser(const drogon::HttpRequestPtr &req,
 
 void AuthController::login(const drogon::HttpRequestPtr &req,
                            std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   auto &app = server::ctx();
   if (!app.authRateLimiter->allow(requestIp(req))) {
     callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
@@ -73,7 +90,7 @@ void AuthController::login(const drogon::HttpRequestPtr &req,
   }
 
   const auto json = req->getJsonObject();
-  if (!json || !json->isMember("username") || !json->isMember("password")) {
+  if (!json || !(*json)["username"].isString() || !(*json)["password"].isString()) {
     callback(jsonError(drogon::k400BadRequest, "username and password are required"));
     return;
   }
@@ -84,10 +101,25 @@ void AuthController::login(const drogon::HttpRequestPtr &req,
     return;
   }
 
+  if (user->status != "active" || user->passwordResetRequired) {
+    const std::string code = user->status == "pending" ? "registration_pending" :
+                             user->status == "blocked" ? "account_blocked" : "password_reset_required";
+    callback(jsonError(drogon::k403Forbidden, code, code));
+    return;
+  }
+
   const auto tokens = app.userService->issueTokens(*user);
   Json::Value body;
   body["access_token"] = tokens.accessToken;
   body["refresh_token"] = tokens.refreshToken;
+  body["user"]["id"] = Json::Int64(user->id);
+  body["user"]["username"] = user->username;
+  body["user"]["role"] = user->role;
+  body["user"]["status"] = user->status;
+  const auto usage = app.quotaService->usage(user->id);
+  body["user"]["used_bytes"] = Json::Int64(usage.used);
+  body["user"]["reserved_bytes"] = Json::Int64(usage.reserved);
+  body["user"]["quota_bytes"] = Json::Int64(usage.limit);
   body["token_type"] = "Bearer";
   body["expires_in"] = static_cast<Json::Int64>(app.config.accessTokenTtlSeconds);
   callback(drogon::HttpResponse::newHttpJsonResponse(body));
@@ -95,6 +127,7 @@ void AuthController::login(const drogon::HttpRequestPtr &req,
 
 void AuthController::refresh(const drogon::HttpRequestPtr &req,
                              std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   const auto json = req->getJsonObject();
   if (!json || !json->isMember("refresh_token")) {
     callback(jsonError(drogon::k400BadRequest, "refresh_token is required"));
@@ -117,6 +150,7 @@ void AuthController::refresh(const drogon::HttpRequestPtr &req,
 
 void AuthController::logout(const drogon::HttpRequestPtr &req,
                             std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   const auto json = req->getJsonObject();
   if (!json || !json->isMember("refresh_token")) {
     callback(jsonError(drogon::k400BadRequest, "refresh_token is required"));
@@ -131,12 +165,13 @@ void AuthController::logout(const drogon::HttpRequestPtr &req,
 
 void AuthController::changePassword(const drogon::HttpRequestPtr &req,
                                     std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   if (!req->attributes()->find("user_id")) {
     callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
     return;
   }
   const auto json = req->getJsonObject();
-  if (!json || !json->isMember("new_password")) {
+  if (!json || !(*json)["new_password"].isString() || (*json)["new_password"].asString().empty() || (*json)["new_password"].asString().size() > 4096) {
     callback(jsonError(drogon::k400BadRequest, "new_password is required"));
     return;
   }
@@ -156,6 +191,9 @@ void AuthController::changePassword(const drogon::HttpRequestPtr &req,
 
 void AuthController::deleteAccount(const drogon::HttpRequestPtr &req,
                                    std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(server::utils::maintenanceResponse()); return; }
   if (!req->attributes()->find("user_id")) {
     callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
     return;
@@ -163,7 +201,7 @@ void AuthController::deleteAccount(const drogon::HttpRequestPtr &req,
   const auto userId = req->attributes()->get<std::int64_t>("user_id");
   const auto ok = server::ctx().userService->deleteAccount(userId);
   if (!ok) {
-    callback(jsonError(drogon::k404NotFound, "User not found"));
+    callback(jsonError(drogon::k409Conflict, "Cannot delete this account", "account_deletion_conflict"));
     return;
   }
 
@@ -175,6 +213,7 @@ void AuthController::deleteAccount(const drogon::HttpRequestPtr &req,
 
 void AuthController::requestReset(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   if (!server::ctx().authRateLimiter->allow("password-reset:" + requestIp(req))) {
     callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
     return;
@@ -185,16 +224,8 @@ void AuthController::requestReset(const drogon::HttpRequestPtr &req,
     return;
   }
 
-  const auto username = (*json)["username"].asString();
-  std::string code;
-  const auto ok = server::ctx().userService->requestPasswordReset(username, code);
-
-  if (ok) {
-    LOG_INFO << "\n========================================\n"
-             << "PASSWORD RESET REQUESTED FOR: " << username << "\n"
-             << "TEMPORARY CODE: " << code << " (Valid for 10 minutes)\n"
-             << "========================================\n";
-  }
+  // Recovery codes are issued only by an administrator. Public requests must
+  // neither disclose codes nor invalidate an account's password or existing code.
 
   Json::Value body;
   body["ok"] = true;
@@ -203,12 +234,13 @@ void AuthController::requestReset(const drogon::HttpRequestPtr &req,
 
 void AuthController::verifyReset(const drogon::HttpRequestPtr &req,
                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   if (!server::ctx().authRateLimiter->allow("password-reset:" + requestIp(req))) {
     callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
     return;
   }
   const auto json = req->getJsonObject();
-  if (!json || !json->isMember("username") || !json->isMember("code") || !json->isMember("new_password")) {
+  if (!json || !(*json)["username"].isString() || !(*json)["code"].isString() || !(*json)["new_password"].isString() || (*json)["new_password"].asString().empty() || (*json)["new_password"].asString().size() > 4096) {
     callback(jsonError(drogon::k400BadRequest, "username, code and new_password are required"));
     return;
   }
@@ -231,6 +263,7 @@ void AuthController::verifyReset(const drogon::HttpRequestPtr &req,
 
 void AuthController::getSyncToken(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   if (!req->attributes()->find("user_id")) {
     callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
     return;
@@ -245,6 +278,23 @@ void AuthController::getSyncToken(const drogon::HttpRequestPtr &req,
 
   Json::Value body;
   body["sync_token"] = token;
+  callback(drogon::HttpResponse::newHttpJsonResponse(body));
+}
+
+void AuthController::account(const drogon::HttpRequestPtr &req,
+                             std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  const auto user = server::ctx().userService->getUserById(*getAuthUserId(req));
+  if (!user) { callback(jsonError(drogon::k401Unauthorized, "Unauthorized")); return; }
+  Json::Value body;
+  const auto usage = server::ctx().quotaService->usage(user->id);
+  body["used_bytes"] = Json::Int64(usage.used);
+  body["reserved_bytes"] = Json::Int64(usage.reserved);
+  body["quota_bytes"] = Json::Int64(usage.limit);
+  body["id"] = Json::Int64(user->id);
+  body["username"] = user->username;
+  body["role"] = user->role;
+  body["status"] = user->status;
   callback(drogon::HttpResponse::newHttpJsonResponse(body));
 }
 

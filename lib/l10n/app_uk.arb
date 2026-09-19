@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Forgot password dialog title step 2"
   },
-  "resetPasswordStep1Body": "Введіть ім’я користувача. 6-значний код підтвердження буде надруковано в журналах або консолі сервера.",
+  "resetPasswordStep1Body": "Введіть ім’я користувача та попросіть адміністратора надати шестизначний код відновлення.",
   "@resetPasswordStep1Body": {
     "description": "Forgot password step 1 instruction"
   },
-  "resetPasswordStep2Body": "Код підтвердження надруковано в консолі сервера. Введіть 6-значний код і новий пароль.",
+  "resetPasswordStep2Body": "Введіть шестизначний код від адміністратора та новий пароль.",
   "@resetPasswordStep2Body": {
     "description": "Forgot password step 2 instruction"
   },
@@ -2658,5 +2658,13 @@
   "language": "Мова",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Заявку надіслано. Очікуйте схвалення адміністратора.",
+  "registrationClosed": "Реєстрацію закрито.",
+  "accountBlocked": "Обліковий запис заблоковано. Зверніться до адміністратора.",
+  "passwordResetRequired": "Потрібно скинути пароль. Отримайте код відновлення в адміністратора.",
+  "serverMaintenance": "Сервер на обслуговуванні. Операції з файлами відновляться пізніше.",
+  "storageQuotaExceeded": "Перевищено ліміт сховища. Видаліть файли або попросіть адміністратора збільшити ліміт.",
+  "systemDefault": "Системне значення",
+  "errorPickingFiles": "Помилка вибору файлів"
 }

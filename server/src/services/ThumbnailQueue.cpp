@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #include "server/services/ThumbnailQueue.hpp"
+#include "server/AppContext.hpp"
 #include "server/utils/ImageUtils.hpp"
 #include "server/utils/PlatformUtils.hpp"
 #include "server/utils/Crypto.hpp"
@@ -338,6 +339,10 @@ void ThumbnailQueue::workerLoop(size_t workerId) {
 }
 
 void ThumbnailQueue::processTask(const ThumbnailTask &task) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) return;
+  if (task.isEncrypted && !task.encryptionKey.empty() && task.encryptionKey != config_.encryptionKey) return;
   if (task.customHandler) {
     task.customHandler(task);
     return;

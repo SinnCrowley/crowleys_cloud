@@ -48,6 +48,7 @@ void JwtMiddleware::doFilter(const drogon::HttpRequestPtr &req,
   }
 
   try {
+    std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
     // Step 2: Strip 'Bearer ' prefix and verify token claims and cryptographic HMAC signature
     const auto token = auth.substr(prefix.size());
     const auto claims = server::ctx().userService->verifyAccessToken(token);
@@ -81,6 +82,7 @@ void JwtMiddleware::doFilter(const drogon::HttpRequestPtr &req,
     // Step 4: Attach authenticated claims to Drogon request context attributes for downstream controllers
     req->attributes()->insert("user_id", claims->userId);
     req->attributes()->insert("role", claims->role);
+    req->attributes()->insert("verified_token", auth.substr(prefix.size()));
   } catch (const std::exception &) {
     fcb(utils::jsonError(drogon::k401Unauthorized, "Unauthorized"));
     return;

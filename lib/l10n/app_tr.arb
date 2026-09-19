@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Forgot password dialog title step 2"
   },
-  "resetPasswordStep1Body": "Kullanıcı adınızı girin. 6 haneli doğrulama kodu sunucu günlüklerine/konsoluna yazdırılacaktır.",
+  "resetPasswordStep1Body": "Kullanıcı adınızı girin ve bir yöneticiden altı haneli kurtarma kodu isteyin.",
   "@resetPasswordStep1Body": {
     "description": "Forgot password step 1 instruction"
   },
-  "resetPasswordStep2Body": "Doğrulama kodu sunucu konsoluna yazdırıldı. 6 haneli kodu ve yeni şifrenizi girin.",
+  "resetPasswordStep2Body": "Yöneticinin verdiği altı haneli kodu ve yeni parolanızı girin.",
   "@resetPasswordStep2Body": {
     "description": "Forgot password step 2 instruction"
   },
@@ -2658,5 +2658,13 @@
   "language": "Dil",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Kayıt başvurusu gönderildi. Yönetici onayını bekleyin.",
+  "registrationClosed": "Kayıt kapalı.",
+  "accountBlocked": "Bu hesap engellendi. Bir yöneticiyle iletişime geçin.",
+  "passwordResetRequired": "Parolanızın sıfırlanması gerekiyor. Bir yöneticiden kurtarma kodu isteyin.",
+  "serverMaintenance": "Sunucu bakımda. Dosya işlemleri daha sonra devam edecek.",
+  "storageQuotaExceeded": "Depolama kotası aşıldı. Dosyaları silin veya yöneticiden sınırınızı artırmasını isteyin.",
+  "systemDefault": "Sistem varsayılanı",
+  "errorPickingFiles": "Dosyalar seçilirken hata oluştu"
 }

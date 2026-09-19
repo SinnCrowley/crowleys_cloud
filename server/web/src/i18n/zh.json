@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "每次关闭应用时",
+    "login_15_minutes": "15 分钟",
+    "login_1_hour": "1 小时",
+    "login_1_day": "1 天",
+    "login_30_days": "30 天",
+    "login_never": "从不"
   },
   "toasts": {
     "login_success": "登入成功！",
@@ -362,5 +368,185 @@
     "network_upload": "上傳時發生網路錯誤",
     "batch_upload_failed": "批次上傳失敗（{status}）",
     "network_batch_upload": "批次上傳時發生網路錯誤"
+  },
+  "account_status": {
+    "registrationPending": "註冊申請已提交，請等待管理員核准。",
+    "registrationClosed": "註冊已關閉。",
+    "accountBlocked": "此帳號已被封鎖，請聯絡管理員。",
+    "passwordResetRequired": "您需要重設密碼，請向管理員索取復原碼。",
+    "serverMaintenance": "伺服器正在維護，檔案操作稍後恢復。",
+    "storageQuotaExceeded": "已超出儲存配額，請刪除檔案或聯絡管理員提高限額。",
+    "resetPasswordStep1Body": "輸入使用者名稱，並向管理員索取六位數復原碼。",
+    "resetPasswordStep2Body": "輸入管理員提供的六位數復原碼和新密碼。"
+  },
+  "recovery": {
+    "resetPasswordTitle": "重設密碼",
+    "resetCodeLabel": "重設驗證碼",
+    "passwordResetSuccessfully": "密碼重設成功！",
+    "newPasswordLabel": "新密碼",
+    "codeAndPasswordRequired": "驗證碼與新密碼均為必填項目。"
+  },
+  "admin": {
+    "title": "管理",
+    "users": "用户",
+    "applications": "注册申请",
+    "configuration": "服务器设置",
+    "maintenance": "维护",
+    "saved": "已保存。",
+    "role": "角色",
+    "user": "用户",
+    "administrator": "管理员",
+    "status": "状态",
+    "active": "正常",
+    "blocked": "已封禁",
+    "quota": "存储配额",
+    "inherit": "使用服务器默认值",
+    "unlimited": "无限制",
+    "limited": "自定义限制",
+    "bytes": "限制（字节）",
+    "used": "已用",
+    "reserved": "已预留",
+    "reset_password": "重置密码",
+    "revoke_sessions": "退出所有设备",
+    "approve": "批准",
+    "reject": "拒绝",
+    "no_applications": "没有待处理的注册申请。",
+    "deleting": "删除尚未完成。请解决存储问题后重试。",
+    "retry": "继续",
+    "rotation": "更换加密密钥",
+    "new_secret": "新密钥（至少32个字符）",
+    "rotate": "更换密钥",
+    "pending": "当前值；已保存的更改需要重启",
+    "rotation_failed": "操作已暂停。请解决存储问题后继续。文件访问仍处于暂停状态。",
+    "recovery_hint": "请复制此一次性代码并交给用户。代码在10分钟后失效，且仅在此处显示。",
+    "config_hint": "标记为“重启”的设置需要运维人员重启服务器。移动现有存储或数据库需要手动迁移。存储配额为零表示无限制。",
+    "environment_hint": "此密钥来自部署环境，无法在此更改。",
+    "confirm_reset": "重置 {name} 的密码？其当前密码和所有会话都将失效。",
+    "confirm_delete": "删除 {name}？个人文件和回收站将被清除。共享文件将转移到您的账户，并计入您的配额。",
+    "confirm_signing": "更换签名密钥？包括此浏览器在内的所有设备都将退出登录。",
+    "confirm_encryption": "更换加密密钥？文件访问将暂停，直到所有文件重新加密完成。操作开始后无法取消。",
+    "apply": {
+      "live": "立即生效",
+      "restart": "需要重启",
+      "migration": "服务器已有数据时需手动迁移",
+      "rotation": "独立操作"
+    },
+    "source": {
+      "environment": "部署环境",
+      "local": "本地设置",
+      "base": "基础配置",
+      "default": "默认值"
+    },
+    "registration": {
+      "approval": "管理员批准",
+      "open": "开放",
+      "closed": "关闭"
+    },
+    "phase": {
+      "idle": "没有正在进行的操作",
+      "enumerating": "正在准备文件",
+      "rotating": "正在重新加密文件",
+      "finalizing": "正在验证并应用新密钥",
+      "complete": "已完成"
+    },
+    "errors": {
+      "forbidden": "需要管理员权限。",
+      "last_admin": "必须保留最后一位可用的活跃管理员。",
+      "invalid_quota": "请输入有效的存储限制。",
+      "quota_exceeded": "存储配额不足以完成此操作。",
+      "config_conflict": "设置已在其他地方更改。请刷新后重新应用更改。",
+      "invalid_config_value": "一个或多个设置值无效。",
+      "manual_migration_required": "更改此设置前必须手动迁移现有数据。",
+      "config_from_environment": "此设置由部署环境控制。",
+      "rotation_required": "请使用独立的密钥更换操作。",
+      "invalid_secret": "请使用不同的密钥，长度为32至4096个字符。",
+      "deletion_incomplete": "删除尚未完成。请检查存储访问权限后重试。",
+      "maintenance": "服务器正在维护。请在完成后重试。",
+      "absolute_path_required": "请输入绝对路径。",
+      "rotation_running": "已有加密操作正在进行。",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

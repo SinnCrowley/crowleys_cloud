@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "Під час кожного закриття застосунку",
+    "login_15_minutes": "15 хвилин",
+    "login_1_hour": "1 година",
+    "login_1_day": "1 день",
+    "login_30_days": "30 днів",
+    "login_never": "Ніколи"
   },
   "toasts": {
     "login_success": "Вхід виконано успішно!",
@@ -362,5 +368,185 @@
     "network_upload": "Помилка мережі під час завантаження на сервер",
     "batch_upload_failed": "Пакетне завантаження на сервер не вдалося ({status})",
     "network_batch_upload": "Помилка мережі під час пакетного завантаження"
+  },
+  "account_status": {
+    "registrationPending": "Заявку надіслано. Очікуйте схвалення адміністратора.",
+    "registrationClosed": "Реєстрацію закрито.",
+    "accountBlocked": "Обліковий запис заблоковано. Зверніться до адміністратора.",
+    "passwordResetRequired": "Потрібно скинути пароль. Отримайте код відновлення в адміністратора.",
+    "serverMaintenance": "Сервер на обслуговуванні. Операції з файлами відновляться пізніше.",
+    "storageQuotaExceeded": "Перевищено ліміт сховища. Видаліть файли або попросіть адміністратора збільшити ліміт.",
+    "resetPasswordStep1Body": "Введіть ім’я користувача та попросіть адміністратора надати шестизначний код відновлення.",
+    "resetPasswordStep2Body": "Введіть шестизначний код від адміністратора та новий пароль."
+  },
+  "recovery": {
+    "resetPasswordTitle": "Скинути пароль",
+    "resetCodeLabel": "Код скидання",
+    "passwordResetSuccessfully": "Пароль успішно скинуто!",
+    "newPasswordLabel": "Новий пароль",
+    "codeAndPasswordRequired": "Потрібні код і новий пароль."
+  },
+  "admin": {
+    "title": "Адміністрування",
+    "users": "Користувачі",
+    "applications": "Заявки на реєстрацію",
+    "configuration": "Налаштування сервера",
+    "maintenance": "Обслуговування",
+    "saved": "Збережено.",
+    "role": "Роль",
+    "user": "Користувач",
+    "administrator": "Адміністратор",
+    "status": "Стан",
+    "active": "Активний",
+    "blocked": "Заблокований",
+    "quota": "Квота сховища",
+    "inherit": "Використовувати типове значення сервера",
+    "unlimited": "Без обмежень",
+    "limited": "Власний ліміт",
+    "bytes": "Ліміт у байтах",
+    "used": "Використано",
+    "reserved": "Зарезервовано",
+    "reset_password": "Скинути пароль",
+    "revoke_sessions": "Завершити сеанси на всіх пристроях",
+    "approve": "Схвалити",
+    "reject": "Відхилити",
+    "no_applications": "Немає заявок на реєстрацію, що очікують розгляду.",
+    "deleting": "Видалення не завершено. Усуньте проблему зі сховищем і повторіть спробу.",
+    "retry": "Продовжити",
+    "rotation": "Зміна ключа шифрування",
+    "new_secret": "Новий секрет (щонайменше 32 символи)",
+    "rotate": "Змінити секрет",
+    "pending": "Поточне значення; збережена зміна потребує перезапуску",
+    "rotation_failed": "Операцію призупинено. Усуньте проблему зі сховищем і продовжте. Доступ до файлів залишається призупиненим.",
+    "recovery_hint": "Скопіюйте цей одноразовий код і передайте користувачу. Він діє 10 хвилин і відображається лише тут.",
+    "config_hint": "Налаштування з позначкою «Перезапуск» потребують перезапуску сервера оператором. Перенесення наявного сховища або бази даних потребує ручної міграції. Нульова квота означає відсутність обмежень.",
+    "environment_hint": "Цей секрет задано в середовищі розгортання, його не можна змінити тут.",
+    "confirm_reset": "Скинути пароль користувача {name}? Поточний пароль і всі сеанси перестануть діяти.",
+    "confirm_delete": "Видалити користувача {name}? Особисті файли та кошик буде видалено. Спільні файли буде передано вашому обліковому запису й зараховано до вашої квоти.",
+    "confirm_signing": "Змінити секрет підпису? Усі пристрої, зокрема цей браузер, буде відключено від облікових записів.",
+    "confirm_encryption": "Змінити ключ шифрування? Доступ до файлів буде призупинено до завершення перешифрування всіх файлів. Після початку операцію не можна скасувати.",
+    "apply": {
+      "live": "Застосовується одразу",
+      "restart": "Потрібен перезапуск",
+      "migration": "Ручна міграція для непорожнього сервера",
+      "rotation": "Окрема операція"
+    },
+    "source": {
+      "environment": "Середовище розгортання",
+      "local": "Локальні налаштування",
+      "base": "Базова конфігурація",
+      "default": "Типове значення"
+    },
+    "registration": {
+      "approval": "Схвалення адміністратором",
+      "open": "Відкрита",
+      "closed": "Закрита"
+    },
+    "phase": {
+      "idle": "Немає поточних операцій",
+      "enumerating": "Підготовка файлів",
+      "rotating": "Перешифрування файлів",
+      "finalizing": "Перевірка й застосування нового ключа",
+      "complete": "Завершено"
+    },
+    "errors": {
+      "forbidden": "Потрібні права адміністратора.",
+      "last_admin": "Останній активний адміністратор має залишатися доступним.",
+      "invalid_quota": "Введіть коректний ліміт сховища.",
+      "quota_exceeded": "Квоти сховища недостатньо для цієї операції.",
+      "config_conflict": "Налаштування змінено в іншому місці. Оновіть сторінку та застосуйте зміни знову.",
+      "invalid_config_value": "Одне або кілька значень налаштувань некоректні.",
+      "manual_migration_required": "Перш ніж змінити це налаштування, потрібно вручну перенести наявні дані.",
+      "config_from_environment": "Цим налаштуванням керує середовище розгортання.",
+      "rotation_required": "Скористайтеся окремою операцією зміни секрету.",
+      "invalid_secret": "Використайте інший секрет довжиною від 32 до 4096 символів.",
+      "deletion_incomplete": "Видалення не завершено. Перевірте доступ до сховища та повторіть спробу.",
+      "maintenance": "Сервер на обслуговуванні. Повторіть спробу після його завершення.",
+      "absolute_path_required": "Введіть абсолютний шлях.",
+      "rotation_running": "Операція шифрування вже виконується.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

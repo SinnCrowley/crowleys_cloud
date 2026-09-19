@@ -279,9 +279,10 @@ class ServerBrowserController extends ChangeNotifier {
       if (opId != _opId) return;
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception(
-          platformAppLocalizations().connectionFailed(
-            'Server error ${response.statusCode}',
-          ),
+          accountErrorMessage(response.body) ??
+              platformAppLocalizations().connectionFailed(
+                'Server error ${response.statusCode}',
+              ),
         );
       }
 
@@ -968,7 +969,24 @@ class ServerBrowserController extends ChangeNotifier {
       transferManager?.throwIfItemCanceled(transferItem);
       transferManager?.startItem(transferItem);
     }
-    final response = await _authorizedStreamedGet(uri);
+    var response = await _authorizedStreamedGet(uri);
+    while (response.statusCode == 503 &&
+        response.headers['x-crowley-maintenance'] == 'true') {
+      await response.stream.drain<void>();
+      operationMessage = _getL10n().serverMaintenance;
+      notifyListeners();
+      final seconds = (int.tryParse(response.headers['retry-after'] ?? '') ?? 5)
+          .clamp(1, 300);
+      if (transferItem != null && transferManager != null) {
+        await transferManager!.waitForMaintenance(
+          transferItem,
+          Duration(seconds: seconds),
+        );
+      } else {
+        await Future<void>.delayed(Duration(seconds: seconds));
+      }
+      response = await _authorizedStreamedGet(uri);
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       if (transferItem != null) {
         transferManager?.failItem(transferItem, 'HTTP ${response.statusCode}');

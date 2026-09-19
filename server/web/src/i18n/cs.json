@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "Při každém zavření aplikace",
+    "login_15_minutes": "15 minut",
+    "login_1_hour": "1 hodina",
+    "login_1_day": "1 den",
+    "login_30_days": "30 dní",
+    "login_never": "Nikdy"
   },
   "toasts": {
     "login_success": "Přihlášení bylo úspěšné!",
@@ -362,5 +368,185 @@
     "network_upload": "Chyba sítě při nahrávání",
     "batch_upload_failed": "Hromadné nahrávání selhalo ({status})",
     "network_batch_upload": "Chyba sítě při hromadném nahrávání"
+  },
+  "account_status": {
+    "registrationPending": "Žádost byla odeslána. Vyčkejte na schválení správcem.",
+    "registrationClosed": "Registrace je uzavřena.",
+    "accountBlocked": "Tento účet je zablokován. Kontaktujte správce.",
+    "passwordResetRequired": "Je nutné obnovit heslo. Požádejte správce o kód pro obnovení.",
+    "serverMaintenance": "Na serveru probíhá údržba. Operace se soubory budou obnoveny později.",
+    "storageQuotaExceeded": "Byl překročen limit úložiště. Smažte soubory nebo požádejte správce o zvýšení limitu.",
+    "resetPasswordStep1Body": "Zadejte uživatelské jméno a požádejte správce o šestimístný kód pro obnovení.",
+    "resetPasswordStep2Body": "Zadejte šestimístný kód od správce a nové heslo."
+  },
+  "recovery": {
+    "resetPasswordTitle": "Obnovit heslo",
+    "resetCodeLabel": "Obnovovací kód",
+    "passwordResetSuccessfully": "Heslo bylo úspěšně obnoveno!",
+    "newPasswordLabel": "Nové heslo",
+    "codeAndPasswordRequired": "Kód a nové heslo jsou povinné."
+  },
+  "admin": {
+    "title": "Správa",
+    "users": "Uživatelé",
+    "applications": "Žádosti o registraci",
+    "configuration": "Nastavení serveru",
+    "maintenance": "Údržba",
+    "saved": "Uloženo.",
+    "role": "Role",
+    "user": "Uživatel",
+    "administrator": "Správce",
+    "status": "Stav",
+    "active": "Aktivní",
+    "blocked": "Zablokovaný",
+    "quota": "Limit úložiště",
+    "inherit": "Použít výchozí limit serveru",
+    "unlimited": "Neomezeně",
+    "limited": "Vlastní limit",
+    "bytes": "Limit v bajtech",
+    "used": "Využito",
+    "reserved": "Rezervováno",
+    "reset_password": "Obnovit heslo",
+    "revoke_sessions": "Odhlásit všechna zařízení",
+    "approve": "Schválit",
+    "reject": "Zamítnout",
+    "no_applications": "Žádné nevyřízené žádosti o registraci.",
+    "deleting": "Mazání není dokončeno. Vyřešte problém s úložištěm a zkuste to znovu.",
+    "retry": "Pokračovat",
+    "rotation": "Změna šifrovacího klíče",
+    "new_secret": "Nové tajemství (alespoň 32 znaků)",
+    "rotate": "Změnit tajemství",
+    "pending": "Aktuální hodnota; uložená změna vyžaduje restart",
+    "rotation_failed": "Operace je pozastavena. Opravte problém s úložištěm a pokračujte. Přístup k souborům zůstává pozastaven.",
+    "recovery_hint": "Zkopírujte tento jednorázový kód a předejte jej uživateli. Platí 10 minut a zobrazuje se pouze zde.",
+    "config_hint": "Nastavení označená „Restart“ vyžadují restart serveru správcem. Přesun existujícího úložiště nebo databáze vyžaduje ruční migraci. Nulový limit úložiště znamená neomezenou kapacitu.",
+    "environment_hint": "Toto tajemství pochází z prostředí nasazení a nelze je zde změnit.",
+    "confirm_reset": "Obnovit heslo uživatele {name}? Jeho současné heslo a všechny relace přestanou fungovat.",
+    "confirm_delete": "Smazat uživatele {name}? Osobní soubory a koš budou odstraněny. Sdílené soubory budou převedeny na váš účet a započítány do vašeho limitu.",
+    "confirm_signing": "Změnit podpisové tajemství? Všechna zařízení včetně tohoto prohlížeče budou odhlášena.",
+    "confirm_encryption": "Změnit šifrovací klíč? Přístup k souborům bude pozastaven, dokud nebudou všechny soubory znovu zašifrovány. Po zahájení nelze operaci zrušit.",
+    "apply": {
+      "live": "Platí okamžitě",
+      "restart": "Vyžaduje restart",
+      "migration": "Ruční migrace na neprázdném serveru",
+      "rotation": "Samostatná operace"
+    },
+    "source": {
+      "environment": "Prostředí nasazení",
+      "local": "Místní nastavení",
+      "base": "Základní konfigurace",
+      "default": "Výchozí"
+    },
+    "registration": {
+      "approval": "Schválení správcem",
+      "open": "Otevřená",
+      "closed": "Uzavřená"
+    },
+    "phase": {
+      "idle": "Žádná probíhající operace",
+      "enumerating": "Příprava souborů",
+      "rotating": "Opětovné šifrování souborů",
+      "finalizing": "Ověřování a použití nového klíče",
+      "complete": "Dokončeno"
+    },
+    "errors": {
+      "forbidden": "Vyžadována práva správce.",
+      "last_admin": "Poslední aktivní správce musí zůstat dostupný.",
+      "invalid_quota": "Zadejte platný limit úložiště.",
+      "quota_exceeded": "Limit úložiště pro tuto operaci nestačí.",
+      "config_conflict": "Nastavení byla změněna jinde. Obnovte stránku a změny použijte znovu.",
+      "invalid_config_value": "Jedna nebo více hodnot nastavení jsou neplatné.",
+      "manual_migration_required": "Před změnou tohoto nastavení je nutné ručně migrovat existující data.",
+      "config_from_environment": "Toto nastavení řídí prostředí nasazení.",
+      "rotation_required": "Použijte samostatnou operaci změny tajemství.",
+      "invalid_secret": "Použijte jiné tajemství o délce 32 až 4096 znaků.",
+      "deletion_incomplete": "Mazání není dokončeno. Zkontrolujte přístup k úložišti a zkuste to znovu.",
+      "maintenance": "Probíhá údržba serveru. Zkuste to znovu po jejím dokončení.",
+      "absolute_path_required": "Zadejte absolutní cestu.",
+      "rotation_running": "Šifrovací operace již probíhá.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

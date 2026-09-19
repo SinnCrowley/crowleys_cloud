@@ -76,6 +76,37 @@ void main() {
       );
     });
 
+    test(
+      'maintenance does not report connection loss, ordinary 503 does',
+      () async {
+        final failures = <String>[];
+        var maintenance = true;
+        final client = AuthenticatedHttpClient(
+          authService: authService,
+          serverId: 'srv1',
+          baseUrl: 'http://localhost:8080',
+          onConnectionLost: failures.add,
+          client: MockClient(
+            (request) async => http.Response(
+              'Unavailable',
+              503,
+              headers: maintenance ? {'x-crowley-maintenance': 'true'} : {},
+            ),
+          ),
+        );
+        final uri = Uri.parse('http://localhost:8080/api/files');
+        expect((await client.get(uri)).statusCode, 503);
+        expect(failures, isEmpty);
+        final streamed = await client.streamedGet(uri);
+        await streamed.stream.drain<void>();
+        expect(failures, isEmpty);
+        maintenance = false;
+        await client.get(uri);
+        expect(failures, hasLength(1));
+        client.client.close();
+      },
+    );
+
     test('attaches bearer token to get request', () async {
       String? authHeader;
       final mockClient = MockClient((request) async {

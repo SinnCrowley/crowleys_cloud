@@ -51,6 +51,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'thumbnail_service.dart';
+import 'package:crowleys_cloud/shared/utils/byte_formatter.dart';
 import 'package:crowleys_cloud/trash_browser_controller.dart';
 import 'package:crowleys_cloud/trash_browser_screen.dart';
 import 'package:crowleys_cloud/upload_conflict_dialog.dart';
@@ -704,7 +705,7 @@ class _MainScreenState extends State<MainScreen> {
     if (username.isEmpty || password.isEmpty) return false;
 
     try {
-      await _serverManager.authService.authenticate(
+      final authorized = await _serverManager.authService.authenticate(
         serverId: activeId,
         baseUrl: baseUrl,
         username: username,
@@ -712,6 +713,14 @@ class _MainScreenState extends State<MainScreen> {
         mode: mode,
         email: email,
       );
+      if (!authorized) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.registrationPending)));
+        }
+        return false;
+      }
       await _serverManager.markAuthed(activeId);
     } on AuthException catch (e) {
       if (!mounted) return false;
@@ -910,9 +919,13 @@ class _MainScreenState extends State<MainScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error picking files: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${AppLocalizations.of(context)!.errorPickingFiles}: $e',
+            ),
+          ),
+        );
       }
     }
   }
@@ -1018,6 +1031,41 @@ class _MainScreenState extends State<MainScreen> {
         return;
       }
       itemsToUpload = resolution.confirmedItems;
+    }
+
+    await _serverController?.fetchAccountStats();
+    final quotaStats = _serverController?.accountStats;
+    final quotaLimit = (quotaStats?['limit_bytes'] as num?)?.toInt() ?? 0;
+    if (quotaLimit > 0) {
+      var remaining =
+          quotaLimit -
+          ((quotaStats?['used_bytes'] as num?)?.toInt() ?? 0) -
+          ((quotaStats?['reserved_bytes'] as num?)?.toInt() ?? 0);
+      final allowedItems = <FileItem>[];
+      var quotaExceeded = false;
+      for (final item in itemsToUpload) {
+        final localPath = await item.path;
+        final localFile = File(localPath);
+        final size =
+            !item.isDirectory &&
+                localPath.isNotEmpty &&
+                await localFile.exists()
+            ? await localFile.length()
+            : 0;
+        if (size > remaining) {
+          quotaExceeded = true;
+          continue;
+        }
+        allowedItems.add(item);
+        remaining -= size;
+      }
+      if (quotaExceeded && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.storageQuotaExceeded)));
+      }
+      if (allowedItems.isEmpty) return;
+      itemsToUpload = allowedItems;
     }
 
     final uploaded = <String>[];
@@ -1158,6 +1206,7 @@ class _MainScreenState extends State<MainScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     if (uploaded.isNotEmpty) {
       await _serverController?.invalidateCurrentDirectory(reloadAfter: true);
+      unawaited(_serverController?.fetchAccountStats() ?? Future<void>.value());
     }
   }
 
@@ -1185,6 +1234,31 @@ class _MainScreenState extends State<MainScreen> {
       return (ok: false, token: token, error: l10n.uploadErrorNoSessionToken);
     }
 
+    Future<http.Response> sendUpload(
+      Uri uri, {
+      required Map<String, String> headers,
+      required List<int> body,
+    }) async {
+      while (true) {
+        _transferManager.throwIfCanceled();
+        _transferManager.throwIfItemCanceled(transferItem);
+        final response = await client.post(uri, headers: headers, body: body);
+        if (response.statusCode != 503 ||
+            response.headers['x-crowley-maintenance'] != 'true') {
+          return response;
+        }
+        final seconds =
+            (int.tryParse(response.headers['retry-after'] ?? '') ?? 5).clamp(
+              1,
+              300,
+            );
+        await _transferManager.waitForMaintenance(
+          transferItem,
+          Duration(seconds: seconds),
+        );
+      }
+    }
+
     final totalBytes = await localFile.length();
     _transferManager.throwIfItemCanceled(transferItem);
     _transferManager.startItem(transferItem);
@@ -1193,17 +1267,9 @@ class _MainScreenState extends State<MainScreen> {
     if (totalBytes == 0) {
       final uri = Uri.parse(base)
           .resolve('/api/files')
-          .replace(
-            queryParameters: {
-              'scope': 'private',
-              'path': remotePath,
-              'offset': '0',
-              'total': '0',
-              'is_last': 'true',
-            },
-          );
+          .replace(queryParameters: {'scope': 'private', 'path': remotePath});
       try {
-        final resp = await client.post(
+        final resp = await sendUpload(
           uri,
           headers: {
             'authorization': 'Bearer $token',
@@ -1222,7 +1288,7 @@ class _MainScreenState extends State<MainScreen> {
             );
           } catch (_) {}
           if (token != null && token.isNotEmpty) {
-            final retryResp = await client.post(
+            final retryResp = await sendUpload(
               uri,
               headers: {
                 'authorization': 'Bearer $token',
@@ -1240,8 +1306,15 @@ class _MainScreenState extends State<MainScreen> {
           _transferManager.completeItem(transferItem);
           return (ok: true, token: token, error: '');
         }
-        _transferManager.failItem(transferItem, 'HTTP ${resp.statusCode}');
-        return (ok: false, token: token, error: 'HTTP ${resp.statusCode}');
+        _transferManager.failItem(
+          transferItem,
+          accountErrorMessage(resp.body) ?? 'HTTP ${resp.statusCode}',
+        );
+        return (
+          ok: false,
+          token: token,
+          error: accountErrorMessage(resp.body) ?? 'HTTP ${resp.statusCode}',
+        );
       } on SocketException {
         _transferManager.failItem(transferItem, l10n.serverDisconnected);
         return (ok: false, token: token, error: l10n.serverDisconnected);
@@ -1311,7 +1384,7 @@ class _MainScreenState extends State<MainScreen> {
         while (attempts < maxRetries) {
           attempts++;
           try {
-            response = await client.post(
+            response = await sendUpload(
               chunkUri,
               headers: {
                 'authorization': 'Bearer $token',
@@ -1346,12 +1419,14 @@ class _MainScreenState extends State<MainScreen> {
               final body = response.body;
               _transferManager.failItem(
                 transferItem,
-                'HTTP ${response.statusCode}',
+                accountErrorMessage(response.body) ??
+                    'HTTP ${response.statusCode}',
               );
               return (
                 ok: false,
                 token: token,
                 error:
+                    accountErrorMessage(body) ??
                     'HTTP ${response.statusCode}${body.isEmpty ? '' : ' $body'}',
               );
             }
@@ -1380,6 +1455,16 @@ class _MainScreenState extends State<MainScreen> {
           }
         }
 
+        if (response == null ||
+            response.statusCode < 200 ||
+            response.statusCode >= 300) {
+          final message = response == null
+              ? l10n.uploadFailed('No response')
+              : accountErrorMessage(response.body) ??
+                    'HTTP ${response.statusCode}';
+          _transferManager.failItem(transferItem, message);
+          return (ok: false, token: token, error: message);
+        }
         offset += bytes.length;
         _transferManager.updateItem(transferItem, offset);
       }
@@ -1442,6 +1527,26 @@ class _MainScreenState extends State<MainScreen> {
             ? l10n.uploadErrorFailedToScanDirectory
             : e.message,
       );
+    }
+
+    final quotaStats = _serverController?.accountStats;
+    final quotaLimit = (quotaStats?['limit_bytes'] as num?)?.toInt() ?? 0;
+    if (quotaLimit > 0) {
+      final remaining =
+          quotaLimit -
+          ((quotaStats?['used_bytes'] as num?)?.toInt() ?? 0) -
+          ((quotaStats?['reserved_bytes'] as num?)?.toInt() ?? 0);
+      final directoryTotalBytes = uploadPlans.fold<int>(
+        0,
+        (sum, plan) => sum + plan.totalBytes,
+      );
+      if (directoryTotalBytes > remaining) {
+        return (
+          ok: false,
+          token: initialToken,
+          error: l10n.storageQuotaExceeded,
+        );
+      }
     }
 
     var token = initialToken;
@@ -2288,57 +2393,137 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildServerCategoryGrid() {
     final l10n = AppLocalizations.of(context)!;
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _serverCategories.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1,
-      ),
-      itemBuilder: (context, index) {
-        final category = _serverCategories[index];
-        return InkWell(
-          onTap: () async {
-            final isShared = category.name == 'Shared';
-            final type = switch (category.name) {
-              'Photos' => 'photo',
-              'Videos' => 'video',
-              'Audio' => 'audio',
-              'Documents' => 'document',
-              'Other' => 'other',
-              _ => 'all',
-            };
-            _searchController.clear();
-            _serverController?.setSearchQueryDebounced(
-              '',
-              delay: Duration.zero,
-            );
-            await _serverController?.setScope(isShared ? 'shared' : 'private');
-            _serverController?.setCategory(type);
-            setState(() {
-              _selectedServerCategory = category;
-            });
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: appSurface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(category.icon, color: appSubtext, size: 40),
-                const SizedBox(height: 12),
-                Text(
-                  _getLocalizedCategoryName(category.name, l10n),
-                  style: TextStyle(color: appText, fontSize: 16),
+    return ListenableBuilder(
+      listenable: _serverController!,
+      builder: (context, _) {
+        final stats = _serverController?.accountStats;
+        final totalSize = (stats?['total_size'] as num?)?.toInt() ?? 0;
+        final usedBytes = (stats?['used_bytes'] as num?)?.toInt() ?? totalSize;
+        final limitBytes = (stats?['limit_bytes'] as num?)?.toInt() ?? 0;
+
+        return Column(
+          children: [
+            if (stats != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: appSurface,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.cloud_outlined,
+                                color: appAccent,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                l10n.storageStatsUsedSpace,
+                                style: TextStyle(
+                                  color: appText,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            '${ByteFormatter.format(usedBytes)} / ${limitBytes > 0 ? ByteFormatter.format(limitBytes) : '∞'}',
+                            style: TextStyle(
+                              color: appAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (limitBytes > 0) ...[
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: (usedBytes / limitBytes).clamp(0.0, 1.0),
+                            backgroundColor: appAccent.withValues(alpha: 0.15),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              appAccent,
+                            ),
+                            minHeight: 6,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ],
+              ),
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _serverCategories.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1,
+                ),
+                itemBuilder: (context, index) {
+                  final category = _serverCategories[index];
+                  return InkWell(
+                    onTap: () async {
+                      final isShared = category.name == 'Shared';
+                      final type = switch (category.name) {
+                        'Photos' => 'photo',
+                        'Videos' => 'video',
+                        'Audio' => 'audio',
+                        'Documents' => 'document',
+                        'Other' => 'other',
+                        _ => 'all',
+                      };
+                      _searchController.clear();
+                      _serverController?.setSearchQueryDebounced(
+                        '',
+                        delay: Duration.zero,
+                      );
+                      await _serverController?.setScope(
+                        isShared ? 'shared' : 'private',
+                      );
+                      _serverController?.setCategory(type);
+                      setState(() {
+                        _selectedServerCategory = category;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: appSurface,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(category.icon, color: appSubtext, size: 40),
+                          const SizedBox(height: 12),
+                          Text(
+                            _getLocalizedCategoryName(category.name, l10n),
+                            style: TextStyle(color: appText, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
+          ],
         );
       },
     );

@@ -760,11 +760,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'Kullanıcı adınızı girin. 6 haneli doğrulama kodu sunucu günlüklerine/konsoluna yazdırılacaktır.';
+      'Kullanıcı adınızı girin ve bir yöneticiden altı haneli kurtarma kodu isteyin.';
 
   @override
   String get resetPasswordStep2Body =>
-      'Doğrulama kodu sunucu konsoluna yazdırıldı. 6 haneli kodu ve yeni şifrenizi girin.';
+      'Yöneticinin verdiği altı haneli kodu ve yeni parolanızı girin.';
 
   @override
   String get resetCodeLabel => 'Sıfırlama Kodu';
@@ -1787,4 +1787,33 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get language => 'Dil';
+
+  @override
+  String get registrationPending =>
+      'Kayıt başvurusu gönderildi. Yönetici onayını bekleyin.';
+
+  @override
+  String get registrationClosed => 'Kayıt kapalı.';
+
+  @override
+  String get accountBlocked =>
+      'Bu hesap engellendi. Bir yöneticiyle iletişime geçin.';
+
+  @override
+  String get passwordResetRequired =>
+      'Parolanızın sıfırlanması gerekiyor. Bir yöneticiden kurtarma kodu isteyin.';
+
+  @override
+  String get serverMaintenance =>
+      'Sunucu bakımda. Dosya işlemleri daha sonra devam edecek.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'Depolama kotası aşıldı. Dosyaları silin veya yöneticiden sınırınızı artırmasını isteyin.';
+
+  @override
+  String get systemDefault => 'Sistem varsayılanı';
+
+  @override
+  String get errorPickingFiles => 'Dosyalar seçilirken hata oluştu';
 }

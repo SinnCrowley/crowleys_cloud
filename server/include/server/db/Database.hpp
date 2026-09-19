@@ -51,8 +51,9 @@ class Database {
   class StatementGuard {
    public:
     StatementGuard() = default;
-    StatementGuard(sqlite3_stmt *stmt, std::unique_lock<std::mutex> lock)
-        : stmt_(stmt), lock_(std::move(lock)) {}
+    StatementGuard(sqlite3_stmt *stmt, std::unique_lock<std::mutex> lock,
+                   std::unique_lock<std::recursive_mutex> connectionLock)
+        : stmt_(stmt), connectionLock_(std::move(connectionLock)), lock_(std::move(lock)) {}
 
     ~StatementGuard() {
       if (stmt_) {
@@ -62,7 +63,7 @@ class Database {
     }
 
     StatementGuard(StatementGuard &&other) noexcept
-        : stmt_(other.stmt_), lock_(std::move(other.lock_)) {
+        : stmt_(other.stmt_), connectionLock_(std::move(other.connectionLock_)), lock_(std::move(other.lock_)) {
       other.stmt_ = nullptr;
     }
 
@@ -74,6 +75,7 @@ class Database {
         }
         stmt_ = other.stmt_;
         lock_ = std::move(other.lock_);
+        connectionLock_ = std::move(other.connectionLock_);
         other.stmt_ = nullptr;
       }
       return *this;
@@ -88,6 +90,7 @@ class Database {
 
    private:
     sqlite3_stmt *stmt_{nullptr};
+    std::unique_lock<std::recursive_mutex> connectionLock_;
     std::unique_lock<std::mutex> lock_;
   };
 
@@ -113,6 +116,7 @@ class Database {
 
    private:
     Database &db_;
+    std::unique_lock<std::recursive_mutex> lock_;
     bool committed_{false};
   };
 
@@ -133,6 +137,9 @@ class Database {
     std::mutex mutex;
   };
 
+  // ponytail: one SQLite connection; serialize its transactions and statements.
+  // Use separate connections if database throughput becomes a bottleneck.
+  mutable std::recursive_mutex connectionMutex_;
   sqlite3 *db_{nullptr};
   mutable std::mutex cacheMutex_;
   std::unordered_map<std::string, std::shared_ptr<CachedStmt>> stmtCache_;

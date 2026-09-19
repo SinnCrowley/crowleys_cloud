@@ -27,7 +27,14 @@ enum AuthMode { register, login }
 
 /// Result payload containing access and refresh tokens returned from authentication endpoints.
 class AuthResult {
-  const AuthResult({required this.accessToken, required this.refreshToken});
+  const AuthResult({required this.accessToken, required this.refreshToken})
+    : pending = false;
+  const AuthResult.pending()
+    : accessToken = '',
+      refreshToken = '',
+      pending = true;
+
+  final bool pending;
 
   final String accessToken;
   final String refreshToken;
@@ -101,9 +108,15 @@ class HttpAuthGateway implements AuthGateway {
       body: jsonEncode(payload),
     );
 
+    if (response.statusCode == 202 && uri.path.endsWith('/api/register')) {
+      final body = jsonDecode(response.body) as Map<String, Object?>;
+      if (body['status'] == 'pending') return const AuthResult.pending();
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw AuthException(
-        _extractError(response.body) ?? l10n.authFailedGeneric,
+        accountErrorMessage(response.body) ??
+            _extractError(response.body) ??
+            l10n.authFailedGeneric,
       );
     }
 
@@ -129,6 +142,24 @@ class HttpAuthGateway implements AuthGateway {
     } catch (_) {
       return null;
     }
+  }
+}
+
+String? accountErrorMessage(String body) {
+  try {
+    final data = jsonDecode(body) as Map<String, dynamic>;
+    final l10n = platformAppLocalizations();
+    return switch (data['code']) {
+      'registration_pending' => l10n.registrationPending,
+      'registration_closed' => l10n.registrationClosed,
+      'account_blocked' => l10n.accountBlocked,
+      'password_reset_required' => l10n.passwordResetRequired,
+      'maintenance' => l10n.serverMaintenance,
+      'quota_exceeded' => l10n.storageQuotaExceeded,
+      _ => null,
+    };
+  } catch (_) {
+    return null;
   }
 }
 
@@ -170,7 +201,7 @@ class AuthService {
   final AuthGateway gateway;
   final http.Client _client;
 
-  Future<void> authenticate({
+  Future<bool> authenticate({
     required String serverId,
     required String baseUrl,
     required String username,
@@ -190,6 +221,7 @@ class AuthService {
         password: password,
       ),
     };
+    if (result.pending) return false;
     await secretStore.saveTokens(
       serverId: serverId,
       accessToken: result.accessToken,
@@ -203,6 +235,7 @@ class AuthService {
     try {
       await fetchAndSaveSyncToken(serverId: serverId, baseUrl: baseUrl);
     } catch (_) {}
+    return true;
   }
 
   Future<String?> readLastUsername(String serverId) {

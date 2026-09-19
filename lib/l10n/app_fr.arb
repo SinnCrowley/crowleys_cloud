@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Forgot password dialog title step 2"
   },
-  "resetPasswordStep1Body": "Saisissez votre nom d’utilisateur. Le code de vérification à 6 chiffres sera affiché dans les journaux ou la console du serveur.",
+  "resetPasswordStep1Body": "Saisissez votre nom d’utilisateur et demandez un code de récupération à six chiffres à un administrateur.",
   "@resetPasswordStep1Body": {
     "description": "Forgot password step 1 instruction"
   },
-  "resetPasswordStep2Body": "Le code de vérification a été affiché dans la console du serveur. Saisissez le code à 6 chiffres et votre nouveau mot de passe.",
+  "resetPasswordStep2Body": "Saisissez le code à six chiffres fourni par un administrateur et votre nouveau mot de passe.",
   "@resetPasswordStep2Body": {
     "description": "Forgot password step 2 instruction"
   },
@@ -2658,5 +2658,13 @@
   "language": "Langue",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Demande envoyée. Attendez l’approbation d’un administrateur.",
+  "registrationClosed": "Les inscriptions sont fermées.",
+  "accountBlocked": "Ce compte est bloqué. Contactez un administrateur.",
+  "passwordResetRequired": "Votre mot de passe doit être réinitialisé. Demandez un code de récupération à un administrateur.",
+  "serverMaintenance": "Le serveur est en maintenance. Les opérations sur les fichiers reprendront plus tard.",
+  "storageQuotaExceeded": "Le quota de stockage est dépassé. Supprimez des fichiers ou demandez à un administrateur d’augmenter votre limite.",
+  "systemDefault": "Valeur par défaut du système",
+  "errorPickingFiles": "Erreur lors de la sélection des fichiers"
 }

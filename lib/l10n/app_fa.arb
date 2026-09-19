@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Forgot password dialog title step 2"
   },
-  "resetPasswordStep1Body": "نام کاربری خود را وارد کنید. کد تأیید ۶ رقمی در لاگ‌ها/کنسول سرور چاپ خواهد شد.",
+  "resetPasswordStep1Body": "نام کاربری را وارد کنید و از مدیر یک کد بازیابی شش‌رقمی بخواهید.",
   "@resetPasswordStep1Body": {
     "description": "Forgot password step 1 instruction"
   },
-  "resetPasswordStep2Body": "کد تأیید در کنسول سرور چاپ شده است. کد ۶ رقمی و گذرواژه جدید خود را وارد کنید.",
+  "resetPasswordStep2Body": "کد شش‌رقمی ارائه‌شده توسط مدیر و گذرواژهٔ جدید را وارد کنید.",
   "@resetPasswordStep2Body": {
     "description": "Forgot password step 2 instruction"
   },
@@ -2658,5 +2658,13 @@
   "language": "زبان",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "درخواست ثبت‌نام ارسال شد. منتظر تأیید مدیر بمانید.",
+  "registrationClosed": "ثبت‌نام بسته است.",
+  "accountBlocked": "این حساب مسدود شده است. با مدیر تماس بگیرید.",
+  "passwordResetRequired": "گذرواژه باید بازنشانی شود. از مدیر کد بازیابی بخواهید.",
+  "serverMaintenance": "سرور در حال نگهداری است. عملیات فایل‌ها بعداً از سر گرفته می‌شود.",
+  "storageQuotaExceeded": "سهمیهٔ فضای ذخیره‌سازی تمام شده است. فایل‌ها را حذف کنید یا از مدیر افزایش سهمیه بخواهید.",
+  "systemDefault": "پیش‌فرض سیستم",
+  "errorPickingFiles": "خطا در انتخاب فایل‌ها"
 }

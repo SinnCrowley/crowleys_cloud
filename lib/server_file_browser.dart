@@ -919,9 +919,7 @@ void _showStatsBottomSheet(
   BuildContext context,
   ServerBrowserController controller,
 ) {
-  if (controller.accountStats == null) {
-    unawaited(controller.fetchAccountStats());
-  }
+  unawaited(controller.fetchAccountStats());
   showModalBottomSheet<void>(
     context: context,
     backgroundColor: appSurface,
@@ -941,6 +939,8 @@ void _showStatsBottomSheet(
             );
           }
           final totalSize = (stats['total_size'] as num?)?.toInt() ?? 0;
+          final usedBytes = (stats['used_bytes'] as num?)?.toInt() ?? totalSize;
+          final limitBytes = (stats['limit_bytes'] as num?)?.toInt() ?? 0;
           final totalCount = (stats['total_count'] as num?)?.toInt() ?? 0;
 
           final categories = [
@@ -1019,45 +1019,72 @@ void _showStatsBottomSheet(
                         color: appAccent.withValues(alpha: 0.3),
                       ),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
                           children: [
-                            Text(
-                              l10n.storageStatsUsedSpace,
-                              style: TextStyle(fontSize: 12, color: appSubtext),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.storageStatsUsedSpace,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: appSubtext,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${ByteFormatter.format(usedBytes)} / ${limitBytes > 0 ? ByteFormatter.format(limitBytes) : '∞'}',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: appAccent,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              ByteFormatter.format(totalSize),
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: appAccent,
-                              ),
+                            const Spacer(),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  l10n.storageStatsTotalFiles,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: appSubtext,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  l10n.storageStatsNItems(totalCount),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: appText,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        const Spacer(),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              l10n.storageStatsTotalFiles,
-                              style: TextStyle(fontSize: 12, color: appSubtext),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              l10n.storageStatsNItems(totalCount),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: appText,
+                        if (limitBytes > 0) ...[
+                          const SizedBox(height: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: (usedBytes / limitBytes).clamp(0.0, 1.0),
+                              backgroundColor: appAccent.withValues(
+                                alpha: 0.15,
                               ),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                appAccent,
+                              ),
+                              minHeight: 6,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

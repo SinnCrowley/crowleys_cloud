@@ -751,10 +751,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enterResetCodeTitle => '輸入重設碼';
 
   @override
-  String get resetPasswordStep1Body => '輸入您的使用者名稱。6 位數確認碼將輸出到伺服器日誌/主控台。';
+  String get resetPasswordStep1Body => '輸入使用者名稱，並向管理員索取六位數復原碼。';
 
   @override
-  String get resetPasswordStep2Body => '確認碼已發送到伺服器主控台。請輸入 6 位數代碼與您的新密碼。';
+  String get resetPasswordStep2Body => '輸入管理員提供的六位數復原碼和新密碼。';
 
   @override
   String get resetCodeLabel => '重設驗證碼';
@@ -1750,6 +1750,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get language => '語言';
+
+  @override
+  String get registrationPending => '註冊申請已提交，請等待管理員核准。';
+
+  @override
+  String get registrationClosed => '註冊已關閉。';
+
+  @override
+  String get accountBlocked => '此帳號已被封鎖，請聯絡管理員。';
+
+  @override
+  String get passwordResetRequired => '您需要重設密碼，請向管理員索取復原碼。';
+
+  @override
+  String get serverMaintenance => '伺服器正在維護，檔案操作稍後恢復。';
+
+  @override
+  String get storageQuotaExceeded => '已超出儲存配額，請刪除檔案或聯絡管理員提高限額。';
+
+  @override
+  String get systemDefault => '系统默认';
+
+  @override
+  String get errorPickingFiles => '选择文件时出错';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2499,10 +2523,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get enterResetCodeTitle => '输入重置码';
 
   @override
-  String get resetPasswordStep1Body => '输入您的用户名。6 位确认码将输出到服务器日志/控制台。';
+  String get resetPasswordStep1Body => '输入用户名，并向管理员索取六位恢复码。';
 
   @override
-  String get resetPasswordStep2Body => '确认码已发送到服务器控制台。请输入 6 位代码和您的新密码。';
+  String get resetPasswordStep2Body => '输入管理员提供的六位恢复码和新密码。';
 
   @override
   String get resetCodeLabel => '重置验证码';
@@ -3498,4 +3522,28 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get language => '语言';
+
+  @override
+  String get registrationPending => '注册申请已提交，请等待管理员批准。';
+
+  @override
+  String get registrationClosed => '注册已关闭。';
+
+  @override
+  String get accountBlocked => '此账号已被封禁，请联系管理员。';
+
+  @override
+  String get passwordResetRequired => '您需要重置密码，请向管理员索取恢复码。';
+
+  @override
+  String get serverMaintenance => '服务器正在维护，文件操作稍后恢复。';
+
+  @override
+  String get storageQuotaExceeded => '已超出存储配额，请删除文件或联系管理员提高限额。';
+
+  @override
+  String get systemDefault => '系统默认';
+
+  @override
+  String get errorPickingFiles => '选择文件时出错';
 }

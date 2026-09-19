@@ -31,8 +31,11 @@ class AuthController : public drogon::HttpController<AuthController> {
   ADD_METHOD_TO(AuthController::getSyncToken, "/api/account/sync-token", drogon::Get, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(AuthController::requestReset, "/api/auth/reset-password/request", drogon::Post);
   ADD_METHOD_TO(AuthController::verifyReset, "/api/auth/reset-password/verify", drogon::Post);
+  ADD_METHOD_TO(AuthController::account, "/api/account", drogon::Get, "server::middleware::JwtMiddleware");
   METHOD_LIST_END
 
+  void account(const drogon::HttpRequestPtr &req,
+               std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void registerUser(const drogon::HttpRequestPtr &req,
                     std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void login(const drogon::HttpRequestPtr &req,

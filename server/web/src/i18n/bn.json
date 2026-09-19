@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "প্রতিবার অ্যাপ বন্ধ হলে",
+    "login_15_minutes": "১৫ মিনিট",
+    "login_1_hour": "১ ঘণ্টা",
+    "login_1_day": "১ দিন",
+    "login_30_days": "৩০ দিন",
+    "login_never": "কখনও নয়"
   },
   "toasts": {
     "login_success": "সফলভাবে সাইন ইন হয়েছে!",
@@ -362,5 +368,185 @@
     "network_upload": "আপলোডের সময় নেটওয়ার্ক ত্রুটি",
     "batch_upload_failed": "ব্যাচ আপলোড ব্যর্থ হয়েছে ({status})",
     "network_batch_upload": "ব্যাচ আপলোডের সময় নেটওয়ার্ক ত্রুটি"
+  },
+  "account_status": {
+    "registrationPending": "নিবন্ধনের আবেদন পাঠানো হয়েছে। প্রশাসকের অনুমোদনের জন্য অপেক্ষা করুন।",
+    "registrationClosed": "নিবন্ধন বন্ধ আছে।",
+    "accountBlocked": "এই অ্যাকাউন্টটি অবরুদ্ধ। প্রশাসকের সঙ্গে যোগাযোগ করুন।",
+    "passwordResetRequired": "পাসওয়ার্ড পুনরায় সেট করতে হবে। প্রশাসকের কাছে পুনরুদ্ধার কোড চান।",
+    "serverMaintenance": "সার্ভারের রক্ষণাবেক্ষণ চলছে। ফাইলের কাজ পরে আবার শুরু হবে।",
+    "storageQuotaExceeded": "সঞ্চয়স্থানের সীমা অতিক্রম করেছে। ফাইল মুছুন বা প্রশাসককে সীমা বাড়াতে বলুন।",
+    "resetPasswordStep1Body": "ব্যবহারকারীর নাম লিখুন এবং প্রশাসকের কাছে ছয় অঙ্কের পুনরুদ্ধার কোড চান।",
+    "resetPasswordStep2Body": "প্রশাসকের দেওয়া ছয় অঙ্কের কোড এবং নতুন পাসওয়ার্ড লিখুন।"
+  },
+  "recovery": {
+    "resetPasswordTitle": "পাসওয়ার্ড রিসেট করুন",
+    "resetCodeLabel": "রিসেট কোড",
+    "passwordResetSuccessfully": "পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!",
+    "newPasswordLabel": "নতুন পাসওয়ার্ড",
+    "codeAndPasswordRequired": "কোড এবং নতুন পাসওয়ার্ড আবশ্যক।"
+  },
+  "admin": {
+    "title": "প্রশাসন",
+    "users": "ব্যবহারকারী",
+    "applications": "নিবন্ধনের আবেদন",
+    "configuration": "সার্ভারের সেটিংস",
+    "maintenance": "রক্ষণাবেক্ষণ",
+    "saved": "সংরক্ষিত হয়েছে।",
+    "role": "ভূমিকা",
+    "user": "ব্যবহারকারী",
+    "administrator": "প্রশাসক",
+    "status": "অবস্থা",
+    "active": "সক্রিয়",
+    "blocked": "অবরুদ্ধ",
+    "quota": "স্টোরেজ কোটা",
+    "inherit": "সার্ভারের ডিফল্ট ব্যবহার করুন",
+    "unlimited": "সীমাহীন",
+    "limited": "নিজস্ব সীমা",
+    "bytes": "বাইটে সীমা",
+    "used": "ব্যবহৃত",
+    "reserved": "সংরক্ষিত স্থান",
+    "reset_password": "পাসওয়ার্ড রিসেট করুন",
+    "revoke_sessions": "সব ডিভাইস থেকে সাইন আউট করুন",
+    "approve": "অনুমোদন করুন",
+    "reject": "প্রত্যাখ্যান করুন",
+    "no_applications": "কোনো নিবন্ধনের আবেদন অপেক্ষমাণ নেই।",
+    "deleting": "মুছে ফেলা সম্পূর্ণ হয়নি। স্টোরেজের সমস্যা সমাধান করে আবার চেষ্টা করুন।",
+    "retry": "চালিয়ে যান",
+    "rotation": "এনক্রিপশন কী পরিবর্তন",
+    "new_secret": "নতুন গোপন মান (অন্তত ৩২ অক্ষর)",
+    "rotate": "গোপন মান পরিবর্তন করুন",
+    "pending": "বর্তমান মান; সংরক্ষিত পরিবর্তনের জন্য পুনরায় চালু করা প্রয়োজন",
+    "rotation_failed": "কাজটি স্থগিত আছে। স্টোরেজের সমস্যা ঠিক করে চালিয়ে যান। ফাইলে প্রবেশাধিকার স্থগিত থাকবে।",
+    "recovery_hint": "এই একবার ব্যবহারযোগ্য কোডটি কপি করে ব্যবহারকারীকে দিন। ১০ মিনিট পর এর মেয়াদ শেষ হবে এবং এটি শুধু এখানেই দেখানো হয়।",
+    "config_hint": "“পুনরায় চালু” চিহ্নিত সেটিংসের জন্য পরিচালনাকারীকে সার্ভার পুনরায় চালু করতে হবে। বিদ্যমান স্টোরেজ বা ডেটাবেস সরাতে ম্যানুয়াল মাইগ্রেশন প্রয়োজন। শূন্য কোটা মানে সীমাহীন।",
+    "environment_hint": "এই গোপন মানটি ডিপ্লয়মেন্ট পরিবেশ থেকে এসেছে এবং এখানে পরিবর্তন করা যায় না।",
+    "confirm_reset": "{name}-এর পাসওয়ার্ড রিসেট করবেন? বর্তমান পাসওয়ার্ড ও সব সেশন আর কাজ করবে না।",
+    "confirm_delete": "{name}-কে মুছে ফেলবেন? ব্যক্তিগত ফাইল ও ট্র্যাশ মুছে যাবে। শেয়ার করা ফাইল আপনার অ্যাকাউন্টে স্থানান্তরিত হবে এবং আপনার কোটায় গণনা করা হবে।",
+    "confirm_signing": "স্বাক্ষরের গোপন মান পরিবর্তন করবেন? এই ব্রাউজারসহ সব ডিভাইস থেকে সাইন আউট হবে।",
+    "confirm_encryption": "এনক্রিপশন কী পরিবর্তন করবেন? সব ফাইল আবার এনক্রিপ্ট না হওয়া পর্যন্ত ফাইলে প্রবেশাধিকার স্থগিত থাকবে। শুরু হলে কাজটি বাতিল করা যাবে না।",
+    "apply": {
+      "live": "সঙ্গে সঙ্গে কার্যকর",
+      "restart": "পুনরায় চালু করা প্রয়োজন",
+      "migration": "ডেটা থাকা সার্ভারে ম্যানুয়াল মাইগ্রেশন",
+      "rotation": "আলাদা কাজ"
+    },
+    "source": {
+      "environment": "ডিপ্লয়মেন্ট পরিবেশ",
+      "local": "স্থানীয় সেটিংস",
+      "base": "মূল কনফিগারেশন",
+      "default": "ডিফল্ট"
+    },
+    "registration": {
+      "approval": "প্রশাসকের অনুমোদন",
+      "open": "খোলা",
+      "closed": "বন্ধ"
+    },
+    "phase": {
+      "idle": "কোনো কাজ চলছে না",
+      "enumerating": "ফাইল প্রস্তুত হচ্ছে",
+      "rotating": "ফাইল আবার এনক্রিপ্ট হচ্ছে",
+      "finalizing": "নতুন কী যাচাই ও প্রয়োগ করা হচ্ছে",
+      "complete": "সম্পন্ন"
+    },
+    "errors": {
+      "forbidden": "প্রশাসকের অনুমতি প্রয়োজন।",
+      "last_admin": "শেষ সক্রিয় প্রশাসককে উপলভ্য রাখতে হবে।",
+      "invalid_quota": "একটি বৈধ স্টোরেজ সীমা লিখুন।",
+      "quota_exceeded": "এই কাজের জন্য স্টোরেজ কোটা যথেষ্ট নয়।",
+      "config_conflict": "অন্য কোথাও সেটিংস পরিবর্তিত হয়েছে। রিফ্রেশ করে আপনার পরিবর্তন আবার প্রয়োগ করুন।",
+      "invalid_config_value": "এক বা একাধিক সেটিংসের মান অবৈধ।",
+      "manual_migration_required": "এই সেটিংস পরিবর্তনের আগে বিদ্যমান ডেটা ম্যানুয়ালি স্থানান্তর করতে হবে।",
+      "config_from_environment": "এই সেটিংস ডিপ্লয়মেন্ট পরিবেশ দ্বারা নিয়ন্ত্রিত।",
+      "rotation_required": "গোপন মান পরিবর্তনের আলাদা কাজটি ব্যবহার করুন।",
+      "invalid_secret": "৩২ থেকে ৪০৯৬ অক্ষরের একটি ভিন্ন গোপন মান ব্যবহার করুন।",
+      "deletion_incomplete": "মুছে ফেলা সম্পূর্ণ হয়নি। স্টোরেজে প্রবেশাধিকার যাচাই করে আবার চেষ্টা করুন।",
+      "maintenance": "সার্ভারের রক্ষণাবেক্ষণ চলছে। শেষ হলে আবার চেষ্টা করুন।",
+      "absolute_path_required": "একটি পরম পাথ লিখুন।",
+      "rotation_running": "ইতিমধ্যে একটি এনক্রিপশন কাজ চলছে।",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

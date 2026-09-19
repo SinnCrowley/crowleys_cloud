@@ -300,7 +300,13 @@
     "language_fa": "فارسی",
     "language_uk": "Українська",
     "language_pl": "Polski",
-    "language_cs": "Čeština"
+    "language_cs": "Čeština",
+    "login_every_close": "Al cerrar la aplicación",
+    "login_15_minutes": "15 minutos",
+    "login_1_hour": "1 hora",
+    "login_1_day": "1 día",
+    "login_30_days": "30 días",
+    "login_never": "Nunca"
   },
   "toasts": {
     "login_success": "¡Sesión iniciada correctamente!",
@@ -362,5 +368,185 @@
     "network_upload": "Error de red al subir",
     "batch_upload_failed": "La subida por lotes falló ({status})",
     "network_batch_upload": "Error de red en la subida por lotes"
+  },
+  "account_status": {
+    "registrationPending": "Solicitud enviada. Espere la aprobación de un administrador.",
+    "registrationClosed": "El registro está cerrado.",
+    "accountBlocked": "Esta cuenta está bloqueada. Contacte con un administrador.",
+    "passwordResetRequired": "Debe restablecer su contraseña. Pida un código de recuperación a un administrador.",
+    "serverMaintenance": "El servidor está en mantenimiento. Las operaciones con archivos se reanudarán más tarde.",
+    "storageQuotaExceeded": "Se ha superado la cuota de almacenamiento. Elimine archivos o pida a un administrador que aumente el límite.",
+    "resetPasswordStep1Body": "Introduzca su nombre de usuario y pida a un administrador un código de recuperación de seis dígitos.",
+    "resetPasswordStep2Body": "Introduzca el código de seis dígitos proporcionado por un administrador y su nueva contraseña."
+  },
+  "recovery": {
+    "resetPasswordTitle": "Restablecer contraseña",
+    "resetCodeLabel": "Código de restablecimiento",
+    "passwordResetSuccessfully": "¡Contraseña restablecida correctamente!",
+    "newPasswordLabel": "Nueva contraseña",
+    "codeAndPasswordRequired": "El código y la nueva contraseña son obligatorios."
+  },
+  "admin": {
+    "title": "Administración",
+    "users": "Usuarios",
+    "applications": "Solicitudes de registro",
+    "configuration": "Ajustes del servidor",
+    "maintenance": "Mantenimiento",
+    "saved": "Guardado.",
+    "role": "Rol",
+    "user": "Usuario",
+    "administrator": "Administrador",
+    "status": "Estado",
+    "active": "Activo",
+    "blocked": "Bloqueado",
+    "quota": "Cuota de almacenamiento",
+    "inherit": "Usar valor del servidor",
+    "unlimited": "Sin límite",
+    "limited": "Límite personalizado",
+    "bytes": "Límite en bytes",
+    "used": "Usado",
+    "reserved": "Reservado",
+    "reset_password": "Restablecer contraseña",
+    "revoke_sessions": "Cerrar sesión en todos los dispositivos",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "no_applications": "No hay solicitudes de registro pendientes.",
+    "deleting": "Eliminación incompleta. Resuelve el problema de almacenamiento e inténtalo de nuevo.",
+    "retry": "Continuar",
+    "rotation": "Cambio de clave de cifrado",
+    "new_secret": "Nuevo secreto (al menos 32 caracteres)",
+    "rotate": "Cambiar secreto",
+    "pending": "Valor actual; el cambio guardado requiere reiniciar",
+    "rotation_failed": "La operación está en pausa. Corrige el problema de almacenamiento y continúa. El acceso a los archivos sigue suspendido.",
+    "recovery_hint": "Copia este código de un solo uso y entrégaselo al usuario. Caduca en 10 minutos y solo se muestra aquí.",
+    "config_hint": "Los ajustes marcados «Reinicio» requieren que el operador reinicie el servidor. Mover el almacenamiento o la base de datos existentes requiere una migración manual. Una cuota de cero significa sin límite.",
+    "environment_hint": "Este secreto procede del entorno de despliegue y no puede cambiarse aquí.",
+    "confirm_reset": "¿Restablecer la contraseña de {name}? Su contraseña actual y todas sus sesiones dejarán de funcionar.",
+    "confirm_delete": "¿Eliminar a {name}? Se eliminarán los archivos personales y la papelera. Los archivos compartidos se transferirán a tu cuenta y contarán para tu cuota.",
+    "confirm_signing": "¿Cambiar el secreto de firma? Se cerrarán todas las sesiones, incluida la de este navegador.",
+    "confirm_encryption": "¿Cambiar la clave de cifrado? El acceso a los archivos se suspenderá hasta volver a cifrarlos todos. Una vez iniciada, la operación no se puede cancelar.",
+    "apply": {
+      "live": "Se aplica inmediatamente",
+      "restart": "Requiere reiniciar",
+      "migration": "Migración manual si el servidor contiene datos",
+      "rotation": "Operación independiente"
+    },
+    "source": {
+      "environment": "Entorno de despliegue",
+      "local": "Ajustes locales",
+      "base": "Configuración base",
+      "default": "Predeterminado"
+    },
+    "registration": {
+      "approval": "Aprobación del administrador",
+      "open": "Abierto",
+      "closed": "Cerrado"
+    },
+    "phase": {
+      "idle": "No hay operaciones en curso",
+      "enumerating": "Preparando archivos",
+      "rotating": "Volviendo a cifrar archivos",
+      "finalizing": "Verificando y aplicando la nueva clave",
+      "complete": "Completado"
+    },
+    "errors": {
+      "forbidden": "Se requieren permisos de administrador.",
+      "last_admin": "El último administrador activo debe seguir disponible.",
+      "invalid_quota": "Introduce un límite de almacenamiento válido.",
+      "quota_exceeded": "La cuota de almacenamiento es insuficiente para esta operación.",
+      "config_conflict": "Los ajustes han cambiado en otro lugar. Actualiza y vuelve a aplicar tus cambios.",
+      "invalid_config_value": "Uno o más valores no son válidos.",
+      "manual_migration_required": "Los datos existentes deben migrarse manualmente antes de cambiar este ajuste.",
+      "config_from_environment": "Este ajuste depende del entorno de despliegue.",
+      "rotation_required": "Utiliza la operación independiente de cambio de secreto.",
+      "invalid_secret": "Usa un secreto diferente de entre 32 y 4096 caracteres.",
+      "deletion_incomplete": "Eliminación incompleta. Comprueba el acceso al almacenamiento e inténtalo de nuevo.",
+      "maintenance": "El servidor está en mantenimiento. Inténtalo cuando termine.",
+      "absolute_path_required": "Introduce una ruta absoluta.",
+      "rotation_running": "Ya hay una operación de cifrado en curso.",
+      "cannot_block_self": "You cannot block your own account."
+    },
+    "fields": {
+      "registration_mode": {
+        "label": "Registration",
+        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+      },
+      "default_quota_bytes": {
+        "label": "Default storage limit",
+        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+      },
+      "host": {
+        "label": "Server address",
+        "help": "Network address the server listens on."
+      },
+      "port": {
+        "label": "Server port",
+        "help": "Network port used to open the web client and API."
+      },
+      "storage_root": {
+        "label": "File storage folder",
+        "help": "Folder where user files are stored. Changing it requires moving existing files."
+      },
+      "db_path": {
+        "label": "Database file",
+        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+      },
+      "temp_upload_dir": {
+        "label": "Temporary upload folder",
+        "help": "Used while files are being uploaded."
+      },
+      "public_dir": {
+        "label": "Web client folder",
+        "help": "Folder containing the compiled web interface."
+      },
+      "upload_limit_bytes": {
+        "label": "Maximum upload size",
+        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+      },
+      "rate_limit_per_minute": {
+        "label": "Sign-in attempt limit",
+        "help": "Maximum authentication attempts from one address per minute."
+      },
+      "access_token_ttl_seconds": {
+        "label": "Session duration",
+        "help": "How long a signed-in session token remains valid."
+      },
+      "refresh_token_ttl_seconds": {
+        "label": "Remembered sign-in duration",
+        "help": "How long a device can renew its session without entering a password."
+      },
+      "log_dir": {
+        "label": "Log folder",
+        "help": "Folder where server diagnostic logs are stored."
+      },
+      "log_level": {
+        "label": "Log detail level",
+        "help": "Choose how much technical information is written to logs."
+      },
+      "access_log_enabled": {
+        "label": "Record web requests",
+        "help": "Writes every web request to the access log."
+      },
+      "video_thumbs_enabled": {
+        "label": "Generate video previews",
+        "help": "Creates preview images for uploaded videos."
+      },
+      "ffmpeg_binary": {
+        "label": "Video processing command",
+        "help": "Path or command used to create video previews."
+      },
+      "log_retention_days": {
+        "label": "Keep logs for",
+        "help": "Number of days diagnostic logs are retained."
+      },
+      "hash_files": {
+        "label": "Encrypt stored files",
+        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+      },
+      "trash_retention_days": {
+        "label": "Keep deleted files for",
+        "help": "Number of days before files in the trash are permanently removed."
+      }
+    }
   }
 }

@@ -24,6 +24,7 @@
 #include <filesystem>
 #include <chrono>
 #include <cstdlib>
+#include <limits>
 
 int main(int argc, char *argv[]) {
   const std::string configPath = server::utils::resolveConfigPath(argc, argv);
@@ -44,6 +45,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  appCtx.accessLogEnabled = appCtx.config.accessLogEnabled;
   drogon::app().setUploadPath(appCtx.config.tempUploadDir);
   std::error_code dirEc;
   std::filesystem::create_directories(std::filesystem::path(appCtx.config.storageRoot) / "users", dirEc);
@@ -62,6 +64,7 @@ int main(int argc, char *argv[]) {
 
   appCtx.database = std::make_unique<server::db::Database>(appCtx.config.dbPath);
   appCtx.database->migrate();
+  appCtx.quotaService = std::make_unique<server::services::QuotaService>(*appCtx.database, appCtx.config);
 
   appCtx.userService = std::make_unique<server::services::UserService>(*appCtx.database, appCtx.config);
   appCtx.fileService = std::make_unique<server::services::FileService>(appCtx.config);
@@ -75,6 +78,11 @@ int main(int argc, char *argv[]) {
   appCtx.trashService =
       std::make_unique<server::services::TrashService>(*appCtx.database, *appCtx.fileService);
   appCtx.authRateLimiter = std::make_unique<server::middleware::RateLimiter>(appCtx.config.rateLimitPerMinute);
+
+  appCtx.configService = std::make_unique<server::services::ConfigService>(appCtx.config);
+  appCtx.encryptionRotation = std::make_unique<server::services::EncryptionRotationService>();
+  appCtx.encryptionRotation->recover();
+  if (!appCtx.storageActivity.blocked()) appCtx.userService->resumeDeletions();
 
   const auto level = appCtx.config.logLevel;
   if (level == "TRACE") {
@@ -90,9 +98,10 @@ int main(int argc, char *argv[]) {
   }
   drogon::app().setLogPath(appCtx.config.logDir);
 
-  if (appCtx.config.accessLogEnabled) {
+  {
     drogon::app().registerPostHandlingAdvice([](const drogon::HttpRequestPtr &req,
                                                 const drogon::HttpResponsePtr &resp) {
+      if (!server::ctx().accessLogEnabled.load()) return;
       LOG_INFO << "access method=" << req->methodString()
                << " path=" << req->path()
                << " status=" << static_cast<int>(resp->statusCode())
@@ -101,11 +110,10 @@ int main(int argc, char *argv[]) {
   }
 
   drogon::app().addListener(appCtx.config.host, appCtx.config.port);
-  if (appCtx.config.uploadLimitBytes > 0) {
-    const auto limit = static_cast<size_t>(appCtx.config.uploadLimitBytes);
-    drogon::app().setClientMaxBodySize(limit);
-    drogon::app().setClientMaxMemoryBodySize(limit);
-  }
+  // The application enforces the live upload limit (including chunk totals).
+  // Keep transport buffering bounded while allowing limits to change at runtime.
+  drogon::app().setClientMaxBodySize(std::numeric_limits<size_t>::max());
+  drogon::app().setClientMaxMemoryBodySize(1024 * 1024);
 
   // Configure static web interface hosting from publicDir (Svelte SPA build)
   const std::string publicDir = appCtx.config.publicDir;
@@ -118,7 +126,7 @@ int main(int argc, char *argv[]) {
 
       const std::vector<std::string> spaRoutes = {
         "/dashboard", "/files", "/photos", "/videos", "/audio",
-        "/documents", "/other", "/shared", "/trash", "/settings"
+        "/documents", "/other", "/shared", "/trash", "/settings", "/admin"
       };
 
       for (const auto &routePath : spaRoutes) {
@@ -163,6 +171,9 @@ int main(int argc, char *argv[]) {
   // Must register via beginningAdvice since the event loop isn't running until app().run().
   drogon::app().registerBeginningAdvice([]() {
     drogon::app().getLoop()->runEvery(3600.0, []() {
+    std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+    auto activity = server::ctx().storageActivity.enter();
+    if (!activity) return;
     try {
       server::ctx().trashService->cleanupExpiredTrash();
     } catch (const std::exception &e) {
@@ -207,6 +218,7 @@ int main(int argc, char *argv[]) {
   drogon::app().run();
 
   LOG_INFO << "Server stopped, ensuring background workers are finished...";
+  appCtx.encryptionRotation.reset();
   if (appCtx.thumbnailQueue) {
     appCtx.thumbnailQueue->stop();
   }

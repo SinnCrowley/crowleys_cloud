@@ -44,7 +44,7 @@ endif()
 # Required system libraries per platform
 set(PLATFORM_LIBS)
 if(WIN32)
-  list(APPEND PLATFORM_LIBS ws2_32 crypt32 rpcrt4)
+  list(APPEND PLATFORM_LIBS ws2_32 crypt32 rpcrt4 advapi32)
 endif()
 
 # ------------------------------------------------------------------------------
@@ -260,6 +260,9 @@ add_executable(crowleys_cloud_server
   src/db/Database.cpp
 
   # Business Services
+  src/services/EncryptionRotationService.cpp
+  src/services/ConfigService.cpp
+  src/services/QuotaService.cpp
   src/services/UserService.cpp
   src/services/FileService.cpp
   src/services/FileIndexService.cpp
@@ -272,6 +275,7 @@ add_executable(crowleys_cloud_server
   src/middleware/RateLimiter.cpp
 
   # HTTP Controllers
+  src/controllers/AdminController.cpp
   src/controllers/AuthController.cpp
   src/controllers/FileController.cpp
   src/controllers/ShareController.cpp
@@ -592,6 +596,12 @@ add_test(NAME config_resolution_test COMMAND config_resolution_test)
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 if(Python3_Interpreter_FOUND)
+  add_test(NAME admin_rotation_recovery_test
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/admin_rotation_recovery_test.py $<TARGET_FILE:crowleys_cloud_server>)
+  set_tests_properties(admin_rotation_recovery_test PROPERTIES TIMEOUT 120)
+  add_test(NAME admin_accounts_test
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/admin_accounts_test.py $<TARGET_FILE:crowleys_cloud_server>)
+  set_tests_properties(admin_accounts_test PROPERTIES TIMEOUT 120)
   add_test(NAME http_regression_test
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/http_regression_test.py $<TARGET_FILE:crowleys_cloud_server>)
   set_tests_properties(http_regression_test PROPERTIES TIMEOUT 120)
@@ -607,7 +617,9 @@ include(GNUInstallDirs)
 install(TARGETS crowleys_cloud_server DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY config/ DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/crowleys_cloud
   PATTERN "config.local.json" EXCLUDE
-  PATTERN "config.local.json.init-lock" EXCLUDE)
+  PATTERN "config.local.json.init-lock" EXCLUDE
+  PATTERN "encryption-rotation.keys.json*" EXCLUDE
+  PATTERN "config.local.json.*.tmp" EXCLUDE)
 
 # ------------------------------------------------------------------------------
 # 7. Licensing

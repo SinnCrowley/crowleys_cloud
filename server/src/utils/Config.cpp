@@ -129,6 +129,11 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
       }
       // Apply atomically: a bad field must not leave a partially loaded config.
       Config updated = cfg;
+      updated.registrationMode = json.get("registration_mode", updated.registrationMode).asString();
+      if (updated.registrationMode != "approval" && updated.registrationMode != "open" && updated.registrationMode != "closed")
+        throw std::runtime_error("Invalid registration mode");
+      updated.defaultQuotaBytes = json.get("default_quota_bytes", Json::Int64(updated.defaultQuotaBytes)).asInt64();
+      if (updated.defaultQuotaBytes < 0) throw std::runtime_error("Invalid default quota");
       updated.host = json.get("host", updated.host).asString();
       updated.port = static_cast<uint16_t>(json.get("port", updated.port).asUInt());
       updated.storageRoot = json.get("storage_root", updated.storageRoot).asString();
@@ -244,8 +249,8 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
 
   if (initializeSecrets) {
     auto environment = [&] {
-      if (const auto value = std::getenv("CROWLEYS_JWT_SECRET")) cfg.jwtSecret = value;
-      if (const auto value = std::getenv("CROWLEYS_ENCRYPTION_KEY")) cfg.encryptionKey = value;
+      if (const auto value = std::getenv("CROWLEYS_JWT_SECRET"); value && *value != '\0') cfg.jwtSecret = value;
+      if (const auto value = std::getenv("CROWLEYS_ENCRYPTION_KEY"); value && *value != '\0') cfg.encryptionKey = value;
     };
     auto missingJwt = [&] { return cfg.jwtSecret.empty() || cfg.jwtSecret == "change-this-secret"; };
     auto missingKey = [&] { return cfg.encryptionKey.empty() || cfg.encryptionKey == "default-local-encryption-key-for-testing"; };
@@ -272,11 +277,14 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
       if (missingJwt() || (cfg.hashFiles && missingKey())) {
         if (std::filesystem::exists(cfg.dbPath) ||
             (std::filesystem::exists(cfg.storageRoot) && !std::filesystem::is_empty(cfg.storageRoot))) {
-          throw std::runtime_error("Secrets are missing but server data already exists. Restore config.local.json or configure the original secrets; automatic regeneration is disabled.");
+          std::string missing;
+          if (missingJwt()) missing = "jwt_secret";
+          if (cfg.hashFiles && missingKey()) missing += (missing.empty() ? "" : ", ") + std::string("encryption_key");
+          throw std::runtime_error("Secrets are missing (" + missing + ") but server data already exists. Expected local overrides at " + local.string() + "; restore the original secrets or configure non-empty CROWLEYS_JWT_SECRET/CROWLEYS_ENCRYPTION_KEY values. Automatic regeneration is disabled.");
         }
         // Explicit environment settings must be fixed by the operator, not persisted or replaced.
-        if ((missingJwt() && std::getenv("CROWLEYS_JWT_SECRET")) ||
-            (missingKey() && std::getenv("CROWLEYS_ENCRYPTION_KEY"))) {
+        if ((missingJwt() && std::getenv("CROWLEYS_JWT_SECRET") && *std::getenv("CROWLEYS_JWT_SECRET") != '\0') ||
+            (missingKey() && std::getenv("CROWLEYS_ENCRYPTION_KEY") && *std::getenv("CROWLEYS_ENCRYPTION_KEY") != '\0')) {
           throw std::runtime_error("Secret environment variables must contain non-placeholder values");
         }
         Json::Value overrides(Json::objectValue);
@@ -309,6 +317,7 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
     }
   }
 
+  cfg.sourcePath = actualPath.empty() ? "" : std::filesystem::absolute(actualPath).lexically_normal().string();
   return cfg;
 }
 

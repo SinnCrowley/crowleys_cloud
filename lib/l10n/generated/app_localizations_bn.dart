@@ -764,11 +764,11 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'আপনার ব্যবহারকারীর নাম লিখুন। ৬-সংখ্যার যাচাইকরণ কোডটি সার্ভার লগ/কনসোলে মুদ্রিত হবে।';
+      'ব্যবহারকারীর নাম লিখুন এবং প্রশাসকের কাছে ছয় অঙ্কের পুনরুদ্ধার কোড চান।';
 
   @override
   String get resetPasswordStep2Body =>
-      'যাচাইকরণ কোডটি সার্ভার কনসোলে মুদ্রিত হয়েছে। ৬-সংখ্যার কোড এবং আপনার নতুন পাসওয়ার্ড লিখুন।';
+      'প্রশাসকের দেওয়া ছয় অঙ্কের কোড এবং নতুন পাসওয়ার্ড লিখুন।';
 
   @override
   String get resetCodeLabel => 'রিসেট কোড';
@@ -1801,4 +1801,33 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get language => 'ভাষা';
+
+  @override
+  String get registrationPending =>
+      'নিবন্ধনের আবেদন পাঠানো হয়েছে। প্রশাসকের অনুমোদনের জন্য অপেক্ষা করুন।';
+
+  @override
+  String get registrationClosed => 'নিবন্ধন বন্ধ আছে।';
+
+  @override
+  String get accountBlocked =>
+      'এই অ্যাকাউন্টটি অবরুদ্ধ। প্রশাসকের সঙ্গে যোগাযোগ করুন।';
+
+  @override
+  String get passwordResetRequired =>
+      'পাসওয়ার্ড পুনরায় সেট করতে হবে। প্রশাসকের কাছে পুনরুদ্ধার কোড চান।';
+
+  @override
+  String get serverMaintenance =>
+      'সার্ভারের রক্ষণাবেক্ষণ চলছে। ফাইলের কাজ পরে আবার শুরু হবে।';
+
+  @override
+  String get storageQuotaExceeded =>
+      'সঞ্চয়স্থানের সীমা অতিক্রম করেছে। ফাইল মুছুন বা প্রশাসককে সীমা বাড়াতে বলুন।';
+
+  @override
+  String get systemDefault => 'সিস্টেমের ডিফল্ট';
+
+  @override
+  String get errorPickingFiles => 'ফাইল নির্বাচন করতে ত্রুটি';
 }

@@ -9,7 +9,10 @@ async function loadStore(name, api) {
   globalThis[key] = api;
   let source = await readFile(new URL(`../src/stores/${name}.js`, import.meta.url), 'utf8');
   source = source.replace("from 'svelte/store'", `from '${import.meta.resolve('svelte/store')}'`)
-    .replace("import { filesApi } from '../api/files.js';", `const filesApi = globalThis.${key};`);
+    .replace("import { filesApi } from '../api/files.js';", `const filesApi = globalThis.${key};`)
+    .replace("import { apiGet } from '../api/client.js';", 'const apiGet = async () => ({});')
+    .replace("import { authStore } from './auth.js';", 'const authStore = { user: { set() {} } };')
+    .replace("import { refreshStats } from './stats.js';", 'const refreshStats = async () => {};');
   return import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 }
 const settle = () => new Promise(resolve => setImmediate(resolve));
@@ -79,7 +82,7 @@ async function loadApi(client) {
     .replace("import { apiGet, apiPost, apiDelete, apiMessage } from './client.js';",
       `const { apiGet, apiPost, apiDelete, apiMessage } = globalThis.${key};`)
     .replace("import { authStore } from '../stores/auth.js';",
-      `const authStore = {accessToken: { subscribe: callback => {callback('token'); return () => {};}}};`);
+      `const authStore = globalThis.${key}.authStore || {accessToken: { subscribe: callback => {callback('token'); return () => {};}}};`);
   return import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 }
 
@@ -120,4 +123,54 @@ test('chunk upload forwards cancellation and does not send remaining chunks', as
     path: 'test', file: new Blob(['abcdef']), chunkSize: 2, signal: controller.signal,
   }), { name: 'AbortError' });
   assert.equal(chunks, 1);
+});
+
+
+test('maintenance preserves queued file data and pauses for resume', async () => {
+  let attempts = 0;
+  const { transfersStore } = await loadStore('transfers', {
+    uploadFileSingle: async () => {
+      if (++attempts === 1) throw Object.assign(new Error('Maintenance'), { status: 503, data: { code: 'maintenance' } });
+    },
+  });
+  const file = { name: 'keep.txt', size: 8 };
+  const id = transfersStore.enqueueUpload(file);
+  await settle();
+  assert.equal(get(transfersStore.queue)[0].status, 'paused');
+  assert.equal(get(transfersStore.queue)[0].file, file);
+  transfersStore.resumeTransfer(id);
+  await settle();
+  assert.equal(get(transfersStore.queue)[0].status, 'completed');
+});
+
+
+test('maintenance after token refresh preserves the new session and retry reason', async () => {
+  const originalXhr = globalThis.XMLHttpRequest;
+  const originalFetch = globalThis.fetch;
+  let attempts = 0, cleared = false, renewed = false;
+  globalThis.XMLHttpRequest = class {
+    open() {}
+    setRequestHeader() {}
+    send() {
+      this.status = ++attempts === 1 ? 401 : 503;
+      this.responseText = JSON.stringify({ code: 'maintenance' });
+      queueMicrotask(() => this.onload());
+    }
+  };
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ access_token: 'new', refresh_token: 'refresh-new' }) });
+  const store = value => ({ subscribe: callback => { callback(value); return () => {}; } });
+  try {
+    const { filesApi } = await loadApi({
+      apiMessage: key => key,
+      authStore: {
+        accessToken: store('old'), refreshToken: store('refresh'),
+        clearSession: () => cleared = true, setSession: () => renewed = true,
+      },
+    });
+    await assert.rejects(filesApi.uploadFileSingle({ path: 'file', file: new Blob(['data']) }),
+      error => error.status === 503 && error.data.code === 'maintenance');
+    assert.equal(renewed, true);
+    assert.equal(cleared, false);
+    assert.equal(attempts, 2);
+  } finally { globalThis.XMLHttpRequest = originalXhr; globalThis.fetch = originalFetch; }
 });

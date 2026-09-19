@@ -753,12 +753,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get enterResetCodeTitle => '再設定コードを入力';
 
   @override
-  String get resetPasswordStep1Body =>
-      'ユーザー名を入力してください。6桁の確認コードがサーバーログ/コンソールに出力されます。';
+  String get resetPasswordStep1Body => 'ユーザー名を入力し、管理者に6桁の復旧コードを依頼してください。';
 
   @override
-  String get resetPasswordStep2Body =>
-      '確認コードがサーバーコンソールに出力されました。6桁のコードと新しいパスワードを入力してください。';
+  String get resetPasswordStep2Body => '管理者から受け取った6桁のコードと新しいパスワードを入力してください。';
 
   @override
   String get resetCodeLabel => '再設定コード';
@@ -1759,4 +1757,29 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get language => '言語';
+
+  @override
+  String get registrationPending => '登録申請を送信しました。管理者の承認をお待ちください。';
+
+  @override
+  String get registrationClosed => '新規登録は停止されています。';
+
+  @override
+  String get accountBlocked => 'このアカウントはブロックされています。管理者にお問い合わせください。';
+
+  @override
+  String get passwordResetRequired => 'パスワードの再設定が必要です。管理者から復旧コードを受け取ってください。';
+
+  @override
+  String get serverMaintenance => 'サーバーはメンテナンス中です。ファイル操作は後ほど再開されます。';
+
+  @override
+  String get storageQuotaExceeded =>
+      'ストレージの上限を超えました。ファイルを削除するか、管理者に上限の引き上げを依頼してください。';
+
+  @override
+  String get systemDefault => 'システムのデフォルト';
+
+  @override
+  String get errorPickingFiles => 'ファイルの選択中にエラーが発生しました';
 }

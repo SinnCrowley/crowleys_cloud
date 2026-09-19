@@ -761,11 +761,11 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get resetPasswordStep1Body =>
-      'Zadejte uživatelské jméno. Šestimístný ověřovací kód se zobrazí v protokolu nebo konzoli serveru.';
+      'Zadejte uživatelské jméno a požádejte správce o šestimístný kód pro obnovení.';
 
   @override
   String get resetPasswordStep2Body =>
-      'Ověřovací kód byl vypsán do konzole serveru. Zadejte šestimístný kód a nové heslo.';
+      'Zadejte šestimístný kód od správce a nové heslo.';
 
   @override
   String get resetCodeLabel => 'Obnovovací kód';
@@ -1801,4 +1801,32 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get language => 'Jazyk';
+
+  @override
+  String get registrationPending =>
+      'Žádost byla odeslána. Vyčkejte na schválení správcem.';
+
+  @override
+  String get registrationClosed => 'Registrace je uzavřena.';
+
+  @override
+  String get accountBlocked => 'Tento účet je zablokován. Kontaktujte správce.';
+
+  @override
+  String get passwordResetRequired =>
+      'Je nutné obnovit heslo. Požádejte správce o kód pro obnovení.';
+
+  @override
+  String get serverMaintenance =>
+      'Na serveru probíhá údržba. Operace se soubory budou obnoveny později.';
+
+  @override
+  String get storageQuotaExceeded =>
+      'Byl překročen limit úložiště. Smažte soubory nebo požádejte správce o zvýšení limitu.';
+
+  @override
+  String get systemDefault => 'Výchozí systému';
+
+  @override
+  String get errorPickingFiles => 'Chyba při výběru souborů';
 }

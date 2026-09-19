@@ -26,6 +26,7 @@
 #include "server/AppContext.hpp"
 #include "server/utils/Crypto.hpp"
 #include "server/utils/HttpHelpers.hpp"
+#include "server/utils/StorageResponses.hpp"
 #include "server/utils/ImageUtils.hpp"
 #include "server/utils/ZipWriter.hpp"
 #include "dir_entry.pb.h"
@@ -36,6 +37,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <mutex>
+#include <limits>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -49,27 +51,49 @@
 namespace server::controllers {
 using server::utils::jsonError;
 using server::utils::jsonOk;
-using server::utils::getAuth;
 
 namespace {
+// Authentication may change while a request waits for the storage lock.
+// Recheck before writes so queued uploads cannot recreate a deleted account.
+bool getAuth(const drogon::HttpRequestPtr &req, std::int64_t &userId, std::string &role) {
+  if (!req->attributes()->find("verified_token")) return false;
+  const auto claims = ctx().userService->verifyAccessToken(req->attributes()->get<std::string>("verified_token"));
+  if (!claims) return false;
+  userId = claims->userId;
+  role = claims->role;
+  return true;
+}
+
 
 // Bound lock storage while allowing unrelated uploads to proceed concurrently.
 std::array<std::mutex, 64> uploadLocks;
 
-struct FileZipCleanupHelper {
-  std::filesystem::path tmpZipPath;
-  drogon::HttpResponsePtr response;
-
-  FileZipCleanupHelper(std::filesystem::path p, drogon::HttpResponsePtr resp)
-      : tmpZipPath(std::move(p)), response(std::move(resp)) {}
-
-  ~FileZipCleanupHelper() {
-    std::error_code ec;
-    if (!tmpZipPath.empty() && std::filesystem::exists(tmpZipPath, ec)) {
-      std::filesystem::remove(tmpZipPath, ec);
+struct UploadQuota {
+  std::int64_t userId;
+  std::string scope;
+  std::string path;
+  bool keep{false};
+  UploadQuota(std::int64_t user, services::StorageScope storageScope, const std::string &relPath, std::uint64_t bytes)
+      : userId(user), scope(services::FileIndexService::scopeToString(storageScope)), path(relPath) {
+    if (bytes > static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max())) throw std::runtime_error("invalid_upload_size");
+    const auto limit = ctx().config.uploadLimitBytes;
+    if (limit > 0 && bytes > static_cast<std::uint64_t>(limit)) throw std::runtime_error("upload_limit_exceeded");
+    ctx().quotaService->reserve(userId, scope, path, static_cast<std::int64_t>(bytes));
+  }
+  ~UploadQuota() {
+    if (!keep) {
+      try { ctx().quotaService->release(userId, scope, path); }
+      catch (...) { LOG_ERROR << "Cannot release upload quota reservation"; }
     }
   }
 };
+
+drogon::HttpResponsePtr uploadError(const std::exception &error) {
+  const std::string code = error.what();
+  return jsonError(code == "quota_exceeded" || code == "upload_limit_exceeded" ? drogon::k413RequestEntityTooLarge : drogon::k400BadRequest,
+                   code, code);
+}
+
 
 Json::Value formatDirEntryJson(const services::IndexedDirEntry &entry,
                                const std::string &scopeRaw,
@@ -136,6 +160,10 @@ using server::utils::runProcess;
 
 void FileController::listDir(const drogon::HttpRequestPtr &req,
                              std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
+  std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -330,6 +358,9 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
 
 void FileController::thumbnail(const drogon::HttpRequestPtr &req,
                                std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -491,7 +522,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     // 1. Check WebP cached thumbnail
     const auto webpMtime = std::filesystem::last_write_time(thumbPathWebp, ecWebp);
     if (!ecWebp && !ecSrcTime && webpMtime >= srcMtime) {
-      auto resp = drogon::HttpResponse::newFileResponse(thumbPathWebp.string());
+      auto resp = utils::storageFileResponse(thumbPathWebp, activity, "image/webp");
       resp->setContentTypeCode(drogon::ContentType::CT_CUSTOM);
       resp->setContentTypeString("image/webp");
       resp->addHeader("ETag", quotedEtag);
@@ -503,7 +534,7 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     // 2. Check legacy JPEG cached thumbnail for backward compatibility
     const auto jpgMtime = std::filesystem::last_write_time(thumbPathJpg, ecJpg);
     if (!ecJpg && !ecSrcTime && jpgMtime >= srcMtime) {
-      auto resp = drogon::HttpResponse::newFileResponse(thumbPathJpg.string());
+      auto resp = utils::storageFileResponse(thumbPathJpg, activity, "image/jpeg");
       resp->setContentTypeCode(drogon::ContentType::CT_CUSTOM);
       resp->setContentTypeString("image/jpeg");
       resp->addHeader("ETag", quotedEtag);
@@ -540,6 +571,9 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
 
 void FileController::downloadFile(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -673,7 +707,9 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       }
 
       auto resp = drogon::HttpResponse::newStreamResponse(
-        utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey));
+        [reader = utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey), activity](char *data, size_t size) mutable {
+          return reader(data, size);
+        });
       resp->addHeader("Content-Length", std::to_string(plainSize));
       if (!mimeType.empty()) {
         resp->setContentTypeString(mimeType);
@@ -748,7 +784,7 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       return;
     }
 
-    auto resp = drogon::HttpResponse::newFileResponse(fullPath.string());
+    auto resp = utils::storageFileResponse(fullPath, activity, server::ctx().fileService->mimeTypeFor(fullPath));
     resp->addHeader("ETag", quotedFileEtag);
     resp->addHeader("Cache-Control", "private, no-cache");
     callback(resp);
@@ -759,6 +795,9 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
 
 void FileController::downloadZip(const drogon::HttpRequestPtr &req,
                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -881,12 +920,9 @@ void FileController::downloadZip(const drogon::HttpRequestPtr &req,
       return;
     }
 
-    auto resp = drogon::HttpResponse::newFileResponse(tmpZipPath.string());
+    auto resp = utils::storageFileResponse(tmpZipPath, activity, "application/zip", true);
     resp->addHeader("Content-Disposition", "attachment; filename=\"" + zipFilename + "\"");
-
-    auto helper = std::make_shared<FileZipCleanupHelper>(tmpZipPath, resp);
-    drogon::HttpResponsePtr aliasedResp(helper, resp.get());
-    callback(aliasedResp);
+    callback(resp);
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));
   }
@@ -894,6 +930,9 @@ void FileController::downloadZip(const drogon::HttpRequestPtr &req,
 
 void FileController::uploadStatus(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -923,6 +962,10 @@ void FileController::uploadStatus(const drogon::HttpRequestPtr &req,
 
 void FileController::uploadFile(const drogon::HttpRequestPtr &req,
                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
+  std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -933,6 +976,11 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
   const auto scope = services::parseScope(req->getParameter("scope"));
   if (!scope.has_value()) {
     callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+    return;
+  }
+
+  if (*scope == services::StorageScope::Shared && role != "admin") {
+    callback(jsonError(drogon::k403Forbidden, "Administrator access required", "forbidden"));
     return;
   }
 
@@ -966,6 +1014,7 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       std::size_t fileLength = file.fileLength();
 
       try {
+        UploadQuota quota(userId, *scope, relPath, fileLength);
         if (hashFiles) {
           std::string plainData(fileData.data(), fileLength);
           std::string plainSha256 = utils::sha256Hex(plainData);
@@ -975,9 +1024,12 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
           std::filesystem::create_directories(dataDir);
           const auto physicalPath = dataDir / plainSha256;
 
-          std::ofstream out(physicalPath, std::ios::binary | std::ios::trunc);
+          const auto stagedPath = dataDir / ("tmp_" + utils::randomTokenHex(16));
+          std::ofstream out(stagedPath, std::ios::binary | std::ios::trunc);
           out.write(cipherText.data(), cipherText.size());
           out.close();
+          if (!out) throw std::runtime_error("Failed to write encrypted file");
+          utils::portableRename(stagedPath, physicalPath);
 
           const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
                                std::chrono::system_clock::now().time_since_epoch())
@@ -1003,6 +1055,7 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
           std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
           out.write(fileData.data(), static_cast<std::streamsize>(fileLength));
           out.close();
+          if (!out) throw std::runtime_error("Failed to write file");
 
           utils::portableRename(tmp, target);
           const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
@@ -1030,6 +1083,7 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
         fileObj["path"] = relPath;
         fileObj["ok"] = false;
         fileObj["error"] = e.what();
+        fileObj["code"] = e.what();
         body["uploaded"].append(fileObj);
       }
     }
@@ -1068,6 +1122,7 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
         callback(jsonError(drogon::k409Conflict, "Upload offset does not match stored bytes"));
         return;
       }
+      UploadQuota quota(userId, *scope, relPath, total);
       auto mode = (offset == 0) ? (std::ios::binary | std::ios::trunc) : (std::ios::binary | std::ios::app);
       std::ofstream out(tmpPath, mode);
       out.write(req->bodyData(), static_cast<std::streamsize>(req->bodyLength()));
@@ -1145,23 +1200,26 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       } else {
         Json::Value body;
         body["ok"] = true;
+        quota.keep = true;
         body["completed"] = false;
         body["bytes_received"] = static_cast<Json::UInt64>(currentSize);
         callback(drogon::HttpResponse::newHttpJsonResponse(body));
         return;
       }
     } catch (const std::exception &e) {
-      callback(jsonError(drogon::k400BadRequest, e.what()));
+      callback(uploadError(e));
       return;
     }
   }
 
-  if (req->bodyLength() > static_cast<size_t>(server::ctx().config.uploadLimitBytes)) {
+  if (server::ctx().config.uploadLimitBytes > 0 && req->bodyLength() > static_cast<size_t>(server::ctx().config.uploadLimitBytes)) {
     callback(jsonError(drogon::k413RequestEntityTooLarge, "Upload exceeds limit"));
     return;
   }
 
   try {
+    const auto quotaPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
+    UploadQuota quota(userId, *scope, quotaPath, req->bodyLength());
     const bool hashFiles = server::ctx().config.hashFiles;
     if (hashFiles) {
       std::string plainData(req->bodyData(), req->bodyLength());
@@ -1172,9 +1230,12 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       std::filesystem::create_directories(dataDir);
       const auto physicalPath = dataDir / plainSha256;
 
-      std::ofstream out(physicalPath, std::ios::binary | std::ios::trunc);
+      const auto stagedPath = dataDir / ("tmp_" + utils::randomTokenHex(16));
+          std::ofstream out(stagedPath, std::ios::binary | std::ios::trunc);
       out.write(cipherText.data(), cipherText.size());
       out.close();
+      if (!out) throw std::runtime_error("Failed to write encrypted file");
+      utils::portableRename(stagedPath, physicalPath);
 
       const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
       const auto fileName = std::filesystem::path(relPath).filename().string();
@@ -1202,6 +1263,7 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
       out.write(req->bodyData(), static_cast<std::streamsize>(req->bodyLength()));
       out.close();
+      if (!out) throw std::runtime_error("Failed to write file");
 
       utils::portableRename(tmp, target);
       const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
@@ -1223,12 +1285,16 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
     resp->setStatusCode(drogon::k201Created);
     callback(resp);
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    callback(uploadError(e));
   }
 }
 
 void FileController::shareFile(const drogon::HttpRequestPtr &req,
                                std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
+  std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1254,6 +1320,9 @@ void FileController::shareFile(const drogon::HttpRequestPtr &req,
 
 void FileController::checkHashes(const drogon::HttpRequestPtr &req,
                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1299,6 +1368,10 @@ void FileController::checkHashes(const drogon::HttpRequestPtr &req,
 
 void FileController::createFolder(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
+  std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1342,6 +1415,10 @@ void FileController::createFolder(const drogon::HttpRequestPtr &req,
 
 void FileController::moveFile(const drogon::HttpRequestPtr &req,
                              std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
+  std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1505,6 +1582,10 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
 
 void FileController::deleteFile(const drogon::HttpRequestPtr &req,
                                 std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
+  std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1592,6 +1673,10 @@ void FileController::deleteFile(const drogon::HttpRequestPtr &req,
 
 void FileController::rebuildIndex(const drogon::HttpRequestPtr &req,
                                   std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
+  std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1630,6 +1715,9 @@ void FileController::rebuildIndex(const drogon::HttpRequestPtr &req,
 
 void FileController::getTrash(const drogon::HttpRequestPtr &req,
                               std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1680,6 +1768,9 @@ void FileController::getTrash(const drogon::HttpRequestPtr &req,
 
 void FileController::checkRestoreConflicts(const drogon::HttpRequestPtr &req,
                                            std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1723,6 +1814,10 @@ void FileController::checkRestoreConflicts(const drogon::HttpRequestPtr &req,
 
 void FileController::restoreTrash(const drogon::HttpRequestPtr &req,
                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
+  std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1758,6 +1853,10 @@ void FileController::restoreTrash(const drogon::HttpRequestPtr &req,
 
 void FileController::deleteTrash(const drogon::HttpRequestPtr &req,
                                  std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
+  std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1788,6 +1887,9 @@ void FileController::deleteTrash(const drogon::HttpRequestPtr &req,
 
 void FileController::getTrashSettings(const drogon::HttpRequestPtr &req,
                                       std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1807,6 +1909,9 @@ void FileController::getTrashSettings(const drogon::HttpRequestPtr &req,
 
 void FileController::setTrashSettings(const drogon::HttpRequestPtr &req,
                                       std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1842,6 +1947,9 @@ void FileController::setTrashSettings(const drogon::HttpRequestPtr &req,
 
 void FileController::getAccountStats(const drogon::HttpRequestPtr &req,
                                      std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  auto activity = server::ctx().storageActivity.enter();
+  if (!activity) { callback(utils::maintenanceResponse()); return; }
   std::int64_t userId;
   std::string role;
   if (!getAuth(req, userId, role)) {
@@ -1851,11 +1959,13 @@ void FileController::getAccountStats(const drogon::HttpRequestPtr &req,
 
   try {
     const auto stats = server::ctx().fileIndexService->getUserStats(userId);
+    const auto quota = server::ctx().quotaService->usage(userId);
     Json::Value body;
     body["total_size"] = static_cast<Json::UInt64>(stats.totalSize);
     body["total_count"] = static_cast<Json::Int64>(stats.totalCount);
-    body["used_bytes"] = static_cast<Json::UInt64>(stats.totalSize);
-    body["limit_bytes"] = Json::nullValue;
+    body["used_bytes"] = Json::Int64(quota.used);
+    body["reserved_bytes"] = Json::Int64(quota.reserved);
+    body["limit_bytes"] = Json::Int64(quota.limit);
     body["photo_count"] = static_cast<Json::Int64>(stats.photoCount);
     body["photo_size"] = static_cast<Json::UInt64>(stats.photoSize);
     body["video_count"] = static_cast<Json::Int64>(stats.videoCount);

@@ -99,11 +99,17 @@ def run(hash_files):
                 assert download('chunks.txt')[0] == 401
                 assert request('/api/files?scope=private&path=chunks.txt',token=sync)[0] == 401
                 token=obj('/api/login',dict(username='review',password='changed-password'))['access_token']
-                obj('/api/auth/reset-password/request',dict(username='review'))
+                obj('/api/register', dict(username='helper',password='helper-password'))
+                obj('/api/admin/users/2/approve', {}, token)
+                status, body = request('/api/admin/users/2', dict(role='admin'), token, method='PATCH')
+                assert status == 200, (status, body)
+                helper = obj('/api/login',dict(username='helper',password='helper-password'))['access_token']
+                code = obj('/api/admin/users/1/reset-password', {}, helper)['code']
                 obj('/api/auth/reset-password/request',dict(username='review'))
                 with sqlite3.connect(root/'db.sqlite') as db:
                     assert db.execute('select count(*) from password_resets').fetchone()[0] == 1
-                    code=db.execute('select code from password_resets order by id desc limit 1').fetchone()[0]
+                    stored=db.execute('select code from password_resets order by id desc limit 1').fetchone()[0]
+                assert stored != code and len(stored) == 64
                 assert len(code)==6 and code.isdigit()
                 obj('/api/auth/reset-password/verify',dict(username='review',code=code,new_password='reset-password'))
                 assert download('chunks.txt')[0] == 401

@@ -1092,11 +1092,11 @@
   "@enterResetCodeTitle": {
     "description": "Forgot password dialog title step 2"
   },
-  "resetPasswordStep1Body": "Zadejte uživatelské jméno. Šestimístný ověřovací kód se zobrazí v protokolu nebo konzoli serveru.",
+  "resetPasswordStep1Body": "Zadejte uživatelské jméno a požádejte správce o šestimístný kód pro obnovení.",
   "@resetPasswordStep1Body": {
     "description": "Forgot password step 1 instruction"
   },
-  "resetPasswordStep2Body": "Ověřovací kód byl vypsán do konzole serveru. Zadejte šestimístný kód a nové heslo.",
+  "resetPasswordStep2Body": "Zadejte šestimístný kód od správce a nové heslo.",
   "@resetPasswordStep2Body": {
     "description": "Forgot password step 2 instruction"
   },
@@ -2658,5 +2658,13 @@
   "language": "Jazyk",
   "@language": {
     "description": "Label for the application language setting"
-  }
+  },
+  "registrationPending": "Žádost byla odeslána. Vyčkejte na schválení správcem.",
+  "registrationClosed": "Registrace je uzavřena.",
+  "accountBlocked": "Tento účet je zablokován. Kontaktujte správce.",
+  "passwordResetRequired": "Je nutné obnovit heslo. Požádejte správce o kód pro obnovení.",
+  "serverMaintenance": "Na serveru probíhá údržba. Operace se soubory budou obnoveny později.",
+  "storageQuotaExceeded": "Byl překročen limit úložiště. Smažte soubory nebo požádejte správce o zvýšení limitu.",
+  "systemDefault": "Výchozí systému",
+  "errorPickingFiles": "Chyba při výběru souborů"
 }

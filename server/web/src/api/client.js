@@ -81,7 +81,13 @@ async function parseResponse(response, responseType = null) {
       : (typeof errorBody === 'string' && errorBody
         ? errorBody
         : apiMessage('api.http_error', { status: response.status }));
-    throw new ApiError(response.status, errorMsg, errorBody);
+    const accountMessages = {
+      registration_pending: 'registrationPending', registration_closed: 'registrationClosed',
+      account_blocked: 'accountBlocked', password_reset_required: 'passwordResetRequired',
+      maintenance: 'serverMaintenance', quota_exceeded: 'storageQuotaExceeded'
+    };
+    const messageKey = accountMessages[errorBody?.code];
+    throw new ApiError(response.status, messageKey ? apiMessage(`account_status.${messageKey}`) : errorMsg, errorBody);
   }
 
   if (responseType === 'blob') {
