@@ -464,89 +464,98 @@
       "maintenance": "El servidor está en mantenimiento. Inténtalo cuando termine.",
       "absolute_path_required": "Introduce una ruta absoluta.",
       "rotation_running": "Ya hay una operación de cifrado en curso.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "No puedes bloquear tu propia cuenta."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "Registro de usuarios",
+        "help": "Elige si las cuentas se crean de inmediato, requieren aprobación del administrador o si el registro está cerrado."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "Límite de almacenamiento predeterminado",
+        "help": "Se aplica a los usuarios sin un límite individual. Cero significa ilimitado."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "Dirección del servidor",
+        "help": "Dirección de red en la que escucha el servidor."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "Puerto del servidor",
+        "help": "Puerto de red utilizado para el cliente web y la API."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "Carpeta de almacenamiento de archivos",
+        "help": "Carpeta donde se guardan los archivos de los usuarios. Cambiarla requiere mover los archivos existentes."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "Archivo de base de datos",
+        "help": "Archivo con cuentas, registros y ajustes. Cambiarlo requiere mover los datos existentes."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "Carpeta temporal de subidas",
+        "help": "Se utiliza mientras se suben los archivos."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Carpeta del cliente web",
+        "help": "Carpeta que contiene la interfaz web compilada."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "Tamaño máximo de subida",
+        "help": "Tamaño máximo permitido para un solo archivo subido. Cero significa sin límite."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "Límite de intentos de inicio de sesión",
+        "help": "Máximo de intentos de autenticación por minuto desde una dirección."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "Duración de la sesión",
+        "help": "Tiempo durante el cual es válido el token de sesión activa."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "Duración del inicio de sesión recordado",
+        "help": "Tiempo durante el cual un dispositivo puede renovar su sesión sin contraseña."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "Carpeta de registros",
+        "help": "Carpeta donde se almacenan los registros de diagnóstico del servidor."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "Nivel de detalle de registros",
+        "help": "Elige cuánta información técnica se escribe en los registros."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "Registrar peticiones web",
+        "help": "Escribe cada petición web en el registro de acceso."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "Generar miniaturas de vídeo",
+        "help": "Crea imágenes de vista previa para los vídeos subidos."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "Comando de procesamiento de vídeo",
+        "help": "Ruta o comando utilizado para crear miniaturas de vídeo."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "Conservar registros durante",
+        "help": "Número de días que se conservan los registros de diagnóstico."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "Cifrar archivos almacenados",
+        "help": "Mantiene los archivos cifrados en el disco. Modificarlo requiere migración."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "Conservar archivos eliminados durante",
+        "help": "Número de días antes de que los archivos de la papelera se eliminen permanentemente."
       }
-    }
+    },
+    "units": {
+      "bytes": "Bytes (B)",
+      "kilobytes": "Kilobytes (KB)",
+      "megabytes": "Megabytes (MB)",
+      "gigabytes": "Gigabytes (GB)"
+    },
+    "increase": "Aumentar",
+    "decrease": "Disminuir",
+    "bytes_label": "bytes"
   }
 }

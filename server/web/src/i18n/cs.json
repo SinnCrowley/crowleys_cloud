@@ -464,89 +464,98 @@
       "maintenance": "Probíhá údržba serveru. Zkuste to znovu po jejím dokončení.",
       "absolute_path_required": "Zadejte absolutní cestu.",
       "rotation_running": "Šifrovací operace již probíhá.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "Nemůžete zablokovat svůj vlastní účet."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "Registrace uživatelů",
+        "help": "Zvolte, zda se nové účty vytvářejí okamžitě, schvalují správcem nebo je registrace uzavřena."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "Výchozí limit úložiště",
+        "help": "Platí pro uživatele bez individuálního limitu. Nula znamená neomezeně."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "Adresa serveru",
+        "help": "Síťová adresa, na které server naslouchá."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "Port serveru",
+        "help": "Síťový port používaný pro webového klienta a API."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "Složka úložiště souborů",
+        "help": "Složka, kde jsou uloženy soubory uživatelů. Změna vyžaduje přesunutí existujících souborů."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "Soubor databáze",
+        "help": "Soubor obsahující účty, záznamy souborů a nastavení. Změna vyžaduje přesunutí existujících dat."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "Dočasná složka pro nahrávání",
+        "help": "Používá se během nahrávání souborů."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Složka webového klienta",
+        "help": "Složka obsahující zkompilované webové rozhraní."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "Maximální velikost nahrávání",
+        "help": "Maximální povolená velikost pro jeden nahrávaný soubor. Nula znamená bez limitu."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "Limit pokusů o přihlášení",
+        "help": "Maximální počet pokusů o ověření z jedné adresy za minutu."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "Doba trvání relace",
+        "help": "Jak dlouho zůstává token aktivní relace platný."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "Doba zapamatovaného přihlášení",
+        "help": "Jak dlouho může zařízení obnovovat relaci bez zadání hesla."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "Složka protokolů",
+        "help": "Složka, kde jsou uloženy diagnostické protokoly serveru."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "Úroveň podrobností protokolu",
+        "help": "Zvolte, kolik technických informací se zapisuje do protokolů."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "Zaznamenávat webové požadavky",
+        "help": "Zapíše každý webový request do protokolu přístupů."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "Generovat náhledy videí",
+        "help": "Vytváří náhledové obrázky pro nahraná videa."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "Příkaz pro zpracování videa",
+        "help": "Cesta nebo příkaz používaný k vytváření náhledů videí."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "Uchovávat protokoly po dobu",
+        "help": "Počet dní, po které se uchovávají diagnostické protokoly."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "Šifrovat uložené soubory",
+        "help": "Uchovává soubory na disku šifrované. Změna vyžaduje migraci."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "Uchovávat smazané soubory po dobu",
+        "help": "Počet dní před trvalým odstraněním souborů z koše."
       }
-    }
+    },
+    "units": {
+      "bytes": "Bajty (B)",
+      "kilobytes": "Kilobajty (KB)",
+      "megabytes": "Megabajty (MB)",
+      "gigabytes": "Gigabajty (GB)"
+    },
+    "increase": "Zvýšit",
+    "decrease": "Snížit",
+    "bytes_label": "bajtů"
   }
 }

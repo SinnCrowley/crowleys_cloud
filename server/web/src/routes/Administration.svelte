@@ -21,6 +21,67 @@
   let encryptionKey = '';
   let mounted = false;
 
+  let quotaUnit = 1024 * 1024 * 1024;
+  let quotaDisplayValue = 10;
+  let lastSelectedUserId = null;
+
+  $: unitOptions = [
+    { multiplier: 1, label: $t('admin.units.bytes') },
+    { multiplier: 1024, label: $t('admin.units.kilobytes') },
+    { multiplier: 1024 * 1024, label: $t('admin.units.megabytes') },
+    { multiplier: 1024 * 1024 * 1024, label: $t('admin.units.gigabytes') },
+  ];
+
+  function initQuotaInputs(person) {
+    if (!person) return;
+    const bytes = Number(person.quota_bytes);
+    if (bytes && bytes > 0) {
+      if (bytes % (1024 * 1024 * 1024) === 0) {
+        quotaUnit = 1024 * 1024 * 1024;
+        quotaDisplayValue = bytes / (1024 * 1024 * 1024);
+      } else if (bytes % (1024 * 1024) === 0) {
+        quotaUnit = 1024 * 1024;
+        quotaDisplayValue = bytes / (1024 * 1024);
+      } else if (bytes % 1024 === 0) {
+        quotaUnit = 1024;
+        quotaDisplayValue = bytes / 1024;
+      } else {
+        quotaUnit = 1;
+        quotaDisplayValue = bytes;
+      }
+    } else {
+      quotaUnit = 1024 * 1024 * 1024;
+      quotaDisplayValue = 10;
+      if (person.quotaMode === 'limited') {
+        person.quota_bytes = quotaDisplayValue * quotaUnit;
+      }
+    }
+  }
+
+  function syncQuotaBytes() {
+    if (selectedUser && selectedUser.quotaMode === 'limited') {
+      const val = Number(quotaDisplayValue);
+      selectedUser.quota_bytes = Math.round((isNaN(val) || val <= 0 ? 0 : val) * quotaUnit);
+    }
+  }
+
+  function incrementQuota() {
+    const current = Number(quotaDisplayValue) || 0;
+    const maxVal = Math.floor(Number.MAX_SAFE_INTEGER / quotaUnit);
+    if (current < maxVal) {
+      quotaDisplayValue = current + 1;
+      syncQuotaBytes();
+    }
+  }
+
+  function decrementQuota() {
+    const current = Number(quotaDisplayValue) || 0;
+    if (current > 1) {
+      quotaDisplayValue = current - 1;
+      syncQuotaBytes();
+    }
+  }
+
   function fail(reason) {
     const code = reason?.data?.code;
     const translated = code ? $t(`admin.errors.${code}`) : '';
@@ -37,7 +98,7 @@
     config = settings;
     maintenance = state;
   }
-  async function perform(work, reload = true) {
+  async function perform(work, reload = true, notify = true) {
     if (busy) return;
     busy = true; error = '';
     try {
@@ -45,11 +106,22 @@
       if (reload) await refresh();
       const account = await apiGet('/api/account');
       authStore.user.set(account);
-      dispatch('toast', { message: $t('admin.saved'), type: 'success' });
+      if (notify) {
+        dispatch('toast', { message: $t('admin.saved'), type: 'success' });
+      }
     } catch (reason) { fail(reason); }
     finally { busy = false; }
   }
   $: selectedUser = users.find(person => person.id === selectedUserId) || null;
+  $: if (selectedUser && selectedUser.id !== lastSelectedUserId) {
+    lastSelectedUserId = selectedUser.id;
+    initQuotaInputs(selectedUser);
+  } else if (!selectedUser) {
+    lastSelectedUserId = null;
+  }
+  $: if (selectedUser && selectedUser.quotaMode === 'limited' && (!selectedUser.quota_bytes || selectedUser.quota_bytes <= 0)) {
+    selectedUser.quota_bytes = Math.round((Number(quotaDisplayValue) || 1) * quotaUnit);
+  }
   function isSelf(person) { return person.id === $user?.id; }
   function formatBytes(bytes) {
     const value = Number(bytes || 0);
@@ -68,6 +140,9 @@
     if (isSelf(person) && person.status === 'blocked') {
       error = $t('admin.errors.cannot_block_self');
       return;
+    }
+    if (person.quotaMode === 'limited') {
+      syncQuotaBytes();
     }
     const quota = person.quotaMode === 'inherit' ? null : person.quotaMode === 'unlimited' ? 0 : Number(person.quota_bytes);
     if (quota !== null && (!Number.isSafeInteger(quota) || quota < 0 || (person.quotaMode === 'limited' && quota === 0))) {
@@ -120,7 +195,7 @@
   }
   onMount(() => {
     mounted = true;
-    perform(refresh, false);
+    perform(refresh, false, false);
     const timer = setInterval(async () => {
       if (busy || !mounted) return;
       try {
@@ -138,7 +213,7 @@
 <section class="administration" aria-busy={busy}>
   <header class="admin-header">
     <h1>{$t('admin.title')}</h1>
-    <button class="btn btn-secondary" disabled={busy} on:click={() => perform(refresh, false)}>
+    <button class="btn btn-secondary" disabled={busy} on:click={() => perform(refresh, false, false)}>
       <span class="material-symbols-outlined">refresh</span>
       {$t('common.refresh')}
     </button>
@@ -247,7 +322,56 @@
             {#if selectedUser.quotaMode === 'limited'}
               <div class="form-group">
                 <span class="form-label">{$t('admin.bytes')}</span>
-                <input class="form-input" type="number" min="1" step="1" max={Number.MAX_SAFE_INTEGER} bind:value={selectedUser.quota_bytes} required />
+                <div class="quota-input-group">
+                  <div class="custom-number-stepper">
+                    <input
+                      class="form-input stepper-input"
+                      type="number"
+                      min="1"
+                      step="1"
+                      max={Math.floor(Number.MAX_SAFE_INTEGER / quotaUnit)}
+                      bind:value={quotaDisplayValue}
+                      on:input={syncQuotaBytes}
+                      required
+                    />
+                    <div class="stepper-buttons">
+                      <button
+                        type="button"
+                        class="stepper-btn"
+                        tabindex="-1"
+                        aria-label={$t('admin.increase')}
+                        on:click={incrementQuota}
+                      >
+                        <span class="material-symbols-outlined">keyboard_arrow_up</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="stepper-btn"
+                        tabindex="-1"
+                        aria-label={$t('admin.decrease')}
+                        on:click={decrementQuota}
+                      >
+                        <span class="material-symbols-outlined">keyboard_arrow_down</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="select-wrapper quota-unit-select">
+                    <select
+                      class="custom-select"
+                      bind:value={quotaUnit}
+                      on:change={syncQuotaBytes}
+                    >
+                      {#each unitOptions as opt}
+                        <option value={opt.multiplier}>{opt.label}</option>
+                      {/each}
+                    </select>
+                    <span class="material-symbols-outlined select-arrow">expand_more</span>
+                  </div>
+                </div>
+                {#if selectedUser.quota_bytes}
+                  <small class="field-hint">≈ {formatBytes(selectedUser.quota_bytes)} ({Number(selectedUser.quota_bytes).toLocaleString()} {$t('admin.bytes_label')})</small>
+                {/if}
               </div>
             {/if}
 
@@ -405,6 +529,16 @@
   .user-details .form-group { margin: 0; display: flex; flex-direction: column; gap: var(--spacing-xs); }
   .user-details .select-wrapper { width: 100%; max-width: 100%; position: relative; }
   .user-details .select-wrapper .custom-select { width: 100%; height: 42px; padding: 0 36px 0 16px; font-size: calc(14px * var(--font-scale)); text-align: left; }
+  .quota-input-group { display: flex; gap: var(--spacing-sm); align-items: center; width: 100%; }
+  .custom-number-stepper { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; }
+  .stepper-input { width: 100%; height: 42px; padding: 0 32px 0 16px; appearance: textfield; -moz-appearance: textfield; }
+  .stepper-input::-webkit-inner-spin-button, .stepper-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .stepper-buttons { position: absolute; right: 4px; top: 3px; bottom: 3px; width: 24px; display: flex; flex-direction: column; justify-content: center; z-index: 2; }
+  .stepper-btn { flex: 1; display: flex; align-items: center; justify-content: center; background: transparent; border: none; padding: 0; margin: 0; color: var(--text-sub); cursor: pointer; border-radius: var(--radius-sm); transition: background-color 0.15s ease, color 0.15s ease; }
+  .stepper-btn:hover { background-color: var(--bg-surface-hover); color: var(--text-main); }
+  .stepper-btn:active { color: var(--accent-color); }
+  .stepper-btn .material-symbols-outlined { font-size: 18px; line-height: 1; user-select: none; }
+  .user-details .quota-unit-select { flex: 1.2; min-width: 140px; width: auto; }
   .field-hint { display: block; font-size: calc(12px * var(--font-scale)); color: var(--text-sub); margin-top: 2px; }
   .dialog-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); justify-content: flex-end; margin-top: var(--spacing-sm); }
 
@@ -465,5 +599,8 @@
     .setting-control { align-items: stretch; }
     .setting-control .form-input, .setting-control .select-wrapper { max-width: 100%; }
     .user-details { padding: var(--spacing-lg); }
+  }
+  @media (max-width: 480px) {
+    .quota-input-group { flex-direction: column; align-items: stretch; }
   }
 </style>

@@ -464,89 +464,98 @@
       "maintenance": "Le serveur est en maintenance. Réessayez une fois celle-ci terminée.",
       "absolute_path_required": "Saisissez un chemin absolu.",
       "rotation_running": "Une opération de chiffrement est déjà en cours.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "Vous ne pouvez pas bloquer votre propre compte."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "Inscription",
+        "help": "Choisissez si les nouveaux comptes sont créés immédiatement, soumis à approbation ou fermés."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "Quota de stockage par défaut",
+        "help": "S'applique aux utilisateurs sans quota individuel. Zéro signifie illimité."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "Adresse du serveur",
+        "help": "Adresse réseau sur laquelle le serveur écoute."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "Port du serveur",
+        "help": "Port réseau utilisé pour ouvrir le client web et l'API."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "Dossier de stockage des fichiers",
+        "help": "Dossier où sont stockés les fichiers des utilisateurs. Tout changement nécessite de déplacer les fichiers existants."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "Fichier de base de données",
+        "help": "Fichier contenant les comptes, fichiers et paramètres. Tout changement nécessite de déplacer les données existantes."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "Dossier de téléversement temporaire",
+        "help": "Utilisé pendant le téléversement des fichiers."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Dossier du client web",
+        "help": "Dossier contenant l'interface web compilée."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "Taille maximale de téléversement",
+        "help": "Taille maximale autorisée pour un seul fichier. Zéro signifie aucune limite."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "Limite de tentatives de connexion",
+        "help": "Nombre maximal de tentatives de connexion depuis une adresse par minute."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "Durée de la session",
+        "help": "Durée de validité du jeton de session active."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "Durée de mémorisation de session",
+        "help": "Durée pendant laquelle un appareil peut renouveler sa session sans mot de passe."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "Dossier des journaux",
+        "help": "Dossier où sont enregistrés les journaux de diagnostic du serveur."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "Niveau de détail des journaux",
+        "help": "Choisissez la quantité d'informations techniques enregistrées dans les journaux."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "Enregistrer les requêtes web",
+        "help": "Enregistre chaque requête web dans le journal d'accès."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "Générer des aperçus vidéo",
+        "help": "Crée des images d'aperçu pour les vidéos téléversées."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "Commande de traitement vidéo",
+        "help": "Chemin ou commande utilisée pour créer les aperçus vidéo."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "Conserver les journaux",
+        "help": "Nombre de jours pendant lesquels les journaux de diagnostic sont conservés."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "Chiffrer les fichiers stockés",
+        "help": "Conserve les fichiers chiffrés sur le disque. Toute modification nécessite une migration."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "Conserver les fichiers supprimés",
+        "help": "Nombre de jours avant que les fichiers de la corbeille ne soient supprimés définitivement."
       }
-    }
+    },
+    "units": {
+      "bytes": "Octets (o)",
+      "kilobytes": "Kilo-octets (Ko)",
+      "megabytes": "Méga-octets (Mo)",
+      "gigabytes": "Giga-octets (Go)"
+    },
+    "increase": "Augmenter",
+    "decrease": "Diminuer",
+    "bytes_label": "octets"
   }
 }

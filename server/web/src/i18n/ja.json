@@ -464,89 +464,98 @@
       "maintenance": "サーバーはメンテナンス中です。完了後に再試行してください。",
       "absolute_path_required": "絶対パスを入力してください。",
       "rotation_running": "暗号化処理がすでに実行中です。",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "自分自身のアカウントを停止することはできません。"
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "ユーザー登録",
+        "help": "新規アカウントの作成方法（即時作成、管理者による承認、登録停止）を選択します。"
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "デフォルトの容量制限",
+        "help": "個別の制限が設定されていないユーザーに適用されます。0は無制限を意味します。"
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "サーバーアドレス",
+        "help": "サーバーがリッスンするネットワークアドレス。"
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "サーバーポート",
+        "help": "WebクライアントとAPIを開くために使用するネットワークポート。"
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "ファイル保存先フォルダー",
+        "help": "ユーザーのファイルが保存されるフォルダー。変更するには既存のファイルを移動する必要があります。"
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "データベースファイル",
+        "help": "アカウント、ファイル記録、設定を含むファイル。変更するには既存のデータを移動する必要があります。"
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "一時アップロードフォルダー",
+        "help": "ファイルのアップロード中に一時的に使用されます。"
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Webクライアントフォルダー",
+        "help": "コンパイル済みWebインターフェースを含むフォルダー。"
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "最大アップロードサイズ",
+        "help": "1つのアップロードファイルで許可される最大サイズ。0は制限なしです。"
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "ログイン試行制限",
+        "help": "1つのアドレスから1分間に許可される最大認証試行回数。"
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "セッション有効期間",
+        "help": "ログインセッショントークンが有効である期間。"
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "ログイン保持期間",
+        "help": "パスワードを再入力せずにセッションを更新できる期間。"
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "ログフォルダー",
+        "help": "サーバーの診断ログが保存されるフォルダー。"
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "ログの詳細レベル",
+        "help": "ログに記録する技術情報の詳細度を選択します。"
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "Webリクエストを記録",
+        "help": "すべてのWebリクエストをアクセスログに記録します。"
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "動画プレビューの生成",
+        "help": "アップロードされた動画のプレビューサムネイルを作成します。"
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "動画処理コマンド",
+        "help": "動画プレビューを作成するためのパスまたはコマンド。"
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "ログの保持日数",
+        "help": "診断ログを保持する日数。"
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "保存ファイルを暗号化",
+        "help": "ファイルをディスク上で暗号化して保持します。変更には移行作業が必要です。"
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "削除済みファイルの保持日数",
+        "help": "ゴミ箱内のファイルが完全に削除されるまでの日数。"
       }
-    }
+    },
+    "units": {
+      "bytes": "バイト (B)",
+      "kilobytes": "キロバイト (KB)",
+      "megabytes": "メガバイト (MB)",
+      "gigabytes": "ギガバイト (GB)"
+    },
+    "increase": "増やす",
+    "decrease": "減らす",
+    "bytes_label": "バイト"
   }
 }

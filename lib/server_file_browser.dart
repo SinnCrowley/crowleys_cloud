@@ -579,9 +579,6 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
   }
 }
 
-IconData _iconForFile(ServerFileItem item) =>
-    FileIconUtils.iconForExtension(item.extension);
-
 /// Dedicated thumbnail widget for server file items.
 /// Memoizes [Future] in state to prevent redundant network/cache fetches on scroll frames.
 class _ServerThumb extends StatelessWidget {
@@ -597,35 +594,107 @@ class _ServerThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = isList ? 48.0 : 120.0;
-    return SizedBox(
-      width: size,
-      height: size,
-      child: RemoteThumbnailWidget(
+    final size = isList ? 50.0 : 120.0;
+
+    if (item.isDir) {
+      return Icon(Icons.folder, color: appAccent, size: size);
+    }
+
+    final ext = item.extension.toLowerCase();
+    if (item.type == 'audio' || audioExtensions.contains(ext)) {
+      return Icon(Icons.audio_file, color: appAccent, size: size);
+    }
+
+    final isMedia =
+        item.type == 'photo' ||
+        item.type == 'video' ||
+        photoExtensions.contains(ext) ||
+        videoExtensions.contains(ext);
+
+    if (isMedia) {
+      final cacheKey =
+          '${controller.serverId}:thumb_${item.path}_${item.modifiedAt}_256_${controller.scope}';
+      final thumb = RemoteThumbnailWidget(
         key: ValueKey('thumb_${item.path}_${item.modifiedAt}'),
         thumbnailLoader: () => controller.loadThumbnailWithRetry(item),
-        fallbackBuilder: (context, size) =>
-            _ServerFileFallbackIcon(item: item, size: size),
+        fallbackBuilder: (context, s) =>
+            _ServerFileFallbackIcon(item: item, size: s, isList: isList),
+        errorBuilder: (context, s) => _ServerFileFallbackIcon(
+          item: item,
+          size: s,
+          hasError: true,
+          isList: isList,
+        ),
         isList: isList,
-        cacheKey: '${item.path}_${item.modifiedAt}',
+        expand: !isList,
+        size: isList ? size : null,
+        cacheKey: cacheKey,
         blurhash: item.blurhash,
-      ),
+      );
+      if (isList) {
+        return SizedBox(width: size, height: size, child: thumb);
+      }
+      return thumb;
+    }
+
+    final cleanExt = ext.startsWith('.') ? ext.substring(1) : ext;
+    return Icon(
+      FileIconUtils.iconForExtension(cleanExt),
+      color: appAccent,
+      size: size,
     );
   }
 }
 
 class _ServerFileFallbackIcon extends StatelessWidget {
-  const _ServerFileFallbackIcon({required this.item, required this.size});
+  const _ServerFileFallbackIcon({
+    required this.item,
+    required this.size,
+    this.hasError = false,
+    this.isList = false,
+  });
 
   final ServerFileItem item;
   final double size;
+  final bool hasError;
+  final bool isList;
 
   @override
   Widget build(BuildContext context) {
     if (item.isDir) {
       return Icon(Icons.folder, color: appAccent, size: size);
     }
-    return Icon(_iconForFile(item), color: appAccent, size: size);
+    final ext = item.extension.toLowerCase();
+    final isMedia =
+        item.type == 'photo' ||
+        item.type == 'video' ||
+        photoExtensions.contains(ext) ||
+        videoExtensions.contains(ext);
+
+    if (isMedia) {
+      return Container(
+        width: isList ? size : double.infinity,
+        height: isList ? size : double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey[850],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Icon(
+            hasError ? Icons.broken_image : Icons.image_outlined,
+            color: hasError ? Colors.red.shade300 : Colors.white24,
+            size: isList ? size / 2.5 : 48,
+          ),
+        ),
+      );
+    }
+
+    final cleanExt = ext.startsWith('.') ? ext.substring(1) : ext;
+    return Icon(
+      FileIconUtils.iconForExtension(cleanExt),
+      color: appAccent,
+      size: size,
+    );
   }
 }
 
@@ -647,8 +716,8 @@ class _GridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return InkWell(
+      key: ValueKey(item.path),
       onTap: onTap,
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(12),
@@ -668,35 +737,9 @@ class _GridItem extends StatelessWidget {
               Text(
                 item.name,
                 style: TextStyle(color: appText),
-                textAlign: TextAlign.center,
-                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
-              if (controller.scope == 'shared' &&
-                  (item.ownerName != null || item.uploaderUserId != null)) ...[
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.person, size: 11, color: appAccent),
-                    const SizedBox(width: 2),
-                    Flexible(
-                      child: Text(
-                        item.ownerName ??
-                            l10n.userFallback(item.uploaderUserId ?? 0),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          color: appAccent,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ],
           ),
           if (isSelected)
@@ -747,45 +790,13 @@ class _ListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Padding(
+      key: ValueKey(item.path),
       padding: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: _ServerThumb(controller: controller, item: item, isList: true),
-        title: Text(
-          item.name,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: appText),
-        ),
-        subtitle:
-            (controller.scope == 'shared' &&
-                (item.ownerName != null || item.uploaderUserId != null))
-            ? Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.person, size: 13, color: appAccent),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        item.ownerName ??
-                            l10n.userFallback(item.uploaderUserId ?? 0),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: appAccent,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : null,
+        title: Text(item.name, style: TextStyle(color: appText)),
         trailing: controller.isSelectionMode
             ? Checkbox(
                 value: isSelected,

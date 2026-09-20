@@ -464,89 +464,98 @@
       "maintenance": "Сервер на обслуговуванні. Повторіть спробу після його завершення.",
       "absolute_path_required": "Введіть абсолютний шлях.",
       "rotation_running": "Операція шифрування вже виконується.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "Ви не можете заблокувати власний обліковий запис."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "Реєстрація користувачів",
+        "help": "Виберіть: створювати нові облікові записи одразу, надсилати їх на схвалення чи закрити реєстрацію."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "Ліміт сховища за замовчуванням",
+        "help": "Застосовується до користувачів без індивідуального ліміту. Нуль означає відсутність обмеження."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "Адреса сервера",
+        "help": "Мережева адреса, яку прослуховує сервер."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "Порт сервера",
+        "help": "Мережевий порт для веб-клієнта та API."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "Папка зі сховищем файлів",
+        "help": "Папка, де зберігаються файли користувачів. Зміна вимагає перенесення наявних файлів."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "Файл бази даних",
+        "help": "Містить облікові записи, дані про файли та налаштування. Зміна вимагає перенесення даних."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "Тимчасова папка завантажень",
+        "help": "Використовується під час завантаження файлів."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Папка веб-клієнта",
+        "help": "Папка зі зібраним веб-інтерфейсом."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "Максимальний розмір завантаження",
+        "help": "Найбільший розмір для одного завантажуваного файлу. Нуль означає відсутність обмеження."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "Ліміт спроб входу",
+        "help": "Максимальна кількість спроб автентифікації з однієї адреси за хвилину."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "Тривалість сеансу",
+        "help": "Скільки часу діє токен активного сеансу."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "Термін запам'ятовування входу",
+        "help": "Як довго пристрій може продовжувати сеанс без введення пароля."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "Папка журналів",
+        "help": "Папка, де зберігаються діагностичні журнали сервера."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "Рівень деталізації журналів",
+        "help": "Виберіть, скільки технічної інформації записується в журнали."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "Записувати веб-запити",
+        "help": "Записує кожен веб-запит у журнал доступу."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "Створювати прев'ю відео",
+        "help": "Створює зображення попереднього перегляду для завантажених відео."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "Команда обробки відео",
+        "help": "Шлях або команда для створення прев'ю відео."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "Зберігати журнали",
+        "help": "Кількість днів зберігання діагностичних журналів."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "Шифрувати збережені файли",
+        "help": "Зберігає файли зашифрованими на диску. Зміна потребує міграції."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "Зберігати видалені файли",
+        "help": "Кількість днів до остаточного видалення файлів із кошика."
       }
-    }
+    },
+    "units": {
+      "bytes": "Байти (Б)",
+      "kilobytes": "Кілобайти (КБ)",
+      "megabytes": "Мегабайти (МБ)",
+      "gigabytes": "Гігабайти (ГБ)"
+    },
+    "increase": "Збільшити",
+    "decrease": "Зменшити",
+    "bytes_label": "байт"
   }
 }

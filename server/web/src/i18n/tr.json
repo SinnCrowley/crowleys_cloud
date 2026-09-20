@@ -464,89 +464,98 @@
       "maintenance": "Sunucu bakımda. Tamamlandığında yeniden deneyin.",
       "absolute_path_required": "Mutlak bir yol girin.",
       "rotation_running": "Zaten bir şifreleme işlemi devam ediyor.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "Kendi hesabınızı engelleyemezsiniz."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "Kullanıcı kaydı",
+        "help": "Yeni hesapların hemen mi oluşturulacağını, yönetici onayı mı gerektireceğini veya kaydın kapalı mı olacağını seçin."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "Varsayılan depolama limiti",
+        "help": "Bireysel depolama limiti olmayan kullanıcılara uygulanır. Sıfır sınırsız anlamına gelir."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "Sunucu adresi",
+        "help": "Sunucunun dinlediği ağ adresi."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "Sunucu bağlantı noktası",
+        "help": "Web istemcisini ve API'yi açmak için kullanılan ağ bağlantı noktası."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "Dosya depolama klasörü",
+        "help": "Kullanıcı dosyalarının saklandığı klasör. Değiştirilmesi mevcut dosyaların taşınmasını gerektirir."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "Veritabanı dosyası",
+        "help": "Hesapları, dosya kayıtlarını ve ayarları içeren dosya. Değiştirilmesi mevcut verilerin taşınmasını gerektirir."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "Geçici yükleme klasörü",
+        "help": "Dosyalar yüklenirken kullanılır."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Web istemcisi klasörü",
+        "help": "Derlenmiş web arayüzünü içeren klasör."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "Maksimum yükleme boyutu",
+        "help": "Tek bir yüklenen dosya için izin verilen en büyük boyut. Sıfır limitsiz anlamına gelir."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "Giriş denemesi limiti",
+        "help": "Bir adresten dakikada yapılabilecek maksimum kimlik doğrulama denemesi."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "Oturum süresi",
+        "help": "Oturum açma belirtecinin ne kadar süre geçerli kalacağı."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "Hatırlanan oturum süresi",
+        "help": "Bir cihazın şifre girmeden oturumunu ne kadar süre yenileyebileceği."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "Günlük klasörü",
+        "help": "Sunucu tanılama günlüklerinin saklandığı klasör."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "Günlük detay seviyesi",
+        "help": "Günlüklere ne kadar teknik bilgi yazılacağını seçin."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "Web isteklerini kaydet",
+        "help": "Her web isteğini erişim günlüğüne yazar."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "Video önizlemeleri oluştur",
+        "help": "Yüklenen videolar için önizleme resimleri oluşturur."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "Video işleme komutu",
+        "help": "Video önizlemeleri oluşturmak için kullanılan yol veya komut."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "Günlükleri saklama süresi",
+        "help": "Tanılama günlüklerinin saklandığı gün sayısı."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "Depolanan dosyaları şifrele",
+        "help": "Dosyaları diskte şifrelenmiş olarak tutar. Değiştirilmesi geçiş gerektirir."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "Silinen dosyaları saklama süresi",
+        "help": "Çöp kutusundaki dosyaların kalıcı olarak silinmesinden önceki gün sayısı."
       }
-    }
+    },
+    "units": {
+      "bytes": "Bayt (B)",
+      "kilobytes": "Kilobayt (KB)",
+      "megabytes": "Megabayt (MB)",
+      "gigabytes": "Gigabayt (GB)"
+    },
+    "increase": "Artır",
+    "decrease": "Azalt",
+    "bytes_label": "bayt"
   }
 }

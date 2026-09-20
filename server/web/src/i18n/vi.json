@@ -464,89 +464,98 @@
       "maintenance": "Máy chủ đang bảo trì. Thử lại khi hoàn tất.",
       "absolute_path_required": "Nhập đường dẫn tuyệt đối.",
       "rotation_running": "Một thao tác mã hóa đang diễn ra.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "Bạn không thể khóa tài khoản của chính mình."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "Đăng ký người dùng",
+        "help": "Chọn tạo tài khoản mới ngay lập tức, cần quản trị viên duyệt hoặc đóng đăng ký."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "Hạn mức dung lượng mặc định",
+        "help": "Áp dụng cho người dùng không có hạn mức riêng. Số 0 nghĩa là không giới hạn."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "Địa chỉ máy chủ",
+        "help": "Địa chỉ mạng mà máy chủ lắng nghe."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "Cổng máy chủ",
+        "help": "Cổng mạng dùng để mở giao diện web và API."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "Thư mục lưu trữ tệp",
+        "help": "Thư mục lưu trữ tệp của người dùng. Thay đổi mục này yêu cầu di chuyển các tệp hiện có."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "Tệp cơ sở dữ liệu",
+        "help": "Tệp chứa tài khoản, dữ liệu tệp và cài đặt. Thay đổi mục này yêu cầu di chuyển dữ liệu hiện có."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "Thư mục tải lên tạm thời",
+        "help": "Được sử dụng trong quá trình tải tệp lên."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Thư mục giao diện web",
+        "help": "Thư mục chứa giao diện web đã biên dịch."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "Kích thước tải lên tối đa",
+        "help": "Kích thước tối đa cho phép của một tệp tải lên. Số 0 nghĩa là không giới hạn."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "Giới hạn số lần thử đăng nhập",
+        "help": "Số lần thử xác thực tối đa từ một địa chỉ trong mỗi phút."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "Thời lượng phiên",
+        "help": "Thời gian token phiên đăng nhập còn hiệu lực."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "Thời lượng ghi nhớ đăng nhập",
+        "help": "Thời gian thiết bị có thể gia hạn phiên mà không cần nhập mật khẩu."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "Thư mục nhật ký",
+        "help": "Thư mục lưu trữ nhật ký chẩn đoán của máy chủ."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "Mức độ chi tiết của nhật ký",
+        "help": "Chọn mức độ thông tin kỹ thuật được ghi vào nhật ký."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "Ghi nhật ký yêu cầu web",
+        "help": "Ghi mọi yêu cầu web vào nhật ký truy cập."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "Tạo hình thu nhỏ video",
+        "help": "Tạo ảnh xem trước cho các video đã tải lên."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "Lệnh xử lý video",
+        "help": "Đường dẫn hoặc lệnh dùng để tạo ảnh xem trước video."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "Lưu giữ nhật ký trong",
+        "help": "Số ngày lưu giữ nhật ký chẩn đoán."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "Mã hóa tệp đã lưu",
+        "help": "Lưu tệp dưới dạng mã hóa trên ổ đĩa. Thay đổi yêu cầu di chuyển dữ liệu."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "Lưu giữ tệp đã xóa trong",
+        "help": "Số ngày trước khi các tệp trong thùng rác bị xóa vĩnh viễn."
       }
-    }
+    },
+    "units": {
+      "bytes": "Byte (B)",
+      "kilobytes": "Kilobyte (KB)",
+      "megabytes": "Megabyte (MB)",
+      "gigabytes": "Gigabyte (GB)"
+    },
+    "increase": "Tăng",
+    "decrease": "Giảm",
+    "bytes_label": "byte"
   }
 }

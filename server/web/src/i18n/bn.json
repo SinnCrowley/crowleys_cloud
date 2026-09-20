@@ -464,89 +464,98 @@
       "maintenance": "সার্ভারের রক্ষণাবেক্ষণ চলছে। শেষ হলে আবার চেষ্টা করুন।",
       "absolute_path_required": "একটি পরম পাথ লিখুন।",
       "rotation_running": "ইতিমধ্যে একটি এনক্রিপশন কাজ চলছে।",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "আপনি নিজের অ্যাকাউন্ট ব্লক করতে পারবেন না।"
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "ব্যবহারকারী নিবন্ধন",
+        "help": "নতুন অ্যাকাউন্ট অবিলম্বে তৈরি হবে, প্রশাসক দ্বারা অনুমোদিত হবে, নাকি বন্ধ থাকবে তা নির্বাচন করুন।"
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "ডিফল্ট স্টোরেজ সীমা",
+        "help": "ব্যক্তিগত সীমা ব্যতীত ব্যবহারকারীদের জন্য প্রযোজ্য। শূন্য মানে সীমাহীন।"
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "সার্ভার ঠিকানা",
+        "help": "সার্ভার যে নেটওয়ার্ক ঠিকানায় লিসেন করে।"
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "সার্ভার পোর্ট",
+        "help": "ওয়েব ক্লায়েন্ট এবং এপিআই খোলার জন্য ব্যবহৃত নেটওয়ার্ক পোর্ট।"
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "ফাইল স্টোরেজ ফোল্ডার",
+        "help": "যে ফোল্ডারে ব্যবহারকারীদের ফাইল সংরক্ষণ করা হয়। পরিবর্তন করলে বিদ্যমান ফাইলগুলো স্থানান্তর করতে হবে।"
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "ডাটাবেস ফাইল",
+        "help": "অ্যাকাউন্ট, ফাইল রেকর্ড এবং সেটিংস সম্বলিত ফাইল। পরিবর্তন করলে বিদ্যমান ডাটা স্থানান্তর করতে হবে।"
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "অস্থায়ী আপলোড ফোল্ডার",
+        "help": "ফাইল আপলোড করার সময় ব্যবহৃত হয়।"
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "ওয়েব ক্লায়েন্ট ফোল্ডার",
+        "help": "সংকলিত ওয়েব ইন্টারফেস ধারণকারী ফোল্ডার।"
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "সর্বোচ্চ আপলোড আকার",
+        "help": "একটি আপলোড করা ফাইলের জন্য অনুমোদিত সর্বোচ্চ আকার। শূন্য মানে কোন সীমা নেই।"
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "সাইন-ইন প্রচেষ্টার সীমা",
+        "help": "একটি ঠিকানা থেকে প্রতি মিনিটে সর্বোচ্চ প্রমাণীকরণ প্রচেষ্টা।"
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "সেশনের মেয়াদ",
+        "help": "একটি সক্রিয় সেশন টোকেন কতক্ষণ বৈধ থাকবে।"
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "সংরক্ষিত সাইন-ইনের মেয়াদ",
+        "help": "একটি ডিভাইস পাসওয়ার্ড না দিয়ে কতক্ষণ তার সেশন নবায়ন করতে পারে।"
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "লগ ফোল্ডার",
+        "help": "যে ফোল্ডারে সার্ভার ডায়াগনস্টিক লগ সংরক্ষিত থাকে।"
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "লগ বিস্তারিত স্তর",
+        "help": "লগে কতটুকু প্রযুক্তিগত তথ্য লেখা হবে তা নির্বাচন করুন।"
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "ওয়েব অনুরোধ রেকর্ড করুন",
+        "help": "প্রতিটি ওয়েব অনুরোধ অ্যাক্সেস লগে লিখে রাখে।"
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "ভিডিও প্রিভিউ তৈরি করুন",
+        "help": "আপলোড করা ভিডিওর জন্য প্রিভিউ ছবি তৈরি করে।"
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "ভিডিও প্রক্রিয়াকরণ কমান্ড",
+        "help": "ভিডিও প্রিভিউ তৈরি করতে ব্যবহৃত পথ বা কমান্ড।"
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "লগ সংরক্ষণের দিন",
+        "help": "যত দিনের জন্য ডায়াগনস্টিক লগ সংরক্ষণ করা হয়।"
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "সংরক্ষিত ফাইল এনক্রিপ্ট করুন",
+        "help": "ডিস্কে ফাইলগুলো এনক্রিপ্ট করে রাখে। পরিবর্তন করলে মাইগ্রেশন প্রয়োজন।"
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "মুছে ফেলা ফাইল সংরক্ষণের দিন",
+        "help": "ট্র্যাশ থেকে ফাইলগুলো স্থায়ীভাবে মুছে ফেলার পূর্ববর্তী দিনের সংখ্যা।"
       }
-    }
+    },
+    "units": {
+      "bytes": "বাইট (B)",
+      "kilobytes": "কিলোবাইট (KB)",
+      "megabytes": "মেগাবাইট (MB)",
+      "gigabytes": "গিগাবাইট (GB)"
+    },
+    "increase": "বৃদ্ধি করুন",
+    "decrease": "হ্রাস করুন",
+    "bytes_label": "বাইট"
   }
 }

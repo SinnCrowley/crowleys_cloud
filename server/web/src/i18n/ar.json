@@ -464,89 +464,98 @@
       "maintenance": "الخادم قيد الصيانة. أعد المحاولة بعد انتهائها.",
       "absolute_path_required": "أدخل مسارًا مطلقًا.",
       "rotation_running": "هناك عملية تشفير جارية بالفعل.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "لا يمكنك حظر حسابك الخاص."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "تسجيل المستخدمين",
+        "help": "اختر ما إذا كان سيتم إنشاء الحسابات الجديدة فوراً، أو بموافقة المسؤول، أو إغلاق التسجيل."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "حد السعة التخزينية الافتراضي",
+        "help": "ينطبق على المستخدمين الذين ليس لديهم حد تخزين فردي. الصفر يعني غير محدود."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "عنوان الخادم",
+        "help": "عنوان الشبكة الذي يستمع إليه الخادم."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "منفذ الخادم",
+        "help": "منفذ الشبكة المستخدم لفتح واجهة الويب وواجهة برمجة التطبيقات."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "مجلد تخزين الملفات",
+        "help": "المجلد الذي يتم فيه تخزين ملفات المستخدمين. تغييره يتطلب نقل الملفات الحالية."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "ملف قاعدة البيانات",
+        "help": "الملف الذي يحتوي على الحسابات وسجلات الملفات والإعدادات. تغييره يتطلب نقل البيانات الحالية."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "مجلد الرفع المؤقت",
+        "help": "يُستخدم أثناء عملية رفع الملفات."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "مجلد واجهة الويب",
+        "help": "المجلد الذي يحتوي على واجهة الويب المجمعة."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "أقصى حجم للملف المرفوع",
+        "help": "أكبر حجم مسموح به لملف واحد مرفوع. الصفر يعني بلا حد."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "حد محاولات تسجيل الدخول",
+        "help": "الحد الأقصى لمحاولات تسجيل الدخول من عنوان واحد في الدقيقة."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "مدة الجلسة",
+        "help": "المدة التي يظل فيها رمز الجلسة النشطة صالحاً."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "مدة تذكر تسجيل الدخول",
+        "help": "المدة التي يمكن للجهاز تجديد الجلسة فيها دون إدخال كلمة المرور."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "مجلد السجلات",
+        "help": "المجلد الذي يتم حفظ سجلات تشخيص الخادم فيه."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "مستوى تفاصيل السجل",
+        "help": "اختر كمية المعلومات التقنية المكتوبة في السجلات."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "تسجيل طلبات الويب",
+        "help": "يسجل كل طلب ويب في سجل الوصول."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "إنشاء معاينات الفيديو",
+        "help": "ينشئ صور معاينة لمقاطع الفيديو المرفوعة."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "أمر معالجة الفيديو",
+        "help": "المسار أو الأمر المستخدم لإنشاء معاينات الفيديو."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "الاحتفاظ بالسجلات لمدة",
+        "help": "عدد الأيام التي يتم الاحتفاظ بسجلات التشخيص خلالها."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "تشفير الملفات المخزنة",
+        "help": "يحافظ على الملفات مشفرة على القرص. يتطلب التغيير ترحيل البيانات."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "الاحتفاظ بالملفات المحذوفة لمدة",
+        "help": "عدد الأيام قبل حذف الملفات نهائياً من سلة المهملات."
       }
-    }
+    },
+    "units": {
+      "bytes": "بايت (B)",
+      "kilobytes": "كيلوبايت (KB)",
+      "megabytes": "ميغابايت (MB)",
+      "gigabytes": "غيغابايت (GB)"
+    },
+    "increase": "زيادة",
+    "decrease": "تقليل",
+    "bytes_label": "بايت"
   }
 }

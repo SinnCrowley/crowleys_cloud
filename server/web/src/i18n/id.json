@@ -464,89 +464,98 @@
       "maintenance": "Server sedang dipelihara. Coba lagi setelah selesai.",
       "absolute_path_required": "Masukkan jalur absolut.",
       "rotation_running": "Operasi enkripsi sedang berlangsung.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "Anda tidak dapat memblokir akun Anda sendiri."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "Pendaftaran pengguna",
+        "help": "Pilih apakah akun baru langsung dibuat, disetujui oleh administrator, atau ditutup."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "Batas penyimpanan bawaan",
+        "help": "Berlaku untuk pengguna tanpa batas penyimpanan individu. Nol berarti tak terbatas."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "Alamat server",
+        "help": "Alamat jaringan tempat server mendengarkan."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "Port server",
+        "help": "Port jaringan yang digunakan untuk membuka klien web dan API."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "Folder penyimpanan berkas",
+        "help": "Folder tempat berkas pengguna disimpan. Mengubahnya memerlukan pemindahan berkas yang ada."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "Berkas basis data",
+        "help": "Berkas yang berisi akun, catatan berkas, dan pengaturan. Mengubahnya memerlukan pemindahan data yang ada."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "Folder unggahan sementara",
+        "help": "Digunakan saat berkas sedang diunggah."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Folder klien web",
+        "help": "Folder yang berisi antarmuka web yang dikompilasi."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "Ukuran unggahan maksimum",
+        "help": "Ukuran terbesar yang diizinkan untuk satu berkas yang diunggah. Nol berarti tanpa batas."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "Batas percobaan masuk",
+        "help": "Maksimum percobaan autentikasi dari satu alamat per menit."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "Durasi sesi",
+        "help": "Berapa lama token sesi masuk tetap valid."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "Durasi masuk yang diingat",
+        "help": "Berapa lama perangkat dapat memperbarui sesinya tanpa memasukkan kata sandi."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "Folder log",
+        "help": "Folder tempat log diagnostik server disimpan."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "Tingkat detail log",
+        "help": "Pilih berapa banyak informasi teknis yang ditulis ke log."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "Catat permintaan web",
+        "help": "Menulis setiap permintaan web ke log akses."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "Buat pratinjau video",
+        "help": "Membuat gambar pratinjau untuk video yang diunggah."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "Perintah pemrosesan video",
+        "help": "Jalur atau perintah yang digunakan untuk membuat pratinjau video."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "Simpan log selama",
+        "help": "Jumlah hari log diagnostik disimpan."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "Enkripsi berkas tersimpan",
+        "help": "Menjaga berkas tetap terenkripsi di disk. Mengubah ini memerlukan migrasi."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "Simpan berkas terhapus selama",
+        "help": "Jumlah hari sebelum berkas di tempat sampah dihapus permanen."
       }
-    }
+    },
+    "units": {
+      "bytes": "Bita (B)",
+      "kilobytes": "Kilobita (KB)",
+      "megabytes": "Megabita (MB)",
+      "gigabytes": "Gigabita (GB)"
+    },
+    "increase": "Tambah",
+    "decrease": "Kurang",
+    "bytes_label": "bita"
   }
 }

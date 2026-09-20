@@ -464,89 +464,98 @@
       "maintenance": "服务器正在维护。请在完成后重试。",
       "absolute_path_required": "请输入绝对路径。",
       "rotation_running": "已有加密操作正在进行。",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "您不能停用自己的账户。"
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "用户注册",
+        "help": "选择新账户是直接创建、需管理员审批还是关闭注册。"
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "默认存储配额",
+        "help": "适用于未设置单独配额的用户。零表示不设限制。"
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "服务器地址",
+        "help": "服务器监听的网络地址。"
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "服务器端口",
+        "help": "用于访问 Web 客户端和 API 的网络端口。"
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "文件存储目录",
+        "help": "存放用户文件的目录。更改此设置需要手动移动现有文件。"
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "数据库文件",
+        "help": "包含账户、文件记录和配置的文件。更改此设置需要手动移动数据。"
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "上传临时目录",
+        "help": "文件上传过程中使用的临时目录。"
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Web 客户端目录",
+        "help": "包含已编译 Web 界面的目录。"
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "单文件上传大小限制",
+        "help": "允许上传的单个文件最大尺寸。零表示不设限制。"
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "登录尝试频次限制",
+        "help": "同一 IP 地址每分钟允许的最大身份验证尝试次数。"
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "会话有效期",
+        "help": "已登录会话令牌保持有效的时长。"
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "记住登录时长",
+        "help": "设备在无需重新输入密码的情况下续期会话的最长周期。"
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "日志目录",
+        "help": "存放服务器诊断日志的目录。"
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "日志详细级别",
+        "help": "选择记录到日志中的技术信息详尽程度。"
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "记录 Web 请求",
+        "help": "将所有 Web 请求记录到访问日志中。"
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "生成视频预览缩略图",
+        "help": "为上传的视频自动生成预览画面。"
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "视频处理工具命令",
+        "help": "用于生成视频预览画面的路径或执行命令。"
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "日志保留天数",
+        "help": "系统保留诊断日志的天数。"
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "加密存储文件",
+        "help": "在磁盘上以加密形式保存文件。更改此选项需要手动迁移数据。"
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "回收站保留天数",
+        "help": "回收站中的文件被永久删除前的保留天数。"
       }
-    }
+    },
+    "units": {
+      "bytes": "字节 (B)",
+      "kilobytes": "千字节 (KB)",
+      "megabytes": "兆字节 (MB)",
+      "gigabytes": "吉字节 (GB)"
+    },
+    "increase": "增加",
+    "decrease": "减少",
+    "bytes_label": "字节"
   }
 }

@@ -464,89 +464,98 @@
       "maintenance": "Der Server wird gewartet. Versuchen Sie es nach Abschluss erneut.",
       "absolute_path_required": "Geben Sie einen absoluten Pfad ein.",
       "rotation_running": "Ein Verschlüsselungsvorgang läuft bereits.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "Sie können Ihr eigenes Konto nicht sperren."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "Benutzerregistrierung",
+        "help": "Wählen Sie, ob neue Konten sofort erstellt, von einem Administrator genehmigt oder geschlossen werden."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "Standard-Speicherlimit",
+        "help": "Gilt für Benutzer ohne individuelles Speicherlimit. Null bedeutet unbegrenzt."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "Serveradresse",
+        "help": "Netzwerkadresse, auf der der Server lauscht."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "Serverport",
+        "help": "Netzwerkport für den Web-Client und die API."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "Dateispeicherordner",
+        "help": "Ordner, in dem Benutzerdateien gespeichert werden. Eine Änderung erfordert das Verschieben vorhandener Dateien."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "Datenbankdatei",
+        "help": "Datei mit Konten, Dateidaten und Einstellungen. Eine Änderung erfordert das Verschieben vorhandener Daten."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "Temporärer Upload-Ordner",
+        "help": "Wird verwendet, während Dateien hochgeladen werden."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "Web-Client-Ordner",
+        "help": "Ordner, der die kompilierte Weboberfläche enthält."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "Maximale Upload-Größe",
+        "help": "Größte zulässige Größe für eine einzelne Datei. Null bedeutet kein Limit."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "Anmeldeversuchs-Limit",
+        "help": "Maximale Authentifizierungsversuche von einer Adresse pro Minute."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "Sitzungsdauer",
+        "help": "Gültigkeitsdauer eines aktiven Sitzungstokens."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "Dauer gespeicherter Anmeldungen",
+        "help": "Wie lange ein Gerät die Sitzung ohne Passworteingabe erneuern kann."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "Protokollordner",
+        "help": "Ordner, in dem Server-Diagnoseprotokolle gespeichert werden."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "Protokolldetailstufe",
+        "help": "Wählen Sie, wie viele technische Details protokolliert werden."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "Webanfragen protokollieren",
+        "help": "Schreibt jede Webanfrage in das Zugriffsprotokoll."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "Videovorschauen erstellen",
+        "help": "Erstellt Vorschaubilder für hochgeladene Videos."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "Videobearbeitungsbefehl",
+        "help": "Pfad oder Befehl zur Erstellung von Videovorschauen."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "Protokolle aufbewahren für",
+        "help": "Anzahl der Tage, die Diagnoseprotokolle aufbewahrt werden."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "Gespeicherte Dateien verschlüsseln",
+        "help": "Speichert Dateien verschlüsselt auf der Festplatte. Änderung erfordert eine Migration."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "Gelöschte Dateien aufbewahren für",
+        "help": "Anzahl der Tage, bevor Dateien im Papierkorb endgültig gelöscht werden."
       }
-    }
+    },
+    "units": {
+      "bytes": "Bytes (B)",
+      "kilobytes": "Kilobytes (KB)",
+      "megabytes": "Megabytes (MB)",
+      "gigabytes": "Gigabytes (GB)"
+    },
+    "increase": "Erhöhen",
+    "decrease": "Verringern",
+    "bytes_label": "Bytes"
   }
 }

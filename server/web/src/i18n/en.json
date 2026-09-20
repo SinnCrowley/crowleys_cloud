@@ -540,7 +540,16 @@
         "label": "Keep deleted files for",
         "help": "Number of days before files in the trash are permanently removed."
       }
-    }
+    },
+    "units": {
+      "bytes": "Bytes (B)",
+      "kilobytes": "Kilobytes (KB)",
+      "megabytes": "Megabytes (MB)",
+      "gigabytes": "Gigabytes (GB)"
+    },
+    "increase": "Increase",
+    "decrease": "Decrease",
+    "bytes_label": "bytes"
   },
   "recovery": {
     "resetPasswordTitle": "Reset Password",

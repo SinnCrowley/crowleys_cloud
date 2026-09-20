@@ -464,89 +464,98 @@
       "maintenance": "सर्वर का रखरखाव चल रहा है। पूरा होने पर फिर कोशिश करें।",
       "absolute_path_required": "पूर्ण पथ दर्ज करें।",
       "rotation_running": "एक एन्क्रिप्शन प्रक्रिया पहले से चल रही है।",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "आप अपना स्वयं का खाता ब्लॉक नहीं कर सकते।"
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "उपयोगकर्ता पंजीकरण",
+        "help": "चुनें कि नए खाते तुरंत बनाए जाएं, व्यवस्थापक द्वारा स्वीकृत किए जाएं, या पंजीकरण बंद रहे।"
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "डिफ़ॉल्ट स्टोरेज सीमा",
+        "help": "बिना व्यक्तिगत सीमा वाले उपयोगकर्ताओं पर लागू होती है। शून्य का अर्थ असीमित है।"
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "सर्वर पता",
+        "help": "नेटवर्क पता जिस पर सर्वर सुनता है।"
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "सर्वर पोर्ट",
+        "help": "वेब क्लाइंट और एपीआई खोलने के लिए उपयोग किया जाने वाला नेटवर्क पोर्ट।"
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "फ़ाइल स्टोरेज फ़ोल्डर",
+        "help": "वह फ़ोल्डर जहाँ उपयोगकर्ताओं की फ़ाइलें संग्रहीत होती हैं। बदलने पर मौजूदा फ़ाइलों को स्थानांतरित करना होगा।"
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "डेटाबेस फ़ाइल",
+        "help": "खाते, फ़ाइल रिकॉर्ड और सेटिंग्स वाली फ़ाइल। बदलने पर मौजूदा डेटा स्थानांतरित करना होगा।"
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "अस्थायी अपलोड फ़ोल्डर",
+        "help": "फ़ाइलें अपलोड होते समय उपयोग किया जाता है।"
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "वेब क्लाइंट फ़ोल्डर",
+        "help": "संकलित वेब इंटरफ़ेस वाला फ़ोल्डर।"
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "अधिकतम अपलोड आकार",
+        "help": "एकल अपलोड की गई फ़ाइल के लिए अधिकतम अनुमत आकार। शून्य का अर्थ कोई सीमा नहीं है।"
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "साइन-इन प्रयास सीमा",
+        "help": "प्रति मिनट एक पते से अधिकतम प्रमाणीकरण प्रयास।"
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "सत्र अवधि",
+        "help": "सक्रिय सत्र टोकन कितने समय तक मान्य रहता है।"
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "सहेजी गई साइन-इन अवधि",
+        "help": "कोई डिवाइस बिना पासवर्ड डाले कितने समय तक अपना सत्र नवीनीकृत कर सकता है।"
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "लॉग फ़ोल्डर",
+        "help": "फ़ोल्डर जहाँ सर्वर नैदानिक लॉग संग्रहीत होते हैं।"
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "लॉग विवरण स्तर",
+        "help": "चुनें कि लॉग में कितनी तकनीकी जानकारी लिखी जाए।"
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "वेब अनुरोध रिकॉर्ड करें",
+        "help": "प्रत्येक वेब अनुरोध को एक्सेस लॉग में दर्ज करता है।"
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "वीडियो पूर्वावलोकन बनाएं",
+        "help": "अपलोड किए गए वीडियो के लिए पूर्वावलोकन चित्र बनाता है।"
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "वीडियो प्रसंस्करण कमांड",
+        "help": "वीडियो पूर्वावलोकन बनाने के लिए उपयोग किया जाने वाला पथ या कमांड।"
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "लॉग सुरक्षित रखने के दिन",
+        "help": "दिनों की संख्या जितने समय तक नैदानिक लॉग रखे जाते हैं।"
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "संग्रहीत फ़ाइलों को एन्क्रिप्ट करें",
+        "help": "डिस्क पर फ़ाइलों को एन्क्रिप्टेड रखता है। बदलने के लिए माइग्रेशन आवश्यक है।"
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "हटाए गए फ़ाइलें रखने के दिन",
+        "help": "रीसायकल बिन से फ़ाइलों को स्थायी रूप से हटाए जाने से पहले के दिन।"
       }
-    }
+    },
+    "units": {
+      "bytes": "बाइट्स (B)",
+      "kilobytes": "किलोबाइट्स (KB)",
+      "megabytes": "मेगाबाइट्स (MB)",
+      "gigabytes": "गीगाबाइट्स (GB)"
+    },
+    "increase": "बढ़ाएं",
+    "decrease": "घटाएं",
+    "bytes_label": "बाइट्स"
   }
 }

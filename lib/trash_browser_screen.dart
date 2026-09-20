@@ -611,9 +611,8 @@ class _TrashGridItem extends StatelessWidget {
               Text(
                 item.name,
                 style: TextStyle(color: appText),
-                textAlign: TextAlign.center,
-                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -666,6 +665,7 @@ class _TrashListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
+      key: ValueKey(item.path),
       padding: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -684,7 +684,6 @@ class _TrashListItem extends StatelessWidget {
         title: Text(
           item.name,
           style: TextStyle(color: appText),
-          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         trailing: controller.selectedFiles.isNotEmpty
@@ -717,36 +716,104 @@ class _TrashThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = isList ? 48.0 : 120.0;
-    return SizedBox(
-      width: size,
-      height: size,
-      child: RemoteThumbnailWidget(
+    final size = isList ? 50.0 : 120.0;
+
+    if (item.isDir) {
+      return Icon(Icons.folder, color: appAccent, size: size);
+    }
+
+    final ext = item.extension.toLowerCase();
+    if (item.type == 'audio' || audioExtensions.contains(ext)) {
+      return Icon(Icons.audio_file, color: appAccent, size: size);
+    }
+
+    final isMedia =
+        item.type == 'photo' ||
+        item.type == 'video' ||
+        photoExtensions.contains(ext) ||
+        videoExtensions.contains(ext);
+
+    if (isMedia) {
+      final cacheKey =
+          '${controller.serverId}:thumb_${item.path}_${item.modifiedAt}_256_trash';
+      final thumb = RemoteThumbnailWidget(
         key: ValueKey('thumb_${item.path}_${item.modifiedAt}'),
         thumbnailLoader: () => controller.loadThumbnailWithRetry(item),
-        fallbackBuilder: (context, size) =>
-            _TrashFileFallbackIcon(item: item, size: size),
+        fallbackBuilder: (context, s) =>
+            _TrashFileFallbackIcon(item: item, size: s, isList: isList),
+        errorBuilder: (context, s) => _TrashFileFallbackIcon(
+          item: item,
+          size: s,
+          hasError: true,
+          isList: isList,
+        ),
         isList: isList,
-        cacheKey: '${item.path}_${item.modifiedAt}',
+        expand: !isList,
+        size: isList ? size : null,
+        cacheKey: cacheKey,
         blurhash: item.blurhash,
-      ),
+      );
+      if (isList) {
+        return SizedBox(width: size, height: size, child: thumb);
+      }
+      return thumb;
+    }
+
+    final cleanExt = ext.startsWith('.') ? ext.substring(1) : ext;
+    return Icon(
+      FileIconUtils.iconForExtension(cleanExt),
+      color: appAccent,
+      size: size,
     );
   }
 }
 
 class _TrashFileFallbackIcon extends StatelessWidget {
-  const _TrashFileFallbackIcon({required this.item, required this.size});
+  const _TrashFileFallbackIcon({
+    required this.item,
+    required this.size,
+    this.hasError = false,
+    this.isList = false,
+  });
 
   final ServerFileItem item;
   final double size;
+  final bool hasError;
+  final bool isList;
 
   @override
   Widget build(BuildContext context) {
     if (item.isDir) {
       return Icon(Icons.folder, color: appAccent, size: size);
     }
+    final ext = item.extension.toLowerCase();
+    final isMedia =
+        item.type == 'photo' ||
+        item.type == 'video' ||
+        photoExtensions.contains(ext) ||
+        videoExtensions.contains(ext);
+
+    if (isMedia) {
+      return Container(
+        width: isList ? size : double.infinity,
+        height: isList ? size : double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey[850],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Icon(
+            hasError ? Icons.broken_image : Icons.image_outlined,
+            color: hasError ? Colors.red.shade300 : Colors.white24,
+            size: isList ? size / 2.5 : 48,
+          ),
+        ),
+      );
+    }
+
+    final cleanExt = ext.startsWith('.') ? ext.substring(1) : ext;
     return Icon(
-      FileIconUtils.iconForExtension(item.extension),
+      FileIconUtils.iconForExtension(cleanExt),
       color: appAccent,
       size: size,
     );

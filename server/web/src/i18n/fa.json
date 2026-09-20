@@ -464,89 +464,98 @@
       "maintenance": "سرور در حال نگهداری است. پس از پایان دوباره تلاش کنید.",
       "absolute_path_required": "یک مسیر مطلق وارد کنید.",
       "rotation_running": "یک عملیات رمزنگاری در حال اجراست.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "شما نمی‌توانید حساب کاربری خود را مسدود کنید."
     },
     "fields": {
       "registration_mode": {
-        "label": "Registration",
-        "help": "Choose whether new accounts are created immediately, approved by an administrator, or closed."
+        "label": "ثبت‌نام کاربران",
+        "help": "تعیین کنید حساب‌ها بلافاصله ایجاد شوند، به تأیید مدیر نیاز داشته باشند یا ثبت‌نام بسته باشد."
       },
       "default_quota_bytes": {
-        "label": "Default storage limit",
-        "help": "Applies to users without an individual storage limit. Zero means unlimited."
+        "label": "محدودیت فضای پیش‌فرض",
+        "help": "برای کاربرانی که محدودیت فردی ندارند اعمال می‌شود. صفر به معنای نامحدود است."
       },
       "host": {
-        "label": "Server address",
-        "help": "Network address the server listens on."
+        "label": "آدرس سرور",
+        "help": "آدرس شبکه‌ای که سرور روی آن گوش می‌دهد."
       },
       "port": {
-        "label": "Server port",
-        "help": "Network port used to open the web client and API."
+        "label": "پورت سرور",
+        "help": "پورت شبکه مورد استفاده برای وب‌کلاینت و API."
       },
       "storage_root": {
-        "label": "File storage folder",
-        "help": "Folder where user files are stored. Changing it requires moving existing files."
+        "label": "پوشه ذخیره‌سازی فایل‌ها",
+        "help": "پوشه‌ای که فایل‌های کاربران در آن ذخیره می‌شود. تغییر آن نیازمند انتقال فایل‌های موجود است."
       },
       "db_path": {
-        "label": "Database file",
-        "help": "File containing accounts, file records and settings. Changing it requires moving existing data."
+        "label": "فایل پایگاه داده",
+        "help": "فایل شامل حساب‌ها، سوابق فایل‌ها و تنظیمات. تغییر آن نیازمند انتقال داده‌های موجود است."
       },
       "temp_upload_dir": {
-        "label": "Temporary upload folder",
-        "help": "Used while files are being uploaded."
+        "label": "پوشه موقت بارگذاری",
+        "help": "در هنگام بارگذاری فایل‌ها استفاده می‌شود."
       },
       "public_dir": {
-        "label": "Web client folder",
-        "help": "Folder containing the compiled web interface."
+        "label": "پوشه وب‌کلاینت",
+        "help": "پوشه حاوی رابط کاربری وب کامپایل‌شده."
       },
       "upload_limit_bytes": {
-        "label": "Maximum upload size",
-        "help": "Largest size allowed for a single uploaded file. Zero means no limit."
+        "label": "حداکثر حجم بارگذاری",
+        "help": "حداکثر حجم مجاز برای بارگذاری یک فایل منفرد. صفر به معنای بدون محدودیت است."
       },
       "rate_limit_per_minute": {
-        "label": "Sign-in attempt limit",
-        "help": "Maximum authentication attempts from one address per minute."
+        "label": "محدودیت دفعات تلاش برای ورود",
+        "help": "حداکثر دفعات تلاش برای ورود از یک آدرس در هر دقیقه."
       },
       "access_token_ttl_seconds": {
-        "label": "Session duration",
-        "help": "How long a signed-in session token remains valid."
+        "label": "مدت زمان نشست",
+        "help": "مدت زمانی که توکن نشست فعال معتبر باقی می‌ماند."
       },
       "refresh_token_ttl_seconds": {
-        "label": "Remembered sign-in duration",
-        "help": "How long a device can renew its session without entering a password."
+        "label": "مدت زمان یادآوری ورود",
+        "help": "مدت زمانی که دستگاه می‌تواند نشست را بدون وارد کردن گذرواژه تمدید کند."
       },
       "log_dir": {
-        "label": "Log folder",
-        "help": "Folder where server diagnostic logs are stored."
+        "label": "پوشه گزارش‌ها",
+        "help": "پوشه‌ای که گزارش‌های تشخیصی سرور در آن ذخیره می‌شود."
       },
       "log_level": {
-        "label": "Log detail level",
-        "help": "Choose how much technical information is written to logs."
+        "label": "سطح جزئیات گزارش",
+        "help": "میزان اطلاعات فنی ثبت‌شده در گزارش‌ها را انتخاب کنید."
       },
       "access_log_enabled": {
-        "label": "Record web requests",
-        "help": "Writes every web request to the access log."
+        "label": "ثبت درخواست‌های وب",
+        "help": "هر درخواست وب را در گزارش دسترسی ثبت می‌کند."
       },
       "video_thumbs_enabled": {
-        "label": "Generate video previews",
-        "help": "Creates preview images for uploaded videos."
+        "label": "تولید پیش‌نمایش ویدیو",
+        "help": "برای ویدیوهای بارگذاری‌شده تصویر بندانگشتی پیش‌نمایش ایجاد می‌کند."
       },
       "ffmpeg_binary": {
-        "label": "Video processing command",
-        "help": "Path or command used to create video previews."
+        "label": "دستور پردازش ویدیو",
+        "help": "مسیر یا دستوری که برای ایجاد پیش‌نمایش ویدیو استفاده می‌شود."
       },
       "log_retention_days": {
-        "label": "Keep logs for",
-        "help": "Number of days diagnostic logs are retained."
+        "label": "مدت نگهداری گزارش‌ها",
+        "help": "تعداد روزهایی که گزارش‌های تشخیصی نگهداری می‌شوند."
       },
       "hash_files": {
-        "label": "Encrypt stored files",
-        "help": "Keeps files encrypted on disk. Changing this requires a migration."
+        "label": "رمزگذاری فایل‌های ذخیره‌شده",
+        "help": "فایل‌ها را به صورت رمزگذاری‌شده روی دیسک نگه می‌دارد. تغییر نیازمند مهاجرت است."
       },
       "trash_retention_days": {
-        "label": "Keep deleted files for",
-        "help": "Number of days before files in the trash are permanently removed."
+        "label": "مدت نگهداری فایل‌های حذف‌شده",
+        "help": "تعداد روزها پیش از حذف دائمی فایل‌ها از سطل زباله."
       }
-    }
+    },
+    "units": {
+      "bytes": "بایت (B)",
+      "kilobytes": "کیلوبایت (KB)",
+      "megabytes": "مگابایت (MB)",
+      "gigabytes": "گیگابایت (GB)"
+    },
+    "increase": "افزایش",
+    "decrease": "کاهش",
+    "bytes_label": "بایت"
   }
 }
