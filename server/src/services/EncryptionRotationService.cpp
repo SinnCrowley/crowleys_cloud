@@ -17,9 +17,9 @@ namespace {
 bool hashName(const std::string &value) {
   return value.size() == 64 && value.find_first_not_of("0123456789abcdef") == std::string::npos;
 }
-void requireAdmin(std::int64_t actor) {
+void requireSuperuser(std::int64_t actor) {
   auto user = ctx().userService->getUserById(actor);
-  if (!user || user->role != "admin" || user->status != "active" || user->passwordResetRequired) throw std::runtime_error("forbidden");
+  if (!user || user->role != "superuser" || user->status != "active" || user->passwordResetRequired) throw std::runtime_error("forbidden");
 }
 void done(sqlite3_stmt *statement) {
   if (sqlite3_step(statement) != SQLITE_DONE) throw std::runtime_error("rotation_journal_failed");
@@ -85,7 +85,7 @@ void EncryptionRotationService::recover() {
 void EncryptionRotationService::start(std::int64_t actor, const std::string &revision, const std::string &newKey) {
   std::lock_guard<std::mutex> workerLock(workerMutex_);
   std::unique_lock<std::shared_mutex> configLock(ctx().configMutex);
-  requireAdmin(actor);
+  requireSuperuser(actor);
   if (running_ || ctx().storageActivity.blocked() || std::filesystem::exists(keyPath())) throw std::runtime_error("rotation_running");
   if (ctx().configService->revision() != revision) throw std::runtime_error("config_conflict");
   if (const auto envKey = std::getenv("CROWLEYS_ENCRYPTION_KEY"); envKey && *envKey != '\0') {
@@ -117,7 +117,7 @@ void EncryptionRotationService::start(std::int64_t actor, const std::string &rev
 void EncryptionRotationService::resume(std::int64_t actor) {
   std::lock_guard<std::mutex> workerLock(workerMutex_);
   std::shared_lock<std::shared_mutex> configLock(ctx().configMutex);
-  requireAdmin(actor);
+  requireSuperuser(actor);
   if (running_) throw std::runtime_error("rotation_running");
   if (!ctx().storageActivity.blocked()) throw std::runtime_error("no_rotation");
   ctx().userService->audit(actor, "encryption.rotation_resumed", 0);

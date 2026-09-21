@@ -10,6 +10,7 @@
   let section = 'users';
   let users = [];
   let applications = [];
+  let resetCodes = [];
   let config = null;
   let maintenance = { phase: 'idle', maintenance: false, running: false };
   let edits = {};
@@ -20,10 +21,17 @@
   let signingSecret = '';
   let encryptionKey = '';
   let mounted = false;
+  let nowSeconds = Math.floor(Date.now() / 1000);
+  let copiedCode = null;
 
   let quotaUnit = 1024 * 1024 * 1024;
   let quotaDisplayValue = 10;
   let lastSelectedUserId = null;
+
+  $: defaultQuotaBytes = Number(config?.fields?.find(f => f.name === 'default_quota_bytes')?.value ?? 0);
+  $: maxQuotaValue = ($user?.role !== 'superuser' && defaultQuotaBytes > 0)
+    ? Math.floor(defaultQuotaBytes / quotaUnit)
+    : Math.floor(Number.MAX_SAFE_INTEGER / quotaUnit);
 
   $: unitOptions = [
     { multiplier: 1, label: $t('admin.units.bytes') },
@@ -52,6 +60,9 @@
     } else {
       quotaUnit = 1024 * 1024 * 1024;
       quotaDisplayValue = 10;
+      if ($user?.role !== 'superuser' && defaultQuotaBytes > 0 && quotaDisplayValue * quotaUnit > defaultQuotaBytes) {
+        quotaDisplayValue = Math.max(1, Math.floor(defaultQuotaBytes / quotaUnit));
+      }
       if (person.quotaMode === 'limited') {
         person.quota_bytes = quotaDisplayValue * quotaUnit;
       }
@@ -60,15 +71,19 @@
 
   function syncQuotaBytes() {
     if (selectedUser && selectedUser.quotaMode === 'limited') {
-      const val = Number(quotaDisplayValue);
-      selectedUser.quota_bytes = Math.round((isNaN(val) || val <= 0 ? 0 : val) * quotaUnit);
+      let val = Number(quotaDisplayValue);
+      if (isNaN(val) || val <= 0) val = 1;
+      if ($user?.role !== 'superuser' && defaultQuotaBytes > 0 && maxQuotaValue > 0 && val > maxQuotaValue) {
+        val = maxQuotaValue;
+        quotaDisplayValue = val;
+      }
+      selectedUser.quota_bytes = Math.round(val * quotaUnit);
     }
   }
 
   function incrementQuota() {
     const current = Number(quotaDisplayValue) || 0;
-    const maxVal = Math.floor(Number.MAX_SAFE_INTEGER / quotaUnit);
-    if (current < maxVal) {
+    if (current < maxQuotaValue) {
       quotaDisplayValue = current + 1;
       syncQuotaBytes();
     }
@@ -88,15 +103,17 @@
     error = translated && translated !== `admin.errors.${code}` ? translated : reason.message || $t('common.error');
   }
   async function refresh() {
-    const [people, pending, settings, state] = await Promise.all([
+    const [people, pending, settings, state, codes] = await Promise.all([
       apiGet('/api/admin/users'), apiGet('/api/admin/applications'),
-      apiGet('/api/admin/config'), apiGet('/api/admin/maintenance')
+      apiGet('/api/admin/config'), apiGet('/api/admin/maintenance'),
+      apiGet('/api/admin/reset-codes')
     ]);
     if (!mounted) return;
     users = people.map(person => ({ ...person, quotaMode: person.quota_bytes === null ? 'inherit' : person.quota_bytes === 0 ? 'unlimited' : 'limited' }));
     applications = pending;
     config = settings;
     maintenance = state;
+    resetCodes = codes || [];
   }
   async function perform(work, reload = true, notify = true) {
     if (busy) return;
@@ -141,12 +158,25 @@
       error = $t('admin.errors.cannot_block_self');
       return;
     }
+    if (person.role === 'superuser' && person.status === 'blocked') {
+      error = $t('admin.errors.cannot_block_superuser');
+      return;
+    }
+    if ($user?.role !== 'superuser' && person.role === 'superuser') {
+      error = $t('admin.errors.cannot_modify_superuser');
+      return;
+    }
     if (person.quotaMode === 'limited') {
       syncQuotaBytes();
     }
     const quota = person.quotaMode === 'inherit' ? null : person.quotaMode === 'unlimited' ? 0 : Number(person.quota_bytes);
     if (quota !== null && (!Number.isSafeInteger(quota) || quota < 0 || (person.quotaMode === 'limited' && quota === 0))) {
       error = $t('admin.errors.invalid_quota'); return;
+    }
+    if ($user?.role !== 'superuser' && defaultQuotaBytes > 0) {
+      if (person.quotaMode === 'unlimited' || (quota !== null && quota > defaultQuotaBytes)) {
+        error = $t('admin.errors.quota_exceeded_default'); return;
+      }
     }
     perform(() => apiFetch(`/api/admin/users/${person.id}`, { method: 'PATCH', body: JSON.stringify({ role: person.role, status: person.status, quota_bytes: quota }) }));
   }
@@ -193,9 +223,36 @@
       });
     }
   }
+  function formatExpiresIn(expiresAt) {
+    const diff = Math.max(0, expiresAt - nowSeconds);
+    const minutes = Math.floor(diff / 60);
+    const seconds = diff % 60;
+    return `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+  }
+  async function copyCode(code) {
+    try {
+      await navigator.clipboard.writeText(code);
+      copiedCode = code;
+      setTimeout(() => {
+        if (copiedCode === code) copiedCode = null;
+      }, 2000);
+    } catch {
+      // ignore
+    }
+  }
+  async function deleteResetCode(item) {
+    if (!window.confirm($t('admin.confirm_delete_reset_code', { name: item.username }))) return;
+    await perform(() => apiDelete(`/api/admin/reset-codes/${item.id}`));
+  }
   onMount(() => {
     mounted = true;
     perform(refresh, false, false);
+    const ticker = setInterval(() => {
+      nowSeconds = Math.floor(Date.now() / 1000);
+      if (resetCodes.some(c => c.expires_at <= nowSeconds)) {
+        resetCodes = resetCodes.filter(c => c.expires_at > nowSeconds);
+      }
+    }, 1000);
     const timer = setInterval(async () => {
       if (busy || !mounted) return;
       try {
@@ -206,7 +263,11 @@
         if (finished) await refresh();
       } catch (reason) { if (mounted) fail(reason); }
     }, 3000);
-    return () => { mounted = false; clearInterval(timer); };
+    return () => {
+      mounted = false;
+      clearInterval(ticker);
+      clearInterval(timer);
+    };
   });
 </script>
 
@@ -220,8 +281,12 @@
   </header>
 
   <nav class="admin-nav" aria-label={$t('admin.title')}>
-    {#each ['users', 'applications', 'configuration', 'maintenance'] as tab}
-      <button class="nav-tab" class:active={section === tab} aria-current={section === tab ? 'page' : undefined} on:click={() => section = tab}>{$t(`admin.${tab}`)}{tab === 'applications' ? ` (${applications.length})` : ''}</button>
+    {#each ['users', 'applications', 'reset_codes', 'configuration', 'maintenance'] as tab}
+      <button class="nav-tab" class:active={section === tab} aria-current={section === tab ? 'page' : undefined} on:click={() => section = tab}>
+        {$t(`admin.${tab}`)}
+        {tab === 'applications' && applications.length ? ` (${applications.length})` : ''}
+        {tab === 'reset_codes' && resetCodes.length ? ` (${resetCodes.length})` : ''}
+      </button>
     {/each}
   </nav>
 
@@ -252,7 +317,7 @@
           {#each users as person (person.id)}
             <tr>
               <td><strong>{person.username}</strong></td>
-              <td>{$t(`admin.${person.role === 'admin' ? 'administrator' : 'user'}`)}</td>
+              <td>{$t(`admin.${person.role === 'superuser' ? 'superuser' : person.role === 'admin' ? 'administrator' : 'user'}`)}</td>
               <td><span class="status" class:blocked={person.status === 'blocked'}>{$t(`admin.${person.status}`)}</span></td>
               <td>{quotaSummary(person)}</td>
               <td style="text-align: right;">
@@ -286,32 +351,44 @@
             <div class="form-group">
               <span class="form-label">{$t('admin.role')}</span>
               <div class="select-wrapper">
-                <select class="custom-select" bind:value={selectedUser.role}>
-                  <option value="user">{$t('admin.user')}</option>
-                  <option value="admin">{$t('admin.administrator')}</option>
+                <select class="custom-select" bind:value={selectedUser.role} disabled={selectedUser.role === 'superuser' || ($user?.role !== 'superuser' && selectedUser.role === 'admin')}>
+                  {#if selectedUser.role === 'superuser'}
+                    <option value="superuser">{$t('admin.superuser')}</option>
+                  {:else}
+                    <option value="user">{$t('admin.user')}</option>
+                    <option value="admin">{$t('admin.administrator')}</option>
+                  {/if}
                 </select>
                 <span class="material-symbols-outlined select-arrow">expand_more</span>
               </div>
+              {#if $user?.role !== 'superuser' && selectedUser.role === 'superuser'}
+                <small class="field-hint">{$t('admin.errors.cannot_modify_superuser')}</small>
+              {:else if $user?.role !== 'superuser' && selectedUser.role === 'admin'}
+                <small class="field-hint">{$t('admin.errors.cannot_demote_admin')}</small>
+              {/if}
             </div>
 
             <div class="form-group">
               <span class="form-label">{$t('admin.status')}</span>
               <div class="select-wrapper">
-                <select class="custom-select" bind:value={selectedUser.status}>
+                <select class="custom-select" bind:value={selectedUser.status} disabled={selectedUser.role === 'superuser'}>
                   <option value="active">{$t('admin.active')}</option>
-                  <option value="blocked" disabled={isSelf(selectedUser)}>{$t('admin.blocked')}</option>
+                  <option value="blocked" disabled={isSelf(selectedUser) || selectedUser.role === 'superuser'}>{$t('admin.blocked')}</option>
                 </select>
                 <span class="material-symbols-outlined select-arrow">expand_more</span>
               </div>
-              {#if isSelf(selectedUser)}<small class="field-hint">{$t('admin.errors.cannot_block_self')}</small>{/if}
+              {#if isSelf(selectedUser)}<small class="field-hint">{$t('admin.errors.cannot_block_self')}</small>
+              {:else if selectedUser.role === 'superuser'}<small class="field-hint">{$t('admin.errors.cannot_block_superuser')}</small>{/if}
             </div>
 
             <div class="form-group">
               <span class="form-label">{$t('admin.quota')}</span>
               <div class="select-wrapper">
-                <select class="custom-select" bind:value={selectedUser.quotaMode}>
+                <select class="custom-select" bind:value={selectedUser.quotaMode} disabled={$user?.role !== 'superuser' && selectedUser.role === 'superuser'}>
                   <option value="inherit">{$t('admin.inherit')}</option>
-                  <option value="unlimited">{$t('admin.unlimited')}</option>
+                  {#if $user?.role === 'superuser' || defaultQuotaBytes <= 0}
+                    <option value="unlimited">{$t('admin.unlimited')}</option>
+                  {/if}
                   <option value="limited">{$t('admin.limited')}</option>
                 </select>
                 <span class="material-symbols-outlined select-arrow">expand_more</span>
@@ -329,9 +406,10 @@
                       type="number"
                       min="1"
                       step="1"
-                      max={Math.floor(Number.MAX_SAFE_INTEGER / quotaUnit)}
+                      max={maxQuotaValue}
                       bind:value={quotaDisplayValue}
                       on:input={syncQuotaBytes}
+                      disabled={$user?.role !== 'superuser' && selectedUser.role === 'superuser'}
                       required
                     />
                     <div class="stepper-buttons">
@@ -340,6 +418,7 @@
                         class="stepper-btn"
                         tabindex="-1"
                         aria-label={$t('admin.increase')}
+                        disabled={$user?.role !== 'superuser' && selectedUser.role === 'superuser'}
                         on:click={incrementQuota}
                       >
                         <span class="material-symbols-outlined">keyboard_arrow_up</span>
@@ -349,6 +428,7 @@
                         class="stepper-btn"
                         tabindex="-1"
                         aria-label={$t('admin.decrease')}
+                        disabled={$user?.role !== 'superuser' && selectedUser.role === 'superuser'}
                         on:click={decrementQuota}
                       >
                         <span class="material-symbols-outlined">keyboard_arrow_down</span>
@@ -360,6 +440,7 @@
                     <select
                       class="custom-select"
                       bind:value={quotaUnit}
+                      disabled={$user?.role !== 'superuser' && selectedUser.role === 'superuser'}
                       on:change={syncQuotaBytes}
                     >
                       {#each unitOptions as opt}
@@ -376,10 +457,10 @@
             {/if}
 
             <div class="dialog-actions">
-              <button class="btn btn-primary" disabled={busy}>{$t('common.save')}</button>
-              <button class="btn btn-secondary" type="button" disabled={busy} on:click={() => resetPassword(selectedUser)}>{$t('admin.reset_password')}</button>
-              <button class="btn btn-secondary" type="button" disabled={busy} on:click={() => perform(() => apiPost(`/api/admin/users/${selectedUser.id}/revoke-sessions`, {}))}>{$t('admin.revoke_sessions')}</button>
-              <button class="btn btn-danger" type="button" disabled={busy || maintenance.maintenance || isSelf(selectedUser)} on:click={() => deleteUser(selectedUser)}>{$t('common.delete')}</button>
+              <button class="btn btn-primary" disabled={busy || ($user?.role !== 'superuser' && selectedUser.role === 'superuser')}>{$t('common.save')}</button>
+              <button class="btn btn-secondary" type="button" disabled={busy || selectedUser.role === 'superuser' || ($user?.role !== 'superuser' && selectedUser.role === 'admin')} on:click={() => resetPassword(selectedUser)}>{$t('admin.reset_password')}</button>
+              <button class="btn btn-secondary" type="button" disabled={busy || ($user?.role !== 'superuser' && selectedUser.role === 'superuser')} on:click={() => perform(() => apiPost(`/api/admin/users/${selectedUser.id}/revoke-sessions`, {}))}>{$t('admin.revoke_sessions')}</button>
+              <button class="btn btn-danger" type="button" disabled={busy || maintenance.maintenance || isSelf(selectedUser) || selectedUser.role === 'superuser' || ($user?.role !== 'superuser' && selectedUser.role === 'admin')} on:click={() => deleteUser(selectedUser)}>{$t('common.delete')}</button>
             </div>
           {/if}
         </form>
@@ -404,8 +485,56 @@
         </div>
       </article>
     {/each}
+  {:else if section === 'reset_codes'}
+    {#if !resetCodes.length}
+      <div class="empty-placeholder">
+        <span class="material-symbols-outlined empty-icon">lock_reset</span>
+        <p class="empty-sub">{$t('admin.no_reset_codes')}</p>
+      </div>
+    {:else}
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>{$t('common.name')}</th>
+              <th>{$t('admin.role')}</th>
+              <th>{$t('admin.reset_code')}</th>
+              <th>{$t('admin.created_at')}</th>
+              <th>{$t('admin.expires_in')}</th>
+              <th style="width: 100px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each resetCodes as item (item.id)}
+              <tr>
+                <td><strong>{item.username}</strong></td>
+                <td>{$t(`admin.${item.role === 'superuser' ? 'superuser' : item.role === 'admin' ? 'administrator' : 'user'}`)}</td>
+                <td>
+                  <button class="btn-copy-code" type="button" on:click={() => copyCode(item.code)} title={$t('common.copy')}>
+                    <code class="code-badge">{item.code}</code>
+                    <span class="material-symbols-outlined icon-sm">{copiedCode === item.code ? 'check' : 'content_copy'}</span>
+                  </button>
+                </td>
+                <td>{new Date(item.created_at * 1000).toLocaleTimeString()}</td>
+                <td>
+                  <span class="expires-badge" class:expires-soon={item.expires_at - nowSeconds < 120}>
+                    {formatExpiresIn(item.expires_at)}
+                  </span>
+                </td>
+                <td style="text-align: right;">
+                  <button class="btn btn-danger" type="button" disabled={busy || ($user?.role !== 'superuser' && (item.role === 'admin' || item.role === 'superuser'))} on:click={() => deleteResetCode(item)}>{$t('common.delete')}</button>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   {:else if section === 'configuration' && config}
     <div class="settings-card config-card">
+      {#if $user?.role !== 'superuser'}
+        <p class="warning-banner" role="status">{$t('admin.superuser_required')}</p>
+      {/if}
       <div class="config-banner">
         <span class="material-symbols-outlined banner-icon">info</span>
         <p>{$t('admin.config_hint')}</p>
@@ -425,12 +554,12 @@
               <div class="setting-control">
                 {#if field.type === 'boolean'}
                   <label class="custom-checkbox">
-                    <input type="checkbox" checked={edits[field.name] ?? field.value} disabled={!field.editable || busy || maintenance.maintenance} on:change={event => edits = {...edits, [field.name]: event.target.checked}} />
+                    <input type="checkbox" checked={edits[field.name] ?? field.value} disabled={!field.editable || busy || maintenance.maintenance || $user?.role !== 'superuser'} on:change={event => edits = {...edits, [field.name]: event.target.checked}} />
                     <span class="checkbox-indicator"></span>
                   </label>
                 {:else if field.name === 'registration_mode' || field.name === 'log_level'}
                   <div class="select-wrapper">
-                    <select class="custom-select" value={edits[field.name] ?? field.value} disabled={busy || maintenance.maintenance} on:change={event => edits = {...edits, [field.name]: event.target.value}}>
+                    <select class="custom-select" value={edits[field.name] ?? field.value} disabled={busy || maintenance.maintenance || $user?.role !== 'superuser'} on:change={event => edits = {...edits, [field.name]: event.target.value}}>
                       {#each field.name === 'registration_mode' ? ['approval', 'open', 'closed'] : ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR'] as option}
                         <option value={option}>{field.name === 'registration_mode' ? $t(`admin.registration.${option}`) : option}</option>
                       {/each}
@@ -438,7 +567,7 @@
                     <span class="material-symbols-outlined select-arrow">expand_more</span>
                   </div>
                 {:else}
-                  <input class="form-input" type={field.type === 'integer' ? 'number' : 'text'} value={edits[field.name] ?? field.value} disabled={!field.editable || busy || maintenance.maintenance} on:input={event => edits = {...edits, [field.name]: event.target.value}} />
+                  <input class="form-input" type={field.type === 'integer' ? 'number' : 'text'} value={edits[field.name] ?? field.value} disabled={!field.editable || busy || maintenance.maintenance || $user?.role !== 'superuser'} on:input={event => edits = {...edits, [field.name]: event.target.value}} />
                 {/if}
                 {#if field.pending}<small class="setting-pending">{$t('admin.pending')}: {String(field.effective)}</small>{/if}
               </div>
@@ -446,12 +575,15 @@
           {/each}
         </div>
         <div class="config-actions">
-          <button class="btn btn-primary" disabled={busy || maintenance.maintenance || !Object.keys(edits).length}>{$t('common.save')}</button>
+          <button class="btn btn-primary" disabled={busy || maintenance.maintenance || !Object.keys(edits).length || $user?.role !== 'superuser'}>{$t('common.save')}</button>
         </div>
       </form>
     </div>
   {:else if section === 'maintenance'}
     <div class="settings-card maintenance-status-card">
+      {#if $user?.role !== 'superuser'}
+        <p class="warning-banner" role="status">{$t('admin.superuser_required')}</p>
+      {/if}
       <div class="maintenance-header">
         <div>
           <h2>{$t('admin.rotation')}</h2>
@@ -468,7 +600,7 @@
         <p class="error-banner" role="alert">{$t('admin.rotation_failed')} ({maintenance.error_code})</p>
       {/if}
       {#if maintenance.maintenance && !maintenance.running}
-        <button class="btn btn-primary" disabled={busy} on:click={() => perform(() => apiPost('/api/admin/encryption-key/resume', {}))}>{$t('admin.retry')}</button>
+        <button class="btn btn-primary" disabled={busy || $user?.role !== 'superuser'} on:click={() => perform(() => apiPost('/api/admin/encryption-key/resume', {}))}>{$t('admin.retry')}</button>
       {/if}
     </div>
 
@@ -486,13 +618,13 @@
               <div class="form-group">
                 <span class="form-label">{$t('admin.new_secret')}</span>
                 {#if field.name === 'jwt_secret'}
-                  <input class="form-input" type="password" autocomplete="new-password" minlength="32" maxlength="4096" bind:value={signingSecret} required />
+                  <input class="form-input" type="password" autocomplete="new-password" minlength="32" maxlength="4096" bind:value={signingSecret} disabled={$user?.role !== 'superuser'} required />
                 {:else}
-                  <input class="form-input" type="password" autocomplete="new-password" minlength="32" maxlength="4096" bind:value={encryptionKey} required />
+                  <input class="form-input" type="password" autocomplete="new-password" minlength="32" maxlength="4096" bind:value={encryptionKey} disabled={$user?.role !== 'superuser'} required />
                 {/if}
               </div>
               <div class="maintenance-actions">
-                <button class="btn btn-primary" disabled={busy || maintenance.maintenance}>{$t('admin.rotate')}</button>
+                <button class="btn btn-primary" disabled={busy || maintenance.maintenance || $user?.role !== 'superuser'}>{$t('admin.rotate')}</button>
               </div>
             {/if}
           </form>
@@ -521,6 +653,13 @@
 
   .status { display: inline-flex; border-radius: var(--radius-full); background: color-mix(in srgb, var(--color-success) 18%, transparent); color: var(--color-success); padding: 3px 10px; font-size: calc(12px * var(--font-scale)); font-weight: 600; }
   .status.blocked { background: color-mix(in srgb, var(--color-danger) 18%, transparent); color: var(--color-danger); }
+
+  .code-badge { font-family: var(--font-mono); font-size: calc(15px * var(--font-scale)); font-weight: 700; letter-spacing: 0.15em; background: var(--bg-input); color: var(--text-main); padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); }
+  .btn-copy-code { display: inline-flex; align-items: center; gap: var(--spacing-xs); background: transparent; border: none; padding: 2px 6px; cursor: pointer; border-radius: var(--radius-sm); transition: background-color 0.15s ease; }
+  .btn-copy-code:hover { background-color: var(--bg-surface-hover); }
+  .icon-sm { font-size: 18px; color: var(--text-sub); }
+  .expires-badge { display: inline-flex; border-radius: var(--radius-full); background: color-mix(in srgb, var(--accent-color) 15%, transparent); color: var(--accent-color); padding: 3px 10px; font-size: calc(12px * var(--font-scale)); font-weight: 600; font-family: var(--font-mono); }
+  .expires-badge.expires-soon { background: color-mix(in srgb, var(--color-danger) 18%, transparent); color: var(--color-danger); }
 
   .modal-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: var(--spacing-lg); background: color-mix(in srgb, #000 65%, transparent); backdrop-filter: blur(4px); }
   .user-details { width: min(100%, 480px); max-height: calc(100vh - 32px); overflow: auto; margin: 0; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); padding: var(--spacing-xl); display: flex; flex-direction: column; gap: var(--spacing-md); }

@@ -160,7 +160,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   </nav>
 
   <div class="sidebar-footer">
-    {#if $user?.role === 'admin'}
+    {#if $user?.role === 'admin' || $user?.role === 'superuser'}
       <button class="sidebar-item {currentRoute === 'admin' ? 'active' : ''}" on:click={() => selectRoute('admin')}>
         <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span><span>{$t('admin.title')}</span>
       </button>

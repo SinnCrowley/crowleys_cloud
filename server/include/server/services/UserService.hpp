@@ -45,6 +45,16 @@ struct AccessClaims {
   std::string role;
 };
 
+struct ResetCodeRecord {
+  std::int64_t id{0};
+  std::int64_t userId{0};
+  std::string username;
+  std::string role;
+  std::string code;
+  std::int64_t createdAt{0};
+  std::int64_t expiresAt{0};
+};
+
 class UserService {
  public:
   UserService(db::Database &db, const utils::Config &config);
@@ -56,6 +66,10 @@ class UserService {
                                          const std::string &password);
 
   bool verifyPasswordReset(const std::string &username, const std::string &code, const std::string &newPassword);
+  bool requestPasswordReset(const std::string &username, std::string &codeOut, bool forceNew = false);
+  std::vector<ResetCodeRecord> listResetCodes(std::int64_t actorId);
+  bool deleteResetCode(std::int64_t actorId, std::int64_t resetId, std::string &error);
+  void cleanupExpiredResetCodes();
 
   AuthTokens issueTokens(const UserRecord &user);
   std::optional<AuthTokens> refreshAccessToken(const std::string &refreshToken);
@@ -79,7 +93,6 @@ class UserService {
   void finishDeletion(std::int64_t userId);
 
  private:
-  bool requestPasswordReset(const std::string &username, std::string &codeOut);
   db::Database &db_;
   const utils::Config &config_;
 

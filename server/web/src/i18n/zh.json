@@ -384,7 +384,11 @@
     "resetCodeLabel": "重設驗證碼",
     "passwordResetSuccessfully": "密碼重設成功！",
     "newPasswordLabel": "新密碼",
-    "codeAndPasswordRequired": "驗證碼與新密碼均為必填項目。"
+    "codeAndPasswordRequired": "驗證碼與新密碼均為必填項目。",
+    "sendCode": "發送代碼",
+    "codeRequested": "已請求重設代碼。請查看伺服器日誌或聯繫管理員。",
+    "haveCode": "我已經有代碼",
+    "back": "返回"
   },
   "admin": {
     "title": "管理",
@@ -464,7 +468,12 @@
       "maintenance": "服务器正在维护。请在完成后重试。",
       "absolute_path_required": "请输入绝对路径。",
       "rotation_running": "已有加密操作正在进行。",
-      "cannot_block_self": "您無法停用自己的帳戶。"
+      "cannot_block_self": "您無法停用自己的帳戶。",
+      "cannot_demote_admin": "只有超級使用者可以降級管理員。",
+      "cannot_modify_superuser": "無法修改超級使用者帳戶。",
+      "cannot_block_superuser": "無法封鎖超級使用者。",
+      "cannot_delete_superuser": "無法刪除超級使用者。",
+      "quota_exceeded_default": "使用者配額不能超過預設儲存限制。"
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "增加",
     "decrease": "減少",
-    "bytes_label": "位元組"
+    "bytes_label": "位元組",
+    "superuser": "超級使用者",
+    "superuser_required": "更改伺服器設定或加密金鑰需要超級使用者權限。",
+    "reset_codes": "重設代碼",
+    "no_reset_codes": "沒有有效的重設代碼。",
+    "reset_code": "重設代碼",
+    "created_at": "建立時間",
+    "expires_in": "有效時間",
+    "confirm_delete_reset_code": "確定要撤銷 {name} 的重設代碼嗎？"
   }
 }

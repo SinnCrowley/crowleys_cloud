@@ -384,7 +384,11 @@
     "resetCodeLabel": "Codice di reimpostazione",
     "passwordResetSuccessfully": "Password reimpostata correttamente!",
     "newPasswordLabel": "Nuova password",
-    "codeAndPasswordRequired": "Il codice e la nuova password sono obbligatori."
+    "codeAndPasswordRequired": "Il codice e la nuova password sono obbligatori.",
+    "sendCode": "Richiedi codice",
+    "codeRequested": "Codice di reimpostazione richiesto. Controlla i log del server o chiedi a un amministratore.",
+    "haveCode": "Ho già un codice",
+    "back": "Indietro"
   },
   "admin": {
     "title": "Amministrazione",
@@ -464,7 +468,12 @@
       "maintenance": "Il server è in manutenzione. Riprova al termine.",
       "absolute_path_required": "Inserisci un percorso assoluto.",
       "rotation_running": "È già in corso un’operazione di cifratura.",
-      "cannot_block_self": "Non puoi bloccare il tuo account."
+      "cannot_block_self": "Non puoi bloccare il tuo account.",
+      "cannot_demote_admin": "Solo il superutente può retrocedere un amministratore.",
+      "cannot_modify_superuser": "L'account superutente non può essere modificato.",
+      "cannot_block_superuser": "Il superutente non può essere bloccato.",
+      "cannot_delete_superuser": "Il superutente non può essere eliminato.",
+      "quota_exceeded_default": "La quota utente non può superare il limite di archiviazione predefinito."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Aumenta",
     "decrease": "Diminuisci",
-    "bytes_label": "byte"
+    "bytes_label": "byte",
+    "superuser": "Superutente",
+    "superuser_required": "I privilegi di superutente sono necessari per modificare la configurazione del server o i segreti di crittografia.",
+    "reset_codes": "Codici di reimpostazione",
+    "no_reset_codes": "Nessun codice di reimpostazione attivo.",
+    "reset_code": "Codice di reimpostazione",
+    "created_at": "Creato",
+    "expires_in": "Scade tra",
+    "confirm_delete_reset_code": "Revocare il codice di reimpostazione per {name}?"
   }
 }

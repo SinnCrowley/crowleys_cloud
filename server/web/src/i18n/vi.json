@@ -384,7 +384,11 @@
     "resetCodeLabel": "Mã đặt lại",
     "passwordResetSuccessfully": "Đặt lại mật khẩu thành công!",
     "newPasswordLabel": "Mật khẩu mới",
-    "codeAndPasswordRequired": "Cần có cả mã xác nhận và mật khẩu mới."
+    "codeAndPasswordRequired": "Cần có cả mã xác nhận và mật khẩu mới.",
+    "sendCode": "Gửi mã",
+    "codeRequested": "Đã yêu cầu mã đặt lại. Hãy kiểm tra nhật ký máy chủ hoặc hỏi quản trị viên.",
+    "haveCode": "Tôi đã có mã",
+    "back": "Quay lại"
   },
   "admin": {
     "title": "Quản trị",
@@ -464,7 +468,12 @@
       "maintenance": "Máy chủ đang bảo trì. Thử lại khi hoàn tất.",
       "absolute_path_required": "Nhập đường dẫn tuyệt đối.",
       "rotation_running": "Một thao tác mã hóa đang diễn ra.",
-      "cannot_block_self": "Bạn không thể khóa tài khoản của chính mình."
+      "cannot_block_self": "Bạn không thể khóa tài khoản của chính mình.",
+      "cannot_demote_admin": "Chỉ có siêu người dùng mới có thể hạ cấp quản trị viên.",
+      "cannot_modify_superuser": "Không thể sửa đổi tài khoản siêu người dùng.",
+      "cannot_block_superuser": "Không thể khóa siêu người dùng.",
+      "cannot_delete_superuser": "Không thể xóa siêu người dùng.",
+      "quota_exceeded_default": "Hạn mức người dùng không thể vượt quá giới hạn lưu trữ mặc định."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Tăng",
     "decrease": "Giảm",
-    "bytes_label": "byte"
+    "bytes_label": "byte",
+    "superuser": "Siêu người dùng",
+    "superuser_required": "Cần có quyền siêu người dùng để thay đổi cấu hình máy chủ hoặc bí mật mã hóa.",
+    "reset_codes": "Mã đặt lại",
+    "no_reset_codes": "Không có mã đặt lại nào đang hoạt động.",
+    "reset_code": "Mã đặt lại",
+    "created_at": "Đã tạo",
+    "expires_in": "Hết hạn sau",
+    "confirm_delete_reset_code": "Thu hồi mã đặt lại cho {name}?"
   }
 }

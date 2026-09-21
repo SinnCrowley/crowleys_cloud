@@ -384,7 +384,11 @@
     "resetCodeLabel": "重置验证码",
     "passwordResetSuccessfully": "密码重置成功！",
     "newPasswordLabel": "新密码",
-    "codeAndPasswordRequired": "验证码和新密码均为必填项。"
+    "codeAndPasswordRequired": "验证码和新密码均为必填项。",
+    "sendCode": "发送代码",
+    "codeRequested": "已请求重置代码。请查看服务器日志或联系管理员。",
+    "haveCode": "我已有代码",
+    "back": "返回"
   },
   "admin": {
     "title": "管理",
@@ -464,7 +468,12 @@
       "maintenance": "服务器正在维护。请在完成后重试。",
       "absolute_path_required": "请输入绝对路径。",
       "rotation_running": "已有加密操作正在进行。",
-      "cannot_block_self": "您不能停用自己的账户。"
+      "cannot_block_self": "您不能停用自己的账户。",
+      "cannot_demote_admin": "只有超级用户可以降级管理员。",
+      "cannot_modify_superuser": "无法修改超级用户账户。",
+      "cannot_block_superuser": "无法停用超级用户。",
+      "cannot_delete_superuser": "无法删除超级用户。",
+      "quota_exceeded_default": "用户配额不能超过默认存储限制。"
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "增加",
     "decrease": "减少",
-    "bytes_label": "字节"
+    "bytes_label": "字节",
+    "superuser": "超级用户",
+    "superuser_required": "更改服务器配置或加密密钥需要超级用户权限。",
+    "reset_codes": "重置代码",
+    "no_reset_codes": "没有有效的重置代码。",
+    "reset_code": "重置代码",
+    "created_at": "创建时间",
+    "expires_in": "有效时间",
+    "confirm_delete_reset_code": "确定要撤销 {name} 的重置代码吗？"
   }
 }

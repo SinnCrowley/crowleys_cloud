@@ -384,7 +384,11 @@
     "resetCodeLabel": "کد بازنشانی",
     "passwordResetSuccessfully": "گذرواژه با موفقیت بازنشانی شد!",
     "newPasswordLabel": "گذرواژه جدید",
-    "codeAndPasswordRequired": "کد و گذرواژه جدید الزامی هستند."
+    "codeAndPasswordRequired": "کد و گذرواژه جدید الزامی هستند.",
+    "sendCode": "ارسال کد",
+    "codeRequested": "کد بازیابی درخواست شد. گزارش‌های سرور را بررسی کنید یا از مدیر بپرسید.",
+    "haveCode": "من از قبل کد دارم",
+    "back": "بازگشت"
   },
   "admin": {
     "title": "مدیریت",
@@ -464,7 +468,12 @@
       "maintenance": "سرور در حال نگهداری است. پس از پایان دوباره تلاش کنید.",
       "absolute_path_required": "یک مسیر مطلق وارد کنید.",
       "rotation_running": "یک عملیات رمزنگاری در حال اجراست.",
-      "cannot_block_self": "شما نمی‌توانید حساب کاربری خود را مسدود کنید."
+      "cannot_block_self": "شما نمی‌توانید حساب کاربری خود را مسدود کنید.",
+      "cannot_demote_admin": "تنها ابرکاربر می‌تواند یک مدیر را تنزل رتبه دهد.",
+      "cannot_modify_superuser": "حساب کاربری ابرکاربر قابل تغییر نیست.",
+      "cannot_block_superuser": "ابرکاربر را نمی‌توان مسدود کرد.",
+      "cannot_delete_superuser": "ابرکاربر را نمی‌توان حذف کرد.",
+      "quota_exceeded_default": "سهمیه کاربر نمی‌تواند از حد پیش‌فرض فضای ذخیره‌سازی فراتر رود."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "افزایش",
     "decrease": "کاهش",
-    "bytes_label": "بایت"
+    "bytes_label": "بایت",
+    "superuser": "ابرکاربر",
+    "superuser_required": "برای تغییر پیکربندی سرور یا کلیدهای رمزنگاری، به دسترسی ابرکاربر نیاز است.",
+    "reset_codes": "کدهای بازیابی",
+    "no_reset_codes": "هیچ کد بازیابی فعالی وجود ندارد.",
+    "reset_code": "کد بازیابی",
+    "created_at": "ایجاد شده",
+    "expires_in": "انقضا در",
+    "confirm_delete_reset_code": "کد بازیابی برای {name} لغو شود؟"
   }
 }

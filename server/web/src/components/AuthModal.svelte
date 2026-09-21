@@ -32,10 +32,30 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let errorMessage = '';
   let statusMessage = '';
   let isLoading = false;
+  let recoveryStep = 1;
 
   async function handleSubmit() {
     errorMessage = '';
     statusMessage = '';
+
+    if (activeTab === 'recovery' && recoveryStep === 1) {
+      if (!username) {
+        errorMessage = $t('modals.auth.fill_all_fields');
+        return;
+      }
+      isLoading = true;
+      try {
+        await authApi.requestResetPassword(username);
+        statusMessage = $t('recovery.codeRequested');
+        recoveryStep = 2;
+      } catch (err) {
+        errorMessage = err.message || $t('common.error');
+      } finally {
+        isLoading = false;
+      }
+      return;
+    }
+
     if (!username || !password) {
       errorMessage = $t('modals.auth.fill_all_fields');
       return;
@@ -48,9 +68,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     isLoading = true;
     try {
       if (activeTab === 'recovery') {
+        if (!recoveryCode) {
+          errorMessage = $t('modals.auth.fill_all_fields');
+          return;
+        }
         await authApi.resetPassword({ username, code: recoveryCode, newPassword: password });
         statusMessage = $t('recovery.passwordResetSuccessfully');
-        activeTab = 'login'; password = ''; confirmPassword = ''; recoveryCode = '';
+        activeTab = 'login'; password = ''; confirmPassword = ''; recoveryCode = ''; recoveryStep = 1;
         return;
       }
       let res;
@@ -148,14 +172,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         >
           {$t('modals.auth.register_btn')}
         </button>
-        <button type="button" class="tab-btn {activeTab === 'recovery' ? 'active' : ''}" on:click={() => { activeTab = 'recovery'; errorMessage = ''; statusMessage = ''; }}>
+        <button type="button" class="tab-btn {activeTab === 'recovery' ? 'active' : ''}" on:click={() => { activeTab = 'recovery'; recoveryStep = 1; errorMessage = ''; statusMessage = ''; }}>
           {$t('recovery.resetPasswordTitle')}
         </button>
       </div>
 
-      {#if activeTab === 'recovery'}<p>{$t('account_status.resetPasswordStep2Body')}</p>{/if}
+      {#if activeTab === 'recovery'}
+        <p class="text-sub" style="margin-bottom: var(--spacing-md); line-height: 1.4;">
+          {$t(recoveryStep === 1 ? 'account_status.resetPasswordStep1Body' : 'account_status.resetPasswordStep2Body')}
+        </p>
+      {/if}
       {#if statusMessage}
-        <p role="status">{statusMessage}</p>
+        <p role="status" style="color: var(--color-success); font-weight: 600; margin-bottom: var(--spacing-sm);">{statusMessage}</p>
       {/if}
       {#if errorMessage}
         <div class="error-banner text-sub">
@@ -187,25 +215,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           />
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="password">{$t(activeTab === 'recovery' ? 'recovery.newPasswordLabel' : 'modals.auth.password')}</label>
-          <input
-            id="password"
-            type="password"
-            class="form-input"
-            bind:value={password}
-            placeholder={$t('modals.auth.password_placeholder')}
-            required
-          />
-        </div>
+        {#if activeTab !== 'recovery' || recoveryStep === 2}
+          <div class="form-group">
+            <label class="form-label" for="password">{$t(activeTab === 'recovery' ? 'recovery.newPasswordLabel' : 'modals.auth.password')}</label>
+            <input
+              id="password"
+              type="password"
+              class="form-input"
+              bind:value={password}
+              placeholder={$t('modals.auth.password_placeholder')}
+              required
+            />
+          </div>
+        {/if}
 
-        {#if activeTab === 'recovery'}
+        {#if activeTab === 'recovery' && recoveryStep === 2}
           <div class="form-group">
             <label class="form-label" for="recoveryCode">{$t('recovery.resetCodeLabel')}</label>
             <input id="recoveryCode" class="form-input" type="text" inputmode="numeric" autocomplete="one-time-code" pattern={'[0-9]{6}'} maxlength="6" bind:value={recoveryCode} required />
           </div>
         {/if}
-        {#if activeTab !== 'login'}
+        {#if activeTab !== 'login' && (activeTab !== 'recovery' || recoveryStep === 2)}
           <div class="form-group">
             <label class="form-label" for="confirmPassword">{$t('modals.auth.confirm_password')}</label>
             <input
@@ -221,9 +251,35 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
         <div class="auth-actions">
           <button type="submit" class="btn btn-primary full-width" disabled={isLoading}>
-            {isLoading ? $t('common.loading') : activeTab === 'login' ? $t('nav.sign_in') : activeTab === 'recovery' ? $t('recovery.resetPasswordTitle') : $t('modals.auth.register_btn')}
+            {isLoading ? $t('common.loading') : activeTab === 'login' ? $t('nav.sign_in') : (activeTab === 'recovery' && recoveryStep === 1) ? $t('recovery.sendCode') : activeTab === 'recovery' ? $t('recovery.resetPasswordTitle') : $t('modals.auth.register_btn')}
           </button>
         </div>
+
+        {#if activeTab === 'recovery' && recoveryStep === 1}
+          <button type="button" class="btn btn-secondary full-width" style="margin-top: var(--spacing-sm);" on:click={() => { recoveryStep = 2; errorMessage = ''; }}>
+            {$t('recovery.haveCode')}
+          </button>
+        {:else if activeTab === 'recovery' && recoveryStep === 2}
+          <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-sm);">
+            <button type="button" class="btn btn-secondary" style="flex: 1;" on:click={() => { recoveryStep = 1; errorMessage = ''; }}>
+              {$t('recovery.back')}
+            </button>
+            <button type="button" class="btn btn-secondary" style="flex: 1;" disabled={isLoading} on:click={async () => {
+              if (!username) return;
+              isLoading = true;
+              try {
+                await authApi.requestResetPassword(username);
+                statusMessage = $t('recovery.codeRequested');
+              } catch (e) {
+                errorMessage = e.message;
+              } finally {
+                isLoading = false;
+              }
+            }}>
+              {$t('recovery.sendCode')}
+            </button>
+          </div>
+        {/if}
       </form>
     {/if}
   </div>

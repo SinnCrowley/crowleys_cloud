@@ -979,7 +979,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       </main>
     {:else if currentRoute === 'admin'}
       <main class="main-content">
-        {#if $user?.role === 'admin'}<Administration on:toast={handleToastEvent} />{:else}<p role="alert">{$t('admin.errors.forbidden')}</p>{/if}
+        {#if $user?.role === 'admin' || $user?.role === 'superuser'}<Administration on:toast={handleToastEvent} />{:else}<p role="alert">{$t('admin.errors.forbidden')}</p>{/if}
       </main>
     {:else if currentRoute === 'settings'}
       <main class="main-content">

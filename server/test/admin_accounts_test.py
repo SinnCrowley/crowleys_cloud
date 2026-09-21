@@ -78,15 +78,19 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                     assert len(active) == 6
                 else:
                     assert len(active) == 1, results
-                admins = [(name, body) for name, body in active if body['user']['role'] == 'admin']
+                admins = [(name, body) for name, body in active if body['user']['role'] in ('admin', 'superuser')]
                 assert len(admins) == 1
                 admin_name, admin = admins[0]
+                assert admin['user']['role'] == 'superuser'
                 token, admin_id = admin['access_token'], admin['user']['id']
                 assert request('/api/admin/users')[0] == 401
-                assert request(f'/api/admin/users/{admin_id}', dict(role='user'), token, 'PATCH')[1]['code'] == 'last_admin'
+                assert request(f'/api/admin/users/{admin_id}', dict(role='user'), token, 'PATCH')[1]['code'] == 'cannot_modify_superuser'
                 assert request(f'/api/admin/users/{admin_id}', dict(status='blocked'), token, 'PATCH')[1]['code'] == 'cannot_block_self'
-                assert request('/api/account', token=token, method='DELETE')[0] == 409
-                assert request(f'/api/admin/users/{admin_id}/reset-password', {}, token)[1]['code'] == 'last_admin'
+                # Superuser can modify their own storage quota / limits
+                ok(f'/api/admin/users/{admin_id}', dict(role='superuser', status='active', quota_bytes=4096), token, 'PATCH')
+                assert next(u for u in ok('/api/admin/users', token=token) if u['id'] == admin_id)['effective_quota_bytes'] == 4096
+                assert request('/api/account', token=token, method='DELETE')[0] in (403, 409)
+                assert request(f'/api/admin/users/{admin_id}/reset-password', {}, token)[1]['code'] in ('last_admin', 'cannot_modify_superuser')
                 if mode == 'closed':
                     assert all(status == 403 for name, (status, _) in zip(names, results) if name != admin_name)
                     return
@@ -109,6 +113,14 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                 ok(f'/api/admin/users/{uid}', dict(role='admin', quota_bytes=1024), token, 'PATCH')
                 assert ok('/api/account', token=user)['role'] == 'admin'
                 ok('/api/admin/users', token=user)  # Existing token sees promotion.
+                # Regular admin cannot demote admin to user:
+                assert request(f'/api/admin/users/{uid}', dict(role='user'), user, 'PATCH')[1]['code'] in ('forbidden', 'cannot_demote_admin')
+                # Regular admin cannot block self:
+                assert request(f'/api/admin/users/{uid}', dict(status='blocked'), user, 'PATCH')[1]['code'] == 'cannot_block_self'
+                # Regular admin cannot modify superuser:
+                assert request(f'/api/admin/users/{admin_id}', dict(status='blocked'), user, 'PATCH')[1]['code'] in ('forbidden', 'cannot_modify_superuser')
+                assert request(f'/api/admin/users/{admin_id}', dict(role='user'), user, 'PATCH')[1]['code'] in ('forbidden', 'cannot_modify_superuser')
+                # Superuser CAN demote admin:
                 ok(f'/api/admin/users/{uid}', dict(role='user'), token, 'PATCH')
                 assert request('/api/admin/users', token=user)[0] in (401, 403)
                 ok(f'/api/admin/users/{uid}', dict(status='blocked'), token, 'PATCH')
@@ -127,10 +139,26 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                     assert request('/api/auth/reset-password/verify', dict(username=chosen['username'], code='wrong', new_password='updated'))[0] == 400
                 assert request('/api/auth/reset-password/verify', dict(username=chosen['username'], code=code, new_password='updated'))[0] == 400
                 code = ok(f'/api/admin/users/{uid}/reset-password', {}, token)['code']
+                # Check reset code appears in admin reset-codes endpoint
+                reset_items = ok('/api/admin/reset-codes', token=token)
+                assert any(r['code'] == code and r['username'] == chosen['username'] for r in reset_items)
                 # A public request must not invalidate an admin-issued recovery code.
                 ok('/api/auth/reset-password/request', dict(username=chosen['username']))
+                reset_items = ok('/api/admin/reset-codes', token=token)
+                assert any(r['code'] == code and r['username'] == chosen['username'] for r in reset_items)
                 ok('/api/auth/reset-password/verify', dict(username=chosen['username'], code=code, new_password='updated'))
                 assert request('/api/auth/reset-password/verify', dict(username=chosen['username'], code=code, new_password='again'))[0] == 400
+                reset_items = ok('/api/admin/reset-codes', token=token)
+                assert not any(r['code'] == code for r in reset_items)
+                # Public request generates active code and appears in admin reset-codes
+                ok('/api/auth/reset-password/request', dict(username=chosen['username']))
+                reset_items = ok('/api/admin/reset-codes', token=token)
+                public_code_entry = next(r for r in reset_items if r['username'] == chosen['username'])
+                assert len(public_code_entry['code']) == 6
+                # Verify deleting a reset code
+                ok(f"/api/admin/reset-codes/{public_code_entry['id']}", token=token, method='DELETE')
+                assert request('/api/auth/reset-password/verify', dict(username=chosen['username'], code=public_code_entry['code'], new_password='should-fail'))[0] == 400
+                assert not any(r['id'] == public_code_entry['id'] for r in ok('/api/admin/reset-codes', token=token))
                 user = login(chosen['username'], 'updated')
                 ok(f'/api/admin/users/{uid}/revoke-sessions', {}, token)
                 assert request('/api/account', token=user)[0] == 401
@@ -264,7 +292,7 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                     state = await_rotation()
                     assert state['maintenance'] and state['error_code'], state
                     assert request('/api/files?scope=private&path=small', token=token)[0] == 503
-                    assert ok('/api/account', token=token)['role'] == 'admin'
+                    assert ok('/api/account', token=token)['role'] == 'superuser'
                     object_path.write_bytes(before)
                     ok('/api/admin/encryption-key/resume', {}, token)
                     state = await_rotation()
@@ -280,7 +308,7 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                 new_session = ok('/api/login', dict(username=admin_name, password='test-password'))
                 assert 58 <= int(new_session['access_token'].split('|')[2]) - int(time.time()) <= 60
                 assert int(token.split('|')[2]) > int(new_session['access_token'].split('|')[2])
-                assert ok('/api/account', token=token)['role'] == 'admin'
+                assert ok('/api/account', token=token)['role'] == 'superuser'
                 with sqlite3.connect(root/'db.sqlite') as db:
                     expiry = db.execute('SELECT expires_at FROM refresh_tokens WHERE token_hash=?', (hashlib.sha256(new_session['refresh_token'].encode()).hexdigest(),)).fetchone()[0]
                 assert 118 <= expiry - int(time.time()) <= 120
@@ -312,11 +340,27 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                     assert request('/api/account', token=sync)[0] == 401
                     assert request('/api/refresh', dict(refresh_token=admin['refresh_token']))[0] == 401
                     token = login(admin_name)
-                    assert ok('/api/account', token=token)['role'] == 'admin'
+                    assert ok('/api/account', token=token)['role'] == 'superuser'
                     reset_code = ok(f'/api/admin/users/{uid}/reset-password', {}, token)['code']
                     ok('/api/auth/reset-password/verify', dict(username=chosen['username'], code=reset_code, new_password='recovered-again'))
                     assert request('/api/login', dict(username=chosen['username'], password='must-not-work'))[0] in (401, 403)
                     user = login(chosen['username'], 'recovered-again')
+                    # Verify that a regular admin cannot change config or secrets, and cannot exceed default_quota_bytes
+                    ok(f'/api/admin/users/{uid}', dict(role='admin'), token, 'PATCH')
+                    admin_session = login(chosen['username'], 'recovered-again')
+                    assert request('/api/admin/config', dict(revision=saved['revision'], changes={'rate_limit_per_minute': 500}), admin_session, 'PATCH')[0] == 403
+                    assert request('/api/admin/signing-secret', dict(revision=saved['revision'], secret=secrets.token_hex(32)), admin_session)[0] == 403
+                    assert request(f'/api/admin/users/{uid}', dict(quota_bytes=3000), admin_session, 'PATCH')[1]['code'] == 'quota_exceeded_default'
+                    assert request(f'/api/admin/users/{uid}', dict(quota_bytes=0), admin_session, 'PATCH')[1]['code'] == 'quota_exceeded_default'
+                    ok(f'/api/admin/users/{uid}', dict(quota_bytes=3000), token, 'PATCH')
+                    ok(f'/api/admin/users/{uid}', dict(quota_bytes=0), token, 'PATCH')
+                    # Regular admin cannot see or delete superuser reset code
+                    ok('/api/auth/reset-password/request', dict(username=admin_name))
+                    assert not any(r['username'] == admin_name for r in ok('/api/admin/reset-codes', token=admin_session))
+                    su_entry = next((r for r in ok('/api/admin/reset-codes', token=token) if r['username'] == admin_name), None)
+                    assert su_entry is not None
+                    assert request(f"/api/admin/reset-codes/{su_entry['id']}", token=admin_session, method='DELETE')[0] == 403
+                    ok(f"/api/admin/reset-codes/{su_entry['id']}", token=token, method='DELETE')
                 # Saved infrastructure and live settings survive an actual restart.
                 process.terminate(); process.wait(timeout=5)
                 port = next_port

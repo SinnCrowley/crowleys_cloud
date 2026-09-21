@@ -384,7 +384,11 @@
     "resetCodeLabel": "Code de réinitialisation",
     "passwordResetSuccessfully": "Mot de passe réinitialisé !",
     "newPasswordLabel": "Nouveau mot de passe",
-    "codeAndPasswordRequired": "Le code et le nouveau mot de passe sont requis."
+    "codeAndPasswordRequired": "Le code et le nouveau mot de passe sont requis.",
+    "sendCode": "Demander le code",
+    "codeRequested": "Code de réinitialisation demandé. Consultez les journaux du serveur ou contactez un administrateur.",
+    "haveCode": "J'ai déjà un code",
+    "back": "Retour"
   },
   "admin": {
     "title": "Administration",
@@ -464,7 +468,12 @@
       "maintenance": "Le serveur est en maintenance. Réessayez une fois celle-ci terminée.",
       "absolute_path_required": "Saisissez un chemin absolu.",
       "rotation_running": "Une opération de chiffrement est déjà en cours.",
-      "cannot_block_self": "Vous ne pouvez pas bloquer votre propre compte."
+      "cannot_block_self": "Vous ne pouvez pas bloquer votre propre compte.",
+      "cannot_demote_admin": "Seul le superutilisateur peut rétrograder un administrateur.",
+      "cannot_modify_superuser": "Le compte superutilisateur ne peut pas être modifié.",
+      "cannot_block_superuser": "Le superutilisateur ne peut pas être bloqué.",
+      "cannot_delete_superuser": "Le superutilisateur ne peut pas être supprimé.",
+      "quota_exceeded_default": "Le quota de l'utilisateur ne peut pas dépasser la limite de stockage par défaut."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Augmenter",
     "decrease": "Diminuer",
-    "bytes_label": "octets"
+    "bytes_label": "octets",
+    "superuser": "Superutilisateur",
+    "superuser_required": "Les privilèges de superutilisateur sont requis pour modifier la configuration du serveur ou les clés de chiffrement.",
+    "reset_codes": "Codes de réinitialisation",
+    "no_reset_codes": "Aucun code de réinitialisation actif.",
+    "reset_code": "Code de réinitialisation",
+    "created_at": "Créé",
+    "expires_in": "Expire dans",
+    "confirm_delete_reset_code": "Révoquer le code de réinitialisation pour {name} ?"
   }
 }

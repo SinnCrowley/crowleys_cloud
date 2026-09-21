@@ -457,7 +457,12 @@
       "maintenance": "Сервер на обслуживании. Повторите после его завершения.",
       "absolute_path_required": "Введите абсолютный путь.",
       "rotation_running": "Операция шифрования уже выполняется.",
-      "cannot_block_self": "Нельзя заблокировать собственную учётную запись."
+      "cannot_block_self": "Нельзя заблокировать собственную учётную запись.",
+      "cannot_demote_admin": "Только суперпользователь может понизить администратора.",
+      "cannot_modify_superuser": "Учётную запись суперпользователя нельзя изменить.",
+      "cannot_block_superuser": "Суперпользователя нельзя заблокировать.",
+      "cannot_delete_superuser": "Суперпользователя нельзя удалить.",
+      "quota_exceeded_default": "Квота пользователя не может превышать лимит хранилища по умолчанию."
     },
     "fields": {
       "registration_mode": {
@@ -549,13 +554,25 @@
     },
     "increase": "Увеличить",
     "decrease": "Уменьшить",
-    "bytes_label": "байт"
+    "bytes_label": "байт",
+    "superuser": "Суперпользователь",
+    "superuser_required": "Для изменения конфигурации сервера или секретов шифрования требуются права суперпользователя.",
+    "reset_codes": "Коды сброса",
+    "no_reset_codes": "Нет активных кодов сброса.",
+    "reset_code": "Код сброса",
+    "created_at": "Создан",
+    "expires_in": "Истекает через",
+    "confirm_delete_reset_code": "Отозвать код сброса для пользователя {name}?"
   },
   "recovery": {
     "resetPasswordTitle": "Сброс пароля",
     "resetCodeLabel": "Код сброса",
     "passwordResetSuccessfully": "Пароль успешно сброшен!",
     "newPasswordLabel": "Новый пароль",
-    "codeAndPasswordRequired": "Необходимо ввести код и новый пароль."
+    "codeAndPasswordRequired": "Необходимо ввести код и новый пароль.",
+    "sendCode": "Запросить код",
+    "codeRequested": "Код сброса запрошен. Проверьте логи сервера или обратитесь к администратору.",
+    "haveCode": "У меня уже есть код",
+    "back": "Назад"
   }
 }

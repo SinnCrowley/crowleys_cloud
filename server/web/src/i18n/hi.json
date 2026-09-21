@@ -384,7 +384,11 @@
     "resetCodeLabel": "रीसेट कोड",
     "passwordResetSuccessfully": "पासवर्ड सफलतापूर्वक रीसेट हो गया!",
     "newPasswordLabel": "नया पासवर्ड",
-    "codeAndPasswordRequired": "कोड और नया पासवर्ड आवश्यक हैं।"
+    "codeAndPasswordRequired": "कोड और नया पासवर्ड आवश्यक हैं।",
+    "sendCode": "कोड भेजें",
+    "codeRequested": "रीसेट कोड का अनुरोध किया गया। सर्वर लॉग देखें या व्यवस्थापक से संपर्क करें।",
+    "haveCode": "मेरे पास पहले से एक कोड है",
+    "back": "पीछे"
   },
   "admin": {
     "title": "प्रशासन",
@@ -464,7 +468,12 @@
       "maintenance": "सर्वर का रखरखाव चल रहा है। पूरा होने पर फिर कोशिश करें।",
       "absolute_path_required": "पूर्ण पथ दर्ज करें।",
       "rotation_running": "एक एन्क्रिप्शन प्रक्रिया पहले से चल रही है।",
-      "cannot_block_self": "आप अपना स्वयं का खाता ब्लॉक नहीं कर सकते।"
+      "cannot_block_self": "आप अपना स्वयं का खाता ब्लॉक नहीं कर सकते।",
+      "cannot_demote_admin": "केवल सुपरयूज़र ही किसी व्यवस्थापक का पद घटा सकता है।",
+      "cannot_modify_superuser": "सुपरयूज़र खाता संशोधित नहीं किया जा सकता।",
+      "cannot_block_superuser": "सुपरयूज़र को ब्लॉक नहीं किया जा सकता।",
+      "cannot_delete_superuser": "सुपरयूज़र को हटाया नहीं जा सकता।",
+      "quota_exceeded_default": "उपयोगकर्ता कोटा डिफ़ॉल्ट संग्रहण सीमा से अधिक नहीं हो सकता।"
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "बढ़ाएं",
     "decrease": "घटाएं",
-    "bytes_label": "बाइट्स"
+    "bytes_label": "बाइट्स",
+    "superuser": "सुपरयूज़र",
+    "superuser_required": "सर्वर कॉन्फ़िगरेशन या एन्क्रिप्शन सीक्रेट्स बदलने के लिए सुपरयूज़र विशेषाधिकार आवश्यक हैं।",
+    "reset_codes": "रीसेट कोड",
+    "no_reset_codes": "कोई सक्रिय रीसेट कोड नहीं है।",
+    "reset_code": "रीसेट कोड",
+    "created_at": "बनाया गया",
+    "expires_in": "समाप्ति समय",
+    "confirm_delete_reset_code": "{name} के लिए रीसेट कोड रद्द करें?"
   }
 }

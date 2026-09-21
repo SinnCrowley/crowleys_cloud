@@ -384,7 +384,11 @@
     "resetCodeLabel": "Sıfırlama Kodu",
     "passwordResetSuccessfully": "Şifre başarıyla sıfırlandı!",
     "newPasswordLabel": "Yeni Şifre",
-    "codeAndPasswordRequired": "Kod ve yeni şifre gereklidir."
+    "codeAndPasswordRequired": "Kod ve yeni şifre gereklidir.",
+    "sendCode": "Kod iste",
+    "codeRequested": "Sıfırlama kodu istendi. Sunucu günlüklerini kontrol edin veya yöneticiye başvurun.",
+    "haveCode": "Zaten bir kodum var",
+    "back": "Geri"
   },
   "admin": {
     "title": "Yönetim",
@@ -464,7 +468,12 @@
       "maintenance": "Sunucu bakımda. Tamamlandığında yeniden deneyin.",
       "absolute_path_required": "Mutlak bir yol girin.",
       "rotation_running": "Zaten bir şifreleme işlemi devam ediyor.",
-      "cannot_block_self": "Kendi hesabınızı engelleyemezsiniz."
+      "cannot_block_self": "Kendi hesabınızı engelleyemezsiniz.",
+      "cannot_demote_admin": "Yalnızca süper kullanıcı bir yöneticiyi indirebilir.",
+      "cannot_modify_superuser": "Süper kullanıcı hesabı değiştirilemez.",
+      "cannot_block_superuser": "Süper kullanıcı engellenemez.",
+      "cannot_delete_superuser": "Süper kullanıcı silinemez.",
+      "quota_exceeded_default": "Kullanıcı kotası varsayılan depolama sınırını aşamaz."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Artır",
     "decrease": "Azalt",
-    "bytes_label": "bayt"
+    "bytes_label": "bayt",
+    "superuser": "Süper kullanıcı",
+    "superuser_required": "Sunucu yapılandırmasını veya şifreleme sırlarını değiştirmek için süper kullanıcı yetkileri gereklidir.",
+    "reset_codes": "Sıfırlama kodları",
+    "no_reset_codes": "Etkin sıfırlama kodu yok.",
+    "reset_code": "Sıfırlama kodu",
+    "created_at": "Oluşturuldu",
+    "expires_in": "Kalan süre",
+    "confirm_delete_reset_code": "{name} için sıfırlama kodu iptal edilsin mi?"
   }
 }

@@ -104,21 +104,23 @@ def run(hash_files):
                 status, body = request('/api/admin/users/2', dict(role='admin'), token, method='PATCH')
                 assert status == 200, (status, body)
                 helper = obj('/api/login',dict(username='helper',password='helper-password'))['access_token']
-                code = obj('/api/admin/users/1/reset-password', {}, helper)['code']
-                obj('/api/auth/reset-password/request',dict(username='review'))
+                assert json.loads(request('/api/admin/users/1/reset-password', {}, helper)[1])['code'] == 'cannot_modify_superuser'
+                assert json.loads(request('/api/admin/users/1', {}, helper, method='DELETE')[1])['code'] == 'cannot_delete_superuser'
+                code = obj('/api/admin/users/2/reset-password', {}, token)['code']
+                obj('/api/auth/reset-password/request',dict(username='helper'))
                 with sqlite3.connect(root/'db.sqlite') as db:
                     assert db.execute('select count(*) from password_resets').fetchone()[0] == 1
                     stored=db.execute('select code from password_resets order by id desc limit 1').fetchone()[0]
                 assert stored != code and len(stored) == 64
                 assert len(code)==6 and code.isdigit()
-                obj('/api/auth/reset-password/verify',dict(username='review',code=code,new_password='reset-password'))
-                assert download('chunks.txt')[0] == 401
-                assert request('/api/auth/reset-password/verify',dict(username='review',code=code,new_password='again'))[0] == 400
-                token=obj('/api/login',dict(username='review',password='reset-password'))['access_token']
-                sync=obj('/api/account/sync-token',token=token)['sync_token']
-                assert request('/api/account',token=token,method='DELETE')[0] == 200
-                assert request('/api/files?scope=private&path=chunks.txt',token=sync)[0] == 401
-                statuses=[request('/api/auth/reset-password/verify',dict(username='review',code='000000',new_password='bad'))[0] for _ in range(21)]
+                obj('/api/auth/reset-password/verify',dict(username='helper',code=code,new_password='reset-password'))
+                assert request('/api/account', token=helper)[0] == 401
+                assert request('/api/auth/reset-password/verify',dict(username='helper',code=code,new_password='again'))[0] == 400
+                helper=obj('/api/login',dict(username='helper',password='reset-password'))['access_token']
+                helper_sync=obj('/api/account/sync-token',token=helper)['sync_token']
+                assert request('/api/account',token=helper,method='DELETE')[0] == 200
+                assert request('/api/account',token=helper_sync)[0] == 401
+                statuses=[request('/api/auth/reset-password/verify',dict(username='helper',code='000000',new_password='bad'))[0] for _ in range(21)]
                 assert 429 in statuses
                 print('HTTP regressions passed; hash_files =',hash_files,flush=True)
             finally:

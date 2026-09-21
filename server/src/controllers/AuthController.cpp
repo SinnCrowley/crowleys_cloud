@@ -219,13 +219,21 @@ void AuthController::requestReset(const drogon::HttpRequestPtr &req,
     return;
   }
   const auto json = req->getJsonObject();
-  if (!json || !json->isMember("username")) {
+  if (!json || !json->isMember("username") || !(*json)["username"].isString()) {
     callback(jsonError(drogon::k400BadRequest, "username is required"));
     return;
   }
 
-  // Recovery codes are issued only by an administrator. Public requests must
-  // neither disclose codes nor invalidate an account's password or existing code.
+  const auto username = (*json)["username"].asString();
+  std::string code;
+  const auto ok = server::ctx().userService->requestPasswordReset(username, code, false);
+
+  if (ok) {
+    LOG_INFO << "\n========================================\n"
+             << "PASSWORD RESET REQUESTED FOR: " << username << "\n"
+             << "TEMPORARY CODE: " << code << " (Valid for 10 minutes)\n"
+             << "========================================\n";
+  }
 
   Json::Value body;
   body["ok"] = true;

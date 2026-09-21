@@ -41,7 +41,7 @@ std::filesystem::path FileService::resolvePath(std::int64_t userId,
                                                StorageScope scope,
                                                const std::string &rawPath,
                                                bool allowNonExistent) const {
-  if (scope == StorageScope::Shared && role != "admin") {
+  if (scope == StorageScope::Shared && role != "admin" && role != "superuser") {
     throw std::runtime_error("Only administrator can access shared storage");
   }
 

@@ -32,6 +32,10 @@ export const authApi = {
     return apiPost('/api/logout', { refresh_token: refreshToken });
   },
 
+  async requestResetPassword(username) {
+    return apiPost('/api/auth/reset-password/request', { username });
+  },
+
   async resetPassword({ username, code, newPassword }) {
     return apiPost('/api/auth/reset-password/verify', { username, code, new_password: newPassword });
   },

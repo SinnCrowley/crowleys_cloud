@@ -384,7 +384,11 @@
     "resetCodeLabel": "Código de restablecimiento",
     "passwordResetSuccessfully": "¡Contraseña restablecida correctamente!",
     "newPasswordLabel": "Nueva contraseña",
-    "codeAndPasswordRequired": "El código y la nueva contraseña son obligatorios."
+    "codeAndPasswordRequired": "El código y la nueva contraseña son obligatorios.",
+    "sendCode": "Solicitar código",
+    "codeRequested": "Código de restablecimiento solicitado. Revise los registros del servidor o consulte al administrador.",
+    "haveCode": "Ya tengo un código",
+    "back": "Atrás"
   },
   "admin": {
     "title": "Administración",
@@ -464,7 +468,12 @@
       "maintenance": "El servidor está en mantenimiento. Inténtalo cuando termine.",
       "absolute_path_required": "Introduce una ruta absoluta.",
       "rotation_running": "Ya hay una operación de cifrado en curso.",
-      "cannot_block_self": "No puedes bloquear tu propia cuenta."
+      "cannot_block_self": "No puedes bloquear tu propia cuenta.",
+      "cannot_demote_admin": "Solo el superusuario puede degradar a un administrador.",
+      "cannot_modify_superuser": "La cuenta de superusuario no se puede modificar.",
+      "cannot_block_superuser": "El superusuario no puede ser bloqueado.",
+      "cannot_delete_superuser": "El superusuario no puede ser eliminado.",
+      "quota_exceeded_default": "La cuota de usuario no puede exceder el límite de almacenamiento predeterminado."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Aumentar",
     "decrease": "Disminuir",
-    "bytes_label": "bytes"
+    "bytes_label": "bytes",
+    "superuser": "Superusuario",
+    "superuser_required": "Se requieren privilegios de superusuario para cambiar la configuración del servidor o los secretos de cifrado.",
+    "reset_codes": "Códigos de restablecimiento",
+    "no_reset_codes": "No hay códigos de restablecimiento activos.",
+    "reset_code": "Código de restablecimiento",
+    "created_at": "Creado",
+    "expires_in": "Caduca en",
+    "confirm_delete_reset_code": "¿Revocar el código de restablecimiento de {name}?"
   }
 }

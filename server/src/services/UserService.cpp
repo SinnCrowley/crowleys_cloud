@@ -65,7 +65,7 @@ std::optional<UserRecord> UserService::registerUser(const std::string &username,
     error = "registration_closed";
     return std::nullopt;
   }
-  const std::string role = first ? "admin" : "user";
+  const std::string role = first ? "superuser" : "user";
   const std::string status = first || config_.registrationMode == "open" ? "active" : "pending";
   auto guard = db_.getStatement(
       "INSERT INTO users(username, password_hash, role, status, created_at) VALUES(?, ?, ?, ?, ?)");
@@ -270,7 +270,7 @@ std::optional<AccessClaims> UserService::verifyAccessToken(const std::string &ac
     if (exp <= utils::nowSeconds()) return std::nullopt;
     const auto user = getUserById(std::stoll(parts[0]));
     if (!user || user->status != "active" || user->passwordResetRequired) return std::nullopt;
-    if (parts[1] != "sync" && parts[1] != "user" && parts[1] != "admin") return std::nullopt;
+    if (parts[1] != "sync" && parts[1] != "user" && parts[1] != "admin" && parts[1] != "superuser") return std::nullopt;
     return AccessClaims{.userId = user->id, .role = parts[1] == "sync" ? "sync" : user->role};
   } catch (...) { return std::nullopt; }
 }
@@ -312,9 +312,9 @@ std::vector<UserRecord> UserService::listUsers(bool pending) const {
 
 bool UserService::isLastActiveAdmin(std::int64_t userId) const {
   auto guard = db_.getStatement(
-      "SELECT 1 FROM users WHERE id = ? AND role = 'admin' AND status = 'active' "
+      "SELECT 1 FROM users WHERE id = ? AND role IN ('admin', 'superuser') AND status = 'active' "
       "AND password_reset_required = 0 AND NOT EXISTS(SELECT 1 FROM users WHERE id != ? "
-      "AND role = 'admin' AND status = 'active' AND password_reset_required = 0)");
+      "AND role IN ('admin', 'superuser') AND status = 'active' AND password_reset_required = 0)");
   sqlite3_bind_int64(guard.get(), 1, userId);
   sqlite3_bind_int64(guard.get(), 2, userId);
   return sqlite3_step(guard.get()) == SQLITE_ROW;
@@ -343,7 +343,7 @@ void UserService::revokeSessions(std::int64_t userId) {
 bool UserService::updateUser(std::int64_t actorId, std::int64_t userId, const Json::Value &patch, std::string &error) {
   db::Database::TransactionGuard transaction(db_);
   const auto actor = getUserById(actorId);
-  if (!actor || actor->role != "admin" || actor->status != "active" || actor->passwordResetRequired) {
+  if (!actor || (actor->role != "admin" && actor->role != "superuser") || actor->status != "active" || actor->passwordResetRequired) {
     error = "forbidden"; return false;
   }
   auto user = getUserById(userId);
@@ -352,22 +352,62 @@ bool UserService::updateUser(std::int64_t actorId, std::int64_t userId, const Js
   for (const auto &key : patch.getMemberNames()) {
     if (key != "role" && key != "status" && key != "quota_bytes") { error = "invalid_user_patch"; return false; }
   }
-  if (patch.isMember("role")) {
-    if (!patch["role"].isString() || (patch["role"] != "admin" && patch["role"] != "user")) { error = "invalid_role"; return false; }
-    user->role = patch["role"].asString();
+
+  // Superuser protections:
+  // Superuser cannot be modified by anyone else.
+  if (user->role == "superuser" && actorId != userId) {
+    error = "cannot_modify_superuser"; return false;
   }
+
+  if (patch.isMember("role")) {
+    // Superuser cannot transfer or change their own role.
+    if (user->role == "superuser") {
+      if (patch["role"] != "superuser") {
+        error = "cannot_modify_superuser"; return false;
+      }
+    } else {
+      // Superuser role cannot be granted through API.
+      if (!patch["role"].isString() || (patch["role"] != "admin" && patch["role"] != "user")) {
+        error = "invalid_role"; return false;
+      }
+      // Only superuser can demote an admin to a regular user.
+      if (user->role == "admin" && patch["role"].asString() == "user" && actor->role != "superuser") {
+        error = "cannot_demote_admin"; return false;
+      }
+      user->role = patch["role"].asString();
+    }
+  }
+
   if (patch.isMember("status")) {
-    if (!patch["status"].isString() || (patch["status"] != "active" && patch["status"] != "blocked")) { error = "invalid_status"; return false; }
-    if (actorId == userId && patch["status"] == "blocked") { error = "cannot_block_self"; return false; }
+    if (!patch["status"].isString() || (patch["status"] != "active" && patch["status"] != "blocked")) {
+      error = "invalid_status"; return false;
+    }
+    if (actorId == userId && patch["status"] == "blocked") {
+      error = "cannot_block_self"; return false;
+    }
+    if (user->role == "superuser" && patch["status"] == "blocked") {
+      error = "cannot_block_superuser"; return false;
+    }
     user->status = patch["status"].asString();
   }
+
   if (patch.isMember("quota_bytes")) {
     if (!patch["quota_bytes"].isNull() && (!patch["quota_bytes"].isInt64() || patch["quota_bytes"].asInt64() < 0)) {
       error = "invalid_quota"; return false;
     }
+    // Storage quota ceiling: regular admins cannot set quota higher than default_quota_bytes or set unlimited (0).
+    if (actor->role != "superuser" && config_.defaultQuotaBytes > 0) {
+      if (!patch["quota_bytes"].isNull()) {
+        const auto val = patch["quota_bytes"].asInt64();
+        if (val == 0 || val > config_.defaultQuotaBytes) {
+          error = "quota_exceeded_default"; return false;
+        }
+      }
+    }
     user->quotaBytes = patch["quota_bytes"].isNull() ? std::nullopt : std::optional<std::int64_t>(patch["quota_bytes"].asInt64());
   }
-  if ((user->role != "admin" || user->status != "active") && isLastActiveAdmin(userId)) {
+
+  if ((user->role != "admin" && user->role != "superuser" || user->status != "active") && isLastActiveAdmin(userId)) {
     error = "last_admin"; return false;
   }
   {
@@ -393,7 +433,7 @@ bool UserService::updateUser(std::int64_t actorId, std::int64_t userId, const Js
 bool UserService::decideApplication(std::int64_t actorId, std::int64_t userId, bool approve, std::string &error) {
   db::Database::TransactionGuard transaction(db_);
   const auto actor = getUserById(actorId);
-  if (!actor || actor->role != "admin" || actor->status != "active" || actor->passwordResetRequired) {
+  if (!actor || (actor->role != "admin" && actor->role != "superuser") || actor->status != "active" || actor->passwordResetRequired) {
     error = "forbidden"; return false;
   }
   {
@@ -425,7 +465,7 @@ bool UserService::deleteAccount(std::int64_t userId) {
   // Self-service deletion transfers shared data to another active administrator.
   std::int64_t recipient = 0;
   {
-    auto guard = db_.getStatement("SELECT id FROM users WHERE id != ? AND role = 'admin' AND status = 'active' AND password_reset_required = 0 ORDER BY id LIMIT 1");
+    auto guard = db_.getStatement("SELECT id FROM users WHERE id != ? AND role IN ('admin', 'superuser') AND status = 'active' AND password_reset_required = 0 ORDER BY id LIMIT 1");
     sqlite3_bind_int64(guard.get(), 1, userId);
     if (sqlite3_step(guard.get()) == SQLITE_ROW) recipient = sqlite3_column_int64(guard.get(), 0);
   }
@@ -441,10 +481,12 @@ bool UserService::deleteUser(std::int64_t actorId, std::int64_t userId, std::str
       db::Database::TransactionGuard transaction(db_);
       const auto actor = getUserById(actorId);
       const auto user = getUserById(userId);
-      if (!actor || actor->role != "admin" || actor->status != "active" || actor->passwordResetRequired) {
+      if (!actor || (actor->role != "admin" && actor->role != "superuser") || actor->status != "active" || actor->passwordResetRequired) {
         error = "forbidden"; return false;
       }
       if (!user || user->status == "pending") { error = "user_not_found"; return false; }
+      if (user->role == "superuser") { error = "cannot_delete_superuser"; return false; }
+      if (user->role == "admin" && actor->role != "superuser") { error = "forbidden"; return false; }
       if (actorId == userId || isLastActiveAdmin(userId)) { error = "last_admin"; return false; }
       {
         auto guard = db_.getStatement("SELECT 1 FROM account_deletions WHERE recipient_user_id = ? LIMIT 1");
@@ -647,12 +689,34 @@ void UserService::resumeDeletions() {
   }
 }
 
-bool UserService::requestPasswordReset(const std::string &username, std::string &codeOut) {
-  // Only called by the authenticated administrator flow, inside its transaction.
+void UserService::cleanupExpiredResetCodes() {
+  try {
+    auto guard = db_.getStatement("DELETE FROM password_resets WHERE expires_at <= ? OR used_at IS NOT NULL");
+    sqlite3_bind_int64(guard.get(), 1, utils::nowSeconds());
+    sqlite3_step(guard.get());
+  } catch (...) {}
+}
+
+bool UserService::requestPasswordReset(const std::string &username, std::string &codeOut, bool forceNew) {
+  cleanupExpiredResetCodes();
   auto userGuard = db_.getStatement("SELECT id FROM users WHERE username = ? AND status IN ('active', 'blocked')");
   sqlite3_bind_text(userGuard.get(), 1, username.c_str(), -1, SQLITE_TRANSIENT);
   if (sqlite3_step(userGuard.get()) != SQLITE_ROW) return false;
   const auto userId = sqlite3_column_int64(userGuard.get(), 0);
+
+  if (!forceNew) {
+    auto activeGuard = db_.getStatement(
+        "SELECT raw_code FROM password_resets "
+        "WHERE user_id = ? AND used_at IS NULL AND expires_at > ? AND attempts < 5 AND raw_code != '' "
+        "ORDER BY id DESC LIMIT 1");
+    sqlite3_bind_int64(activeGuard.get(), 1, userId);
+    sqlite3_bind_int64(activeGuard.get(), 2, utils::nowSeconds());
+    if (sqlite3_step(activeGuard.get()) == SQLITE_ROW) {
+      codeOut = reinterpret_cast<const char *>(sqlite3_column_text(activeGuard.get(), 0));
+      return true;
+    }
+  }
+
   std::uint32_t randomValue;
   constexpr auto limit = std::numeric_limits<std::uint32_t>::max() -
                          (std::numeric_limits<std::uint32_t>::max() % 900000);
@@ -667,11 +731,12 @@ bool UserService::requestPasswordReset(const std::string &username, std::string 
     sqlite3_bind_int64(guard.get(), 1, userId);
     if (sqlite3_step(guard.get()) != SQLITE_DONE) throw std::runtime_error("Cannot replace recovery code");
   }
-  auto guard = db_.getStatement("INSERT INTO password_resets(user_id, code, expires_at, created_at) VALUES(?, ?, ?, ?)");
+  auto guard = db_.getStatement("INSERT INTO password_resets(user_id, code, expires_at, created_at, attempts, raw_code) VALUES(?, ?, ?, ?, 0, ?)");
   sqlite3_bind_int64(guard.get(), 1, userId);
   sqlite3_bind_text(guard.get(), 2, digest.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_int64(guard.get(), 3, utils::nowSeconds() + 600);
   sqlite3_bind_int64(guard.get(), 4, utils::nowSeconds());
+  sqlite3_bind_text(guard.get(), 5, codeOut.c_str(), -1, SQLITE_TRANSIENT);
   if (sqlite3_step(guard.get()) != SQLITE_DONE) throw std::runtime_error("Cannot store recovery code");
   return true;
 }
@@ -680,12 +745,14 @@ bool UserService::adminResetPassword(std::int64_t actorId, std::int64_t userId, 
   db::Database::TransactionGuard transaction(db_);
   const auto actor = getUserById(actorId);
   const auto user = getUserById(userId);
-  if (!actor || actor->role != "admin" || actor->status != "active" || actor->passwordResetRequired) {
+  if (!actor || (actor->role != "admin" && actor->role != "superuser") || actor->status != "active" || actor->passwordResetRequired) {
     error = "forbidden"; return false;
   }
   if (!user || (user->status != "active" && user->status != "blocked")) { error = "user_not_found"; return false; }
+  if (user->role == "superuser" && actorId != userId) { error = "cannot_modify_superuser"; return false; }
+  if (user->role == "admin" && actor->role != "superuser") { error = "forbidden"; return false; }
   if (isLastActiveAdmin(userId)) { error = "last_admin"; return false; }
-  if (!requestPasswordReset(user->username, code)) { error = "user_not_found"; return false; }
+  if (!requestPasswordReset(user->username, code, true)) { error = "user_not_found"; return false; }
   {
     auto guard = db_.getStatement("UPDATE users SET password_reset_required = 1, auth_version = auth_version + 1 WHERE id = ?");
     sqlite3_bind_int64(guard.get(), 1, userId);
@@ -693,12 +760,85 @@ bool UserService::adminResetPassword(std::int64_t actorId, std::int64_t userId, 
   }
   revokeAllRefreshTokens(userId);
   audit(actorId, "user.password_reset", userId);
+  LOG_INFO << "\n========================================\n"
+           << "ADMIN GENERATED PASSWORD RESET FOR: " << user->username << "\n"
+           << "TEMPORARY CODE: " << code << " (Valid for 10 minutes)\n"
+           << "========================================\n";
   transaction.commit();
+  return true;
+}
+
+std::vector<ResetCodeRecord> UserService::listResetCodes(std::int64_t actorId) {
+  cleanupExpiredResetCodes();
+  const auto actor = getUserById(actorId);
+  if (!actor || (actor->role != "admin" && actor->role != "superuser") || actor->status != "active" || actor->passwordResetRequired) {
+    return {};
+  }
+  std::vector<ResetCodeRecord> result;
+  std::string sql;
+  if (actor->role == "superuser") {
+    sql = "SELECT r.id, r.user_id, u.username, u.role, r.raw_code, r.created_at, r.expires_at "
+          "FROM password_resets r JOIN users u ON u.id = r.user_id "
+          "WHERE r.used_at IS NULL AND r.expires_at > ? AND r.attempts < 5 AND r.raw_code != '' "
+          "ORDER BY r.created_at DESC, r.id DESC";
+  } else {
+    sql = "SELECT r.id, r.user_id, u.username, u.role, r.raw_code, r.created_at, r.expires_at "
+          "FROM password_resets r JOIN users u ON u.id = r.user_id "
+          "WHERE u.role NOT IN ('admin', 'superuser') AND r.used_at IS NULL AND r.expires_at > ? AND r.attempts < 5 AND r.raw_code != '' "
+          "ORDER BY r.created_at DESC, r.id DESC";
+  }
+  auto guard = db_.getStatement(sql);
+  sqlite3_bind_int64(guard.get(), 1, utils::nowSeconds());
+  while (sqlite3_step(guard.get()) == SQLITE_ROW) {
+    ResetCodeRecord rec;
+    rec.id = sqlite3_column_int64(guard.get(), 0);
+    rec.userId = sqlite3_column_int64(guard.get(), 1);
+    rec.username = reinterpret_cast<const char *>(sqlite3_column_text(guard.get(), 2));
+    rec.role = reinterpret_cast<const char *>(sqlite3_column_text(guard.get(), 3));
+    rec.code = reinterpret_cast<const char *>(sqlite3_column_text(guard.get(), 4));
+    rec.createdAt = sqlite3_column_int64(guard.get(), 5);
+    rec.expiresAt = sqlite3_column_int64(guard.get(), 6);
+    result.push_back(std::move(rec));
+  }
+  return result;
+}
+
+bool UserService::deleteResetCode(std::int64_t actorId, std::int64_t resetId, std::string &error) {
+  const auto actor = getUserById(actorId);
+  if (!actor || (actor->role != "admin" && actor->role != "superuser") || actor->status != "active" || actor->passwordResetRequired) {
+    error = "forbidden"; return false;
+  }
+  std::int64_t targetUserId = 0;
+  std::string targetRole;
+  {
+    auto guard = db_.getStatement("SELECT r.user_id, u.role FROM password_resets r JOIN users u ON u.id = r.user_id WHERE r.id = ?");
+    sqlite3_bind_int64(guard.get(), 1, resetId);
+    if (sqlite3_step(guard.get()) != SQLITE_ROW) {
+      error = "code_not_found";
+      return false;
+    }
+    targetUserId = sqlite3_column_int64(guard.get(), 0);
+    targetRole = reinterpret_cast<const char *>(sqlite3_column_text(guard.get(), 1));
+  }
+  if (actor->role != "superuser" && (targetRole == "admin" || targetRole == "superuser")) {
+    error = "forbidden";
+    return false;
+  }
+  {
+    auto guard = db_.getStatement("DELETE FROM password_resets WHERE id = ?");
+    sqlite3_bind_int64(guard.get(), 1, resetId);
+    if (sqlite3_step(guard.get()) != SQLITE_DONE) {
+      error = "delete_failed";
+      return false;
+    }
+  }
+  audit(actorId, "reset_code.delete", targetUserId);
   return true;
 }
 
 bool UserService::verifyPasswordReset(const std::string &username, const std::string &code, const std::string &newPassword) {
   if (newPassword.empty() || newPassword.size() > 4096) return false;
+  cleanupExpiredResetCodes();
   db::Database::TransactionGuard transaction(db_);
   std::int64_t userId, resetId;
   std::string stored;

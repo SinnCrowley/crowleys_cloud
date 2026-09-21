@@ -384,7 +384,11 @@
     "resetCodeLabel": "رمز إعادة التعيين",
     "passwordResetSuccessfully": "تمت إعادة تعيين كلمة المرور بنجاح!",
     "newPasswordLabel": "كلمة المرور الجديدة",
-    "codeAndPasswordRequired": "الرمز وكلمة المرور الجديدة مطلوبان."
+    "codeAndPasswordRequired": "الرمز وكلمة المرور الجديدة مطلوبان.",
+    "sendCode": "إرسال الرمز",
+    "codeRequested": "تم طلب رمز إعادة التعيين. تحقق من سجلات الخادم أو اسأل المسؤول.",
+    "haveCode": "لدي رمز بالفعل",
+    "back": "رجوع"
   },
   "admin": {
     "title": "الإدارة",
@@ -464,7 +468,12 @@
       "maintenance": "الخادم قيد الصيانة. أعد المحاولة بعد انتهائها.",
       "absolute_path_required": "أدخل مسارًا مطلقًا.",
       "rotation_running": "هناك عملية تشفير جارية بالفعل.",
-      "cannot_block_self": "لا يمكنك حظر حسابك الخاص."
+      "cannot_block_self": "لا يمكنك حظر حسابك الخاص.",
+      "cannot_demote_admin": "يمكن للمستخدم الخارق فقط تخفيض رتبة المسؤول.",
+      "cannot_modify_superuser": "لا يمكن تعديل حساب المستخدم الخارق.",
+      "cannot_block_superuser": "لا يمكن حظر المستخدم الخارق.",
+      "cannot_delete_superuser": "لا يمكن حذف المستخدم الخارق.",
+      "quota_exceeded_default": "لا يمكن أن تتجاوز حصة المستخدم حد التخزين الافتراضي."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "زيادة",
     "decrease": "تقليل",
-    "bytes_label": "بايت"
+    "bytes_label": "بايت",
+    "superuser": "المستخدم الخارق",
+    "superuser_required": "يلزم الحصول على امتيازات المستخدم الخارق لتغيير إعدادات الخادم أو أسرار التشفير.",
+    "reset_codes": "رموز إعادة التعيين",
+    "no_reset_codes": "لا توجد رموز إعادة تعيين نشطة.",
+    "reset_code": "رمز إعادة التعيين",
+    "created_at": "تاريخ الإنشاء",
+    "expires_in": "ينتهي في",
+    "confirm_delete_reset_code": "هل تريد إلغاء رمز إعادة التعيين لـ {name}؟"
   }
 }

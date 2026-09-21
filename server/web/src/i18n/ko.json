@@ -384,7 +384,11 @@
     "resetCodeLabel": "재설정 코드",
     "passwordResetSuccessfully": "비밀번호가 성공적으로 재설정되었습니다!",
     "newPasswordLabel": "새 비밀번호",
-    "codeAndPasswordRequired": "코드와 새 비밀번호를 모두 입력해야 합니다."
+    "codeAndPasswordRequired": "코드와 새 비밀번호를 모두 입력해야 합니다.",
+    "sendCode": "코드 요청",
+    "codeRequested": "재설정 코드가 요청되었습니다. 서버 로그를 확인하거나 관리자에게 문의하세요.",
+    "haveCode": "이미 코드가 있습니다",
+    "back": "뒤로"
   },
   "admin": {
     "title": "관리",
@@ -464,7 +468,12 @@
       "maintenance": "서버 유지보수 중입니다. 완료 후 다시 시도하세요.",
       "absolute_path_required": "절대 경로를 입력하세요.",
       "rotation_running": "암호화 작업이 이미 진행 중입니다.",
-      "cannot_block_self": "본인 계정은 차단할 수 없습니다."
+      "cannot_block_self": "본인 계정은 차단할 수 없습니다.",
+      "cannot_demote_admin": "관리자를 강등할 수 있는 것은 슈퍼유저뿐입니다.",
+      "cannot_modify_superuser": "슈퍼유저 계정은 수정할 수 없습니다.",
+      "cannot_block_superuser": "슈퍼유저는 차단할 수 없습니다.",
+      "cannot_delete_superuser": "슈퍼유저는 삭제할 수 없습니다.",
+      "quota_exceeded_default": "사용자 할당량은 기본 저장소 제한을 초과할 수 없습니다."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "증가",
     "decrease": "감소",
-    "bytes_label": "바이트"
+    "bytes_label": "바이트",
+    "superuser": "슈퍼유저",
+    "superuser_required": "서버 설정 또는 암호화 비밀을 변경하려면 슈퍼유저 권한이 필요합니다.",
+    "reset_codes": "재설정 코드",
+    "no_reset_codes": "활성 재설정 코드가 없습니다.",
+    "reset_code": "재설정 코드",
+    "created_at": "생성됨",
+    "expires_in": "만료까지",
+    "confirm_delete_reset_code": "{name}의 재설정 코드를 해지하시겠습니까?"
   }
 }

@@ -457,7 +457,12 @@
       "maintenance": "The server is under maintenance. Try again when it completes.",
       "absolute_path_required": "Enter an absolute path.",
       "rotation_running": "An encryption operation is already in progress.",
-      "cannot_block_self": "You cannot block your own account."
+      "cannot_block_self": "You cannot block your own account.",
+      "cannot_demote_admin": "Only the superuser can demote an administrator.",
+      "cannot_modify_superuser": "The superuser account cannot be modified.",
+      "cannot_block_superuser": "The superuser cannot be blocked.",
+      "cannot_delete_superuser": "The superuser cannot be deleted.",
+      "quota_exceeded_default": "The user quota cannot exceed the default storage limit."
     },
     "fields": {
       "registration_mode": {
@@ -549,13 +554,25 @@
     },
     "increase": "Increase",
     "decrease": "Decrease",
-    "bytes_label": "bytes"
+    "bytes_label": "bytes",
+    "superuser": "Superuser",
+    "superuser_required": "Superuser privileges are required to change server configuration or encryption secrets.",
+    "reset_codes": "Reset codes",
+    "no_reset_codes": "No active reset codes.",
+    "reset_code": "Reset code",
+    "created_at": "Created",
+    "expires_in": "Expires in",
+    "confirm_delete_reset_code": "Revoke the reset code for {name}?"
   },
   "recovery": {
     "resetPasswordTitle": "Reset Password",
     "resetCodeLabel": "Reset Code",
     "passwordResetSuccessfully": "Password reset successfully!",
     "newPasswordLabel": "New Password",
-    "codeAndPasswordRequired": "Code and new password are required."
+    "codeAndPasswordRequired": "Code and new password are required.",
+    "sendCode": "Send Code",
+    "codeRequested": "Recovery code requested. Check server logs or ask an administrator.",
+    "haveCode": "I already have a code",
+    "back": "Back"
   }
 }

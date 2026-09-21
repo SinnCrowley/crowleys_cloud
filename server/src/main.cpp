@@ -180,6 +180,11 @@ int main(int argc, char *argv[]) {
       LOG_ERROR << "Failed to run periodic trash cleanup: " << e.what();
     }
     try {
+      server::ctx().userService->cleanupExpiredResetCodes();
+    } catch (const std::exception &e) {
+      LOG_ERROR << "Failed to run periodic reset code cleanup: " << e.what();
+    }
+    try {
       auto &appCtx = server::ctx();
       if (appCtx.config.logRetentionDays > 0) {
         namespace fs = std::filesystem;

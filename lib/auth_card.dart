@@ -34,6 +34,7 @@ class AuthCard extends StatefulWidget {
     this.onBiometricLogin,
     this.submitLabel,
     this.getBaseUrl,
+    this.authService,
   });
 
   final String title;
@@ -48,6 +49,7 @@ class AuthCard extends StatefulWidget {
   final Future<bool> Function()? onBiometricLogin;
   final String? submitLabel;
   final String? Function()? getBaseUrl;
+  final AuthService? authService;
 
   @override
   State<AuthCard> createState() => _AuthCardState();
@@ -278,7 +280,10 @@ class _AuthCardState extends State<AuthCard> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
-        return _ForgotPasswordDialog(baseUrl: baseUrl);
+        return _ForgotPasswordDialog(
+          baseUrl: baseUrl,
+          authService: widget.authService,
+        );
       },
     );
   }
@@ -415,9 +420,13 @@ class _AuthTextField extends StatelessWidget {
 }
 
 class _ForgotPasswordDialog extends StatefulWidget {
-  const _ForgotPasswordDialog({required this.baseUrl});
+  const _ForgotPasswordDialog({
+    required this.baseUrl,
+    this.authService,
+  });
 
   final String baseUrl;
+  final AuthService? authService;
 
   @override
   State<_ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
@@ -439,6 +448,48 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
     _codeController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _requestCode() async {
+    final l10n = AppLocalizations.of(context)!;
+    final username = _usernameController.text.trim();
+    if (username.isEmpty) {
+      setState(() => _error = l10n.usernameIsRequired);
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+    try {
+      final authService =
+          widget.authService ?? AuthService(secretStore: _DummySecretStore());
+      await authService.requestPasswordReset(
+        baseUrl: widget.baseUrl,
+        username: username,
+      );
+      if (mounted) {
+        setState(() {
+          _error = '';
+          _step = 2;
+          _isLoading = false;
+        });
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = l10n.failedToRequestReset;
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _enterCode() {
@@ -470,13 +521,15 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
     });
 
     try {
-      final authService = AuthService(secretStore: _DummySecretStore());
+      final authService =
+          widget.authService ?? AuthService(secretStore: _DummySecretStore());
       await authService.verifyPasswordReset(
         baseUrl: widget.baseUrl,
         username: username,
         code: code,
         newPassword: password,
       );
+      if (!mounted) return;
       setState(() {
         _success = l10n.passwordResetSuccessfully;
         _isLoading = false;
@@ -486,11 +539,13 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
         Navigator.of(context).pop();
       }
     } on AuthException catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.message;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = l10n.failedToResetPassword;
         _isLoading = false;
@@ -597,10 +652,26 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                     : () => Navigator.of(context).pop(),
                 child: Text(l10n.cancel, style: TextStyle(color: appSubtext)),
               ),
+              if (_step == 1)
+                TextButton(
+                  onPressed: _isLoading ? null : _enterCode,
+                  child: Text(
+                    l10n.enterResetCodeTitle,
+                    style: TextStyle(color: appAccent),
+                  ),
+                ),
+              if (_step == 2)
+                TextButton(
+                  onPressed: _isLoading ? null : _requestCode,
+                  child: Text(
+                    l10n.sendCode,
+                    style: TextStyle(color: appAccent),
+                  ),
+                ),
               FilledButton(
                 onPressed: _isLoading
                     ? null
-                    : (_step == 1 ? _enterCode : _resetPassword),
+                    : (_step == 1 ? _requestCode : _resetPassword),
                 style: FilledButton.styleFrom(
                   backgroundColor: appAccent,
                   shape: RoundedRectangleBorder(
@@ -617,7 +688,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                       )
                     : Text(
                         _step == 1
-                            ? l10n.enterResetCodeTitle
+                            ? l10n.sendCode
                             : l10n.resetPasswordTitle,
                       ),
               ),

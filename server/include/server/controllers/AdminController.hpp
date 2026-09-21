@@ -19,8 +19,12 @@ class AdminController : public drogon::HttpController<AdminController> {
   ADD_METHOD_TO(AdminController::maintenance, "/api/admin/maintenance", drogon::Get, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(AdminController::rotateEncryption, "/api/admin/encryption-key", drogon::Post, "server::middleware::JwtMiddleware");
   ADD_METHOD_TO(AdminController::resumeEncryption, "/api/admin/encryption-key/resume", drogon::Post, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(AdminController::resetCodes, "/api/admin/reset-codes", drogon::Get, "server::middleware::JwtMiddleware");
+  ADD_METHOD_TO(AdminController::deleteResetCode, "/api/admin/reset-codes/{1}", drogon::Delete, "server::middleware::JwtMiddleware");
   METHOD_LIST_END
 
+  void resetCodes(const drogon::HttpRequestPtr &, std::function<void(const drogon::HttpResponsePtr &)> &&);
+  void deleteResetCode(const drogon::HttpRequestPtr &, std::function<void(const drogon::HttpResponsePtr &)> &&, std::int64_t id);
   void maintenance(const drogon::HttpRequestPtr &, std::function<void(const drogon::HttpResponsePtr &)> &&);
   void rotateEncryption(const drogon::HttpRequestPtr &, std::function<void(const drogon::HttpResponsePtr &)> &&);
   void resumeEncryption(const drogon::HttpRequestPtr &, std::function<void(const drogon::HttpResponsePtr &)> &&);

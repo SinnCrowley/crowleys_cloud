@@ -384,7 +384,11 @@
     "resetCodeLabel": "Obnovovací kód",
     "passwordResetSuccessfully": "Heslo bylo úspěšně obnoveno!",
     "newPasswordLabel": "Nové heslo",
-    "codeAndPasswordRequired": "Kód a nové heslo jsou povinné."
+    "codeAndPasswordRequired": "Kód a nové heslo jsou povinné.",
+    "sendCode": "Požádat o kód",
+    "codeRequested": "Resetovací kód vyžádán. Zkontrolujte protokoly serveru nebo požádejte správce.",
+    "haveCode": "Již mám kód",
+    "back": "Zpět"
   },
   "admin": {
     "title": "Správa",
@@ -464,7 +468,12 @@
       "maintenance": "Probíhá údržba serveru. Zkuste to znovu po jejím dokončení.",
       "absolute_path_required": "Zadejte absolutní cestu.",
       "rotation_running": "Šifrovací operace již probíhá.",
-      "cannot_block_self": "Nemůžete zablokovat svůj vlastní účet."
+      "cannot_block_self": "Nemůžete zablokovat svůj vlastní účet.",
+      "cannot_demote_admin": "Pouze superuživatel může degradovat administrátora.",
+      "cannot_modify_superuser": "Účet superuživatele nelze upravovat.",
+      "cannot_block_superuser": "Superuživatele nelze zablokovat.",
+      "cannot_delete_superuser": "Superuživatele nelze smazat.",
+      "quota_exceeded_default": "Uživatelská kvóta nemůže překročit výchozí limit úložiště."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Zvýšit",
     "decrease": "Snížit",
-    "bytes_label": "bajtů"
+    "bytes_label": "bajtů",
+    "superuser": "Superuživatel",
+    "superuser_required": "Ke změně konfigurace serveru nebo šifrovacích klíčů jsou vyžadována oprávnění superuživatele.",
+    "reset_codes": "Resetovací kódy",
+    "no_reset_codes": "Žádné aktivní resetovací kódy.",
+    "reset_code": "Resetovací kód",
+    "created_at": "Vytvořeno",
+    "expires_in": "Vyprší za",
+    "confirm_delete_reset_code": "Odvolat resetovací kód pro uživatele {name}?"
   }
 }

@@ -9,8 +9,16 @@ namespace {
 bool requireAdmin(const drogon::HttpRequestPtr &req, const std::function<void(const drogon::HttpResponsePtr &)> &callback) {
   const auto id = utils::getAuthUserId(req);
   const auto actor = id ? ctx().userService->getUserById(*id) : std::nullopt;
-  if (utils::getAuthRole(req) == "admin" && actor && actor->role == "admin" && actor->status == "active" && !actor->passwordResetRequired) return true;
+  const auto role = utils::getAuthRole(req);
+  if ((role == "admin" || role == "superuser") && actor && (actor->role == "admin" || actor->role == "superuser") && actor->role == role && actor->status == "active" && !actor->passwordResetRequired) return true;
   callback(utils::jsonError(drogon::k403Forbidden, "Administrator access required", "forbidden"));
+  return false;
+}
+bool requireSuperuser(const drogon::HttpRequestPtr &req, const std::function<void(const drogon::HttpResponsePtr &)> &callback) {
+  const auto id = utils::getAuthUserId(req);
+  const auto actor = id ? ctx().userService->getUserById(*id) : std::nullopt;
+  if (utils::getAuthRole(req) == "superuser" && actor && actor->role == "superuser" && actor->status == "active" && !actor->passwordResetRequired) return true;
+  callback(utils::jsonError(drogon::k403Forbidden, "Superuser access required", "forbidden"));
   return false;
 }
 void list(const drogon::HttpRequestPtr &req, const std::function<void(const drogon::HttpResponsePtr &)> &callback, bool pending) {
@@ -36,9 +44,13 @@ void list(const drogon::HttpRequestPtr &req, const std::function<void(const drog
   callback(response);
 }
 void failure(const std::function<void(const drogon::HttpResponsePtr &)> &callback, const std::string &error) {
-  callback(utils::jsonError(error == "forbidden" ? drogon::k403Forbidden :
+  callback(utils::jsonError(error == "forbidden" || error == "cannot_demote_admin" ? drogon::k403Forbidden :
                            error.ends_with("not_found") ? drogon::k404NotFound :
-                           (error == "last_admin" || error == "cannot_block_self" || error == "quota_exceeded" || error == "deletion_incomplete" || error == "config_conflict" || error == "manual_migration_required") ? drogon::k409Conflict : drogon::k400BadRequest, error, error));
+                           (error == "last_admin" || error == "cannot_block_self" || error == "cannot_block_superuser" ||
+                            error == "cannot_modify_superuser" || error == "cannot_delete_superuser" ||
+                            error == "quota_exceeded" || error == "quota_exceeded_default" ||
+                            error == "deletion_incomplete" || error == "config_conflict" ||
+                            error == "manual_migration_required") ? drogon::k409Conflict : drogon::k400BadRequest, error, error));
 }
 }
 void AdminController::maintenance(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
@@ -48,7 +60,7 @@ void AdminController::maintenance(const drogon::HttpRequestPtr &req, std::functi
   callback(response);
 }
 void AdminController::rotateEncryption(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
-  if (!requireAdmin(req, callback)) return;
+  if (!requireSuperuser(req, callback)) return;
   const auto json = req->getJsonObject();
   if (!json || !(*json)["revision"].isString() || !(*json)["secret"].isString()) { failure(callback, "invalid_config_patch"); return; }
   try {
@@ -59,7 +71,7 @@ void AdminController::rotateEncryption(const drogon::HttpRequestPtr &req, std::f
   } catch (const std::exception &e) { failure(callback, e.what()); }
 }
 void AdminController::resumeEncryption(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
-  if (!requireAdmin(req, callback)) return;
+  if (!requireSuperuser(req, callback)) return;
   try {
     ctx().encryptionRotation->resume(*utils::getAuthUserId(req));
     auto response = drogon::HttpResponse::newHttpJsonResponse(ctx().encryptionRotation->status());
@@ -76,7 +88,7 @@ void AdminController::configuration(const drogon::HttpRequestPtr &req, std::func
   } catch (const std::exception &) { failure(callback, "config_unreadable"); }
 }
 void AdminController::saveConfiguration(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
-  if (!requireAdmin(req, callback)) return;
+  if (!requireSuperuser(req, callback)) return;
   const auto json = req->getJsonObject();
   if (!json || !(*json)["revision"].isString() || !(*json)["changes"].isObject()) { failure(callback, "invalid_config_patch"); return; }
   try {
@@ -86,7 +98,7 @@ void AdminController::saveConfiguration(const drogon::HttpRequestPtr &req, std::
   } catch (const std::exception &e) { failure(callback, e.what()); }
 }
 void AdminController::rotateSigningSecret(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
-  if (!requireAdmin(req, callback)) return;
+  if (!requireSuperuser(req, callback)) return;
   const auto json = req->getJsonObject();
   if (!json || !(*json)["revision"].isString() || !(*json)["secret"].isString()) { failure(callback, "invalid_config_patch"); return; }
   try {
@@ -146,4 +158,34 @@ void AdminController::userAction(const drogon::HttpRequestPtr &req, std::functio
   } else { failure(callback, "unknown_action"); return; }
   callback(utils::jsonOk());
 }
+void AdminController::resetCodes(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(ctx().configMutex);
+  if (!requireAdmin(req, callback)) return;
+  const auto actorId = *utils::getAuthUserId(req);
+  const auto codes = ctx().userService->listResetCodes(actorId);
+  Json::Value body(Json::arrayValue);
+  for (const auto &rc : codes) {
+    Json::Value item;
+    item["id"] = Json::Int64(rc.id);
+    item["user_id"] = Json::Int64(rc.userId);
+    item["username"] = rc.username;
+    item["role"] = rc.role;
+    item["code"] = rc.code;
+    item["created_at"] = Json::Int64(rc.createdAt);
+    item["expires_at"] = Json::Int64(rc.expiresAt);
+    body.append(item);
+  }
+  auto response = drogon::HttpResponse::newHttpJsonResponse(body);
+  response->addHeader("Cache-Control", "no-store");
+  callback(response);
 }
+void AdminController::deleteResetCode(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback, std::int64_t id) {
+  std::shared_lock<std::shared_mutex> configLock(ctx().configMutex);
+  if (!requireAdmin(req, callback)) return;
+  const auto actorId = *utils::getAuthUserId(req);
+  std::string error;
+  if (!ctx().userService->deleteResetCode(actorId, id, error)) { failure(callback, error); return; }
+  callback(utils::jsonOk());
+}
+}
+

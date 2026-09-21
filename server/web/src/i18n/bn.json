@@ -384,7 +384,11 @@
     "resetCodeLabel": "রিসেট কোড",
     "passwordResetSuccessfully": "পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!",
     "newPasswordLabel": "নতুন পাসওয়ার্ড",
-    "codeAndPasswordRequired": "কোড এবং নতুন পাসওয়ার্ড আবশ্যক।"
+    "codeAndPasswordRequired": "কোড এবং নতুন পাসওয়ার্ড আবশ্যক।",
+    "sendCode": "কোড পাঠান",
+    "codeRequested": "রিসেট কোডের অনুরোধ করা হয়েছে। সার্ভার লগ দেখুন অথবা প্রশাসকের সাথে যোগাযোগ করুন।",
+    "haveCode": "আমার কাছে ইতিমধ্যে একটি কোড আছে",
+    "back": "পেছনে"
   },
   "admin": {
     "title": "প্রশাসন",
@@ -464,7 +468,12 @@
       "maintenance": "সার্ভারের রক্ষণাবেক্ষণ চলছে। শেষ হলে আবার চেষ্টা করুন।",
       "absolute_path_required": "একটি পরম পাথ লিখুন।",
       "rotation_running": "ইতিমধ্যে একটি এনক্রিপশন কাজ চলছে।",
-      "cannot_block_self": "আপনি নিজের অ্যাকাউন্ট ব্লক করতে পারবেন না।"
+      "cannot_block_self": "আপনি নিজের অ্যাকাউন্ট ব্লক করতে পারবেন না।",
+      "cannot_demote_admin": "কেবলমাত্র সুপারইউজার একজন প্রশাসককে পদাবনতি করতে পারেন।",
+      "cannot_modify_superuser": "সুপারইউজার অ্যাকাউন্ট পরিবর্তন করা যাবে না।",
+      "cannot_block_superuser": "সুপারইউজারকে ব্লক করা যাবে না।",
+      "cannot_delete_superuser": "সুপারইউজারকে মুছে ফেলা যাবে না।",
+      "quota_exceeded_default": "ব্যবহারকারীর কোটা ডিফল্ট সঞ্চয়স্থান সীমা অতিক্রম করতে পারে না।"
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "বৃদ্ধি করুন",
     "decrease": "হ্রাস করুন",
-    "bytes_label": "বাইট"
+    "bytes_label": "বাইট",
+    "superuser": "সুপারইউজার",
+    "superuser_required": "সার্ভার কনফিগারেশন বা এনক্রিপশন গোপনীয়তা পরিবর্তন করতে সুপারইউজার বিশেষাধিকার প্রয়োজন।",
+    "reset_codes": "রিসেট কোড",
+    "no_reset_codes": "কোনো সক্রিয় রিসেট কোড নেই।",
+    "reset_code": "রিসেট কোড",
+    "created_at": "তৈরি করা হয়েছে",
+    "expires_in": "মেয়াদ শেষ হবে",
+    "confirm_delete_reset_code": "{name}-এর জন্য রিসেট কোড প্রত্যাহার করবেন?"
   }
 }

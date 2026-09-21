@@ -384,7 +384,11 @@
     "resetCodeLabel": "Kod resetowania",
     "passwordResetSuccessfully": "Hasło zostało pomyślnie zresetowane!",
     "newPasswordLabel": "Nowe hasło",
-    "codeAndPasswordRequired": "Wymagany jest kod oraz nowe hasło."
+    "codeAndPasswordRequired": "Wymagany jest kod oraz nowe hasło.",
+    "sendCode": "Poproś o kod",
+    "codeRequested": "Zażądano kodu resetowania. Sprawdź logi serwera lub poproś administratora.",
+    "haveCode": "Mam już kod",
+    "back": "Wstecz"
   },
   "admin": {
     "title": "Administracja",
@@ -464,7 +468,12 @@
       "maintenance": "Serwer jest konserwowany. Spróbuj ponownie po zakończeniu.",
       "absolute_path_required": "Wprowadź ścieżkę bezwzględną.",
       "rotation_running": "Operacja szyfrowania już trwa.",
-      "cannot_block_self": "Nie możesz zablokować własnego konta."
+      "cannot_block_self": "Nie możesz zablokować własnego konta.",
+      "cannot_demote_admin": "Tylko superużytkownik może zdegradować administratora.",
+      "cannot_modify_superuser": "Konto superużytkownika nie może być modyfikowane.",
+      "cannot_block_superuser": "Superużytkownik nie może zostać zablokowany.",
+      "cannot_delete_superuser": "Superużytkownik nie może zostać usunięty.",
+      "quota_exceeded_default": "Limit użytkownika nie może przekraczać domyślnego limitu pamięci."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Zwiększ",
     "decrease": "Zmniejsz",
-    "bytes_label": "bajtów"
+    "bytes_label": "bajtów",
+    "superuser": "Superużytkownik",
+    "superuser_required": "Uprawnienia superużytkownika są wymagane do zmiany konfiguracji serwera lub sekretów szyfrowania.",
+    "reset_codes": "Kody resetowania",
+    "no_reset_codes": "Brak aktywnych kodów resetowania.",
+    "reset_code": "Kod resetowania",
+    "created_at": "Utworzono",
+    "expires_in": "Wygasa za",
+    "confirm_delete_reset_code": "Odwołać kod resetowania dla użytkownika {name}?"
   }
 }

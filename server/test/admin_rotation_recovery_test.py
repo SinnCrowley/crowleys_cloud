@@ -111,13 +111,12 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-') as tempora
         start()
         token = ok('/api/login', dict(username='first', password='test-password'))['access_token']
         people = ok('/api/admin/users')
-        assert [(u['username'], u['role'], u['status']) for u in sorted(people, key=lambda u: u['created_at'])] == [('first', 'admin', 'active'), ('second', 'user', 'active')]
+        assert [(u['username'], u['role'], u['status']) for u in sorted(people, key=lambda u: u['created_at'])] == [('first', 'superuser', 'active'), ('second', 'user', 'active')]
         # Move the role to the other account, proving restart does not re-bootstrap.
         ok('/api/admin/users/2', dict(role='admin'), 'PATCH')
-        ok('/api/admin/users/7', dict(role='user'), 'PATCH')
-        token = ok('/api/login', dict(username='second', password='test-password'))['access_token']
+        assert request('/api/admin/users/7', dict(role='user'), method='PATCH')[1]['code'] == 'cannot_modify_superuser'
         stop(); start()
-        assert next(u for u in ok('/api/admin/users') if u['id'] == 7)['role'] == 'user'
+        assert next(u for u in ok('/api/admin/users') if u['id'] == 7)['role'] == 'superuser'
         contents = {'private.txt': b'private plaintext', 'shared.txt': b'shared plaintext', 'trash.txt': b'trash plaintext'}
         for name, data in contents.items():
             ok('/api/files?scope=private&path=' + name, data)
@@ -190,7 +189,7 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-') as tempora
         status, body, headers = request('/s/' + share + '/raw')
         assert status == 503 and body['code'] == 'maintenance'
         assert any(k.lower() == 'retry-after' for k in headers)
-        assert ok('/api/account')['role'] == 'admin'
+        assert ok('/api/account')['role'] == 'superuser'
         (objects/name).write_bytes(backup)
         stop(kill=True); start(); complete(); verify_files()
         print('Insufficient space preserves maintenance; restart resumes after repair.', flush=True)

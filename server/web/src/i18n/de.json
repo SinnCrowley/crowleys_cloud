@@ -384,7 +384,11 @@
     "resetCodeLabel": "Zurücksetzungscode",
     "passwordResetSuccessfully": "Passwort erfolgreich zurückgesetzt!",
     "newPasswordLabel": "Neues Passwort",
-    "codeAndPasswordRequired": "Code und neues Passwort sind erforderlich."
+    "codeAndPasswordRequired": "Code und neues Passwort sind erforderlich.",
+    "sendCode": "Code anfordern",
+    "codeRequested": "Wiederherstellungscode angefordert. Server-Protokolle prüfen oder Administrator fragen.",
+    "haveCode": "Ich habe bereits einen Code",
+    "back": "Zurück"
   },
   "admin": {
     "title": "Verwaltung",
@@ -464,7 +468,12 @@
       "maintenance": "Der Server wird gewartet. Versuchen Sie es nach Abschluss erneut.",
       "absolute_path_required": "Geben Sie einen absoluten Pfad ein.",
       "rotation_running": "Ein Verschlüsselungsvorgang läuft bereits.",
-      "cannot_block_self": "Sie können Ihr eigenes Konto nicht sperren."
+      "cannot_block_self": "Sie können Ihr eigenes Konto nicht sperren.",
+      "cannot_demote_admin": "Nur der Superuser kann einen Administrator herabstufen.",
+      "cannot_modify_superuser": "Das Superuser-Konto kann nicht geändert werden.",
+      "cannot_block_superuser": "Der Superuser kann nicht gesperrt werden.",
+      "cannot_delete_superuser": "Der Superuser kann nicht gelöscht werden.",
+      "quota_exceeded_default": "Das Benutzerkontingent darf das Standard-Speicherlimit nicht überschreiten."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Erhöhen",
     "decrease": "Verringern",
-    "bytes_label": "Bytes"
+    "bytes_label": "Bytes",
+    "superuser": "Superuser",
+    "superuser_required": "Superuser-Rechte sind erforderlich, um die Serverkonfiguration oder Verschlüsselungsgeheimnisse zu ändern.",
+    "reset_codes": "Wiederherstellungscodes",
+    "no_reset_codes": "Keine aktiven Wiederherstellungscodes.",
+    "reset_code": "Wiederherstellungscode",
+    "created_at": "Erstellt",
+    "expires_in": "Gültig bis",
+    "confirm_delete_reset_code": "Wiederherstellungscode für {name} widerrufen?"
   }
 }

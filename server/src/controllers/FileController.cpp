@@ -979,7 +979,7 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
     return;
   }
 
-  if (*scope == services::StorageScope::Shared && role != "admin") {
+  if (*scope == services::StorageScope::Shared && role != "admin" && role != "superuser") {
     callback(jsonError(drogon::k403Forbidden, "Administrator access required", "forbidden"));
     return;
   }

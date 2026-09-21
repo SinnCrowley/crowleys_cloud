@@ -914,6 +914,124 @@ void main() {
           expect(biometricTriggered, isTrue);
         },
       );
+
+      testWidgets(
+        'Forgot password dialog step 1 can request code via Send Code button',
+        (tester) async {
+          tester.view.physicalSize = const Size(1080, 2200);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+
+          final userCtrl = TextEditingController();
+          final passCtrl = TextEditingController();
+          final enL10n = lookupAppLocalizations(const Locale('en'));
+          bool requested = false;
+          String? requestedUser;
+
+          final mockAuth = _TestAuthService(
+            onRequestReset: (url, user) async {
+              requested = true;
+              requestedUser = user;
+            },
+          );
+
+          await tester.pumpWidget(
+            wrapWithLocalization(
+              Scaffold(
+                body: AuthCard(
+                  title: 'Login',
+                  usernameController: userCtrl,
+                  passwordController: passCtrl,
+                  getBaseUrl: () => 'http://192.168.1.10:8080',
+                  authService: mockAuth,
+                  onSubmit: (mode, {email}) async => true,
+                ),
+              ),
+              locale: const Locale('en'),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text('Forgot password?'));
+          await tester.pumpAndSettle();
+
+          await tester.enterText(
+            find
+                .descendant(
+                  of: find.byType(AlertDialog),
+                  matching: find.byType(TextField),
+                )
+                .first,
+            'alice',
+          );
+          await tester.tap(find.text(enL10n.sendCode));
+          await tester.pumpAndSettle();
+
+          expect(requested, isTrue);
+          expect(requestedUser, 'alice');
+          expect(find.text(enL10n.resetPasswordStep2Body), findsOneWidget);
+        },
+      );
     },
   );
+}
+
+class _TestAuthService extends AuthService {
+  _TestAuthService({
+    this.onRequestReset,
+  }) : super(secretStore: _TestDummySecretStore());
+
+  final Future<void> Function(String baseUrl, String username)? onRequestReset;
+
+  @override
+  Future<void> requestPasswordReset({
+    required String baseUrl,
+    required String username,
+  }) async {
+    if (onRequestReset != null) {
+      await onRequestReset!(baseUrl, username);
+      return;
+    }
+  }
+}
+
+class _TestDummySecretStore implements SecretStore {
+  @override
+  Future<void> clearCredentials(String serverId) async {}
+  @override
+  Future<void> clearToken(String serverId) async {}
+  @override
+  Future<String?> readLastUsername(String serverId) async => null;
+  @override
+  Future<String?> readRefreshToken(String serverId) async => null;
+  @override
+  Future<String?> readSavedPassword(String serverId) async => null;
+  @override
+  Future<String?> readToken(String serverId) async => null;
+  @override
+  Future<void> saveCredentials({
+    required String serverId,
+    required String username,
+    required String password,
+  }) async {}
+  @override
+  Future<void> saveTokens({
+    required String serverId,
+    required String accessToken,
+    required String refreshToken,
+  }) async {}
+  @override
+  Future<void> saveToken({
+    required String serverId,
+    required String token,
+  }) async {}
+  @override
+  Future<void> saveSyncToken({
+    required String serverId,
+    required String syncToken,
+  }) async {}
+  @override
+  Future<String?> readSyncToken(String serverId) async => null;
+  @override
+  Future<void> clearSyncToken(String serverId) async {}
 }

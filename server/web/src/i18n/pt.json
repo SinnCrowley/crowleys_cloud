@@ -384,7 +384,11 @@
     "resetCodeLabel": "Código de reposição",
     "passwordResetSuccessfully": "Palavra-passe reposta com sucesso!",
     "newPasswordLabel": "Nova palavra-passe",
-    "codeAndPasswordRequired": "O código e a nova palavra-passe são obrigatórios."
+    "codeAndPasswordRequired": "O código e a nova palavra-passe são obrigatórios.",
+    "sendCode": "Solicitar código",
+    "codeRequested": "Código de reposição solicitado. Verifique os registos do servidor ou peça a um administrador.",
+    "haveCode": "Já tenho um código",
+    "back": "Voltar"
   },
   "admin": {
     "title": "Administração",
@@ -464,7 +468,12 @@
       "maintenance": "O servidor está em manutenção. Tente novamente após a conclusão.",
       "absolute_path_required": "Introduza um caminho absoluto.",
       "rotation_running": "Já está em curso uma operação de encriptação.",
-      "cannot_block_self": "Não é possível bloquear a sua própria conta."
+      "cannot_block_self": "Não é possível bloquear a sua própria conta.",
+      "cannot_demote_admin": "Apenas o superusuário pode rebaixar um administrador.",
+      "cannot_modify_superuser": "A conta de superusuário não pode ser modificada.",
+      "cannot_block_superuser": "O superusuário não pode ser bloqueado.",
+      "cannot_delete_superuser": "O superusuário não pode ser excluído.",
+      "quota_exceeded_default": "A cota do usuário não pode exceder o limite de armazenamento padrão."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Aumentar",
     "decrease": "Diminuir",
-    "bytes_label": "bytes"
+    "bytes_label": "bytes",
+    "superuser": "Superusuário",
+    "superuser_required": "São necessários privilégios de superusuário para alterar a configuração do servidor ou os segredos de encriptação.",
+    "reset_codes": "Códigos de reposição",
+    "no_reset_codes": "Sem códigos de reposição ativos.",
+    "reset_code": "Código de reposição",
+    "created_at": "Criado",
+    "expires_in": "Expira em",
+    "confirm_delete_reset_code": "Revogar o código de reposição para {name}?"
   }
 }

@@ -67,9 +67,9 @@ Json::Value readObject(const std::filesystem::path &path) {
   if (!Json::parseFromStream(builder, input, &value, &error) || !value.isObject()) throw std::runtime_error("config_unreadable");
   return value;
 }
-void requireAdmin(std::int64_t actor) {
+void requireSuperuser(std::int64_t actor) {
   const auto user = ctx().userService->getUserById(actor);
-  if (!user || user->role != "admin" || user->status != "active" || user->passwordResetRequired) throw std::runtime_error("forbidden");
+  if (!user || user->role != "superuser" || user->status != "active" || user->passwordResetRequired) throw std::runtime_error("forbidden");
 }
 void validate(const Json::Value &values) {
   for (const auto &field : fields) {
@@ -184,7 +184,7 @@ Json::Value ConfigService::snapshotLocked() const {
 Json::Value ConfigService::save(std::int64_t actor, const std::string &expectedRevision, const Json::Value &changes) {
   std::unique_lock<std::shared_mutex> lock(ctx().configMutex);
   std::lock_guard<std::recursive_mutex> storageLock(ctx().storageMutex);
-  requireAdmin(actor);
+  requireSuperuser(actor);
   if (ctx().storageActivity.blocked()) throw std::runtime_error("maintenance");
   if (expectedRevision != revision()) throw std::runtime_error("config_conflict");
   if (!changes.isObject() || changes.empty()) throw std::runtime_error("invalid_config_patch");
@@ -226,7 +226,7 @@ Json::Value ConfigService::save(std::int64_t actor, const std::string &expectedR
 }
 void ConfigService::rotateSigningSecret(std::int64_t actor, const std::string &expectedRevision, const std::string &secret) {
   std::unique_lock<std::shared_mutex> lock(ctx().configMutex);
-  requireAdmin(actor);
+  requireSuperuser(actor);
   if (ctx().storageActivity.blocked()) throw std::runtime_error("maintenance");
   if (expectedRevision != revision()) throw std::runtime_error("config_conflict");
   if (environment("jwt_secret")) throw std::runtime_error("config_from_environment");

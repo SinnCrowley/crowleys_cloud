@@ -290,6 +290,36 @@ void Database::migrate() {
          "AND NOT EXISTS(SELECT 1 FROM users WHERE role = 'admin')");
     exec("INSERT INTO schema_migrations(name) VALUES('administration_v1')");
   }
+  bool superuserMigrated = false;
+  {
+    auto guard = getStatement("SELECT 1 FROM schema_migrations WHERE name = 'superuser_v1'");
+    superuserMigrated = sqlite3_step(guard.get()) == SQLITE_ROW;
+  }
+  if (!superuserMigrated) {
+    exec("UPDATE users SET role = 'superuser' WHERE id = (SELECT id FROM users ORDER BY created_at, id LIMIT 1) "
+         "AND NOT EXISTS(SELECT 1 FROM users WHERE role = 'superuser')");
+    exec("INSERT INTO schema_migrations(name) VALUES('superuser_v1')");
+  }
+  bool resetCodesMigrated = false;
+  {
+    auto guard = getStatement("SELECT 1 FROM schema_migrations WHERE name = 'reset_codes_v1'");
+    resetCodesMigrated = sqlite3_step(guard.get()) == SQLITE_ROW;
+  }
+  if (!resetCodesMigrated) {
+    bool hasColumn = false;
+    auto colGuard = getStatement("PRAGMA table_info(password_resets)");
+    while (sqlite3_step(colGuard.get()) == SQLITE_ROW) {
+      const char *colName = reinterpret_cast<const char *>(sqlite3_column_text(colGuard.get(), 1));
+      if (colName && std::string(colName) == "raw_code") {
+        hasColumn = true;
+        break;
+      }
+    }
+    if (!hasColumn) {
+      exec("ALTER TABLE password_resets ADD COLUMN raw_code TEXT NOT NULL DEFAULT ''");
+    }
+    exec("INSERT INTO schema_migrations(name) VALUES('reset_codes_v1')");
+  }
   exec(R"(
     CREATE TABLE IF NOT EXISTS encryption_rotation (
       id INTEGER PRIMARY KEY CHECK(id = 1), job_id TEXT NOT NULL,

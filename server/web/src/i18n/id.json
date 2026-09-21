@@ -384,7 +384,11 @@
     "resetCodeLabel": "Kode Atur Ulang",
     "passwordResetSuccessfully": "Kata sandi berhasil diatur ulang!",
     "newPasswordLabel": "Kata Sandi Baru",
-    "codeAndPasswordRequired": "Kode dan kata sandi baru diperlukan."
+    "codeAndPasswordRequired": "Kode dan kata sandi baru diperlukan.",
+    "sendCode": "Kirim kode",
+    "codeRequested": "Kode reset telah diminta. Periksa log server atau hubungi administrator.",
+    "haveCode": "Saya sudah memiliki kode",
+    "back": "Kembali"
   },
   "admin": {
     "title": "Administrasi",
@@ -464,7 +468,12 @@
       "maintenance": "Server sedang dipelihara. Coba lagi setelah selesai.",
       "absolute_path_required": "Masukkan jalur absolut.",
       "rotation_running": "Operasi enkripsi sedang berlangsung.",
-      "cannot_block_self": "Anda tidak dapat memblokir akun Anda sendiri."
+      "cannot_block_self": "Anda tidak dapat memblokir akun Anda sendiri.",
+      "cannot_demote_admin": "Hanya superuser yang dapat menurunkan jabatan administrator.",
+      "cannot_modify_superuser": "Akun superuser tidak dapat diubah.",
+      "cannot_block_superuser": "Superuser tidak dapat diblokir.",
+      "cannot_delete_superuser": "Superuser tidak dapat dihapus.",
+      "quota_exceeded_default": "Kuota pengguna tidak boleh melebihi batas penyimpanan default."
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "Tambah",
     "decrease": "Kurang",
-    "bytes_label": "bita"
+    "bytes_label": "bita",
+    "superuser": "Superuser",
+    "superuser_required": "Hak istimewa superuser diperlukan untuk mengubah konfigurasi server atau rahasia enkripsi.",
+    "reset_codes": "Kode reset",
+    "no_reset_codes": "Tidak ada kode reset aktif.",
+    "reset_code": "Kode reset",
+    "created_at": "Dibuat",
+    "expires_in": "Kedaluwarsa dalam",
+    "confirm_delete_reset_code": "Cabut kode reset untuk {name}?"
   }
 }

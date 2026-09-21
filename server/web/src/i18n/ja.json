@@ -384,7 +384,11 @@
     "resetCodeLabel": "再設定コード",
     "passwordResetSuccessfully": "パスワードを再設定しました！",
     "newPasswordLabel": "新しいパスワード",
-    "codeAndPasswordRequired": "コードと新しいパスワードの両方が必要です。"
+    "codeAndPasswordRequired": "コードと新しいパスワードの両方が必要です。",
+    "sendCode": "コードを送信",
+    "codeRequested": "リセットコードが要求されました。サーバーログを確認するか管理者に問い合わせてください。",
+    "haveCode": "すでにコードを持っています",
+    "back": "戻る"
   },
   "admin": {
     "title": "管理",
@@ -464,7 +468,12 @@
       "maintenance": "サーバーはメンテナンス中です。完了後に再試行してください。",
       "absolute_path_required": "絶対パスを入力してください。",
       "rotation_running": "暗号化処理がすでに実行中です。",
-      "cannot_block_self": "自分自身のアカウントを停止することはできません。"
+      "cannot_block_self": "自分自身のアカウントを停止することはできません。",
+      "cannot_demote_admin": "管理者権限を降格できるのはスーパーユーザーのみです。",
+      "cannot_modify_superuser": "スーパーユーザーアカウントを変更することはできません。",
+      "cannot_block_superuser": "スーパーユーザーを停止することはできません。",
+      "cannot_delete_superuser": "スーパーユーザーを削除することはできません。",
+      "quota_exceeded_default": "ユーザーのクォータがデフォルトのストレージ制限を超えることはできません。"
     },
     "fields": {
       "registration_mode": {
@@ -556,6 +565,14 @@
     },
     "increase": "増やす",
     "decrease": "減らす",
-    "bytes_label": "バイト"
+    "bytes_label": "バイト",
+    "superuser": "スーパーユーザー",
+    "superuser_required": "サーバー設定または暗号化シークレットを変更するにはスーパーユーザー権限が必要です。",
+    "reset_codes": "リセットコード",
+    "no_reset_codes": "有効なリセットコードはありません。",
+    "reset_code": "リセットコード",
+    "created_at": "作成日時",
+    "expires_in": "有効期限",
+    "confirm_delete_reset_code": "{name} のリセットコードを取り消しますか？"
   }
 }
