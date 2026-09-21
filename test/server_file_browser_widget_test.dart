@@ -149,33 +149,34 @@ void main() {
     controller.dispose();
   });
 
-  testWidgets('renders server files in ListView matching local browser layout', (
-    tester,
-  ) async {
-    final controller = await createController();
-    await tester.pumpWidget(
-      wrapWithLocalization(
-        Scaffold(
-          body: ServerFileBrowser(controller: controller, isGridView: false),
+  testWidgets(
+    'renders server files in ListView matching local browser layout',
+    (tester) async {
+      final controller = await createController();
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          Scaffold(
+            body: ServerFileBrowser(controller: controller, isGridView: false),
+          ),
         ),
-      ),
-    );
+      );
 
-    await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-    // 4 ListTiles rendered
-    expect(find.byType(ListTile), findsNWidgets(4));
+      // 4 ListTiles rendered
+      expect(find.byType(ListTile), findsNWidgets(4));
 
-    // Icons present
-    expect(find.byIcon(Icons.folder), findsWidgets);
-    expect(find.byIcon(Icons.audio_file), findsOneWidget);
-    expect(find.byIcon(Icons.picture_as_pdf), findsOneWidget);
-    expect(find.byType(RemoteThumbnailWidget), findsOneWidget);
+      // Icons present
+      expect(find.byIcon(Icons.folder), findsWidgets);
+      expect(find.byIcon(Icons.audio_file), findsOneWidget);
+      expect(find.byIcon(Icons.picture_as_pdf), findsOneWidget);
+      expect(find.byType(RemoteThumbnailWidget), findsOneWidget);
 
-    // Context menu icon present for each file
-    expect(find.byIcon(Icons.more_vert), findsNWidgets(4));
+      // Context menu icon present for each file
+      expect(find.byIcon(Icons.more_vert), findsNWidgets(4));
 
-    controller.disposeController();
-    controller.dispose();
-  });
+      controller.disposeController();
+      controller.dispose();
+    },
+  );
 }

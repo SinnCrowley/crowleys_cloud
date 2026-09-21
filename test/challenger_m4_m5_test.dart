@@ -977,9 +977,8 @@ void main() {
 }
 
 class _TestAuthService extends AuthService {
-  _TestAuthService({
-    this.onRequestReset,
-  }) : super(secretStore: _TestDummySecretStore());
+  _TestAuthService({this.onRequestReset})
+    : super(secretStore: _TestDummySecretStore());
 
   final Future<void> Function(String baseUrl, String username)? onRequestReset;
 

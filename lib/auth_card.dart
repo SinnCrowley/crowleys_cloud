@@ -420,10 +420,7 @@ class _AuthTextField extends StatelessWidget {
 }
 
 class _ForgotPasswordDialog extends StatefulWidget {
-  const _ForgotPasswordDialog({
-    required this.baseUrl,
-    this.authService,
-  });
+  const _ForgotPasswordDialog({required this.baseUrl, this.authService});
 
   final String baseUrl;
   final AuthService? authService;
@@ -687,9 +684,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                         ),
                       )
                     : Text(
-                        _step == 1
-                            ? l10n.sendCode
-                            : l10n.resetPasswordTitle,
+                        _step == 1 ? l10n.sendCode : l10n.resetPasswordTitle,
                       ),
               ),
             ],
