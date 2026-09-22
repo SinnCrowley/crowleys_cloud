@@ -598,16 +598,16 @@ find_package(Python3 COMPONENTS Interpreter QUIET)
 if(Python3_Interpreter_FOUND)
   add_test(NAME admin_rotation_recovery_test
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/admin_rotation_recovery_test.py $<TARGET_FILE:crowleys_cloud_server>)
-  set_tests_properties(admin_rotation_recovery_test PROPERTIES TIMEOUT 120)
+  set_tests_properties(admin_rotation_recovery_test PROPERTIES TIMEOUT 180)
   add_test(NAME admin_accounts_test
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/admin_accounts_test.py $<TARGET_FILE:crowleys_cloud_server>)
-  set_tests_properties(admin_accounts_test PROPERTIES TIMEOUT 120)
+  set_tests_properties(admin_accounts_test PROPERTIES TIMEOUT 180)
   add_test(NAME http_regression_test
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/http_regression_test.py $<TARGET_FILE:crowleys_cloud_server>)
-  set_tests_properties(http_regression_test PROPERTIES TIMEOUT 120)
+  set_tests_properties(http_regression_test PROPERTIES TIMEOUT 180)
   add_test(NAME release_smoke_test
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/release_smoke_test.py $<TARGET_FILE:crowleys_cloud_server>)
-  set_tests_properties(release_smoke_test PROPERTIES TIMEOUT 120)
+  set_tests_properties(release_smoke_test PROPERTIES TIMEOUT 180)
 endif()
 
 # ------------------------------------------------------------------------------

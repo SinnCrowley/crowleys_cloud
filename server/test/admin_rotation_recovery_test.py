@@ -63,6 +63,32 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-', **cleanup_
         assert status < 300, (args[0], status, body)
         return body
 
+    def make_sparse(f):
+        if os.name == 'nt':
+            import ctypes
+            import msvcrt
+            from ctypes import wintypes
+            kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+            DeviceIoControl = kernel32.DeviceIoControl
+            DeviceIoControl.argtypes = [
+                wintypes.HANDLE, wintypes.DWORD,
+                wintypes.LPVOID, wintypes.DWORD,
+                wintypes.LPVOID, wintypes.DWORD,
+                ctypes.POINTER(wintypes.DWORD), wintypes.LPVOID
+            ]
+            DeviceIoControl.restype = wintypes.BOOL
+            FSCTL_SET_SPARSE = 0x000900C4
+            handle = msvcrt.get_osfhandle(f.fileno())
+            bytes_returned = wintypes.DWORD(0)
+            res = DeviceIoControl(
+                wintypes.HANDLE(handle),
+                FSCTL_SET_SPARSE,
+                None, 0, None, 0,
+                ctypes.byref(bytes_returned), None
+            )
+            if not res:
+                raise ctypes.WinError(ctypes.get_last_error())
+
     def start():
         global process
         process = subprocess.Popen([str(binary), str(path)], stdout=log, stderr=log, env=env)
@@ -191,6 +217,7 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-', **cleanup_
         start()
         name = sha(contents['private.txt']); backup = (objects/name).read_bytes()
         with (objects/name).open('wb') as sparse:
+            make_sparse(sparse)
             sparse.truncate(shutil.disk_usage(objects).free + 1024 * 1024)
         rotate(secrets.token_hex(32))
         state = settled()
