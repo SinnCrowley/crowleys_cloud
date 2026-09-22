@@ -231,40 +231,9 @@ jobs:
             cmake_arch: ARM64
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg_cache
-      SCCACHE_DIR: ${{ github.workspace }}/.sccache
-      SCCACHE_CACHE_SIZE: 1G
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
-
-      - name: Setup sccache
-        shell: pwsh
-        run: |
-          if (Get-Command sccache -ErrorAction SilentlyContinue) {
-            Write-Host "sccache is already installed."
-          } else {
-            $tag = "v0.8.2"
-            $archive = "$env:RUNNER_TEMP\sccache.tar.gz"
-            Invoke-WebRequest -Uri "https://github.com/mozilla/sccache/releases/download/$tag/sccache-$tag-x86_64-pc-windows-msvc.tar.gz" -OutFile $archive
-            tar -xzf $archive -C $env:RUNNER_TEMP
-            $extractedDir = (Get-ChildItem -Path $env:RUNNER_TEMP -Filter "sccache-*" -Directory | Select-Object -First 1).FullName
-            Add-Content -Path $env:GITHUB_PATH -Value $extractedDir
-          }
-
-      - name: Configure sccache cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.sccache
-          key: sccache-windows-${{ matrix.arch }}-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            sccache-windows-${{ matrix.arch }}-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-
-            sccache-windows-${{ matrix.arch }}-
-
-      - name: Start sccache
-        shell: pwsh
-        run: |
-          sccache --start-server
-          sccache --zero-stats
 
       - name: Restore vcpkg Binary Cache
         uses: actions/cache/restore@v4
@@ -297,19 +266,10 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} `
             -DVCPKG_HOST_TRIPLET=${{ matrix.host_triplet }} `
-            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
             -A ${{ matrix.cmake_arch }}
 
       - name: Compile Server & Test Suite
         run: cmake --build server/build --config Release --parallel
-
-      - name: Show sccache statistics
-        if: always()
-        shell: pwsh
-        run: |
-          sccache --show-stats
-          sccache --stop-server
 
       - name: Run Server Test Suite
         run: ctest --test-dir server/build -C Release --output-on-failure
