@@ -5,6 +5,7 @@ stopped, then let the normal startup recovery validate it. Also kill the process
 while an active download keeps rotation waiting, and simulate insufficient space
 with a sparse file (without consuming the machine's free disk space).
 """
+import contextlib
 import hashlib
 import http.client
 import json
@@ -22,8 +23,9 @@ import time
 binary = Path(sys.argv[1]).resolve()
 sha = lambda value: hashlib.sha256(value).hexdigest()
 
-with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-') as temporary:
-    root = Path(temporary)
+cleanup_kwargs = {'ignore_cleanup_errors': True} if sys.version_info >= (3, 10) else {}
+with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-', **cleanup_kwargs) as temporary:
+    root = Path(os.path.realpath(temporary))
     with socket.socket() as sock:
         sock.bind(('127.0.0.1', 0))
         port = sock.getsockname()[1]
@@ -74,6 +76,7 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-') as tempora
         raise AssertionError('Server did not start')
 
     def stop(kill=False):
+        global process
         if process is None or process.poll() is not None:
             return
         process.kill() if kill else process.terminate()
@@ -82,6 +85,8 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-') as tempora
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
+        if os.name == 'nt':
+            time.sleep(0.1)
 
     def settled():
         for _ in range(600):
@@ -104,12 +109,15 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-') as tempora
     try:
         # Old schema: promote the earliest surviving account once; do not alter
         # existing users' activation state or promote again on later startups.
-        with sqlite3.connect(root/'db.sqlite') as db:
+        with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
             db.execute("CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'user', created_at INTEGER NOT NULL)")
             for uid, name, created in [(7, 'first', 100), (2, 'second', 200)]:
                 db.execute('INSERT INTO users VALUES(?,?,?,?,?)', (uid, name, sha(b'pw|test-password'), 'user', created))
+            db.commit()
         start()
         token = ok('/api/login', dict(username='first', password='test-password'))['access_token']
+        server_config = {field['name']: field['effective'] for field in ok('/api/admin/config')['fields']}
+        config['storage_root'] = server_config['storage_root']
         people = ok('/api/admin/users')
         assert [(u['username'], u['role'], u['status']) for u in sorted(people, key=lambda u: u['created_at'])] == [('first', 'superuser', 'active'), ('second', 'user', 'active')]
         # Move the role to the other account, proving restart does not re-bootstrap.
@@ -147,7 +155,7 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-') as tempora
                         storage_root=config['storage_root'], hash_files=True)
             keyfile = root/'encryption-rotation.keys.json'
             keyfile.write_text(json.dumps(keys)); keyfile.chmod(0o600)
-            with sqlite3.connect(root/'db.sqlite') as db:
+            with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
                 db.execute('DELETE FROM encryption_objects'); db.execute('DELETE FROM encryption_rotation')
                 phase = 'complete' if stage == 'complete_key_retained' else 'finalizing' if stage in ('finalizing', 'config_switched') else 'rotating'
                 if stage != 'keys_only':
@@ -165,6 +173,7 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-') as tempora
                         plain_size = next(len(data) for data in contents.values() if sha(data) == name)
                         db.execute('INSERT INTO encryption_objects VALUES(?,?,?,?,?,?)',
                                    (name, state, len(before), plain_size, sha(before), sha(after)))
+                db.commit()
             if stage == 'missing_keys': keyfile.unlink()
             start()
             if stage == 'missing_keys':

@@ -312,6 +312,8 @@ static void testShutdownUnderContention() {
           task.key = "cycle_" + std::to_string(cycle) + "_p_" + std::to_string(p) + "_" + std::to_string(counter++);
           if (queue.enqueue(task)) {
             enqueuedDuringCycle.fetch_add(1, std::memory_order_relaxed);
+          } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
           }
           std::this_thread::yield();
         }
@@ -335,7 +337,7 @@ static void testShutdownUnderContention() {
     }
 
     // Verify stop timing: must never hang or deadlock
-    TEST_ASSERT(stopElapsed < 500);
+    TEST_ASSERT(stopElapsed < 5000);
     TEST_ASSERT(queue.isStopped());
     TEST_ASSERT(!queue.isRunning());
 

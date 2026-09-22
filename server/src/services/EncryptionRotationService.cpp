@@ -232,7 +232,11 @@ void EncryptionRotationService::run(std::stop_token stop) {
     const auto value = keys();
     {
       std::shared_lock<std::shared_mutex> configLock(ctx().configMutex);
-      if (value["storage_root"].asString() != ctx().config.storageRoot || value["hash_files"].asBool() != ctx().config.hashFiles ||
+      std::error_code ec1, ec2;
+      const auto p1 = std::filesystem::weakly_canonical(value["storage_root"].asString(), ec1);
+      const auto p2 = std::filesystem::weakly_canonical(ctx().config.storageRoot, ec2);
+      const bool storageRootMatches = (!ec1 && !ec2) ? (p1 == p2) : (value["storage_root"].asString() == ctx().config.storageRoot);
+      if (!storageRootMatches || value["hash_files"].asBool() != ctx().config.hashFiles ||
           (ctx().config.encryptionKey != value["old_key"].asString() && ctx().config.encryptionKey != value["new_key"].asString()))
         throw std::runtime_error("encryption_key_conflict");
     }
@@ -277,8 +281,12 @@ void EncryptionRotationService::run(std::stop_token stop) {
         "rotation_object_conflict", "rotation_missing_object", "rotation_invalid_object", "rotation_size_mismatch", "rotation_journal_conflict", "config_from_environment"};
     if (!allowed.count(code)) code = "rotation_io_error";
     try {
-      auto guard = ctx().database->getStatement("UPDATE encryption_rotation SET error_code = ? WHERE id = 1");
-      sqlite3_bind_text(guard.get(), 1, code.c_str(), -1, SQLITE_TRANSIENT);
+      auto guard = ctx().database->getStatement(
+          "INSERT INTO encryption_rotation(id, job_id, phase, actor_user_id, created_at, error_code) "
+          "VALUES(1, '', 'idle', 0, ?, ?) "
+          "ON CONFLICT(id) DO UPDATE SET error_code = excluded.error_code");
+      sqlite3_bind_int64(guard.get(), 1, utils::nowSeconds());
+      sqlite3_bind_text(guard.get(), 2, code.c_str(), -1, SQLITE_TRANSIENT);
       done(guard.get());
     } catch (...) {}
     LOG_ERROR << "Encryption rotation paused: " << code;

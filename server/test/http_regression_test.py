@@ -1,4 +1,5 @@
 """End-to-end regressions against a disposable loopback server (stdlib only)."""
+import contextlib
 import http.client
 import io
 import json
@@ -16,8 +17,10 @@ import zipfile
 
 binary = Path(sys.argv[1]).resolve()
 
+cleanup_kwargs = {'ignore_cleanup_errors': True} if sys.version_info >= (3, 10) else {}
+
 def run(hash_files):
-    with tempfile.TemporaryDirectory(prefix='crowley-http-test-') as tmp:
+    with tempfile.TemporaryDirectory(prefix='crowley-http-test-', **cleanup_kwargs) as tmp:
         root = Path(tmp)
         with socket.socket() as sock:
             sock.bind(('127.0.0.1', 0))
@@ -108,7 +111,7 @@ def run(hash_files):
                 assert json.loads(request('/api/admin/users/1', {}, helper, method='DELETE')[1])['code'] == 'cannot_delete_superuser'
                 code = obj('/api/admin/users/2/reset-password', {}, token)['code']
                 obj('/api/auth/reset-password/request',dict(username='helper'))
-                with sqlite3.connect(root/'db.sqlite') as db:
+                with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
                     assert db.execute('select count(*) from password_resets').fetchone()[0] == 1
                     stored=db.execute('select code from password_resets order by id desc limit 1').fetchone()[0]
                 assert stored != code and len(stored) == 64
@@ -127,8 +130,10 @@ def run(hash_files):
                 process.terminate()
                 try: process.wait(timeout=5)
                 except subprocess.TimeoutExpired: process.kill(); process.wait()
+                if os.name == 'nt':
+                    time.sleep(0.1)
 
-with tempfile.TemporaryDirectory(prefix='crowley-secrets-test-') as tmp:
+with tempfile.TemporaryDirectory(prefix='crowley-secrets-test-', **cleanup_kwargs) as tmp:
     config_path=Path(tmp)/'config.json'
     config_path.write_text(json.dumps(dict(jwt_secret='short-secret')))
     env={k:v for k,v in os.environ.items() if k not in ('CROWLEYS_JWT_SECRET','CROWLEYS_ENCRYPTION_KEY')}

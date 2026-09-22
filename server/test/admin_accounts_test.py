@@ -1,5 +1,6 @@
 """Administration account contract, including concurrent bootstrap and recovery."""
 from concurrent.futures import ThreadPoolExecutor
+import contextlib
 import hashlib
 import http.client
 import json
@@ -16,8 +17,11 @@ import time
 binary = Path(sys.argv[1]).resolve()
 
 
+cleanup_kwargs = {'ignore_cleanup_errors': True} if sys.version_info >= (3, 10) else {}
+
+
 def run(mode='approval', hashed=False, environment_secrets=False):
-    with tempfile.TemporaryDirectory(prefix='crowley-admin-') as tmp:
+    with tempfile.TemporaryDirectory(prefix='crowley-admin-', **cleanup_kwargs) as tmp:
         root = Path(tmp)
         with socket.socket() as sock:
             sock.bind(('127.0.0.1', 0))
@@ -132,7 +136,7 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                 code = ok(f'/api/admin/users/{uid}/reset-password', {}, token)['code']
                 assert request('/api/account', token=user)[0] == 401
                 assert request('/api/login', dict(username=chosen['username'], password='test-password'))[1]['code'] == 'password_reset_required'
-                with sqlite3.connect(root/'db.sqlite') as db:
+                with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
                     stored = db.execute('SELECT code FROM password_resets WHERE user_id=?', (uid,)).fetchone()[0]
                 assert stored != code and len(stored) == 64
                 for _ in range(5):
@@ -163,10 +167,11 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                 ok(f'/api/admin/users/{uid}/revoke-sessions', {}, token)
                 assert request('/api/account', token=user)[0] == 401
                 code = ok(f'/api/admin/users/{uid}/reset-password', {}, token)['code']
-                with sqlite3.connect(root/'db.sqlite') as db:
+                with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
                     db.execute('UPDATE password_resets SET expires_at=0 WHERE user_id=?', (uid,))
+                    db.commit()
                 assert request('/api/auth/reset-password/verify', dict(username=chosen['username'], code=code, new_password='updated'))[0] == 400
-                with sqlite3.connect(root/'db.sqlite') as db:
+                with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
                     assert db.execute('SELECT count(*) FROM admin_audit').fetchone()[0] > 5
                 # Reservations survive between chunks and account for parallel growth.
                 ok(f'/api/admin/users/{admin_id}', dict(quota_bytes=10), token, 'PATCH')
@@ -231,11 +236,13 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                     source = root/'storage'/'users'/str(transfer_id)/'keep.txt'
                     source.unlink()
                     assert request(f'/api/admin/users/{transfer_id}', token=token, method='DELETE')[1]['code'] == 'deletion_incomplete'
-                    with sqlite3.connect(root/'db.sqlite') as db:
+                    with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
                         assert db.execute('SELECT phase FROM account_deletions WHERE user_id=?', (transfer_id,)).fetchone()[0] == 'copying'
                     source.write_bytes(b'keep!')
                     process.terminate()
                     process.wait(timeout=5)
+                    if os.name == 'nt':
+                        time.sleep(0.1)
                     process = subprocess.Popen([str(binary), str(config_path)], stdout=log, stderr=log, env=env)
                     for _ in range(100):
                         if process.poll() is not None:
@@ -254,13 +261,13 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                     (private_object/'blocked').write_text('cleanup failure')
                     assert request(f'/api/admin/users/{transfer_id}', token=token, method='DELETE')[1]['code'] == 'deletion_incomplete'
                     assert next(u for u in ok('/api/admin/users', token=token) if u['id'] == transfer_id)['status'] == 'deleting'
-                    with sqlite3.connect(root/'db.sqlite') as db:
+                    with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
                         assert db.execute('SELECT phase FROM account_deletions WHERE user_id=?', (transfer_id,)).fetchone()[0] == 'cleanup'
                     (private_object/'blocked').unlink(); private_object.rmdir(); private_object.write_bytes(backup)
                     ok(f'/api/admin/users/{transfer_id}', token=token, method='DELETE')
                 assert request('/api/account', token=transfer_token)[0] == 401
                 assert request('/s/'+share+'/raw')[0] == 404
-                with sqlite3.connect(root/'db.sqlite') as db:
+                with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
                     transferred = db.execute("SELECT rel_path FROM file_index WHERE owner_user_id=? AND is_shared=1 AND name='keep.txt'", (admin_id,)).fetchone()[0]
                     assert db.execute('SELECT count(*) FROM account_deletions').fetchone()[0] == 0
                     assert db.execute('SELECT count(*) FROM users WHERE id=?', (transfer_id,)).fetchone()[0] == 0
@@ -309,7 +316,7 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                 assert 58 <= int(new_session['access_token'].split('|')[2]) - int(time.time()) <= 60
                 assert int(token.split('|')[2]) > int(new_session['access_token'].split('|')[2])
                 assert ok('/api/account', token=token)['role'] == 'superuser'
-                with sqlite3.connect(root/'db.sqlite') as db:
+                with contextlib.closing(sqlite3.connect(root/'db.sqlite')) as db:
                     expiry = db.execute('SELECT expires_at FROM refresh_tokens WHERE token_hash=?', (hashlib.sha256(new_session['refresh_token'].encode()).hexdigest(),)).fetchone()[0]
                 assert 118 <= expiry - int(time.time()) <= 120
                 assert request('/api/admin/config', dict(revision=original_revision, changes={'registration_mode': 'open'}), token, 'PATCH')[0] == 409
@@ -363,6 +370,8 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                     ok(f"/api/admin/reset-codes/{su_entry['id']}", token=token, method='DELETE')
                 # Saved infrastructure and live settings survive an actual restart.
                 process.terminate(); process.wait(timeout=5)
+                if os.name == 'nt':
+                    time.sleep(0.1)
                 port = next_port
                 process = subprocess.Popen([str(binary), str(config_path)], stdout=log, stderr=log, env=env)
                 for _ in range(100):
@@ -385,6 +394,8 @@ def run(mode='approval', hashed=False, environment_secrets=False):
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait()
+                if os.name == 'nt':
+                    time.sleep(0.1)
 
 
 for mode in ('approval', 'open', 'closed'):
