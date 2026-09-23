@@ -253,11 +253,11 @@ jobs:
           vcpkg install --x-manifest-root=server --triplet ${{ matrix.triplet }} --host-triplet ${{ matrix.host_triplet }}
 
       - name: Save vcpkg Binary Cache
-        if: always()
+        if: steps.vcpkg-cache.outputs.cache-exact-match != 'true'
         uses: actions/cache/save@v6
         with:
           path: ${{ github.workspace }}/vcpkg_cache
-          key: vcpkg-${{ runner.os }}-${{ matrix.triplet }}-${{ hashFiles('server/vcpkg.json') }}
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
 
       - name: Configure CMake
         run: |
