@@ -63,31 +63,69 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-', **cleanup_
         assert status < 300, (args[0], status, body)
         return body
 
-    def make_sparse(f):
+    def create_sparse_oversized_file(path, size):
         if os.name == 'nt':
             import ctypes
-            import msvcrt
             from ctypes import wintypes
             kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
-            DeviceIoControl = kernel32.DeviceIoControl
-            DeviceIoControl.argtypes = [
+            GENERIC_READ = 0x80000000
+            GENERIC_WRITE = 0x40000000
+            CREATE_ALWAYS = 2
+            FILE_ATTRIBUTE_NORMAL = 0x80
+            FSCTL_SET_SPARSE = 0x000900C4
+            FILE_BEGIN = 0
+
+            kernel32.CreateFileW.argtypes = [
+                wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                wintypes.LPVOID, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE
+            ]
+            kernel32.CreateFileW.restype = wintypes.HANDLE
+
+            kernel32.DeviceIoControl.argtypes = [
                 wintypes.HANDLE, wintypes.DWORD,
                 wintypes.LPVOID, wintypes.DWORD,
                 wintypes.LPVOID, wintypes.DWORD,
                 ctypes.POINTER(wintypes.DWORD), wintypes.LPVOID
             ]
-            DeviceIoControl.restype = wintypes.BOOL
-            FSCTL_SET_SPARSE = 0x000900C4
-            handle = msvcrt.get_osfhandle(f.fileno())
-            bytes_returned = wintypes.DWORD(0)
-            res = DeviceIoControl(
-                wintypes.HANDLE(handle),
-                FSCTL_SET_SPARSE,
-                None, 0, None, 0,
-                ctypes.byref(bytes_returned), None
+            kernel32.DeviceIoControl.restype = wintypes.BOOL
+
+            kernel32.SetFilePointerEx.argtypes = [
+                wintypes.HANDLE, ctypes.c_int64,
+                ctypes.POINTER(ctypes.c_int64), wintypes.DWORD
+            ]
+            kernel32.SetFilePointerEx.restype = wintypes.BOOL
+
+            kernel32.SetEndOfFile.argtypes = [wintypes.HANDLE]
+            kernel32.SetEndOfFile.restype = wintypes.BOOL
+
+            kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+            kernel32.CloseHandle.restype = wintypes.BOOL
+
+            handle = kernel32.CreateFileW(
+                str(path), GENERIC_READ | GENERIC_WRITE, 0, None,
+                CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, None
             )
-            if not res:
+            if handle == -1 or handle == wintypes.HANDLE(-1).value:
                 raise ctypes.WinError(ctypes.get_last_error())
+            try:
+                bytes_returned = wintypes.DWORD(0)
+                if not kernel32.DeviceIoControl(
+                    handle, FSCTL_SET_SPARSE,
+                    None, 0, None, 0,
+                    ctypes.byref(bytes_returned), None
+                ):
+                    raise ctypes.WinError(ctypes.get_last_error())
+
+                li = ctypes.c_int64(size)
+                if not kernel32.SetFilePointerEx(handle, li, None, FILE_BEGIN):
+                    raise ctypes.WinError(ctypes.get_last_error())
+                if not kernel32.SetEndOfFile(handle):
+                    raise ctypes.WinError(ctypes.get_last_error())
+            finally:
+                kernel32.CloseHandle(handle)
+        else:
+            with open(path, 'wb') as f:
+                f.truncate(size)
 
     def start():
         global process
@@ -216,9 +254,8 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-', **cleanup_
         # filling the disk. Restoring its ciphertext is the operator's repair.
         start()
         name = sha(contents['private.txt']); backup = (objects/name).read_bytes()
-        with (objects/name).open('wb') as sparse:
-            make_sparse(sparse)
-            sparse.truncate(shutil.disk_usage(objects).free + 1024 * 1024)
+        create_sparse_oversized_file(objects/name, shutil.disk_usage(objects).free + 1024 * 1024)
+        print('Sparse oversized file created, rotating...', flush=True)
         rotate(secrets.token_hex(32))
         state = settled()
         assert state['maintenance'] and state['error_code'] == 'rotation_disk_full', state
@@ -229,6 +266,7 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-', **cleanup_
         (objects/name).write_bytes(backup)
         stop(kill=True); start(); complete(); verify_files()
         print('Insufficient space preserves maintenance; restart resumes after repair.', flush=True)
+        print('Testing streaming download during rotation...', flush=True)
 
         # A real streamed download must keep the old key/object readable until
         # its response finishes. New reads fail with a retryable maintenance code.
