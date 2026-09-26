@@ -157,25 +157,37 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         </button>
       </div>
     {:else}
-      <div class="tab-buttons">
-        <button
-          type="button"
-          class="tab-btn {activeTab === 'login' ? 'active' : ''}"
-          on:click={() => (activeTab = 'login')}
-        >
-          {$t('nav.sign_in')}
-        </button>
-        <button
-          type="button"
-          class="tab-btn {activeTab === 'register' ? 'active' : ''}"
-          on:click={() => (activeTab = 'register')}
-        >
-          {$t('modals.auth.register_btn')}
-        </button>
-        <button type="button" class="tab-btn {activeTab === 'recovery' ? 'active' : ''}" on:click={() => { activeTab = 'recovery'; recoveryStep = 1; errorMessage = ''; statusMessage = ''; }}>
-          {$t('recovery.resetPasswordTitle')}
-        </button>
-      </div>
+      {#if activeTab === 'recovery'}
+        <div class="recovery-header">
+          <button
+            type="button"
+            class="btn-icon"
+            style="width: 32px; height: 32px;"
+            title={$t('recovery.back')}
+            on:click={() => { activeTab = 'login'; recoveryStep = 1; errorMessage = ''; statusMessage = ''; }}
+          >
+            <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+          </button>
+          <h3 class="recovery-title">{$t('recovery.resetPasswordTitle')}</h3>
+        </div>
+      {:else}
+        <div class="tab-buttons">
+          <button
+            type="button"
+            class="tab-btn {activeTab === 'login' ? 'active' : ''}"
+            on:click={() => { activeTab = 'login'; errorMessage = ''; statusMessage = ''; }}
+          >
+            {$t('nav.sign_in')}
+          </button>
+          <button
+            type="button"
+            class="tab-btn {activeTab === 'register' ? 'active' : ''}"
+            on:click={() => { activeTab = 'register'; errorMessage = ''; statusMessage = ''; }}
+          >
+            {$t('modals.auth.register_btn')}
+          </button>
+        </div>
+      {/if}
 
       {#if activeTab === 'recovery'}
         <p class="text-sub" style="margin-bottom: var(--spacing-md); line-height: 1.4;">
@@ -215,6 +227,24 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           />
         </div>
 
+        {#if activeTab === 'recovery' && recoveryStep === 2}
+          <div class="form-group">
+            <label class="form-label" for="recoveryCode">{$t('recovery.resetCodeLabel')}</label>
+            <input
+              id="recoveryCode"
+              class="form-input"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              pattern={'[0-9]{6}'}
+              maxlength="6"
+              bind:value={recoveryCode}
+              placeholder="123456"
+              required
+            />
+          </div>
+        {/if}
+
         {#if activeTab !== 'recovery' || recoveryStep === 2}
           <div class="form-group">
             <label class="form-label" for="password">{$t(activeTab === 'recovery' ? 'recovery.newPasswordLabel' : 'modals.auth.password')}</label>
@@ -229,12 +259,23 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           </div>
         {/if}
 
-        {#if activeTab === 'recovery' && recoveryStep === 2}
-          <div class="form-group">
-            <label class="form-label" for="recoveryCode">{$t('recovery.resetCodeLabel')}</label>
-            <input id="recoveryCode" class="form-input" type="text" inputmode="numeric" autocomplete="one-time-code" pattern={'[0-9]{6}'} maxlength="6" bind:value={recoveryCode} required />
+        {#if activeTab === 'login'}
+          <div class="forgot-password-row">
+            <button
+              type="button"
+              class="forgot-password-btn"
+              on:click={() => {
+                activeTab = 'recovery';
+                recoveryStep = 1;
+                errorMessage = '';
+                statusMessage = '';
+              }}
+            >
+              {$t('recovery.forgotPassword')}
+            </button>
           </div>
         {/if}
+
         {#if activeTab !== 'login' && (activeTab !== 'recovery' || recoveryStep === 2)}
           <div class="form-group">
             <label class="form-label" for="confirmPassword">{$t('modals.auth.confirm_password')}</label>
@@ -259,6 +300,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <button type="button" class="btn btn-secondary full-width" style="margin-top: var(--spacing-sm);" on:click={() => { recoveryStep = 2; errorMessage = ''; }}>
             {$t('recovery.haveCode')}
           </button>
+          <button
+            type="button"
+            class="btn btn-secondary full-width"
+            style="margin-top: var(--spacing-sm);"
+            on:click={() => { activeTab = 'login'; recoveryStep = 1; errorMessage = ''; statusMessage = ''; }}
+          >
+            {$t('recovery.back')}
+          </button>
         {:else if activeTab === 'recovery' && recoveryStep === 2}
           <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-sm);">
             <button type="button" class="btn btn-secondary" style="flex: 1;" on:click={() => { recoveryStep = 1; errorMessage = ''; }}>
@@ -279,6 +328,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
               {$t('recovery.sendCode')}
             </button>
           </div>
+          <button
+            type="button"
+            class="btn btn-secondary full-width"
+            style="margin-top: var(--spacing-sm);"
+            on:click={() => { activeTab = 'login'; recoveryStep = 1; errorMessage = ''; statusMessage = ''; }}
+          >
+            {$t('nav.sign_in')}
+          </button>
         {/if}
       </form>
     {/if}
@@ -348,5 +405,44 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   .auth-actions {
     margin-top: var(--spacing-md);
+  }
+
+  .recovery-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-xs);
+  }
+
+  .recovery-title {
+    margin: 0;
+    font-size: calc(16px * var(--font-scale));
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .forgot-password-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: calc(var(--spacing-xs) * -0.5);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .forgot-password-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--accent-color);
+    font-size: calc(13px * var(--font-scale));
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .forgot-password-btn:hover {
+    text-decoration: underline;
+    opacity: 0.85;
   }
 </style>

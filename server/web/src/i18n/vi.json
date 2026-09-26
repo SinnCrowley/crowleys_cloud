@@ -388,7 +388,8 @@
     "sendCode": "Gửi mã",
     "codeRequested": "Đã yêu cầu mã đặt lại. Hãy kiểm tra nhật ký máy chủ hoặc hỏi quản trị viên.",
     "haveCode": "Tôi đã có mã",
-    "back": "Quay lại"
+    "back": "Quay lại",
+    "forgotPassword": "Quên mật khẩu?"
   },
   "admin": {
     "title": "Quản trị",

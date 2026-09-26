@@ -388,7 +388,8 @@
     "sendCode": "Kod iste",
     "codeRequested": "Sıfırlama kodu istendi. Sunucu günlüklerini kontrol edin veya yöneticiye başvurun.",
     "haveCode": "Zaten bir kodum var",
-    "back": "Geri"
+    "back": "Geri",
+    "forgotPassword": "Şifrenizi mi unuttunuz?"
   },
   "admin": {
     "title": "Yönetim",

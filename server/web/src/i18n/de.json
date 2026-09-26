@@ -388,7 +388,8 @@
     "sendCode": "Code anfordern",
     "codeRequested": "Wiederherstellungscode angefordert. Server-Protokolle prüfen oder Administrator fragen.",
     "haveCode": "Ich habe bereits einen Code",
-    "back": "Zurück"
+    "back": "Zurück",
+    "forgotPassword": "Passwort vergessen?"
   },
   "admin": {
     "title": "Verwaltung",

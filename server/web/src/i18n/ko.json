@@ -388,7 +388,8 @@
     "sendCode": "코드 요청",
     "codeRequested": "재설정 코드가 요청되었습니다. 서버 로그를 확인하거나 관리자에게 문의하세요.",
     "haveCode": "이미 코드가 있습니다",
-    "back": "뒤로"
+    "back": "뒤로",
+    "forgotPassword": "비밀번호를 잊으셨나요?"
   },
   "admin": {
     "title": "관리",

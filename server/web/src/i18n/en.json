@@ -573,6 +573,7 @@
     "sendCode": "Send Code",
     "codeRequested": "Recovery code requested. Check server logs or ask an administrator.",
     "haveCode": "I already have a code",
-    "back": "Back"
+    "back": "Back",
+    "forgotPassword": "Forgot password?"
   }
 }

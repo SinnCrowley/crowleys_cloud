@@ -388,7 +388,8 @@
     "sendCode": "Solicitar código",
     "codeRequested": "Código de reposição solicitado. Verifique os registos do servidor ou peça a um administrador.",
     "haveCode": "Já tenho um código",
-    "back": "Voltar"
+    "back": "Voltar",
+    "forgotPassword": "Esqueceu-se da palavra-passe?"
   },
   "admin": {
     "title": "Administração",

@@ -388,7 +388,8 @@
     "sendCode": "Kirim kode",
     "codeRequested": "Kode reset telah diminta. Periksa log server atau hubungi administrator.",
     "haveCode": "Saya sudah memiliki kode",
-    "back": "Kembali"
+    "back": "Kembali",
+    "forgotPassword": "Lupa Kata Sandi?"
   },
   "admin": {
     "title": "Administrasi",

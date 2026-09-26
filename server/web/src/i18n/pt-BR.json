@@ -388,7 +388,8 @@
     "sendCode": "Solicitar código",
     "codeRequested": "Código de redefinição solicitado. Verifique os logs do servidor ou peça a um administrador.",
     "haveCode": "Já tenho um código",
-    "back": "Voltar"
+    "back": "Voltar",
+    "forgotPassword": "Esqueceu a senha?"
   },
   "admin": {
     "title": "Administração",

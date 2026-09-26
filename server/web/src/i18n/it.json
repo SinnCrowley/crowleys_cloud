@@ -388,7 +388,8 @@
     "sendCode": "Richiedi codice",
     "codeRequested": "Codice di reimpostazione richiesto. Controlla i log del server o chiedi a un amministratore.",
     "haveCode": "Ho già un codice",
-    "back": "Indietro"
+    "back": "Indietro",
+    "forgotPassword": "Password dimenticata?"
   },
   "admin": {
     "title": "Amministrazione",

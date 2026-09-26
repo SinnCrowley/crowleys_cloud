@@ -388,7 +388,8 @@
     "sendCode": "Požádat o kód",
     "codeRequested": "Resetovací kód vyžádán. Zkontrolujte protokoly serveru nebo požádejte správce.",
     "haveCode": "Již mám kód",
-    "back": "Zpět"
+    "back": "Zpět",
+    "forgotPassword": "Zapomněli jste heslo?"
   },
   "admin": {
     "title": "Správa",

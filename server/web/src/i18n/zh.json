@@ -388,7 +388,8 @@
     "sendCode": "發送代碼",
     "codeRequested": "已請求重設代碼。請查看伺服器日誌或聯繫管理員。",
     "haveCode": "我已經有代碼",
-    "back": "返回"
+    "back": "返回",
+    "forgotPassword": "忘記密碼？"
   },
   "admin": {
     "title": "管理",

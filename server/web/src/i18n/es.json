@@ -388,7 +388,8 @@
     "sendCode": "Solicitar código",
     "codeRequested": "Código de restablecimiento solicitado. Revise los registros del servidor o consulte al administrador.",
     "haveCode": "Ya tengo un código",
-    "back": "Atrás"
+    "back": "Atrás",
+    "forgotPassword": "¿Olvidó la contraseña?"
   },
   "admin": {
     "title": "Administración",

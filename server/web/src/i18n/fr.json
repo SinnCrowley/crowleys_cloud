@@ -388,7 +388,8 @@
     "sendCode": "Demander le code",
     "codeRequested": "Code de réinitialisation demandé. Consultez les journaux du serveur ou contactez un administrateur.",
     "haveCode": "J'ai déjà un code",
-    "back": "Retour"
+    "back": "Retour",
+    "forgotPassword": "Mot de passe oublié ?"
   },
   "admin": {
     "title": "Administration",

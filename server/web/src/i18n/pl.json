@@ -388,7 +388,8 @@
     "sendCode": "Poproś o kod",
     "codeRequested": "Zażądano kodu resetowania. Sprawdź logi serwera lub poproś administratora.",
     "haveCode": "Mam już kod",
-    "back": "Wstecz"
+    "back": "Wstecz",
+    "forgotPassword": "Nie pamiętasz hasła?"
   },
   "admin": {
     "title": "Administracja",
