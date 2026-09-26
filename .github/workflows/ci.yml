@@ -34,7 +34,7 @@ jobs:
 
       - name: Path Filter
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             server:
