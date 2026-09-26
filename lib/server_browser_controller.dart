@@ -127,9 +127,34 @@ class ServerBrowserController extends ChangeNotifier {
     _searchDebounce?.cancel();
   }
 
+  Future<void> openCategory({required String type, String? scope}) async {
+    final targetScope = scope ?? this.scope;
+    final changed = selectedType != type || this.scope != targetScope;
+    selectedType = type;
+    this.scope = targetScope;
+    selectedFiles.clear();
+    if (changed) {
+      files.clear();
+      isLoading = true;
+      notifyListeners();
+    }
+    if (selectedType != 'all') {
+      pathStack
+        ..clear()
+        ..add('');
+    }
+    await reload();
+  }
+
   void setCategory(String type) {
+    final changed = selectedType != type;
     selectedType = type;
     selectedFiles.clear();
+    if (changed) {
+      files.clear();
+      isLoading = true;
+      notifyListeners();
+    }
     if (selectedType != 'all') {
       pathStack
         ..clear()
@@ -140,11 +165,15 @@ class ServerBrowserController extends ChangeNotifier {
 
   Future<void> setScope(String value) async {
     if (value != 'private' && value != 'shared') return;
+    if (scope == value) return;
     scope = value;
+    files.clear();
     pathStack
       ..clear()
       ..add('');
     selectedFiles.clear();
+    isLoading = true;
+    notifyListeners();
     await reload();
   }
 
@@ -166,7 +195,9 @@ class ServerBrowserController extends ChangeNotifier {
   }) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(delay, () {
-      searchQuery = query.trim();
+      final trimmed = query.trim();
+      if (searchQuery == trimmed) return;
+      searchQuery = trimmed;
       unawaited(reload());
     });
   }
@@ -188,6 +219,9 @@ class ServerBrowserController extends ChangeNotifier {
     if (!dir.isDir || selectedType != 'all') return;
     pathStack.add(dir.path);
     selectedFiles.clear();
+    files.clear();
+    isLoading = true;
+    notifyListeners();
     await reload();
   }
 
@@ -195,6 +229,9 @@ class ServerBrowserController extends ChangeNotifier {
     if (!canNavigateBack || selectedType != 'all') return;
     pathStack.removeLast();
     selectedFiles.clear();
+    files.clear();
+    isLoading = true;
+    notifyListeners();
     await reload();
   }
 
@@ -210,6 +247,9 @@ class ServerBrowserController extends ChangeNotifier {
         ..add(normalized);
     }
     selectedFiles.clear();
+    files.clear();
+    isLoading = true;
+    notifyListeners();
     await reload();
   }
 
@@ -235,6 +275,7 @@ class ServerBrowserController extends ChangeNotifier {
   }
 
   Future<void> reload() async {
+    if (_disposed) return;
     _opId++;
     final opId = _opId;
     isLoading = true;

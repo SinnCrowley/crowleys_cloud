@@ -652,9 +652,11 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   Future<void> setSearchQuery(String query) async {
+    final trimmed = query.trim();
+    if (searchQuery == trimmed) return;
     _isRevalidatingCache = false;
     clearSelection();
-    searchQuery = query.trim();
+    searchQuery = trimmed;
     await reload();
   }
 
@@ -747,6 +749,7 @@ class FileBrowserController extends ChangeNotifier {
   }
 
   Future<void> reload() async {
+    if (_disposed) return;
     _operationId++;
     final opId = _operationId;
 

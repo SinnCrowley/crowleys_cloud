@@ -586,6 +586,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
         : l10n.updateVersionSubtitle(widget.updateInfo.latestVersion);
 
     return AlertDialog(
+      actionsOverflowButtonSpacing: 8,
       backgroundColor: appSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -655,19 +656,29 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
               ),
               child: Row(
                 children: [
-                  Text(
-                    l10n.updateCurrentVersion(widget.updateInfo.currentVersion),
-                    style: TextStyle(color: appSubtext, fontSize: 13),
+                  Flexible(
+                    child: Text(
+                      l10n.updateCurrentVersion(
+                        widget.updateInfo.currentVersion,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: appSubtext, fontSize: 13),
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Icon(Icons.arrow_forward, size: 14, color: appSubtext),
-                  const Spacer(),
-                  Text(
-                    l10n.updateNewVersion(widget.updateInfo.latestVersion),
-                    style: TextStyle(
-                      color: appAccent,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      l10n.updateNewVersion(widget.updateInfo.latestVersion),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: appAccent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   if (hasMultipleReleases) ...[
@@ -700,14 +711,19 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  l10n.updateWhatsNew,
-                  style: TextStyle(
-                    color: appText,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    l10n.updateWhatsNew,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: appText,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 InkWell(
                   onTap: () => AppUpdateService.launchUpdateUrl(
                     widget.updateInfo.htmlUrl,

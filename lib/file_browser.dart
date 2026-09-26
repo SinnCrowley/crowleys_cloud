@@ -64,9 +64,22 @@ class _FileBrowserScreenState extends State<FileBrowser> {
   }
 
   @override
+  void didUpdateWidget(covariant FileBrowser oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      if (oldWidget.controller == null) {
+        _controller.disposeController();
+        _controller.dispose();
+      }
+      _controller =
+          widget.controller ?? FileBrowserController(category: widget.category);
+    }
+  }
+
+  @override
   void dispose() {
-    _controller.disposeController();
     if (widget.controller == null) {
+      _controller.disposeController();
       _controller.dispose();
     }
     super.dispose();
@@ -293,52 +306,54 @@ class _FileBrowserScreenState extends State<FileBrowser> {
       backgroundColor: appSurface,
       builder: (context) {
         final l10n = AppLocalizations.of(context)!;
-        return Wrap(
-          children: [
-            ListTile(
-              leading: Icon(Icons.edit, color: appSubtext),
-              title: Text(l10n.rename, style: TextStyle(color: appText)),
-              onTap: () async {
-                Navigator.pop(context);
-                await _renameItem(item);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.upload, color: appSubtext),
-              title: Text(l10n.upload, style: TextStyle(color: appText)),
-              onTap: () async {
-                Navigator.pop(context);
-                await _uploadItems([item]);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.delete, color: appSubtext),
-              title: Text(l10n.delete, style: TextStyle(color: appText)),
-              onTap: () async {
-                Navigator.pop(context);
-                _controller.toggleSelection(item);
-                await _deleteSelectedFiles();
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.share, color: appSubtext),
-              title: Text(l10n.share, style: TextStyle(color: appText)),
-              onTap: () async {
-                Navigator.pop(context);
-                _controller.toggleSelection(item);
-                await _controller.shareSelectedFiles();
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.drive_file_move, color: appSubtext),
-              title: Text(l10n.addToFolder, style: TextStyle(color: appText)),
-              onTap: () async {
-                Navigator.pop(context);
-                _controller.toggleSelection(item);
-                await _addSelectedToFolder();
-              },
-            ),
-          ],
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.edit, color: appSubtext),
+                title: Text(l10n.rename, style: TextStyle(color: appText)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _renameItem(item);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.upload, color: appSubtext),
+                title: Text(l10n.upload, style: TextStyle(color: appText)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _uploadItems([item]);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete, color: appSubtext),
+                title: Text(l10n.delete, style: TextStyle(color: appText)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  _controller.toggleSelection(item);
+                  await _deleteSelectedFiles();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.share, color: appSubtext),
+                title: Text(l10n.share, style: TextStyle(color: appText)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  _controller.toggleSelection(item);
+                  await _controller.shareSelectedFiles();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.drive_file_move, color: appSubtext),
+                title: Text(l10n.addToFolder, style: TextStyle(color: appText)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  _controller.toggleSelection(item);
+                  await _addSelectedToFolder();
+                },
+              ),
+            ],
+          ),
         );
       },
     );
@@ -818,85 +833,148 @@ class _LocalFolderPickerScreenState extends State<LocalFolderPickerScreen> {
               top: 8,
               bottom: 8,
             ),
-            child: Row(
-              children: [
-                FilledButton.icon(
-                  onPressed: _createFolder,
-                  icon: const Icon(Icons.create_new_folder),
-                  label: Text(l10n.newFolder),
-                ),
-                const Spacer(),
-                Container(
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: appSurface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.sort, color: appSubtext, size: 20),
-                      const SizedBox(width: 8),
-                      DropdownButtonHideUnderline(
-                        child: DropdownButton<SortBy>(
-                          value: _sortBy,
-                          dropdownColor: appSurface,
-                          style: TextStyle(color: appText),
-                          icon: Icon(Icons.arrow_drop_down, color: appSubtext),
-                          items: SortBy.values.map((v) {
-                            String label;
-                            switch (v) {
-                              case SortBy.name:
-                                label = l10n.name;
-                                break;
-                              case SortBy.date:
-                                label = l10n.date;
-                                break;
-                              case SortBy.size:
-                                label = l10n.size;
-                                break;
-                              case SortBy.type:
-                                label = l10n.type;
-                                break;
-                            }
-                            return DropdownMenuItem(
-                              value: v,
-                              child: Text(label),
-                            );
-                          }).toList(),
-                          onChanged: (v) {
-                            if (v == null) return;
-                            setState(() => _sortBy = v);
-                            _applySorting();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    color: appSurface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: IconButton(
-                    splashRadius: 20,
-                    icon: Icon(
-                      _sortAscending
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
-                      color: appSubtext,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 320;
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: isCompact
+                          ? IconButton.filled(
+                              style: IconButton.styleFrom(
+                                backgroundColor: appAccent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                minimumSize: const Size(40, 40),
+                              ),
+                              onPressed: _createFolder,
+                              icon: const Icon(
+                                Icons.create_new_folder,
+                                size: 20,
+                              ),
+                              tooltip: l10n.newFolder,
+                            )
+                          : FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: appAccent,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                                minimumSize: const Size(0, 40),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              onPressed: _createFolder,
+                              icon: const Icon(
+                                Icons.create_new_folder,
+                                size: 18,
+                              ),
+                              label: Text(
+                                l10n.newFolder,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                     ),
-                    onPressed: () {
-                      setState(() => _sortAscending = !_sortAscending);
-                      _applySorting();
-                    },
-                  ),
-                ),
-              ],
+                    const SizedBox(width: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: appSurface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.sort, color: appSubtext, size: 18),
+                              const SizedBox(width: 6),
+                              DropdownButtonHideUnderline(
+                                child: DropdownButton<SortBy>(
+                                  value: _sortBy,
+                                  isDense: true,
+                                  dropdownColor: appSurface,
+                                  style: TextStyle(
+                                    color: appText,
+                                    fontSize: 13,
+                                  ),
+                                  icon: Icon(
+                                    Icons.arrow_drop_down,
+                                    color: appSubtext,
+                                    size: 20,
+                                  ),
+                                  items: SortBy.values.map((v) {
+                                    String label;
+                                    switch (v) {
+                                      case SortBy.name:
+                                        label = l10n.name;
+                                        break;
+                                      case SortBy.date:
+                                        label = l10n.date;
+                                        break;
+                                      case SortBy.size:
+                                        label = l10n.size;
+                                        break;
+                                      case SortBy.type:
+                                        label = l10n.type;
+                                        break;
+                                    }
+                                    return DropdownMenuItem(
+                                      value: v,
+                                      child: Text(label),
+                                    );
+                                  }).toList(),
+                                  onChanged: (v) {
+                                    if (v == null) return;
+                                    setState(() => _sortBy = v);
+                                    _applySorting();
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: appSurface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            splashRadius: 20,
+                            iconSize: 20,
+                            icon: Icon(
+                              _sortAscending
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward,
+                              color: appSubtext,
+                            ),
+                            onPressed: () {
+                              setState(() => _sortAscending = !_sortAscending);
+                              _applySorting();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           const SizedBox(height: 4),

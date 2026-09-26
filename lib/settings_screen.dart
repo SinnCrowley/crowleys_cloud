@@ -337,6 +337,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        actionsOverflowButtonSpacing: 8,
         backgroundColor: appSurface,
         title: Text(l10n.deleteAccountTitle),
         content: Text(l10n.deleteAccountBody(server.displayName)),
@@ -402,6 +403,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        actionsOverflowButtonSpacing: 8,
         backgroundColor: appSurface,
         title: Text(l10n.clearCacheTitle),
         content: Text(l10n.clearCacheBody),
@@ -1051,13 +1053,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
           child: DropdownButtonFormField<int>(
+            isExpanded: true,
             initialValue:
                 CacheLimitOption.values.any(
                   (option) => option.bytes == _cacheMaxBytes,
                 )
                 ? _cacheMaxBytes
                 : null,
-            hint: Text(_formatBytes(_cacheMaxBytes)),
+            hint: Text(
+              _formatBytes(_cacheMaxBytes),
+              overflow: TextOverflow.ellipsis,
+            ),
             decoration: InputDecoration(labelText: l10n.cacheLimit),
             items: CacheLimitOption.values
                 .map(
@@ -1067,6 +1073,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       option.bytes == CacheLimitOption.unlimitedBytes
                           ? l10n.cacheLimitUnlimited
                           : option.label,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 )
@@ -1106,6 +1113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
           child: DropdownButtonFormField<TokenLifetimeOption>(
+            isExpanded: true,
             initialValue: _tokenLifetime,
             decoration: InputDecoration(
               labelText: l10n.requireLogin,
@@ -1124,7 +1132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       'threeMonths' => l10n.tokenLifetimeThreeMonths,
                       'never' => l10n.tokenLifetimeNever,
                       _ => option.label,
-                    }),
+                    }, overflow: TextOverflow.ellipsis),
                   ),
                 )
                 .toList(growable: false),
@@ -1258,43 +1266,128 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         ListTile(
           leading: Icon(Icons.language_outlined, color: appAccent),
-          title: Text(l10n.language, style: TextStyle(color: appText)),
-          trailing: DropdownButton<String?>(
-            value: _localeCode,
-            dropdownColor: currentTheme.surface,
-            underline: const SizedBox.shrink(),
-            onChanged: _setLocaleCode,
-            items: [
-              DropdownMenuItem(value: null, child: Text(l10n.systemDefault)),
-              const DropdownMenuItem(value: 'en', child: Text('English')),
-              const DropdownMenuItem(value: 'cs', child: Text('Čeština')),
-              const DropdownMenuItem(value: 'ru', child: Text('Русский')),
-              const DropdownMenuItem(value: 'uk', child: Text('Українська')),
-              const DropdownMenuItem(value: 'pl', child: Text('Polski')),
-              const DropdownMenuItem(value: 'de', child: Text('Deutsch')),
-              const DropdownMenuItem(value: 'es', child: Text('Español')),
-              const DropdownMenuItem(value: 'fr', child: Text('Français')),
-              const DropdownMenuItem(value: 'ar', child: Text('العربية')),
-              const DropdownMenuItem(value: 'bn', child: Text('বাংলা')),
-              const DropdownMenuItem(value: 'fa', child: Text('فارسی')),
-              const DropdownMenuItem(value: 'hi', child: Text('हिन्दी')),
-              const DropdownMenuItem(
-                value: 'id',
-                child: Text('Bahasa Indonesia'),
+          title: Text(
+            l10n.language,
+            style: TextStyle(color: appText),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.sizeOf(context).width * 0.45,
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String?>(
+                isExpanded: true,
+                isDense: true,
+                value: _localeCode,
+                dropdownColor: currentTheme.surface,
+                onChanged: _setLocaleCode,
+                items: [
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(
+                      l10n.systemDefault,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'en',
+                    child: Text('English', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'cs',
+                    child: Text('Čeština', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'ru',
+                    child: Text('Русский', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'uk',
+                    child: Text('Українська', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'pl',
+                    child: Text('Polski', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'de',
+                    child: Text('Deutsch', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'es',
+                    child: Text('Español', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'fr',
+                    child: Text('Français', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'ar',
+                    child: Text('العربية', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'bn',
+                    child: Text('বাংলা', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'fa',
+                    child: Text('فارسی', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'hi',
+                    child: Text('हिन्दी', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'id',
+                    child: Text(
+                      'Bahasa Indonesia',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'it',
+                    child: Text('Italiano', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'pt',
+                    child: Text('Português', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'pt-BR',
+                    child: Text(
+                      'Português (Brasil)',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'tr',
+                    child: Text('Türkçe', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'vi',
+                    child: Text('Tiếng Việt', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'ja',
+                    child: Text('日本語', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'ko',
+                    child: Text('한국어', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'zh',
+                    child: Text('中文', overflow: TextOverflow.ellipsis),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'zh-Hans',
+                    child: Text('简体中文', overflow: TextOverflow.ellipsis),
+                  ),
+                ],
               ),
-              const DropdownMenuItem(value: 'it', child: Text('Italiano')),
-              const DropdownMenuItem(value: 'pt', child: Text('Português')),
-              const DropdownMenuItem(
-                value: 'pt-BR',
-                child: Text('Português (Brasil)'),
-              ),
-              const DropdownMenuItem(value: 'tr', child: Text('Türkçe')),
-              const DropdownMenuItem(value: 'vi', child: Text('Tiếng Việt')),
-              const DropdownMenuItem(value: 'ja', child: Text('日本語')),
-              const DropdownMenuItem(value: 'ko', child: Text('한국어')),
-              const DropdownMenuItem(value: 'zh', child: Text('中文')),
-              const DropdownMenuItem(value: 'zh-Hans', child: Text('简体中文')),
-            ],
+            ),
           ),
         ),
         ListTile(
@@ -1319,26 +1412,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: SegmentedButton<AppThemeMode>(
+            showSelectedIcon: false,
             style: SegmentedButton.styleFrom(
               selectedBackgroundColor: appAccent.withValues(alpha: 0.25),
               selectedForegroundColor: appAccent,
               foregroundColor: appSubtext,
               side: BorderSide(color: appBorder),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              visualDensity: VisualDensity.compact,
             ),
             segments: [
               ButtonSegment(
                 value: AppThemeMode.dark,
-                label: Text(l10n.themeDark),
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(l10n.themeDark, maxLines: 1, softWrap: false),
+                ),
                 icon: const Icon(Icons.dark_mode_outlined, size: 16),
               ),
               ButtonSegment(
                 value: AppThemeMode.light,
-                label: Text(l10n.themeLight),
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(l10n.themeLight, maxLines: 1, softWrap: false),
+                ),
                 icon: const Icon(Icons.light_mode_outlined, size: 16),
               ),
               ButtonSegment(
                 value: AppThemeMode.custom,
-                label: Text(l10n.themeCustom),
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(l10n.themeCustom, maxLines: 1, softWrap: false),
+                ),
                 icon: const Icon(Icons.palette_outlined, size: 16),
               ),
             ],
@@ -1618,6 +1723,7 @@ class _TextInputDialogState extends State<_TextInputDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
+      actionsOverflowButtonSpacing: 8,
       backgroundColor: appSurface,
       title: Text(widget.title),
       content: TextField(
@@ -1685,6 +1791,7 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
+      actionsOverflowButtonSpacing: 8,
       backgroundColor: appSurface,
       title: Text(l10n.changePasswordDialogTitle),
       content: Column(
@@ -1791,6 +1898,7 @@ class _SyncCategoriesDialogState extends State<_SyncCategoriesDialog> {
     ];
 
     return AlertDialog(
+      actionsOverflowButtonSpacing: 8,
       backgroundColor: appSurface,
       title: Text(
         l10n.categoriesToSyncDialogTitle,

@@ -345,77 +345,82 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
       backgroundColor: appSurface,
       builder: (ctx) {
         final l10n = AppLocalizations.of(ctx)!;
-        return Wrap(
-          children: [
-            if (controller.scope != 'shared')
+        return SafeArea(
+          child: Wrap(
+            children: [
+              if (controller.scope != 'shared')
+                ListTile(
+                  leading: Icon(Icons.edit, color: appSubtext),
+                  title: Text(l10n.rename, style: TextStyle(color: appText)),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await _renameItem(item);
+                  },
+                ),
               ListTile(
-                leading: Icon(Icons.edit, color: appSubtext),
-                title: Text(l10n.rename, style: TextStyle(color: appText)),
+                leading: Icon(Icons.download, color: appSubtext),
+                title: Text(l10n.download, style: TextStyle(color: appText)),
                 onTap: () async {
                   Navigator.pop(context);
-                  await _renameItem(item);
+                  controller.toggleSelection(item);
+                  await _downloadSelectedFiles();
                 },
               ),
-            ListTile(
-              leading: Icon(Icons.download, color: appSubtext),
-              title: Text(l10n.download, style: TextStyle(color: appText)),
-              onTap: () async {
-                Navigator.pop(context);
-                controller.toggleSelection(item);
-                await _downloadSelectedFiles();
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                controller.scope == 'shared' ? Icons.link_off : Icons.delete,
-                color: appSubtext,
-              ),
-              title: Text(
-                controller.scope == 'shared' ? l10n.unshare : l10n.delete,
-                style: TextStyle(color: appText),
-              ),
-              onTap: () async {
-                Navigator.pop(context);
-                controller.toggleSelection(item);
-                await _deleteSelectedFiles();
-              },
-            ),
-            if (controller.scope != 'shared') ...[
               ListTile(
-                leading: Icon(Icons.share, color: appSubtext),
+                leading: Icon(
+                  controller.scope == 'shared' ? Icons.link_off : Icons.delete,
+                  color: appSubtext,
+                ),
                 title: Text(
-                  l10n.shareViaLink,
+                  controller.scope == 'shared' ? l10n.unshare : l10n.delete,
                   style: TextStyle(color: appText),
                 ),
                 onTap: () async {
                   Navigator.pop(context);
                   controller.toggleSelection(item);
-                  await _shareSelectedFiles();
+                  await _deleteSelectedFiles();
                 },
               ),
-              ListTile(
-                leading: Icon(Icons.folder_shared, color: appSubtext),
-                title: Text(
-                  l10n.shareInServer,
-                  style: TextStyle(color: appText),
+              if (controller.scope != 'shared') ...[
+                ListTile(
+                  leading: Icon(Icons.share, color: appSubtext),
+                  title: Text(
+                    l10n.shareViaLink,
+                    style: TextStyle(color: appText),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    controller.toggleSelection(item);
+                    await _shareSelectedFiles();
+                  },
                 ),
-                onTap: () async {
-                  Navigator.pop(context);
-                  controller.toggleSelection(item);
-                  await _shareSelectedInServer();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.drive_file_move, color: appSubtext),
-                title: Text(l10n.addToFolder, style: TextStyle(color: appText)),
-                onTap: () async {
-                  Navigator.pop(context);
-                  controller.toggleSelection(item);
-                  await _addSelectedToFolder();
-                },
-              ),
+                ListTile(
+                  leading: Icon(Icons.folder_shared, color: appSubtext),
+                  title: Text(
+                    l10n.shareInServer,
+                    style: TextStyle(color: appText),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    controller.toggleSelection(item);
+                    await _shareSelectedInServer();
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.drive_file_move, color: appSubtext),
+                  title: Text(
+                    l10n.addToFolder,
+                    style: TextStyle(color: appText),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    controller.toggleSelection(item);
+                    await _addSelectedToFolder();
+                  },
+                ),
+              ],
             ],
-          ],
+          ),
         );
       },
     );
@@ -1004,15 +1009,18 @@ void _showStatsBottomSheet(
                     children: [
                       Icon(Icons.cloud_queue, color: appAccent, size: 24),
                       const SizedBox(width: 10),
-                      Text(
-                        l10n.storageStatsTitle,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: appText,
+                      Expanded(
+                        child: Text(
+                          l10n.storageStatsTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: appText,
+                          ),
                         ),
                       ),
-                      const Spacer(),
                       IconButton(
                         icon: Icon(Icons.close, color: appSubtext),
                         onPressed: () => Navigator.pop(context),
@@ -1035,48 +1043,64 @@ void _showStatsBottomSheet(
                       children: [
                         Row(
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.storageStatsUsedSpace,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: appSubtext,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.storageStatsUsedSpace,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: appSubtext,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${ByteFormatter.format(usedBytes)} / ${limitBytes > 0 ? ByteFormatter.format(limitBytes) : '∞'}',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: appAccent,
+                                  const SizedBox(height: 4),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '${ByteFormatter.format(usedBytes)} / ${limitBytes > 0 ? ByteFormatter.format(limitBytes) : '∞'}',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: appAccent,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                            const Spacer(),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  l10n.storageStatsTotalFiles,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: appSubtext,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    l10n.storageStatsTotalFiles,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: appSubtext,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  l10n.storageStatsNItems(totalCount),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: appText,
+                                  const SizedBox(height: 4),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      l10n.storageStatsNItems(totalCount),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: appText,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -1111,7 +1135,7 @@ void _showStatsBottomSheet(
                               crossAxisCount: 2,
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
-                              childAspectRatio: 2.2,
+                              childAspectRatio: 2.0,
                             ),
                         itemBuilder: (context, i) {
                           final c = categories[i];
@@ -1136,6 +1160,8 @@ void _showStatsBottomSheet(
                                     children: [
                                       Text(
                                         c.label,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
@@ -1349,98 +1375,139 @@ class _ServerFolderPickerScreenState extends State<_ServerFolderPickerScreen> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final showNewFolder = widget.controller.scope != 'shared';
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        if (showNewFolder)
-                          FilledButton.icon(
-                            onPressed: _createFolder,
-                            icon: const Icon(Icons.create_new_folder),
-                            label: Text(l10n.newFolder),
-                          ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (showNewFolder) const SizedBox(width: 8),
-                            Container(
-                              height: 40,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: appSurface,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.sort, color: appSubtext, size: 20),
-                                  const SizedBox(width: 8),
-                                  DropdownButtonHideUnderline(
-                                    child: DropdownButton<ServerSortBy>(
-                                      value: _sortBy,
-                                      dropdownColor: appSurface,
-                                      style: TextStyle(color: appText),
-                                      icon: Icon(
-                                        Icons.arrow_drop_down,
-                                        color: appSubtext,
-                                      ),
-                                      items: ServerSortBy.values
-                                          .map(
-                                            (v) => DropdownMenuItem(
-                                              value: v,
-                                              child: Text(switch (v) {
-                                                ServerSortBy.name => l10n.name,
-                                                ServerSortBy.date => l10n.date,
-                                                ServerSortBy.size => l10n.size,
-                                                ServerSortBy.type => l10n.type,
-                                              }),
-                                            ),
-                                          )
-                                          .toList(),
-                                      onChanged: (v) {
-                                        if (v == null) return;
-                                        setState(() => _sortBy = v);
-                                        _applySorting();
-                                      },
-                                    ),
+                final isCompact = constraints.maxWidth < 320;
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (showNewFolder)
+                      Flexible(
+                        child: isCompact
+                            ? IconButton.filled(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: appAccent,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              height: 40,
-                              width: 40,
-                              decoration: BoxDecoration(
-                                color: appSurface,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                splashRadius: 20,
-                                icon: Icon(
-                                  _sortAscending
-                                      ? Icons.arrow_upward
-                                      : Icons.arrow_downward,
-                                  color: appSubtext,
+                                  minimumSize: const Size(40, 40),
                                 ),
-                                onPressed: () {
-                                  setState(
-                                    () => _sortAscending = !_sortAscending,
-                                  );
-                                  _applySorting();
-                                },
+                                onPressed: _createFolder,
+                                icon: const Icon(
+                                  Icons.create_new_folder,
+                                  size: 20,
+                                ),
+                                tooltip: l10n.newFolder,
+                              )
+                            : FilledButton.icon(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: appAccent,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
+                                  minimumSize: const Size(0, 40),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                onPressed: _createFolder,
+                                icon: const Icon(
+                                  Icons.create_new_folder,
+                                  size: 18,
+                                ),
+                                label: Text(
+                                  l10n.newFolder,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
+                      )
+                    else
+                      const Spacer(),
+                    if (showNewFolder) const SizedBox(width: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: appSurface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.sort, color: appSubtext, size: 18),
+                              const SizedBox(width: 6),
+                              DropdownButtonHideUnderline(
+                                child: DropdownButton<ServerSortBy>(
+                                  value: _sortBy,
+                                  isDense: true,
+                                  dropdownColor: appSurface,
+                                  style: TextStyle(
+                                    color: appText,
+                                    fontSize: 13,
+                                  ),
+                                  icon: Icon(
+                                    Icons.arrow_drop_down,
+                                    color: appSubtext,
+                                    size: 20,
+                                  ),
+                                  items: ServerSortBy.values
+                                      .map(
+                                        (v) => DropdownMenuItem(
+                                          value: v,
+                                          child: Text(switch (v) {
+                                            ServerSortBy.name => l10n.name,
+                                            ServerSortBy.date => l10n.date,
+                                            ServerSortBy.size => l10n.size,
+                                            ServerSortBy.type => l10n.type,
+                                          }),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (v) {
+                                    if (v == null) return;
+                                    setState(() => _sortBy = v);
+                                    _applySorting();
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: appSurface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            splashRadius: 20,
+                            iconSize: 20,
+                            icon: Icon(
+                              _sortAscending
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward,
+                              color: appSubtext,
                             ),
-                          ],
+                            onPressed: () {
+                              setState(() => _sortAscending = !_sortAscending);
+                              _applySorting();
+                            },
+                          ),
                         ),
                       ],
                     ),
-                  ),
+                  ],
                 );
               },
             ),

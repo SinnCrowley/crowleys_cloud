@@ -81,4 +81,28 @@ void main() {
     expect(find.text('Share'), findsOneWidget);
     expect(find.text('Delete'), findsOneWidget);
   });
+
+  testWidgets(
+    'unmounting FileBrowser does not dispose externally provided controller',
+    (tester) async {
+      final controller = FileBrowserController(
+        category: const FileCategory('Documents', Icons.description),
+        loadOnInit: false,
+      );
+
+      await pumpBrowser(tester, controller);
+      expect(controller.isDisposed, isFalse);
+
+      // Unmount FileBrowser by replacing it with a placeholder widget
+      await tester.pumpWidget(const SizedBox.shrink());
+
+      // The external controller must NOT be marked as disposed
+      expect(controller.isDisposed, isFalse);
+
+      // Explicitly dispose to clean up
+      controller.disposeController();
+      controller.dispose();
+      expect(controller.isDisposed, isTrue);
+    },
+  );
 }

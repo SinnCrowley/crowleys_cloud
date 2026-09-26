@@ -109,6 +109,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
     return AlertDialog(
       backgroundColor: appSurface,
       surfaceTintColor: Colors.transparent,
+      actionsOverflowButtonSpacing: 8,
       title: Text(
         widget.title,
         style: TextStyle(color: appText, fontWeight: FontWeight.bold),

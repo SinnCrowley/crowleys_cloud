@@ -188,6 +188,7 @@ class _UploadConflictDialogState extends State<UploadConflictDialog> {
       titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       actionsPadding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      actionsOverflowButtonSpacing: 8,
       title: Row(
         children: [
           const Icon(

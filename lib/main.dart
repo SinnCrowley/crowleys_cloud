@@ -853,8 +853,7 @@ class _MainScreenState extends State<MainScreen> {
       if (_selectedServerCategory == null && trimmed.isNotEmpty) {
         _ensureServerController();
         final category = _serverCategories[0];
-        await _serverController?.setScope('private');
-        _serverController?.setCategory('all');
+        await _serverController?.openCategory(type: 'all', scope: 'private');
         if (mounted) {
           setState(() {
             _selectedServerCategory = category;
@@ -2356,10 +2355,13 @@ class _MainScreenState extends State<MainScreen> {
                 BottomNavigationBar(
                   currentIndex: _selectedModeIndex,
                   onTap: (value) async {
+                    if (_selectedModeIndex == value) return;
                     setState(() {
                       _selectedModeIndex = value;
                     });
-                    await _clearSearchAndResetFilterForCurrentMode();
+                    if (_searchController.text.isNotEmpty) {
+                      await _clearSearchAndResetFilterForCurrentMode();
+                    }
                   },
                   items: [
                     BottomNavigationBarItem(
@@ -2419,30 +2421,40 @@ class _MainScreenState extends State<MainScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.cloud_outlined,
-                                color: appAccent,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                l10n.storageStatsUsedSpace,
-                                style: TextStyle(
-                                  color: appText,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.cloud_outlined,
+                                  color: appAccent,
+                                  size: 20,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    l10n.storageStatsUsedSpace,
+                                    style: TextStyle(
+                                      color: appText,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          Text(
-                            '${ByteFormatter.format(usedBytes)} / ${limitBytes > 0 ? ByteFormatter.format(limitBytes) : '∞'}',
-                            style: TextStyle(
-                              color: appAccent,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                          const SizedBox(width: 8),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${ByteFormatter.format(usedBytes)} / ${limitBytes > 0 ? ByteFormatter.format(limitBytes) : '∞'}',
+                              style: TextStyle(
+                                color: appAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
                         ],
@@ -2478,7 +2490,7 @@ class _MainScreenState extends State<MainScreen> {
                 itemBuilder: (context, index) {
                   final category = _serverCategories[index];
                   return InkWell(
-                    onTap: () async {
+                    onTap: () {
                       final isShared = category.name == 'Shared';
                       final type = switch (category.name) {
                         'Photos' => 'photo',
@@ -2493,10 +2505,12 @@ class _MainScreenState extends State<MainScreen> {
                         '',
                         delay: Duration.zero,
                       );
-                      await _serverController?.setScope(
-                        isShared ? 'shared' : 'private',
+                      unawaited(
+                        _serverController?.openCategory(
+                          type: type,
+                          scope: isShared ? 'shared' : 'private',
+                        ),
                       );
-                      _serverController?.setCategory(type);
                       setState(() {
                         _selectedServerCategory = category;
                       });
@@ -2512,9 +2526,15 @@ class _MainScreenState extends State<MainScreen> {
                         children: [
                           Icon(category.icon, color: appSubtext, size: 40),
                           const SizedBox(height: 12),
-                          Text(
-                            _getLocalizedCategoryName(category.name, l10n),
-                            style: TextStyle(color: appText, fontSize: 16),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              _getLocalizedCategoryName(category.name, l10n),
+                              style: TextStyle(color: appText, fontSize: 16),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
@@ -2556,9 +2576,15 @@ class _MainScreenState extends State<MainScreen> {
               children: [
                 Icon(category.icon, color: appSubtext, size: 40),
                 const SizedBox(height: 12),
-                Text(
-                  _getLocalizedCategoryName(category.name, l10n),
-                  style: TextStyle(color: appText, fontSize: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    _getLocalizedCategoryName(category.name, l10n),
+                    style: TextStyle(color: appText, fontSize: 16),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),

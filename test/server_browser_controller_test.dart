@@ -1013,6 +1013,65 @@ void main() {
       },
     );
   }
+
+  test(
+    'switching categories via setCategory or openCategory clears files immediately',
+    () async {
+      final store = InMemorySecretStore();
+      await store.saveTokens(
+        serverId: 'srv',
+        accessToken: 'token',
+        refreshToken: 'refresh',
+      );
+
+      final client = MockClient((request) async {
+        final type = request.url.queryParameters['type'];
+        return http.Response(
+          jsonEncode({
+            'entries': [
+              {
+                'name': '$type.file',
+                'size': 12,
+                'modified_at': 0,
+                'type': type ?? 'all',
+                'mime_type': 'text/plain',
+                'is_dir': false,
+                'path': '$type.file',
+              },
+            ],
+          }),
+          200,
+        );
+      });
+
+      final controller = _controller(store: store, client: client);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(controller.files, hasLength(1));
+      expect(controller.selectedType, 'all');
+
+      // Switch to photo category
+      controller.setCategory('photo');
+      // Files must be cleared synchronously upon setCategory to avoid flashing
+      expect(controller.files, isEmpty);
+      expect(controller.isLoading, isTrue);
+
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(controller.files, hasLength(1));
+      expect(controller.files.first.name, 'photo.file');
+
+      // Open document category via openCategory
+      final openFuture = controller.openCategory(type: 'document');
+      expect(controller.files, isEmpty);
+      expect(controller.isLoading, isTrue);
+
+      await openFuture;
+      expect(controller.files, hasLength(1));
+      expect(controller.files.first.name, 'document.file');
+
+      controller.disposeController();
+      controller.dispose();
+    },
+  );
 }
 
 ServerBrowserController _controller({
