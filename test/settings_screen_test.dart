@@ -24,6 +24,7 @@ import 'package:crowleys_cloud/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'test_helpers.dart';
 
@@ -526,6 +527,81 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  group('determineNeededSyncPermissions', () {
+    test('returns empty set when no categories or folders are selected', () {
+      final permissions = determineNeededSyncPermissions(
+        categories: [],
+        folders: [],
+        isAndroid: true,
+        isIos: false,
+      );
+      expect(permissions, isEmpty);
+    });
+
+    test(
+      'iOS with photos and videos requests photos and notifications only',
+      () {
+        final permissions = determineNeededSyncPermissions(
+          categories: ['photos', 'videos'],
+          folders: [],
+          isAndroid: false,
+          isIos: true,
+        );
+
+        expect(permissions, contains(Permission.notification));
+        expect(permissions, contains(Permission.photos));
+        expect(permissions, isNot(contains(Permission.videos)));
+        expect(permissions, isNot(contains(Permission.manageExternalStorage)));
+        expect(
+          permissions,
+          isNot(contains(Permission.ignoreBatteryOptimizations)),
+        );
+        expect(permissions.length, 2);
+      },
+    );
+
+    test('Android with photos and videos requests android permissions', () {
+      final permissions = determineNeededSyncPermissions(
+        categories: ['photos', 'videos'],
+        folders: [],
+        isAndroid: true,
+        isIos: false,
+      );
+
+      expect(permissions, contains(Permission.notification));
+      expect(permissions, contains(Permission.ignoreBatteryOptimizations));
+      expect(permissions, contains(Permission.photos));
+      expect(permissions, contains(Permission.videos));
+      expect(permissions.length, 4);
+    });
+
+    test('iOS with custom folders does not request manageExternalStorage', () {
+      final permissions = determineNeededSyncPermissions(
+        categories: [],
+        folders: ['/var/mobile/Containers/Data/Application/Documents/MyFolder'],
+        isAndroid: false,
+        isIos: true,
+      );
+
+      expect(permissions, contains(Permission.notification));
+      expect(permissions, isNot(contains(Permission.manageExternalStorage)));
+      expect(permissions.length, 1);
+    });
+
+    test('Android with custom folders requests manageExternalStorage', () {
+      final permissions = determineNeededSyncPermissions(
+        categories: [],
+        folders: ['/storage/emulated/0/DCIM'],
+        isAndroid: true,
+        isIos: false,
+      );
+
+      expect(permissions, contains(Permission.notification));
+      expect(permissions, contains(Permission.ignoreBatteryOptimizations));
+      expect(permissions, contains(Permission.manageExternalStorage));
+    });
+  });
 }
 
 Future<void> _useTallScreen(WidgetTester tester) async {

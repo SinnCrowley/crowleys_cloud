@@ -13,12 +13,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:convert';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:video_thumbnail_plus/video_thumbnail_plus.dart';
@@ -38,37 +39,46 @@ class ThumbnailService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> init() async {
-    _cacheDir = Directory(
-      '${(await getTemporaryDirectory()).path}/thumb_cache',
-    );
-    await _cacheDir!.create(recursive: true);
-    CacheService.instance.registerLocalThumbnailDirectory(_cacheDir!);
+    try {
+      _cacheDir = Directory(
+        '${(await getTemporaryDirectory()).path}/thumb_cache',
+      );
+      await _cacheDir!.create(recursive: true);
+      CacheService.instance.registerLocalThumbnailDirectory(_cacheDir!);
+    } catch (e) {
+      debugPrint('[ThumbnailService] init cache directory failed: $e');
+    }
 
-    await _buildNameIndex();
+    // Populate name index in background so startup is never blocked
+    unawaited(_buildNameIndex());
   }
 
   Future<void> _buildNameIndex() async {
-    final perm = await PhotoManager.requestPermissionExtend();
-    if (!perm.hasAccess) return;
+    try {
+      final perm = await PhotoManager.requestPermissionExtend();
+      if (!perm.hasAccess) return;
 
-    final albums = await PhotoManager.getAssetPathList(
-      type: RequestType.common,
-      hasAll: true,
-    );
-    if (albums.isEmpty) return;
+      final albums = await PhotoManager.getAssetPathList(
+        type: RequestType.common,
+        hasAll: true,
+      );
+      if (albums.isEmpty) return;
 
-    final allAlbum = albums.firstWhere(
-      (a) => a.isAll,
-      orElse: () => albums.first,
-    );
-    final total = await allAlbum.assetCountAsync;
+      final allAlbum = albums.firstWhere(
+        (a) => a.isAll,
+        orElse: () => albums.first,
+      );
+      final total = await allAlbum.assetCountAsync;
 
-    for (var page = 0; page * 500 < total; page++) {
-      final assets = await allAlbum.getAssetListPaged(page: page, size: 500);
-      for (final asset in assets) {
-        final key = (asset.title ?? asset.id).toLowerCase();
-        _nameIndex[key] = asset;
+      for (var page = 0; page * 500 < total; page++) {
+        final assets = await allAlbum.getAssetListPaged(page: page, size: 500);
+        for (final asset in assets) {
+          final key = (asset.title ?? asset.id).toLowerCase();
+          _nameIndex[key] = asset;
+        }
       }
+    } catch (e) {
+      debugPrint('[ThumbnailService] _buildNameIndex error: $e');
     }
   }
 

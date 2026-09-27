@@ -37,6 +37,43 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+/// Computes the minimal required permissions for the selected sync categories and folders
+/// respecting iOS and Android platform constraints.
+Set<Permission> determineNeededSyncPermissions({
+  required List<String> categories,
+  required List<String> folders,
+  required bool isAndroid,
+  required bool isIos,
+}) {
+  if (categories.isEmpty && folders.isEmpty) {
+    return const {};
+  }
+  final needed = <Permission>{Permission.notification};
+  if (isAndroid) {
+    needed.add(Permission.ignoreBatteryOptimizations);
+    if (folders.isNotEmpty) {
+      needed.add(Permission.manageExternalStorage);
+    }
+  }
+
+  for (final cat in categories) {
+    if (cat == 'photos' || cat == 'videos') {
+      needed.add(Permission.photos);
+      if (isAndroid && cat == 'videos') {
+        needed.add(Permission.videos);
+      }
+    } else if (cat == 'audio') {
+      if (isAndroid) {
+        needed.add(Permission.audio);
+      }
+    } else if (isAndroid) {
+      needed.add(Permission.manageExternalStorage);
+    }
+  }
+
+  return needed;
+}
+
 const _syncCategoryOptions = [
   _SyncCategoryOption('photos', 'Photos', Icons.photo_outlined),
   _SyncCategoryOption('videos', 'Videos', Icons.videocam_outlined),
@@ -146,6 +183,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   bool get _isIos => widget.isIosForTest ?? Platform.isIOS;
+  bool get _isAndroid =>
+      widget.isIosForTest != null ? !widget.isIosForTest! : Platform.isAndroid;
 
   String _displayLocalFolderPath(String path, [AppLocalizations? l10n]) {
     const androidPrimaryStoragePrefix = '/storage/emulated/0';
@@ -688,48 +727,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<bool> _requestPermissionsForServerSync(ServerProfile server) async {
     if (Platform.environment.containsKey('FLUTTER_TEST')) return true;
-    if (!Platform.isAndroid && !Platform.isIOS) return true;
+    if (!_isAndroid && !_isIos) return true;
 
     final categories = _syncStringList('syncCategories');
     final folders = _syncStringList('syncFolders');
-    if (categories.isEmpty && folders.isEmpty) {
+    final needed = determineNeededSyncPermissions(
+      categories: categories,
+      folders: folders,
+      isAndroid: _isAndroid,
+      isIos: _isIos,
+    );
+    if (needed.isEmpty) {
       return true;
-    }
-
-    final needed = <Permission>{Permission.notification};
-    if (Platform.isAndroid) {
-      needed.add(Permission.ignoreBatteryOptimizations);
-      if (folders.isNotEmpty) {
-        needed.add(Permission.manageExternalStorage);
-      }
-    }
-
-    for (final cat in categories) {
-      if (cat == 'photos') {
-        needed.add(Permission.photos);
-      } else if (cat == 'videos') {
-        needed.add(Permission.videos);
-      } else if (cat == 'audio') {
-        if (Platform.isAndroid) {
-          needed.add(Permission.audio);
-        }
-      } else if (Platform.isAndroid) {
-        needed.add(Permission.manageExternalStorage);
-      }
     }
 
     var allGranted = true;
     for (final perm in needed) {
       var status = await perm.status;
-      if (!status.isGranted) {
+      if (!status.isGranted && !status.isLimited) {
         status = await perm.request();
-        if (Platform.isAndroid &&
+        if (_isAndroid &&
             perm == Permission.manageExternalStorage &&
             !status.isGranted) {
           await openAppSettings();
           status = await perm.status;
         }
-        if (!status.isGranted) {
+        if (!status.isGranted && !status.isLimited) {
           allGranted = false;
         }
       }

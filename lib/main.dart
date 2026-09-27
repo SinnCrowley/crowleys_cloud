@@ -58,11 +58,27 @@ import 'package:crowleys_cloud/upload_conflict_dialog.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await WorkmanagerSyncBackgroundScheduler().initialize();
-  await CacheService.instance.init();
-  await ThumbnailService.instance.init();
-  final theme = await AppSettingsService().loadTheme();
-  AppTheme.set(theme);
+  try {
+    await WorkmanagerSyncBackgroundScheduler().initialize();
+  } catch (e) {
+    debugPrint('[Main] Workmanager initialization error: $e');
+  }
+  try {
+    await CacheService.instance.init();
+  } catch (e) {
+    debugPrint('[Main] CacheService initialization error: $e');
+  }
+  try {
+    await ThumbnailService.instance.init();
+  } catch (e) {
+    debugPrint('[Main] ThumbnailService initialization error: $e');
+  }
+  try {
+    final theme = await AppSettingsService().loadTheme();
+    AppTheme.set(theme);
+  } catch (e) {
+    debugPrint('[Main] AppTheme initialization error: $e');
+  }
   runApp(const CrowleysCloudApp());
 }
 
@@ -456,10 +472,14 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _initializeServers() async {
     await _requestAllPermissionsAtStartup();
     await _serverManager.initialize();
-    await _syncScheduler.scheduleForServers(
-      _serverManager.servers,
-      forceReRegister: true,
-    );
+    try {
+      await _syncScheduler.scheduleForServers(
+        _serverManager.servers,
+        forceReRegister: false,
+      );
+    } catch (e) {
+      debugPrint('[MainScreen] Sync schedule failed: $e');
+    }
     try {
       final prefs = await SharedPreferences.getInstance();
       _isGridView = prefs.getBool('is_grid_view') ?? true;
