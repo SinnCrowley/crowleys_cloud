@@ -40,52 +40,54 @@ void main() {
   final dummyFileItem = FileItem.fromServer(dummyServerFile);
   final dummyLocalFileItem = FileItem.fromEntity(File('test_local.jpg'));
 
-  testWidgets('ImageViewer normal mode shows Download for server items', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      wrapWithLocalization(
-        ImageViewer(
-          imageItems: [dummyFileItem],
-          initialIndex: 0,
-          isTrash: false,
+  testWidgets(
+    'ImageViewer normal mode shows Download for server items',
+    (tester) async {
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          ImageViewer(
+            imageItems: [dummyFileItem],
+            initialIndex: 0,
+            isTrash: false,
+          ),
         ),
-      ),
-    );
-    await tester.pump();
+      );
+      await tester.pump();
 
-    expect(find.text('Download'), findsOneWidget);
-    expect(find.text('Upload'), findsNothing);
-    expect(find.text('Rename'), findsOneWidget);
-    expect(find.text('Delete'), findsOneWidget);
-    expect(find.text('Add to folder'), findsOneWidget);
-    expect(find.text('Share'), findsOneWidget);
+      expect(find.text('Download'), findsOneWidget);
+      expect(find.text('Upload'), findsNothing);
+      expect(find.text('Rename'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+      expect(find.text('Add to folder'), findsOneWidget);
+      expect(find.text('Share'), findsOneWidget);
 
-    expect(find.text('Restore'), findsNothing);
-    expect(find.text('Delete Permanently'), findsNothing);
-  });
+      expect(find.text('Restore'), findsNothing);
+      expect(find.text('Delete Permanently'), findsNothing);
+    },
+  );
 
-  testWidgets('ImageViewer normal mode shows Upload for local items', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      wrapWithLocalization(
-        ImageViewer(
-          imageItems: [dummyLocalFileItem],
-          initialIndex: 0,
-          isTrash: false,
+  testWidgets(
+    'ImageViewer normal mode shows Upload for local items',
+    (tester) async {
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          ImageViewer(
+            imageItems: [dummyLocalFileItem],
+            initialIndex: 0,
+            isTrash: false,
+          ),
         ),
-      ),
-    );
-    await tester.pump();
+      );
+      await tester.pump();
 
-    expect(find.text('Upload'), findsOneWidget);
-    expect(find.text('Download'), findsNothing);
-    expect(find.text('Rename'), findsOneWidget);
-    expect(find.text('Delete'), findsOneWidget);
-    expect(find.text('Add to folder'), findsOneWidget);
-    expect(find.text('Share'), findsOneWidget);
-  });
+      expect(find.text('Upload'), findsOneWidget);
+      expect(find.text('Download'), findsNothing);
+      expect(find.text('Rename'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+      expect(find.text('Add to folder'), findsOneWidget);
+      expect(find.text('Share'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'ImageViewer invokes onDownloadItem when Download button is tapped',
