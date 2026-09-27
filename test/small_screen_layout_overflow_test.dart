@@ -18,10 +18,12 @@ import 'dart:io';
 import 'package:crowleys_cloud/active_server_manager.dart';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/app_update_service.dart';
+import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/biometric_auth_service.dart';
 import 'package:crowleys_cloud/file_browser.dart';
 import 'package:crowleys_cloud/file_browser_controller.dart';
+import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_browser_controller.dart';
@@ -353,6 +355,175 @@ void main() {
           expect(find.byIcon(Icons.delete), findsOneWidget);
           expect(find.byIcon(Icons.share), findsOneWidget);
           expect(find.byIcon(Icons.edit), findsOneWidget);
+        }
+      },
+    );
+
+    testWidgets(
+      'AuthCard renders without overflow with biometrics enabled on 320px screen in Russian & English',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 640);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        for (final locale in [const Locale('ru'), const Locale('en')]) {
+          final usernameController = TextEditingController();
+          final passwordController = TextEditingController();
+
+          await tester.pumpWidget(
+            wrapWithLocalization(
+              Scaffold(
+                body: SingleChildScrollView(
+                  child: AuthCard(
+                    title: 'Sign In',
+                    usernameController: usernameController,
+                    passwordController: passwordController,
+                    biometricAvailable: true,
+                    onBiometricLogin: () async => true,
+                    onSubmit: (mode, {email}) async => true,
+                  ),
+                ),
+              ),
+              locale: locale,
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(tester.takeException(), isNull);
+          expect(find.byIcon(Icons.fingerprint), findsOneWidget);
+
+          usernameController.dispose();
+          passwordController.dispose();
+        }
+      },
+    );
+
+    testWidgets(
+      'Authentication required screen renders centered without overflow on 320px screen in Russian & English',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 640);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        for (final locale in [const Locale('ru'), const Locale('en')]) {
+          await tester.pumpWidget(
+            wrapWithLocalization(
+              Builder(
+                builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return Scaffold(
+                    appBar: AppBar(title: Text(l10n.authenticationRequired)),
+                    body: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.fingerprint, size: 64),
+                            const SizedBox(height: 18),
+                            Text(
+                              l10n.authenticationRequired,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.signInToAccess('My Server'),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 28),
+                            Container(
+                              width: double.infinity,
+                              constraints: const BoxConstraints(maxWidth: 320),
+                              child: FilledButton(
+                                onPressed: () {},
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                    horizontal: 16,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.login),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        l10n.signInWithPassword,
+                                        textAlign: TextAlign.center,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              width: double.infinity,
+                              constraints: const BoxConstraints(maxWidth: 320),
+                              child: OutlinedButton(
+                                onPressed: () {},
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                    horizontal: 16,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.fingerprint),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        l10n.useBiometrics,
+                                        textAlign: TextAlign.center,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              locale: locale,
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(tester.takeException(), isNull);
+          expect(find.byIcon(Icons.fingerprint), findsNWidgets(2));
+          expect(find.byIcon(Icons.login), findsOneWidget);
+
+          // Verify text alignment
+          final textWidgets = tester
+              .widgetList<Text>(find.byType(Text))
+              .where((t) => t.textAlign != null)
+              .toList();
+          for (final t in textWidgets) {
+            expect(t.textAlign, TextAlign.center);
+          }
         }
       },
     );

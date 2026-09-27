@@ -65,6 +65,7 @@ class SettingsScreen extends StatefulWidget {
     this.syncScheduler,
     this.localFolderPicker,
     this.onLocaleChanged,
+    this.isIosForTest,
   }) : settingsService = settingsService ?? AppSettingsService(),
        biometricAuthService = biometricAuthService ?? BiometricAuthService(),
        cacheService = cacheService ?? CacheService.instance;
@@ -78,6 +79,7 @@ class SettingsScreen extends StatefulWidget {
   final SyncBackgroundScheduler? syncScheduler;
   final Future<String?> Function(BuildContext context)? localFolderPicker;
   final Future<void> Function(Locale? locale)? onLocaleChanged;
+  final bool? isIosForTest;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -143,6 +145,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _defaultTargetDir;
   }
 
+  bool get _isIos => widget.isIosForTest ?? Platform.isIOS;
+
   String _displayLocalFolderPath(String path, [AppLocalizations? l10n]) {
     const androidPrimaryStoragePrefix = '/storage/emulated/0';
     final trimmed = path.trim();
@@ -151,6 +155,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (trimmed.startsWith('$androidPrimaryStoragePrefix/')) {
       final relative = trimmed.substring(androidPrimaryStoragePrefix.length);
       return relative.isEmpty ? storageLabel : relative;
+    }
+    if (_isIos &&
+        (trimmed.contains('/Documents/') || trimmed.endsWith('/Documents'))) {
+      if (trimmed.endsWith('/Documents')) return 'Files';
+      final relative = trimmed.substring(
+        trimmed.indexOf('/Documents/') + '/Documents/'.length,
+      );
+      return relative.isEmpty ? 'Files' : 'Files > $relative';
     }
     return trimmed;
   }
@@ -426,12 +438,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _editDownloadPath() async {
     final l10n = AppLocalizations.of(context)!;
+    final defaultHint = _isIos
+        ? 'Files > CrowleysCloud'
+        : l10n.downloadPathHint;
     final path = await showDialog<String?>(
       context: context,
       builder: (context) => _TextInputDialog(
         title: l10n.downloadPathDialogTitle,
         initialValue: _downloadPath ?? '',
-        hintText: l10n.downloadPathHint,
+        hintText: defaultHint,
         secondaryActionLabel: l10n.useDefault,
         secondaryActionValue: '',
       ),
@@ -1085,7 +1100,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           leading: Icon(Icons.download_outlined, color: appAccent),
           title: Text(l10n.downloadPath, style: TextStyle(color: appText)),
           subtitle: Text(
-            _downloadPath ?? l10n.defaultDownloadFolder,
+            _downloadPath != null
+                ? _displayLocalFolderPath(_downloadPath!, l10n)
+                : (_isIos
+                      ? 'Files > CrowleysCloud'
+                      : l10n.defaultDownloadFolder),
             style: TextStyle(color: appSubtext),
           ),
           trailing: Icon(Icons.chevron_right, color: appSubtext),

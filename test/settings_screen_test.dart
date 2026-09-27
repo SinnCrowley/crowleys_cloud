@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:crowleys_cloud/active_server_manager.dart';
+import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/biometric_auth_service.dart';
 import 'package:crowleys_cloud/secret_store.dart';
@@ -417,6 +418,112 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Хранилище и кеш'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'SettingsScreen displays Files > CrowleysCloud on iOS by default and in dialog',
+    (tester) async {
+      await _useTallScreen(tester);
+      final manager = ActiveServerManager(
+        store: ServerStore(),
+        authService: AuthService(secretStore: InMemorySecretStore()),
+      );
+
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          SettingsScreen(
+            serverManager: manager,
+            biometricAuthService: _FakeBiometricAuthService(false),
+            isIosForTest: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Download path'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Files > CrowleysCloud'), findsOneWidget);
+
+      await tester.tap(find.text('Download path'));
+      await tester.pumpAndSettle();
+
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.decoration?.hintText, 'Files > CrowleysCloud');
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'SettingsScreen formats iOS Documents path properly when custom download path is set',
+    (tester) async {
+      await _useTallScreen(tester);
+      SharedPreferences.setMockInitialValues({
+        AppSettingsService.downloadDirectoryPathKey:
+            '/var/mobile/Containers/Data/Application/123-ABC/Documents/CrowleysCloud',
+      });
+      final manager = ActiveServerManager(
+        store: ServerStore(),
+        authService: AuthService(secretStore: InMemorySecretStore()),
+      );
+
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          SettingsScreen(
+            serverManager: manager,
+            biometricAuthService: _FakeBiometricAuthService(false),
+            isIosForTest: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Download path'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Files > CrowleysCloud'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'SettingsScreen shows defaultDownloadFolder and Android hint when not on iOS',
+    (tester) async {
+      await _useTallScreen(tester);
+      final manager = ActiveServerManager(
+        store: ServerStore(),
+        authService: AuthService(secretStore: InMemorySecretStore()),
+      );
+
+      await tester.pumpWidget(
+        wrapWithLocalization(
+          SettingsScreen(
+            serverManager: manager,
+            biometricAuthService: _FakeBiometricAuthService(false),
+            isIosForTest: false,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Download path'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Default CrowleysCloud folder'), findsOneWidget);
+
+      await tester.tap(find.text('Download path'));
+      await tester.pumpAndSettle();
+
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(
+        textField.decoration?.hintText,
+        '/storage/emulated/0/CrowleysCloud',
+      );
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
     },
   );
 }

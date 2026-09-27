@@ -509,20 +509,34 @@ class ServerBrowserController extends ChangeNotifier {
     notifyListeners();
   }
 
-  String _formatDisplayPath(String path, [AppLocalizations? l10n]) {
+  String _formatDisplayPath(
+    String path, [
+    AppLocalizations? l10n,
+    bool? isIos,
+  ]) {
+    final effectiveIsIos = isIos ?? Platform.isIOS;
     const androidPrefix = '/storage/emulated/0';
     if (path.startsWith(androidPrefix)) {
       final sub = path.substring(androidPrefix.length);
       return sub.isEmpty ? _getL10n(l10n).storageRoot : sub;
     }
-    if (Platform.isIOS && path.contains('/Documents/')) {
+    if (effectiveIsIos &&
+        (path.contains('/Documents/') || path.endsWith('/Documents'))) {
+      if (path.endsWith('/Documents')) return 'Files';
       final sub = path.substring(
         path.indexOf('/Documents/') + '/Documents/'.length,
       );
-      return 'Files > $sub';
+      return sub.isEmpty ? 'Files' : 'Files > $sub';
     }
     return path;
   }
+
+  @visibleForTesting
+  String formatDisplayPathForTest(
+    String path, [
+    AppLocalizations? l10n,
+    bool? isIos,
+  ]) => _formatDisplayPath(path, l10n, isIos);
 
   Future<bool> deleteSelectedFiles([AppLocalizations? l10n]) async {
     final local = _getL10n(l10n);
@@ -972,10 +986,46 @@ class ServerBrowserController extends ChangeNotifier {
 
   Future<Directory> _downloadRoot() async {
     final configuredPath = await _settingsService.downloadDirectoryPath();
-    if (configuredPath != null) {
-      final configuredDir = Directory(configuredPath);
-      await configuredDir.create(recursive: true);
-      return configuredDir;
+    if (configuredPath != null && configuredPath.trim().isNotEmpty) {
+      final trimmed = configuredPath.trim();
+      if (Platform.isIOS) {
+        Directory? docsDir;
+        final docProvider = _applicationDocumentsDirectoryProvider;
+        if (docProvider != null) {
+          try {
+            docsDir = await docProvider();
+          } catch (_) {}
+        } else {
+          try {
+            docsDir = await getApplicationDocumentsDirectory();
+          } catch (_) {}
+        }
+        if (docsDir != null) {
+          String subPath = trimmed;
+          if (subPath.startsWith('Files >')) {
+            subPath = subPath.substring('Files >'.length).trim();
+          } else if (subPath.startsWith('/storage/emulated/0')) {
+            subPath = subPath.substring('/storage/emulated/0'.length).trim();
+          }
+          while (subPath.startsWith('/')) {
+            subPath = subPath.substring(1);
+          }
+          if (subPath.isEmpty) {
+            subPath = 'CrowleysCloud';
+          }
+          final targetDir = Directory(p.join(docsDir.path, subPath));
+          try {
+            await targetDir.create(recursive: true);
+            return targetDir;
+          } catch (_) {}
+        }
+      } else {
+        try {
+          final configuredDir = Directory(trimmed);
+          await configuredDir.create(recursive: true);
+          return configuredDir;
+        } catch (_) {}
+      }
     }
     Directory? baseDir;
     final extProvider = _externalStorageDirectoryProvider;

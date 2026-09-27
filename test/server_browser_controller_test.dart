@@ -1118,6 +1118,47 @@ void main() {
       controller.dispose();
     },
   );
+
+  test('formatDisplayPath formats iOS and Android paths accurately', () {
+    final store = InMemorySecretStore();
+    final client = MockClient((request) async => http.Response('ok', 200));
+    final controller = _controller(store: store, client: client);
+
+    expect(
+      controller.formatDisplayPathForTest(
+        '/var/mobile/Containers/Data/Application/UUID/Documents/CrowleysCloud',
+        null,
+        true,
+      ),
+      'Files > CrowleysCloud',
+    );
+
+    expect(
+      controller.formatDisplayPathForTest(
+        '/var/mobile/Containers/Data/Application/UUID/Documents',
+        null,
+        true,
+      ),
+      'Files',
+    );
+
+    expect(
+      controller.formatDisplayPathForTest(
+        '/storage/emulated/0/CrowleysCloud',
+        null,
+        false,
+      ),
+      '/CrowleysCloud',
+    );
+
+    expect(
+      controller.formatDisplayPathForTest('/storage/emulated/0', null, false),
+      'Storage',
+    );
+
+    controller.disposeController();
+    controller.dispose();
+  });
 }
 
 ServerBrowserController _controller({

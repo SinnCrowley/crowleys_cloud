@@ -1823,7 +1823,7 @@ class _MainScreenState extends State<MainScreen> {
           backgroundColor: appSurface,
         ),
         body: Center(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: _authPromptDismissed
                 ? Column(
@@ -1839,6 +1839,7 @@ class _MainScreenState extends State<MainScreen> {
                       const SizedBox(height: 18),
                       Text(
                         l10n.authenticationRequired,
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: appText,
                           fontSize: 20,
@@ -1854,8 +1855,8 @@ class _MainScreenState extends State<MainScreen> {
                       const SizedBox(height: 28),
                       Container(
                         width: double.infinity,
-                        constraints: const BoxConstraints(maxWidth: 260),
-                        child: FilledButton.icon(
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: FilledButton(
                           onPressed: () async {
                             final lastUsername = await _serverManager
                                 .authService
@@ -1875,14 +1876,31 @@ class _MainScreenState extends State<MainScreen> {
                               if (mounted) setState(() {});
                             }
                           },
-                          icon: const Icon(Icons.login),
-                          label: Text(l10n.signInWithPassword),
                           style: FilledButton.styleFrom(
                             backgroundColor: appAccent,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 16,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.login),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  l10n.signInWithPassword,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -1890,8 +1908,8 @@ class _MainScreenState extends State<MainScreen> {
                         const SizedBox(height: 12),
                         Container(
                           width: double.infinity,
-                          constraints: const BoxConstraints(maxWidth: 260),
-                          child: OutlinedButton.icon(
+                          constraints: const BoxConstraints(maxWidth: 320),
+                          child: OutlinedButton(
                             onPressed: () async {
                               final authed = await _authenticateWithBiometrics(
                                 active,
@@ -1902,15 +1920,32 @@ class _MainScreenState extends State<MainScreen> {
                                 });
                               }
                             },
-                            icon: const Icon(Icons.fingerprint),
-                            label: Text(l10n.useBiometrics),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: appText,
                               side: BorderSide(color: appBorder),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 16,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.fingerprint),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    l10n.useBiometrics,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -1922,6 +1957,7 @@ class _MainScreenState extends State<MainScreen> {
                           icon: Icon(Icons.swap_horiz, color: appAccent),
                           label: Text(
                             l10n.switchServer,
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               color: appAccent,
                               fontWeight: FontWeight.w600,
@@ -1939,11 +1975,13 @@ class _MainScreenState extends State<MainScreen> {
                       Text(
                         l10n.authenticationRequired,
                         style: TextStyle(color: appText, fontSize: 18),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         l10n.openingSignIn,
                         style: TextStyle(color: appSubtext),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),

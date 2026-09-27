@@ -802,10 +802,35 @@ class FileBrowserController extends ChangeNotifier {
       } else if (category.name == 'Downloaded Files' &&
           directoryHistory.isEmpty) {
         try {
-          final docsDir = await getApplicationDocumentsDirectory();
-          final downloadDir = Directory(p.join(docsDir.path, 'CrowleysCloud'));
-          if (!await downloadDir.exists()) {
-            await downloadDir.create(recursive: true);
+          final configuredPath = await _settingsService.downloadDirectoryPath();
+          Directory? downloadDir;
+          if (configuredPath != null && configuredPath.trim().isNotEmpty) {
+            final trimmed = configuredPath.trim();
+            if (Platform.isIOS) {
+              final docsDir = await getApplicationDocumentsDirectory();
+              String subPath = trimmed;
+              if (subPath.startsWith('Files >')) {
+                subPath = subPath.substring('Files >'.length).trim();
+              } else if (subPath.startsWith('/storage/emulated/0')) {
+                subPath = subPath
+                    .substring('/storage/emulated/0'.length)
+                    .trim();
+              }
+              while (subPath.startsWith('/')) {
+                subPath = subPath.substring(1);
+              }
+              if (subPath.isEmpty) subPath = 'CrowleysCloud';
+              downloadDir = Directory(p.join(docsDir.path, subPath));
+            } else {
+              downloadDir = Directory(trimmed);
+            }
+          }
+          if (downloadDir == null || !await downloadDir.exists()) {
+            final docsDir = await getApplicationDocumentsDirectory();
+            downloadDir = Directory(p.join(docsDir.path, 'CrowleysCloud'));
+            if (!await downloadDir.exists()) {
+              await downloadDir.create(recursive: true);
+            }
           }
           directoryHistory.add(downloadDir);
         } catch (_) {}

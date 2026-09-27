@@ -234,22 +234,41 @@ class _AuthCardState extends State<AuthCard> {
               widget.onBiometricLogin != null &&
               _mode == AuthMode.login) ...[
             const SizedBox(height: 12),
-            OutlinedButton.icon(
+            OutlinedButton(
               onPressed: _isBiometricSubmitting ? null : _submitBiometric,
-              icon: _isBiometricSubmitting
-                  ? const SizedBox.square(
-                      dimension: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(Icons.fingerprint, color: appText),
-              label: Text(l10n.useBiometrics, style: TextStyle(color: appText)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: appText,
                 side: BorderSide(color: appBorder),
-                padding: const EdgeInsets.symmetric(vertical: 13),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 13,
+                  horizontal: 16,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_isBiometricSubmitting)
+                    const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    Icon(Icons.fingerprint, color: appText),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      l10n.useBiometrics,
+                      style: TextStyle(color: appText),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
