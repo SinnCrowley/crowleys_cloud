@@ -370,6 +370,52 @@ void main() {
     controller.dispose();
   });
 
+  test(
+    'downloadRoot handles iOS/unsupported platform gracefully without throwing getExternalStoragePath UnsupportedError',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+
+      final tempDocDir = await Directory.systemTemp.createTemp('mock_docs_');
+      addTearDown(() => tempDocDir.delete(recursive: true));
+
+      final store = InMemorySecretStore();
+      await store.saveTokens(
+        serverId: 'srv',
+        accessToken: 'token',
+        refreshToken: 'refresh',
+      );
+
+      final controller = ServerBrowserController(
+        profile: ServerProfile(
+          id: 'srv',
+          displayName: 'Test',
+          baseUrl: 'http://localhost:7777',
+          authMode: 'login',
+          lastUsedAt: DateTime.now().toUtc(),
+          syncPrefs: const {},
+        ),
+        serverId: 'srv',
+        authService: AuthService(secretStore: store),
+        client: MockClient((request) async {
+          return http.Response(jsonEncode({'entries': []}), 200);
+        }),
+        externalStorageDirectoryProvider: () async {
+          throw UnsupportedError(
+            'getExternalStoragePath is not supported on this platform',
+          );
+        },
+        applicationDocumentsDirectoryProvider: () async => tempDocDir,
+      );
+
+      final root = await controller.downloadRootForTest();
+      expect(root.path, p.join(tempDocDir.path, 'CrowleysCloud'));
+      expect(await root.exists(), isTrue);
+
+      controller.disposeController();
+      controller.dispose();
+    },
+  );
+
   test('parses ownerName and uploaderUserId in ServerFileItem', () {
     final item = ServerFileItem.fromJson({
       'name': 'shared_doc.pdf',

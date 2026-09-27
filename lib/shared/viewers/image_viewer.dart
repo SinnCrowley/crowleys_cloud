@@ -458,57 +458,81 @@ class _ImageViewerState extends State<ImageViewer>
                 right: 0,
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.7),
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                  child: widget.isTrash
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _ActionButton(
-                              icon: Icons.restore,
-                              label: AppLocalizations.of(context)!.restore,
-                              onPressed: _restoreCurrentFile,
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 12,
+                      ),
+                      child: widget.isTrash
+                          ? Row(
+                              children: [
+                                Expanded(
+                                  child: _ActionButton(
+                                    icon: Icons.restore,
+                                    label: AppLocalizations.of(
+                                      context,
+                                    )!.restore,
+                                    onPressed: _restoreCurrentFile,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _ActionButton(
+                                    icon: Icons.delete_forever,
+                                    label: AppLocalizations.of(
+                                      context,
+                                    )!.deletePermanently,
+                                    onPressed: _deletePermanentlyCurrentFile,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                Expanded(
+                                  child: _ActionButton(
+                                    icon: Icons.upload,
+                                    label: AppLocalizations.of(context)!.upload,
+                                    onPressed: _uploadCurrentFile,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _ActionButton(
+                                    icon: Icons.edit,
+                                    label: AppLocalizations.of(context)!.rename,
+                                    onPressed: _renameCurrentFile,
+                                    enabled: widget.onRenameItem != null,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _ActionButton(
+                                    icon: Icons.delete,
+                                    label: AppLocalizations.of(context)!.delete,
+                                    onPressed: _deleteCurrentFile,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _ActionButton(
+                                    icon: Icons.drive_file_move,
+                                    label: AppLocalizations.of(
+                                      context,
+                                    )!.addToFolder,
+                                    onPressed: _addCurrentFileToFolder,
+                                    enabled: widget.onAddToFolderItem != null,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _ActionButton(
+                                    icon: Icons.share,
+                                    label: AppLocalizations.of(context)!.share,
+                                    onPressed: _shareCurrentFile,
+                                  ),
+                                ),
+                              ],
                             ),
-                            _ActionButton(
-                              icon: Icons.delete_forever,
-                              label: AppLocalizations.of(
-                                context,
-                              )!.deletePermanently,
-                              onPressed: _deletePermanentlyCurrentFile,
-                            ),
-                          ],
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _ActionButton(
-                              icon: Icons.upload,
-                              label: AppLocalizations.of(context)!.upload,
-                              onPressed: _uploadCurrentFile,
-                            ),
-                            _ActionButton(
-                              icon: Icons.edit,
-                              label: AppLocalizations.of(context)!.rename,
-                              onPressed: _renameCurrentFile,
-                              enabled: widget.onRenameItem != null,
-                            ),
-                            _ActionButton(
-                              icon: Icons.delete,
-                              label: AppLocalizations.of(context)!.delete,
-                              onPressed: _deleteCurrentFile,
-                            ),
-                            _ActionButton(
-                              icon: Icons.drive_file_move,
-                              label: AppLocalizations.of(context)!.addToFolder,
-                              onPressed: _addCurrentFileToFolder,
-                              enabled: widget.onAddToFolderItem != null,
-                            ),
-                            _ActionButton(
-                              icon: Icons.share,
-                              label: AppLocalizations.of(context)!.share,
-                              onPressed: _shareCurrentFile,
-                            ),
-                          ],
-                        ),
+                    ),
+                  ),
                 ),
               ),
               if (_isDraggingUp)
@@ -543,23 +567,33 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: enabled ? onPressed : null,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: enabled ? Colors.white70 : Colors.white24,
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: enabled ? Colors.white : Colors.white38,
-              fontSize: 12,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: enabled ? Colors.white70 : Colors.white24,
+              size: 24,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: enabled ? Colors.white : Colors.white38,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                height: 1.1,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

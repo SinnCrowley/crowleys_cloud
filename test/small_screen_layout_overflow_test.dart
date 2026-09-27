@@ -22,12 +22,15 @@ import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/biometric_auth_service.dart';
 import 'package:crowleys_cloud/file_browser.dart';
 import 'package:crowleys_cloud/file_browser_controller.dart';
+import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_browser_controller.dart';
 import 'package:crowleys_cloud/server_file_browser.dart';
+import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_store.dart';
 import 'package:crowleys_cloud/settings_screen.dart';
+import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -300,6 +303,57 @@ void main() {
         // Folder picker screen is opened without overflow
         expect(tester.takeException(), isNull);
         expect(find.byIcon(Icons.sort), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'ImageViewer action bar renders without overflow on 320px screen in Russian & English',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 640);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final dummyItem = FileItem.fromServer(
+          ServerFileItem(
+            id: 101,
+            name: 'photo.jpg',
+            path: 'photo.jpg',
+            isDir: false,
+            size: 1024,
+            modifiedAt: DateTime.now(),
+            type: 'photo',
+            mimeType: 'image/jpeg',
+            thumbnailUrl: null,
+          ),
+        );
+
+        for (final locale in [const Locale('ru'), const Locale('en')]) {
+          await tester.pumpWidget(
+            wrapWithLocalization(
+              ImageViewer(
+                imageItems: [dummyItem],
+                initialIndex: 0,
+                onUploadItem: (_) async {},
+                onRenameItem: (_) async {},
+                onDeleteItem: (_) async {},
+                onAddToFolderItem: (_) async {},
+                onShareItem: (_) async {},
+              ),
+              locale: locale,
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(tester.takeException(), isNull);
+          expect(find.byIcon(Icons.drive_file_move), findsOneWidget);
+          expect(find.byIcon(Icons.upload), findsOneWidget);
+          expect(find.byIcon(Icons.delete), findsOneWidget);
+          expect(find.byIcon(Icons.share), findsOneWidget);
+          expect(find.byIcon(Icons.edit), findsOneWidget);
+        }
       },
     );
   });

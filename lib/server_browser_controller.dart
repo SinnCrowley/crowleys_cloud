@@ -54,9 +54,14 @@ class ServerBrowserController extends ChangeNotifier {
     CacheService? cacheService,
     AppSettingsService? settingsService,
     http.Client? client,
+    Future<Directory?> Function()? externalStorageDirectoryProvider,
+    Future<Directory> Function()? applicationDocumentsDirectoryProvider,
   }) : _cacheService = cacheService ?? CacheService.instance,
        _settingsService = settingsService ?? AppSettingsService(),
-       _client = client ?? http.Client() {
+       _client = client ?? http.Client(),
+       _externalStorageDirectoryProvider = externalStorageDirectoryProvider,
+       _applicationDocumentsDirectoryProvider =
+           applicationDocumentsDirectoryProvider {
     unawaited(initialize());
   }
 
@@ -68,6 +73,8 @@ class ServerBrowserController extends ChangeNotifier {
   final CacheService _cacheService;
   final AppSettingsService _settingsService;
   final http.Client _client;
+  final Future<Directory?> Function()? _externalStorageDirectoryProvider;
+  final Future<Directory> Function()? _applicationDocumentsDirectoryProvider;
 
   final List<ServerFileItem> files = [];
   final Set<ServerFileItem> selectedFiles = {};
@@ -970,20 +977,51 @@ class ServerBrowserController extends ChangeNotifier {
       await configuredDir.create(recursive: true);
       return configuredDir;
     }
-    final external = await getExternalStorageDirectory();
-    Directory baseDir;
-    if (external != null) {
-      final parts = p.split(external.path);
-      final androidIndex = parts.indexOf('Android');
-      if (androidIndex > 0) {
-        baseDir = Directory(p.joinAll(parts.take(androidIndex)));
-      } else {
-        baseDir = external;
-      }
-    } else {
-      baseDir = await getApplicationDocumentsDirectory();
+    Directory? baseDir;
+    final extProvider = _externalStorageDirectoryProvider;
+    if (extProvider != null) {
+      try {
+        final external = await extProvider();
+        if (external != null) {
+          final parts = p.split(external.path);
+          final androidIndex = parts.indexOf('Android');
+          if (androidIndex > 0) {
+            baseDir = Directory(p.joinAll(parts.take(androidIndex)));
+          } else {
+            baseDir = external;
+          }
+        }
+      } catch (_) {}
+    } else if (Platform.isAndroid) {
+      try {
+        final external = await getExternalStorageDirectory();
+        if (external != null) {
+          final parts = p.split(external.path);
+          final androidIndex = parts.indexOf('Android');
+          if (androidIndex > 0) {
+            baseDir = Directory(p.joinAll(parts.take(androidIndex)));
+          } else {
+            baseDir = external;
+          }
+        }
+      } catch (_) {}
     }
-    final dir = Directory(p.join(baseDir.path, 'CrowleysCloud'));
+    if (baseDir == null) {
+      final docProvider = _applicationDocumentsDirectoryProvider;
+      if (docProvider != null) {
+        try {
+          baseDir = await docProvider();
+        } catch (_) {}
+      } else {
+        try {
+          baseDir = await getApplicationDocumentsDirectory();
+        } catch (_) {}
+      }
+    }
+    final targetPath = baseDir != null
+        ? p.join(baseDir.path, 'CrowleysCloud')
+        : 'CrowleysCloud';
+    final dir = Directory(targetPath);
     await dir.create(recursive: true);
     return dir;
   }
