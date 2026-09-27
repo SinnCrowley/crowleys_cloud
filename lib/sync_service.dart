@@ -18,6 +18,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/app_constants.dart';
@@ -344,12 +346,24 @@ class DeviceSyncFileScanner implements SyncFileScanner {
   DeviceSyncFileScanner({
     this.externalStorageDirectoriesProvider,
     this.applicationDocumentsDirectoryProvider,
+    this.mediaAssetsProvider,
     AppSettingsService? settingsService,
-  }) : _settingsService = settingsService ?? AppSettingsService();
+    bool? isIos,
+  }) : _settingsService = settingsService ?? AppSettingsService(),
+       _isIos = isIos;
 
   final Future<List<Directory>?> Function()? externalStorageDirectoriesProvider;
   final Future<Directory> Function()? applicationDocumentsDirectoryProvider;
+  final Future<List<SyncCandidate>> Function({
+    required List<String> selectedCategories,
+    required String target,
+    required List<String> selectedFolders,
+  })?
+  mediaAssetsProvider;
   final AppSettingsService _settingsService;
+  final bool? _isIos;
+
+  bool get _effectiveIsIos => _isIos ?? Platform.isIOS;
 
   @override
   Future<List<SyncCandidate>> scan(ServerProfile server) async {
@@ -358,6 +372,19 @@ class DeviceSyncFileScanner implements SyncFileScanner {
     final selectedCategories = _stringList(prefs['syncCategories']);
     final selectedFolders = _stringList(prefs['syncFolders']);
     final byLocalPath = <String, SyncCandidate>{};
+
+    if (selectedCategories.contains('photos') ||
+        selectedCategories.contains('videos')) {
+      final mediaCandidates = await _scanMediaLibrary(
+        selectedCategories: selectedCategories,
+        target: target,
+        selectedFolders: selectedFolders,
+      );
+      for (final candidate in mediaCandidates) {
+        final absolutePath = await _identityPath(candidate.file);
+        byLocalPath.putIfAbsent(absolutePath, () => candidate);
+      }
+    }
 
     if (selectedCategories.isNotEmpty) {
       final root = await _storageRoot();
@@ -415,6 +442,108 @@ class DeviceSyncFileScanner implements SyncFileScanner {
 
     return byLocalPath.values.toList(growable: false)
       ..sort((a, b) => a.remotePath.compareTo(b.remotePath));
+  }
+
+  Future<List<SyncCandidate>> _scanMediaLibrary({
+    required List<String> selectedCategories,
+    required String target,
+    required List<String> selectedFolders,
+  }) async {
+    final provider = mediaAssetsProvider;
+    if (provider != null) {
+      return provider(
+        selectedCategories: selectedCategories,
+        target: target,
+        selectedFolders: selectedFolders,
+      );
+    }
+
+    if (!_effectiveIsIos) return const [];
+
+    try {
+      final perm = await PhotoManager.requestPermissionExtend();
+      if (!perm.hasAccess) return const [];
+
+      final includePhotos = selectedCategories.contains('photos');
+      final includeVideos = selectedCategories.contains('videos');
+      if (!includePhotos && !includeVideos) return const [];
+
+      final type = includePhotos && includeVideos
+          ? RequestType.common
+          : includePhotos
+          ? RequestType.image
+          : RequestType.video;
+
+      final filterOption = FilterOptionGroup(
+        imageOption: const FilterOption(needTitle: true),
+        videoOption: const FilterOption(needTitle: true),
+      );
+
+      final albums = await PhotoManager.getAssetPathList(
+        type: type,
+        hasAll: true,
+        onlyAll: false,
+        filterOption: filterOption,
+      );
+      if (albums.isEmpty) return const [];
+
+      final allAlbum = albums.firstWhere(
+        (a) => a.isAll,
+        orElse: () => albums.first,
+      );
+      final total = await allAlbum.assetCountAsync;
+      final candidates = <SyncCandidate>[];
+      final seenRemotePaths = <String>{};
+
+      const pageSize = 100;
+      for (var page = 0; page * pageSize < total; page++) {
+        final assets = await allAlbum.getAssetListPaged(
+          page: page,
+          size: pageSize,
+        );
+        for (final asset in assets) {
+          final isVideo = asset.type == AssetType.video;
+          final category = isVideo ? 'videos' : 'photos';
+          if (!selectedCategories.contains(category)) continue;
+
+          File? file;
+          try {
+            file = await asset.originFile;
+          } catch (_) {}
+          try {
+            file ??= await asset.file;
+          } catch (_) {}
+          if (file == null || !await file.exists()) continue;
+
+          var name = (asset.title?.isNotEmpty == true)
+              ? asset.title!
+              : p.basename(file.path);
+          var remotePath = p.posix.join(target, category, name);
+          if (seenRemotePaths.contains(remotePath)) {
+            final ext = p.extension(name);
+            final base = p.basenameWithoutExtension(name);
+            final cleanId = asset.id.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+            name = '${base}_$cleanId$ext';
+            remotePath = p.posix.join(target, category, name);
+          }
+          seenRemotePaths.add(remotePath);
+
+          final absolutePath = p.normalize(p.absolute(file.path));
+          final isInSelectedFolder = selectedFolders.any((folderPath) {
+            final normalizedFolder = p.normalize(p.absolute(folderPath));
+            return absolutePath == normalizedFolder ||
+                absolutePath.startsWith(normalizedFolder + p.separator);
+          });
+          if (isInSelectedFolder) continue;
+
+          candidates.add(SyncCandidate(file: file, remotePath: remotePath));
+        }
+      }
+      return candidates;
+    } catch (e) {
+      debugPrint('[DeviceSyncFileScanner] _scanMediaLibrary failed: $e');
+      return const [];
+    }
   }
 
   Future<void> _scanDirectory(

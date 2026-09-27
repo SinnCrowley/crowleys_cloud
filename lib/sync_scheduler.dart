@@ -267,7 +267,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
         syncBackgroundTaskName,
         syncBackgroundTaskName,
         frequency: Duration(minutes: minFrequencyMinutes),
-        initialDelay: Duration(minutes: minFrequencyMinutes),
+        initialDelay: Duration.zero,
         constraints: Constraints(
           networkType: allWifiOnly
               ? NetworkType.unmetered

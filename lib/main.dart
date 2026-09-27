@@ -40,6 +40,7 @@ import 'package:crowleys_cloud/server_setup_screen.dart';
 import 'package:crowleys_cloud/settings_screen.dart';
 import 'package:crowleys_cloud/server_store.dart';
 import 'package:crowleys_cloud/sync_scheduler.dart';
+import 'package:crowleys_cloud/sync_service.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:crowleys_cloud/transfer_widgets.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
@@ -291,9 +292,10 @@ class _UploadPlan {
 }
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key, this.onLocaleChanged});
+  const MainScreen({super.key, this.onLocaleChanged, this.syncService});
 
   final Future<void> Function(Locale? locale)? onLocaleChanged;
+  final SyncService? syncService;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -336,7 +338,11 @@ class _MainScreenState extends State<MainScreen> {
   late final BiometricAuthService _biometricAuthService;
   late final AppSettingsService _appSettingsService;
   late final SyncBackgroundScheduler _syncScheduler;
+  late final SyncService _syncService;
   final TransferManager _transferManager = TransferManager();
+  AppLifecycleListener? _lifecycleListener;
+  Timer? _autoSyncTimer;
+  bool _isAutoSyncRunning = false;
   bool _authPromptInFlight = false;
   bool _authPromptDismissed = false;
   bool _canUseBiometrics = false;
@@ -363,6 +369,13 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+    _syncService =
+        widget.syncService ??
+        SyncService(
+          scanner: DeviceSyncFileScanner(),
+          apiClient: HttpSyncApiClient(authService: _serverManager.authService),
+          stateStore: const SqliteSyncStateStore(),
+        );
     _biometricAuthService = BiometricAuthService();
     _searchTextListener = () => setState(() {});
     _searchController.addListener(_searchTextListener);
@@ -382,11 +395,17 @@ class _MainScreenState extends State<MainScreen> {
       }
     };
     _transferManager.addListener(_transferListener);
+    _lifecycleListener = AppLifecycleListener(
+      onResume: () => unawaited(_checkAndRunAutoSync()),
+    );
+    _startForegroundAutoSync();
     unawaited(_initializeServers());
   }
 
   @override
   void dispose() {
+    _autoSyncTimer?.cancel();
+    _lifecycleListener?.dispose();
     _searchController.removeListener(_searchTextListener);
     _serverManager.removeListener(_serverManagerListener);
     _transferManager.removeListener(_transferListener);
@@ -487,6 +506,57 @@ class _MainScreenState extends State<MainScreen> {
     if (!mounted) return;
     setState(() {});
     unawaited(_checkForAutoUpdates());
+    unawaited(_checkAndRunAutoSync());
+  }
+
+  void _startForegroundAutoSync() {
+    _autoSyncTimer?.cancel();
+    _autoSyncTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      unawaited(_checkAndRunAutoSync());
+    });
+  }
+
+  Future<void> _checkAndRunAutoSync() async {
+    if (!mounted || _isAutoSyncRunning) return;
+    _isAutoSyncRunning = true;
+    try {
+      final servers = _serverManager.servers;
+      for (final server in servers) {
+        if (!mounted) break;
+        final syncPrefs = server.syncPrefs;
+        if (syncPrefs['syncEnabled'] != true) continue;
+
+        final categories = syncPrefs['syncCategories'];
+        final folders = syncPrefs['syncFolders'];
+        final hasCategories =
+            categories is List &&
+            categories.any((e) => e.toString().trim().isNotEmpty);
+        final hasFolders =
+            folders is List &&
+            folders.any((e) => e.toString().trim().isNotEmpty);
+        if (!hasCategories && !hasFolders) continue;
+
+        final freqMinutes = syncPrefs['syncFrequency'] as int? ?? 15;
+        final lastResult = await _syncService.stateStore.readLastResult(
+          server.id,
+        );
+        if (lastResult != null) {
+          final elapsed = DateTime.now().toUtc().difference(
+            lastResult.finishedAt,
+          );
+          if (elapsed.inMinutes < freqMinutes) {
+            continue;
+          }
+        }
+
+        final l10n = mounted ? AppLocalizations.of(context) : null;
+        await _syncService.syncServer(server, l10n: l10n);
+      }
+    } catch (e) {
+      debugPrint('[MainScreen] Foreground auto-sync error: $e');
+    } finally {
+      _isAutoSyncRunning = false;
+    }
   }
 
   Future<void> _checkForAutoUpdates() async {

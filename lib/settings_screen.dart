@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
@@ -723,6 +724,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     if (!mounted) return;
     setState(() {});
+    if (updates['syncEnabled'] == true) {
+      unawaited(_syncSelectedServerNow());
+    }
   }
 
   Future<bool> _requestPermissionsForServerSync(ServerProfile server) async {
