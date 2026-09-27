@@ -632,4 +632,89 @@ void main() {
       expect(lastResult?.uploadedFiles, 0);
     },
   );
+
+  test(
+    'scanner queries mediaAssetsProvider when photos or videos categories selected',
+    () async {
+      final photoFile = await writeTestFile(tempDir, 'photo.jpg', 'photo data');
+      final videoFile = await writeTestFile(tempDir, 'clip.mp4', 'video data');
+      final docsDir = Directory('${tempDir.path}/docs')
+        ..createSync(recursive: true);
+
+      var mediaScanned = false;
+      final scanner = DeviceSyncFileScanner(
+        applicationDocumentsDirectoryProvider: () async => docsDir,
+        mediaAssetsProvider:
+            ({
+              required selectedCategories,
+              required target,
+              required selectedFolders,
+            }) async {
+              mediaScanned = true;
+              return [
+                SyncCandidate(
+                  file: photoFile,
+                  remotePath: '$target/photos/photo.jpg',
+                ),
+                SyncCandidate(
+                  file: videoFile,
+                  remotePath: '$target/videos/clip.mp4',
+                ),
+              ];
+            },
+        isIos: true,
+      );
+
+      final scanServer = server.copyWith(
+        syncPrefs: {
+          'backupTargetDirectory': '/backup/ios',
+          'syncCategories': ['photos', 'videos'],
+          'syncFolders': <String>[],
+        },
+      );
+
+      final candidates = await scanner.scan(scanServer);
+      expect(mediaScanned, isTrue);
+      expect(candidates.length, 2);
+      expect(candidates[0].remotePath, 'backup/ios/photos/photo.jpg');
+      expect(candidates[1].remotePath, 'backup/ios/videos/clip.mp4');
+    },
+  );
+
+  test(
+    'scanner does not query mediaAssetsProvider when photos and videos are not selected',
+    () async {
+      final docsDir = Directory('${tempDir.path}/docs')
+        ..createSync(recursive: true);
+      await writeTestFile(docsDir, 'doc.pdf', 'pdf data');
+
+      var mediaScanned = false;
+      final scanner = DeviceSyncFileScanner(
+        applicationDocumentsDirectoryProvider: () async => docsDir,
+        mediaAssetsProvider:
+            ({
+              required selectedCategories,
+              required target,
+              required selectedFolders,
+            }) async {
+              mediaScanned = true;
+              return [];
+            },
+        isIos: true,
+      );
+
+      final scanServer = server.copyWith(
+        syncPrefs: {
+          'backupTargetDirectory': '/backup/ios',
+          'syncCategories': ['documents'],
+          'syncFolders': <String>[],
+        },
+      );
+
+      final candidates = await scanner.scan(scanServer);
+      expect(mediaScanned, isFalse);
+      expect(candidates.length, 1);
+      expect(candidates.single.remotePath, 'backup/ios/documents/doc.pdf');
+    },
+  );
 }

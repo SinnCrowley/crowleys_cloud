@@ -18,6 +18,9 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Disable compiler extensions" FORCE)
 
 # Add Apple Homebrew search paths if on macOS
 if(APPLE)
+  if(EXISTS "/opt/local")
+    list(APPEND CMAKE_PREFIX_PATH "/opt/local")
+  endif()
   if(EXISTS "/opt/homebrew")
     list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew")
   endif()

@@ -462,7 +462,7 @@ void main() {
         expect(task.taskName, 'crowleys_cloud_background_sync');
         expect(task.tag, isNull);
         expect(task.frequency, const Duration(minutes: 30));
-        expect(task.initialDelay, const Duration(minutes: 30));
+        expect(task.initialDelay, Duration.zero);
         expect(task.existingWorkPolicy, ExistingPeriodicWorkPolicy.update);
       },
     );
@@ -496,7 +496,7 @@ void main() {
       expect(mockWm.registeredPeriodicTasks.length, 1);
       final task = mockWm.registeredPeriodicTasks.single;
       expect(task.frequency, const Duration(minutes: 25));
-      expect(task.initialDelay, const Duration(minutes: 25));
+      expect(task.initialDelay, Duration.zero);
     });
 
     test(

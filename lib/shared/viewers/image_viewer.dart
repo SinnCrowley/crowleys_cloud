@@ -29,6 +29,7 @@ class ImageViewer extends StatefulWidget {
   final int initialIndex;
   final bool isTrash;
   final Future<void> Function(FileItem item)? onUploadItem;
+  final Future<void> Function(FileItem item)? onDownloadItem;
   final Future<void> Function(FileItem item)? onDeleteItem;
   final Future<void> Function(FileItem item)? onRenameItem;
   final Future<void> Function(FileItem item)? onAddToFolderItem;
@@ -44,6 +45,7 @@ class ImageViewer extends StatefulWidget {
     required this.initialIndex,
     this.isTrash = false,
     this.onUploadItem,
+    this.onDownloadItem,
     this.onDeleteItem,
     this.onRenameItem,
     this.onAddToFolderItem,
@@ -225,6 +227,16 @@ class _ImageViewerState extends State<ImageViewer>
 
   Future<void> _uploadCurrentFile() async {
     final callback = widget.onUploadItem;
+    if (callback == null ||
+        _currentIndex < 0 ||
+        _currentIndex >= _items.length) {
+      return;
+    }
+    await callback(_items[_currentIndex]);
+  }
+
+  Future<void> _downloadCurrentFile() async {
+    final callback = widget.onDownloadItem;
     if (callback == null ||
         _currentIndex < 0 ||
         _currentIndex >= _items.length) {
@@ -488,49 +500,80 @@ class _ImageViewerState extends State<ImageViewer>
                                 ),
                               ],
                             )
-                          : Row(
-                              children: [
-                                Expanded(
-                                  child: _ActionButton(
-                                    icon: Icons.upload,
-                                    label: AppLocalizations.of(context)!.upload,
-                                    onPressed: _uploadCurrentFile,
+                          : () {
+                              final currentItem =
+                                  (_currentIndex >= 0 &&
+                                      _currentIndex < _items.length)
+                                  ? _items[_currentIndex]
+                                  : null;
+                              final isDownload =
+                                  widget.onDownloadItem != null ||
+                                  (widget.onUploadItem == null &&
+                                      (currentItem?.isRemote ?? false));
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: isDownload
+                                        ? _ActionButton(
+                                            icon: Icons.download,
+                                            label: AppLocalizations.of(
+                                              context,
+                                            )!.download,
+                                            onPressed: _downloadCurrentFile,
+                                            enabled:
+                                                widget.onDownloadItem != null,
+                                          )
+                                        : _ActionButton(
+                                            icon: Icons.upload,
+                                            label: AppLocalizations.of(
+                                              context,
+                                            )!.upload,
+                                            onPressed: _uploadCurrentFile,
+                                            enabled:
+                                                widget.onUploadItem != null,
+                                          ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: _ActionButton(
-                                    icon: Icons.edit,
-                                    label: AppLocalizations.of(context)!.rename,
-                                    onPressed: _renameCurrentFile,
-                                    enabled: widget.onRenameItem != null,
+                                  Expanded(
+                                    child: _ActionButton(
+                                      icon: Icons.edit,
+                                      label: AppLocalizations.of(
+                                        context,
+                                      )!.rename,
+                                      onPressed: _renameCurrentFile,
+                                      enabled: widget.onRenameItem != null,
+                                    ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: _ActionButton(
-                                    icon: Icons.delete,
-                                    label: AppLocalizations.of(context)!.delete,
-                                    onPressed: _deleteCurrentFile,
+                                  Expanded(
+                                    child: _ActionButton(
+                                      icon: Icons.delete,
+                                      label: AppLocalizations.of(
+                                        context,
+                                      )!.delete,
+                                      onPressed: _deleteCurrentFile,
+                                    ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: _ActionButton(
-                                    icon: Icons.drive_file_move,
-                                    label: AppLocalizations.of(
-                                      context,
-                                    )!.addToFolder,
-                                    onPressed: _addCurrentFileToFolder,
-                                    enabled: widget.onAddToFolderItem != null,
+                                  Expanded(
+                                    child: _ActionButton(
+                                      icon: Icons.drive_file_move,
+                                      label: AppLocalizations.of(
+                                        context,
+                                      )!.addToFolder,
+                                      onPressed: _addCurrentFileToFolder,
+                                      enabled: widget.onAddToFolderItem != null,
+                                    ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: _ActionButton(
-                                    icon: Icons.share,
-                                    label: AppLocalizations.of(context)!.share,
-                                    onPressed: _shareCurrentFile,
+                                  Expanded(
+                                    child: _ActionButton(
+                                      icon: Icons.share,
+                                      label: AppLocalizations.of(
+                                        context,
+                                      )!.share,
+                                      onPressed: _shareCurrentFile,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              );
+                            }(),
                     ),
                   ),
                 ),

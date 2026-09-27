@@ -124,6 +124,13 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
               child: SmartThumbnail(item: fileItem),
             );
           },
+          onDownloadItem: (selectedImageItem) async {
+            final selectedServerItem = selectedImageItem.serverFile;
+            if (selectedServerItem == null) return;
+            controller.clearSelection();
+            controller.toggleSelection(selectedServerItem);
+            await _downloadSelectedFiles();
+          },
           onDeleteItem: (selectedImageItem) async {
             final selectedServerItem = selectedImageItem.serverFile;
             if (selectedServerItem == null) return;
