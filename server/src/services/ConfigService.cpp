@@ -112,6 +112,9 @@ void applyLive(utils::Config &config, const Json::Value &values) {
   const auto level = config.logLevel;
   drogon::app().setLogLevel(level == "TRACE" ? trantor::Logger::kTrace : level == "DEBUG" ? trantor::Logger::kDebug :
                           level == "WARN" ? trantor::Logger::kWarn : level == "ERROR" ? trantor::Logger::kError : trantor::Logger::kInfo);
+  if (ctx().thumbnailQueue) {
+    ctx().thumbnailQueue->updateConfig(config);
+  }
 }
 }
 Json::Value configJson(const utils::Config &config) {
@@ -266,5 +269,8 @@ void ConfigService::finishEncryptionRotation(const std::string &oldKey, const st
   local["encryption_key"] = newKey;
   persist(local);
   config_.encryptionKey = newKey;
+  if (ctx().thumbnailQueue) {
+    ctx().thumbnailQueue->updateEncryptionKey(newKey);
+  }
 }
 }

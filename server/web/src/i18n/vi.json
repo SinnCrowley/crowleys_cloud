@@ -317,6 +317,7 @@
     "folder_create_failed": "Không thể tạo thư mục",
     "download_started": "Đã bắt đầu tải xuống {name}",
     "download_failed": "Không thể tải tệp xuống",
+    "upload_failed": "Không thể tải tệp lên",
     "items_moved": "Đã di chuyển các mục thành công.",
     "items_moved_to": "Đã di chuyển {count} mục đến \"{dest}\"",
     "items_moved_to_named": "Đã di chuyển {count} mục đến \"{dest}\"",

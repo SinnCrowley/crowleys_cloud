@@ -24,7 +24,22 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   $: pausedItemsCount = $queue.filter((t) => t.status === 'paused').length;
   $: cancelledItemsCount = $queue.filter((t) => t.status === 'cancelled').length;
   $: completedItemsCount = $queue.filter((t) => t.status === 'completed').length;
+  $: failedItems = $queue.filter((t) => t.status === 'failed');
+  $: failedItemsCount = failedItems.length;
+  $: firstFailedReason = failedItems.length > 0 ? (failedItems[0].error || $t('transfers.failed')) : '';
+  $: failedSummaryText = getFailedSummaryText(failedItemsCount, completedItemsCount, totalItemsCount, firstFailedReason);
   $: speedBytes = $totalSpeed;
+
+  function getFailedSummaryText(failedCount, completedCount, totalCount, reason) {
+    if (failedCount === 0) return '';
+    if (failedCount === totalCount) {
+      return totalCount === 1 ? reason : `${failedCount} — ${reason}`;
+    }
+    if (completedCount > 0) {
+      return `${$t('transfers.completed')}: ${completedCount}, ${$t('transfers.failed')}: ${failedCount}`;
+    }
+    return `${failedCount} — ${reason}`;
+  }
 
   $: overallProgress = calculateOverallProgress($queue);
 
@@ -63,6 +78,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           <div class="mini-progress-fill paused-fill" style="width: {overallProgress}%;" />
         </div>
         <span class="idle-text text-sub">{$t('transfers.paused')} ({overallProgress}%)</span>
+      {:else if failedItemsCount > 0}
+        <span class="active-badge badge-failed">{$t('transfers.failed')}</span>
+        <span class="idle-text text-danger" title={firstFailedReason}>{failedSummaryText}</span>
       {:else if cancelledItemsCount > 0 && completedItemsCount < totalItemsCount}
         <span class="active-badge badge-cancelled">{$t('transfers.cancelled')}</span>
         <span class="idle-text text-sub">{$t('transfers.cancelled')}</span>
@@ -88,6 +106,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           class="btn-icon mini-action action-danger"
           title={$t('transfers.cancel_all')}
           on:click={() => transfersStore.cancelAll()}
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+        </button>
+      {:else}
+        <button
+          class="btn-icon mini-action"
+          title={$t('transfers.clear_completed')}
+          on:click|stopPropagation={() => transfersStore.clearCompleted()}
         >
           <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
         </button>
@@ -159,6 +185,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     color: #ffffff;
   }
 
+  .active-badge.badge-failed {
+    background-color: var(--color-danger, #ff5252);
+    color: #ffffff;
+  }
+
   .mini-progress-fill.paused-fill {
     background-color: #fcc419;
   }
@@ -195,6 +226,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     font-size: calc(13px * var(--font-scale));
     color: var(--text-sub);
     font-weight: 600;
+  }
+
+  .idle-text.text-danger {
+    color: var(--color-danger, #ff5252);
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .bar-actions {

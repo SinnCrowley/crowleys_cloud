@@ -317,6 +317,7 @@
     "folder_create_failed": "Não foi possível criar a pasta",
     "download_started": "Transferência de {name} iniciada",
     "download_failed": "Não foi possível transferir o ficheiro",
+    "upload_failed": "Não foi possível carregar o ficheiro",
     "items_moved": "Itens movidos com sucesso.",
     "items_moved_to": "Movidos {count} itens para \"{dest}\"",
     "items_moved_to_named": "Movidos {count} itens para \"{dest}\"",

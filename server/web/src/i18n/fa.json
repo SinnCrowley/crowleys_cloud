@@ -317,6 +317,7 @@
     "folder_create_failed": "ایجاد پوشه ناموفق بود",
     "download_started": "دانلود {name} آغاز شد",
     "download_failed": "دانلود فایل ناموفق بود",
+    "upload_failed": "بارگذاری فایل ناموفق بود",
     "items_moved": "موارد با موفقیت منتقل شدند.",
     "items_moved_to": "{count} مورد به \"{dest}\" منتقل شد",
     "items_moved_to_named": "{count} مورد به \"{dest}\" منتقل شد",

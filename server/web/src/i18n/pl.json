@@ -317,6 +317,7 @@
     "folder_create_failed": "Nie udało się utworzyć folderu",
     "download_started": "Rozpoczęto pobieranie {name}",
     "download_failed": "Nie udało się pobrać pliku",
+    "upload_failed": "Nie udało się przesłać pliku",
     "items_moved": "Elementy przeniesiono pomyślnie.",
     "items_moved_to": "Przeniesiono {count} elementów do \"{dest}\"",
     "items_moved_to_named": "Przeniesiono {count} elementów do \"{dest}\"",

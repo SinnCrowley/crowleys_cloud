@@ -1285,12 +1285,20 @@ class _MainScreenState extends State<MainScreen> {
       client.close();
     }
     if (!mounted) return;
-    var msg = l10n.uploadedNItems(uploaded.length);
-    if (failed.isNotEmpty) {
-      msg += l10n.uploadSummaryFailedCount(failed.length);
-    }
-    if (failDetails.isNotEmpty) {
-      msg += '\n${failDetails.first}';
+    String msg;
+    if (uploaded.isEmpty && failed.isNotEmpty) {
+      final firstDetail = failDetails.isNotEmpty ? failDetails.first : '';
+      msg = failed.length == 1
+          ? l10n.uploadFailed(firstDetail)
+          : '${l10n.uploadedNItemsWithFailures(0, failed.length)}\n$firstDetail';
+    } else {
+      msg = l10n.uploadedNItems(uploaded.length);
+      if (failed.isNotEmpty) {
+        msg += l10n.uploadSummaryFailedCount(failed.length);
+      }
+      if (failDetails.isNotEmpty) {
+        msg += '\n${failDetails.first}';
+      }
     }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     if (uploaded.isNotEmpty) {

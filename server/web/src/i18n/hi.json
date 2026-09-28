@@ -317,6 +317,7 @@
     "folder_create_failed": "फ़ोल्डर नहीं बनाया जा सका",
     "download_started": "{name} का डाउनलोड शुरू हुआ",
     "download_failed": "फ़ाइल डाउनलोड नहीं की जा सकी",
+    "upload_failed": "फ़ाइल अपलोड नहीं की जा सकी",
     "items_moved": "आइटम सफलतापूर्वक स्थानांतरित हुए।",
     "items_moved_to": "{count} आइटम \"{dest}\" में ले जाए गए",
     "items_moved_to_named": "{count} आइटम \"{dest}\" में ले जाए गए",

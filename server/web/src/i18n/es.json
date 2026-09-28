@@ -317,6 +317,7 @@
     "folder_create_failed": "No se pudo crear la carpeta",
     "download_started": "Se inició la descarga de {name}",
     "download_failed": "No se pudo descargar el archivo",
+    "upload_failed": "No se pudo subir el archivo",
     "items_moved": "Elementos movidos correctamente.",
     "items_moved_to": "Se movieron {count} elementos a \"{dest}\"",
     "items_moved_to_named": "Se movieron {count} elementos a \"{dest}\"",

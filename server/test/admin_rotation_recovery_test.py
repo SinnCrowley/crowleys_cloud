@@ -5,6 +5,7 @@ stopped, then let the normal startup recovery validate it. Also kill the process
 while an active download keeps rotation waiting, and simulate insufficient space
 with a sparse file (without consuming the machine's free disk space).
 """
+import base64
 import contextlib
 import hashlib
 import http.client
@@ -189,7 +190,8 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-', **cleanup_
         assert request('/api/admin/users/7', dict(role='user'), method='PATCH')[1]['code'] == 'cannot_modify_superuser'
         stop(); start()
         assert next(u for u in ok('/api/admin/users') if u['id'] == 7)['role'] == 'superuser'
-        contents = {'private.txt': b'private plaintext', 'shared.txt': b'shared plaintext', 'trash.txt': b'trash plaintext'}
+        png_1x1 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
+        contents = {'private.txt': b'private plaintext', 'shared.txt': b'shared plaintext', 'trash.txt': b'trash plaintext', 'photo.png': png_1x1}
         for name, data in contents.items():
             ok('/api/files?scope=private&path=' + name, data)
         ok('/api/files/share?path=shared.txt&shared=true', b'')
@@ -207,6 +209,16 @@ with tempfile.TemporaryDirectory(prefix='crowley-rotation-recovery-', **cleanup_
             assert ok('/api/files?scope=private&path=private.txt') == contents['private.txt']
             assert ok('/s/' + share + '/raw') == contents['shared.txt']
             assert ok('/api/files?trash_id=' + str(trash_id)) == contents['trash.txt']
+            assert ok('/api/files?scope=private&path=photo.png') == contents['photo.png']
+            thumb_ok = False
+            for _ in range(60):
+                st, body, _ = request('/api/thumb?scope=private&path=photo.png&s=64')
+                if st == 200:
+                    thumb_ok = True
+                    assert len(body) > 0 and body[:4] == b'RIFF', 'Expected WebP thumbnail'
+                    break
+                time.sleep(0.05)
+            assert thumb_ok, f'Thumbnail failed to generate after rotation (last status={st}, body={body})'
 
         verify_files(); stop()
         stages = ['keys_only', 'pending_copy', 'prepared', 'replaced', 'done', 'finalizing', 'config_switched', 'complete_key_retained', 'missing_keys']

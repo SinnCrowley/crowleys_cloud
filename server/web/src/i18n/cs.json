@@ -317,6 +317,7 @@
     "folder_create_failed": "Složku se nepodařilo vytvořit",
     "download_started": "Zahájeno stahování: {name}",
     "download_failed": "Soubor se nepodařilo stáhnout",
+    "upload_failed": "Soubor se nepodařilo nahrát",
     "items_moved": "Položky byly úspěšně přesunuty.",
     "items_moved_to": "Přesunuto položek do „{dest}“: {count}",
     "items_moved_to_named": "Přesunuto položek do „{dest}“: {count}",

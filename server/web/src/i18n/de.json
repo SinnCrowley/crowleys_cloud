@@ -317,6 +317,7 @@
     "folder_create_failed": "Ordner konnte nicht erstellt werden",
     "download_started": "Download von {name} gestartet",
     "download_failed": "Datei konnte nicht heruntergeladen werden",
+    "upload_failed": "Datei konnte nicht hochgeladen werden",
     "items_moved": "Elemente erfolgreich verschoben.",
     "items_moved_to": "{count} Elemente nach \"{dest}\" verschoben",
     "items_moved_to_named": "{count} Elemente nach \"{dest}\" verschoben",

@@ -75,4 +75,24 @@ void main() {
     expect(manager.isCanceled, false);
     expect(manager.hasActiveTransfers, true);
   });
+  test(
+    'failed transfers update failedCount and formatSummary reflects error',
+    () {
+      final manager = TransferManager();
+      final item = manager.addItem(
+        name: 'broken.txt',
+        direction: TransferDirection.upload,
+        totalBytes: 500,
+      );
+      manager.startItem(item);
+      expect(manager.hasActiveTransfers, true);
+      expect(manager.hasFailedTransfers, false);
+
+      manager.failItem(item, 'Network timeout');
+      expect(manager.hasActiveTransfers, false);
+      expect(manager.hasFailedTransfers, true);
+      expect(manager.failedCount, 1);
+      expect(manager.summaryLabel, contains('Network timeout'));
+    },
+  );
 }

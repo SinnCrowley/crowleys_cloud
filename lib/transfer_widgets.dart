@@ -35,6 +35,8 @@ class TransferBottomBar extends StatelessWidget {
       animation: manager,
       builder: (context, _) {
         if (!manager.hasItems) return const SizedBox.shrink();
+        final isErrorState =
+            !manager.hasActiveTransfers && manager.hasFailedTransfers;
         return Material(
           color: appSurface,
           child: InkWell(
@@ -46,8 +48,12 @@ class TransferBottomBar extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      manager.isPaused ? Icons.pause_circle : Icons.sync,
-                      color: appAccent,
+                      manager.isPaused
+                          ? Icons.pause_circle
+                          : isErrorState
+                          ? Icons.error_outline
+                          : Icons.sync,
+                      color: isErrorState ? Colors.redAccent : appAccent,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -60,7 +66,7 @@ class TransferBottomBar extends StatelessWidget {
                               AppLocalizations.of(context)!,
                             ),
                             style: TextStyle(
-                              color: appText,
+                              color: isErrorState ? Colors.redAccent : appText,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -69,7 +75,7 @@ class TransferBottomBar extends StatelessWidget {
                             value: manager.progress,
                             minHeight: 5,
                             backgroundColor: appBorder.withValues(alpha: 0.2),
-                            color: appAccent,
+                            color: isErrorState ? Colors.redAccent : appAccent,
                           ),
                         ],
                       ),

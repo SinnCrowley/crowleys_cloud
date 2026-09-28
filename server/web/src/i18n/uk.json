@@ -317,6 +317,7 @@
     "folder_create_failed": "Не вдалося створити папку",
     "download_started": "Розпочато завантаження {name}",
     "download_failed": "Не вдалося завантажити файл",
+    "upload_failed": "Не вдалося вивантажити файл",
     "items_moved": "Елементи успішно переміщено.",
     "items_moved_to": "Переміщено {count} елементів до \"{dest}\"",
     "items_moved_to_named": "Переміщено {count} елементів до \"{dest}\"",

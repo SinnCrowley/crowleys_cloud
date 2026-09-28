@@ -10,7 +10,7 @@ async function loadStore(name, api) {
   let source = await readFile(new URL(`../src/stores/${name}.js`, import.meta.url), 'utf8');
   source = source.replace("from 'svelte/store'", `from '${import.meta.resolve('svelte/store')}'`)
     .replace("import { filesApi } from '../api/files.js';", `const filesApi = globalThis.${key};`)
-    .replace("import { apiGet } from '../api/client.js';", 'const apiGet = async () => ({});')
+    .replace(/import\s*\{\s*apiGet(?:,\s*apiMessage)?\s*\}\s*from\s*'\.\.\/api\/client\.js';/, 'const apiGet = async () => ({}); const apiMessage = (k) => k;')
     .replace("import { authStore } from './auth.js';", 'const authStore = { user: { set() {} } };')
     .replace("import { refreshStats } from './stats.js';", 'const refreshStats = async () => {};');
   return import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
@@ -173,4 +173,23 @@ test('maintenance after token refresh preserves the new session and retry reason
     assert.equal(cleared, false);
     assert.equal(attempts, 2);
   } finally { globalThis.XMLHttpRequest = originalXhr; globalThis.fetch = originalFetch; }
+});
+
+test('failed upload sets status to failed with localized reason and zero speed', async () => {
+  const { transfersStore } = await loadStore('transfers', {
+    uploadFileSingle: async () => {
+      const err = new Error('Quota reached');
+      err.status = 413;
+      err.data = { code: 'quota_exceeded' };
+      throw err;
+    },
+  });
+  const file = { name: 'overflow.bin', size: 1024 };
+  transfersStore.enqueueUpload(file);
+  await settle();
+  const queue = get(transfersStore.queue);
+  assert.equal(queue.length, 1);
+  assert.equal(queue[0].status, 'failed');
+  assert.equal(queue[0].error, 'account_status.storageQuotaExceeded');
+  assert.equal(queue[0].speed, 0);
 });

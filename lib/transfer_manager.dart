@@ -88,6 +88,9 @@ class TransferManager extends ChangeNotifier {
   int get activeCount => items.where((item) => item.isActive).length;
   int get completedCount =>
       items.where((item) => item.status == TransferStatus.completed).length;
+  int get failedCount =>
+      items.where((item) => item.status == TransferStatus.failed).length;
+  bool get hasFailedTransfers => failedCount > 0;
   int get totalCount => items.length;
 
   int get totalBytes => items.fold(0, (sum, item) => sum + item.totalBytes);
@@ -101,15 +104,24 @@ class TransferManager extends ChangeNotifier {
   }
 
   String get summaryLabel {
-    final percent = (progress * 100).round();
-    return platformAppLocalizations().transferSummaryProgress(
-      percent,
-      completedCount,
-      totalCount,
-    );
+    return formatSummary(platformAppLocalizations());
   }
 
   String formatSummary(AppLocalizations l10n) {
+    if (!hasActiveTransfers && hasFailedTransfers) {
+      final firstFailed = items.firstWhere(
+        (item) => item.status == TransferStatus.failed,
+      );
+      final errorReason = firstFailed.error;
+      if (failedCount == totalCount) {
+        if (totalCount == 1 && errorReason != null && errorReason.isNotEmpty) {
+          return '${l10n.transferStatusFailed}: $errorReason';
+        }
+        return '${l10n.transferStatusFailed} ($failedCount/$totalCount)';
+      }
+      return '${l10n.transferStatusFailed}: $failedCount/$totalCount'
+          '${errorReason != null && errorReason.isNotEmpty ? ' ($errorReason)' : ''}';
+    }
     final percent = (progress * 100).round();
     return l10n.transferSummaryProgress(percent, completedCount, totalCount);
   }

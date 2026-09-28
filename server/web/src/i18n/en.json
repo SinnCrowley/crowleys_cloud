@@ -317,6 +317,7 @@
     "folder_create_failed": "Failed to create folder",
     "download_started": "Started downloading {name}",
     "download_failed": "Failed to download file",
+    "upload_failed": "Failed to upload file",
     "items_moved": "Items moved successfully.",
     "items_moved_to": "Moved {count} items to \"{dest}\"",
     "items_moved_to_named": "Moved {count} items to \"{dest}\"",

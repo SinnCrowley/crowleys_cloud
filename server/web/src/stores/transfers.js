@@ -15,7 +15,7 @@
 
 import { writable, derived, get } from 'svelte/store';
 import { filesApi } from '../api/files.js';
-import { apiGet } from '../api/client.js';
+import { apiGet, apiMessage } from '../api/client.js';
 import { authStore } from './auth.js';
 import { refreshStats } from './stats.js';
 
@@ -182,11 +182,19 @@ export const transfersStore = {
       } catch (_) {}
     } catch (err) {
       const isQuota = err.status === 413 || err.data?.code === 'quota_exceeded' || err.message === 'storageQuotaExceeded';
+      const errorMessage = isQuota
+        ? (apiMessage('account_status.storageQuotaExceeded') || 'Storage quota exceeded')
+        : (err.message || apiMessage('toasts.upload_failed') || 'Upload failed');
       queue.update((q) =>
         q.map((t) => {
           if (t.id !== item.id) return t;
           if (controller.signal.aborted || t.status === 'cancelled' || t.status === 'paused') return t;
-          return { ...t, status: err.status === 503 && err.data?.code === 'maintenance' ? 'paused' : 'failed', error: isQuota ? 'Storage quota exceeded' : (err.message || 'Upload failed'), speed: 0 };
+          return {
+            ...t,
+            status: err.status === 503 && err.data?.code === 'maintenance' ? 'paused' : 'failed',
+            error: errorMessage,
+            speed: 0
+          };
         })
       );
       if (isQuota) {

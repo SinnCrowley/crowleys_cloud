@@ -160,7 +160,11 @@ bool ThumbnailQueue::scheduleThumbnail(std::int64_t ownerUserId,
                                        std::int64_t trashId,
                                        const std::filesystem::path &destWebpPath) {
   if (fileType != "photo" && fileType != "video") return false;
-  if (fileType == "video" && !config_.videoThumbsEnabled) return false;
+  bool videoEnabled = config_.videoThumbsEnabled;
+  try {
+    videoEnabled = server::ctx().config.videoThumbsEnabled;
+  } catch (...) {}
+  if (fileType == "video" && !videoEnabled) return false;
 
   const int clampedSize = std::clamp(thumbSize, 64, 1024);
   const auto effectiveUserId = (cacheUserId > 0) ? cacheUserId : ownerUserId;
@@ -170,7 +174,11 @@ bool ThumbnailQueue::scheduleThumbnail(std::int64_t ownerUserId,
   std::filesystem::path finalDestWebp = destWebpPath;
   std::filesystem::path tempBasePath;
   if (finalDestWebp.empty()) {
-    const auto thumbRoot = std::filesystem::path(config_.storageRoot) / ".thumbs" / std::to_string(effectiveUserId);
+    std::string root = config_.storageRoot;
+    try {
+      if (!server::ctx().config.storageRoot.empty()) root = server::ctx().config.storageRoot;
+    } catch (...) {}
+    const auto thumbRoot = std::filesystem::path(root) / ".thumbs" / std::to_string(effectiveUserId);
     std::error_code ec;
     std::filesystem::create_directories(thumbRoot, ec);
     tempBasePath = thumbRoot / std::to_string(std::hash<std::string>{}(key));
@@ -192,7 +200,14 @@ bool ThumbnailQueue::scheduleThumbnail(std::int64_t ownerUserId,
   task.fileType = fileType;
   task.thumbSize = clampedSize;
   task.isEncrypted = isEncrypted;
-  task.encryptionKey = encryptionKey.empty() ? config_.encryptionKey : encryptionKey;
+  std::string activeEncKey = encryptionKey;
+  if (activeEncKey.empty()) {
+    try {
+      activeEncKey = server::ctx().config.encryptionKey;
+    } catch (...) {}
+    if (activeEncKey.empty()) activeEncKey = config_.encryptionKey;
+  }
+  task.encryptionKey = activeEncKey;
   task.isTrash = isTrash;
   task.trashId = trashId;
 
@@ -338,11 +353,28 @@ void ThumbnailQueue::workerLoop(size_t workerId) {
   }
 }
 
+void ThumbnailQueue::updateConfig(const utils::Config &config) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  config_ = config;
+}
+
+void ThumbnailQueue::updateEncryptionKey(const std::string &newKey) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  config_.encryptionKey = newKey;
+}
+
 void ThumbnailQueue::processTask(const ThumbnailTask &task) {
   std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   auto activity = server::ctx().storageActivity.enter();
-  if (!activity) return;
-  if (task.isEncrypted && !task.encryptionKey.empty() && task.encryptionKey != config_.encryptionKey) return;
+  if (!activity) {
+    return;
+  }
+
+  const auto &liveConfig = server::ctx().config;
+  const std::string currentKey = !liveConfig.encryptionKey.empty() ? liveConfig.encryptionKey : config_.encryptionKey;
+  if (task.isEncrypted && !task.encryptionKey.empty() && task.encryptionKey != currentKey) {
+    return;
+  }
   if (task.customHandler) {
     task.customHandler(task);
     return;
@@ -364,7 +396,7 @@ void ThumbnailQueue::processTask(const ThumbnailTask &task) {
   if (task.fileType == "photo") {
     std::string blurHash;
     bool success = false;
-    const std::string encKey = task.encryptionKey.empty() ? config_.encryptionKey : task.encryptionKey;
+    const std::string encKey = task.encryptionKey.empty() ? currentKey : task.encryptionKey;
 
     if (task.isEncrypted) {
       success = utils::generateThumbnailFromEncryptedFile(
@@ -384,10 +416,10 @@ void ThumbnailQueue::processTask(const ThumbnailTask &task) {
         fileIndexService_->updateBlurHash(task.ownerUserId, task.scope, task.relPath, blurHash);
       }
     }
-  } else if (task.fileType == "video" && config_.videoThumbsEnabled) {
+  } else if (task.fileType == "video" && (liveConfig.videoThumbsEnabled || config_.videoThumbsEnabled)) {
     std::filesystem::path actualSource = task.sourcePath;
     std::filesystem::path decryptedVideoTmp;
-    const std::string encKey = task.encryptionKey.empty() ? config_.encryptionKey : task.encryptionKey;
+    const std::string encKey = task.encryptionKey.empty() ? currentKey : task.encryptionKey;
 
     if (task.isEncrypted) {
       decryptedVideoTmp = task.tempBasePath.empty()
@@ -413,7 +445,9 @@ void ThumbnailQueue::processTask(const ThumbnailTask &task) {
     } guard{decryptedVideoTmp};
 
     if (!actualSource.empty() && std::filesystem::exists(actualSource)) {
-      const std::string ffmpeg = config_.ffmpegBinary.empty() ? "ffmpeg" : config_.ffmpegBinary;
+      const std::string ffmpeg = !liveConfig.ffmpegBinary.empty()
+                                     ? liveConfig.ffmpegBinary
+                                     : (config_.ffmpegBinary.empty() ? "ffmpeg" : config_.ffmpegBinary);
       std::vector<std::string> args = {
           ffmpeg,
           "-hide_banner",

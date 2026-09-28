@@ -190,6 +190,16 @@ class ThumbnailQueue {
   void setTaskProcessor(std::function<void(const ThumbnailTask &)> processor);
 
   /**
+   * Updates dynamic configuration live (e.g. videoThumbsEnabled, ffmpegBinary).
+   */
+  void updateConfig(const utils::Config &config);
+
+  /**
+   * Updates encryption key after dynamic rotation.
+   */
+  void updateEncryptionKey(const std::string &newKey);
+
+  /**
    * Executes task processing logic (RAM WebP + BlurHash for photos; low-priority FFmpeg for videos).
    */
   void processTask(const ThumbnailTask &task);

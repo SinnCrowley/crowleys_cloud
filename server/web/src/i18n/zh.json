@@ -317,6 +317,7 @@
     "folder_create_failed": "無法建立資料夾",
     "download_started": "已開始下載 {name}",
     "download_failed": "無法下載檔案",
+    "upload_failed": "無法上傳檔案",
     "items_moved": "項目移動成功。",
     "items_moved_to": "已將 {count} 個項目移動到 \"{dest}\"",
     "items_moved_to_named": "已將 {count} 個項目移動到 \"{dest}\"",

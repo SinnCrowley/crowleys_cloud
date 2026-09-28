@@ -95,6 +95,7 @@ std::vector<DirEntry> FileService::listDirectory(const std::filesystem::path &pa
 std::string FileService::classifyType(const std::filesystem::path &path) const {
   static const std::unordered_map<std::string, std::string> map = {
       {".jpg", "photo"}, {".jpeg", "photo"}, {".png", "photo"}, {".webp", "photo"}, {".gif", "photo"},
+      {".heic", "photo"}, {".heif", "photo"}, {".avif", "photo"},
       {".mp4", "video"}, {".mkv", "video"}, {".mov", "video"}, {".webm", "video"},
       {".mp3", "audio"}, {".wav", "audio"}, {".ogg", "audio"}, {".flac", "audio"}, {".m4a", "audio"},
       {".pdf", "document"}, {".doc", "document"}, {".docx", "document"}, {".xls", "document"},
@@ -109,6 +110,7 @@ std::string FileService::classifyType(const std::filesystem::path &path) const {
 std::string FileService::mimeTypeFor(const std::filesystem::path &path) const {
   static const std::unordered_map<std::string, std::string> map = {
       {".jpg", "image/jpeg"}, {".jpeg", "image/jpeg"}, {".png", "image/png"}, {".webp", "image/webp"}, {".gif", "image/gif"},
+      {".heic", "image/heic"}, {".heif", "image/heif"}, {".avif", "image/avif"},
       {".mp4", "video/mp4"}, {".mkv", "video/x-matroska"}, {".mov", "video/quicktime"}, {".webm", "video/webm"},
       {".mp3", "audio/mpeg"}, {".wav", "audio/wav"}, {".ogg", "audio/ogg"}, {".flac", "audio/flac"}, {".m4a", "audio/mp4"},
       {".pdf", "application/pdf"}, {".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},

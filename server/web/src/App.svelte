@@ -318,18 +318,36 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         const q = get(transfersStore.queue) || [];
         const hasPaused = q.some((t) => t.status === 'paused');
         const hasCancelled = q.some((t) => t.status === 'cancelled');
+        const failedItems = q.filter((t) => t.status === 'failed');
         const allCompleted = q.length > 0 && q.every((t) => t.status === 'completed');
 
         if (hasPaused) {
           showToast(i18n.format('toasts.transfers_paused'), 'info');
-        } else {
-          if (hasCancelled && !allCompleted) {
-            showToast(i18n.format('toasts.transfers_cancelled'), 'warning');
-          } else if (allCompleted) {
-            showToast(i18n.format('toasts.transfers_done'), 'success');
+        } else if (failedItems.length > 0) {
+          const firstErr = failedItems[0].error || '';
+          let msg;
+          if (failedItems.length === 1 && q.length === 1) {
+            msg = firstErr
+              ? `${i18n.format('toasts.upload_failed')}: ${firstErr}`
+              : i18n.format('toasts.upload_failed');
+          } else if (failedItems.length === 1) {
+            msg = firstErr
+              ? `${i18n.format('toasts.upload_failed')} (${failedItems[0].name}): ${firstErr}`
+              : `${i18n.format('toasts.upload_failed')} (${failedItems[0].name})`;
+          } else {
+            msg = firstErr
+              ? `${i18n.format('toasts.upload_failed')} (${failedItems.length}): ${firstErr}`
+              : `${i18n.format('toasts.upload_failed')} (${failedItems.length})`;
           }
+          showToast(msg, 'error');
+        } else if (hasCancelled && !allCompleted) {
+          showToast(i18n.format('toasts.transfers_cancelled'), 'warning');
+        } else if (allCompleted) {
+          showToast(i18n.format('toasts.transfers_done'), 'success');
+        }
 
-          // Auto-clear finished/cancelled items and close drawer/island after 4 seconds
+        if (!hasPaused && failedItems.length === 0) {
+          // Auto-clear finished/cancelled items and close drawer/island after 4 seconds only if no failures
           clearTimeout(autoClearTransfersTimeout);
           autoClearTransfersTimeout = setTimeout(() => {
             transfersStore.clearCompleted();

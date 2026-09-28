@@ -317,6 +317,7 @@
     "folder_create_failed": "フォルダーを作成できませんでした",
     "download_started": "{name} のダウンロードを開始しました",
     "download_failed": "ファイルをダウンロードできませんでした",
+    "upload_failed": "ファイルをアップロードできませんでした",
     "items_moved": "項目を移動しました。",
     "items_moved_to": "{count} 件の項目を \"{dest}\" に移動しました",
     "items_moved_to_named": "{count} 件の項目を \"{dest}\" に移動しました",

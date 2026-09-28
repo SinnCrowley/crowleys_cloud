@@ -398,6 +398,22 @@ static void testHashedRebuildPreservesIndex() {
   std::filesystem::remove_all(dbPath.parent_path());
 }
 
+static void testHeicClassificationAndMimeType() {
+  std::cout << "[TEST] Running HEIC classification and MIME type test..." << std::endl;
+  utils::Config config;
+  FileService files(config);
+  assert(files.classifyType("photo.heic") == "photo");
+  assert(files.classifyType("PHOTO.HEIC") == "photo");
+  assert(files.classifyType("image.heif") == "photo");
+  assert(files.classifyType("image.avif") == "photo");
+
+  assert(files.mimeTypeFor("photo.heic") == "image/heic");
+  assert(files.mimeTypeFor("PHOTO.HEIC") == "image/heic");
+  assert(files.mimeTypeFor("image.heif") == "image/heif");
+  assert(files.mimeTypeFor("image.avif") == "image/avif");
+  std::cout << "  [PASS] HEIC classification and MIME type passed." << std::endl;
+}
+
 int main() {
   std::cout << "========================================" << std::endl;
   std::cout << "   FileIndex BlurHash & Migration Test  " << std::endl;
@@ -409,6 +425,7 @@ int main() {
   testFileIndexBlurHashOperations();
   testProtobufSerialization();
   testSharedDirectoryPropagation();
+  testHeicClassificationAndMimeType();
 
   std::cout << "========================================" << std::endl;
   std::cout << " [ALL PASS] All FileIndex BlurHash & Sharing tests passed!" << std::endl;

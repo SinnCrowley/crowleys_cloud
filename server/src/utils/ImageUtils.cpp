@@ -20,6 +20,10 @@
 #include <webp/decode.h>
 #include <webp/encode.h>
 
+#ifdef CROWLEYS_CLOUD_HAS_LIBHEIF
+#include <libheif/heif.h>
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
@@ -28,7 +32,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <fstream>
+#include <memory>
 
 namespace server::utils {
 
@@ -78,7 +84,47 @@ std::optional<DecodedImage> decodeImageToRgba(const uint8_t *data, std::size_t s
     }
   }
 
-  // 2. Decode with stb_image (JPEG, PNG, GIF, BMP, TGA, etc.)
+#ifdef CROWLEYS_CLOUD_HAS_LIBHEIF
+  // 2. Try HEIF/HEIC decoding via libheif
+  if (size >= 12 && heif_check_filetype(data, static_cast<int>(std::min(size, static_cast<size_t>(64)))) != heif_filetype_no) {
+    heif_context *rawCtx = heif_context_alloc();
+    if (rawCtx) {
+      std::unique_ptr<heif_context, decltype(&heif_context_free)> ctx(rawCtx, &heif_context_free);
+      heif_error err = heif_context_read_from_memory_without_copy(ctx.get(), data, size, nullptr);
+      if (err.code == heif_error_Ok) {
+        heif_image_handle *rawHandle = nullptr;
+        err = heif_context_get_primary_image_handle(ctx.get(), &rawHandle);
+        if (err.code == heif_error_Ok && rawHandle) {
+          std::unique_ptr<heif_image_handle, decltype(&heif_image_handle_release)> handle(rawHandle, &heif_image_handle_release);
+          heif_image *rawImg = nullptr;
+          err = heif_decode_image(handle.get(), &rawImg, heif_colorspace_RGB, heif_chroma_interleaved_RGBA, nullptr);
+          if (err.code == heif_error_Ok && rawImg) {
+            std::unique_ptr<heif_image, decltype(&heif_image_release)> img(rawImg, &heif_image_release);
+            int imgW = heif_image_get_width(img.get(), heif_channel_interleaved);
+            int imgH = heif_image_get_height(img.get(), heif_channel_interleaved);
+            size_t stride = 0;
+            const uint8_t *plane = heif_image_get_plane_readonly2(img.get(), heif_channel_interleaved, &stride);
+            if (plane && imgW > 0 && imgH > 0 && stride >= static_cast<size_t>(imgW * 4)) {
+              DecodedImage decoded;
+              decoded.width = imgW;
+              decoded.height = imgH;
+              decoded.channels = 4;
+              decoded.rgba.resize(static_cast<size_t>(imgW) * imgH * 4);
+              for (int y = 0; y < imgH; ++y) {
+                std::memcpy(decoded.rgba.data() + (static_cast<size_t>(y) * imgW * 4),
+                            plane + (static_cast<size_t>(y) * stride),
+                            static_cast<size_t>(imgW * 4));
+              }
+              return decoded;
+            }
+          }
+        }
+      }
+    }
+  }
+#endif
+
+  // 3. Decode with stb_image (JPEG, PNG, GIF, BMP, TGA, etc.)
   int channelsInFile = 0;
   unsigned char *pixels = stbi_load_from_memory(
       data, static_cast<int>(size), &w, &h, &channelsInFile, 4);
