@@ -28,7 +28,7 @@ function uploadError(xhr) {
 }
 
 export const filesApi = {
-  async listDir({ scope = 'private', path = '', type = 'all', q = '', sort = 'name', order = 'asc' } = {}) {
+  async listDir({ scope = 'private', path = '', type = 'all', q = '', sort = 'date', order = 'desc' } = {}) {
     const params = new URLSearchParams({ scope });
     if (path) params.append('path', path);
     if (type && type !== 'all') params.append('type', type);

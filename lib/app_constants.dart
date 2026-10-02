@@ -57,6 +57,7 @@ const documentExtensions = {
   '.pptx',
   '.txt',
   '.csv',
+  '.json',
 };
 
 const textExtensions = {'.txt', '.md', '.log', '.csv', '.json'};

@@ -20,7 +20,7 @@ const scope = writable(typeof localStorage !== 'undefined' ? localStorage.getIte
 const currentPath = writable(typeof localStorage !== 'undefined' ? localStorage.getItem('cc_current_path') || '' : '');
 const entries = writable([]);
 const searchQuery = writable('');
-const sortOption = writable({ field: 'name', order: 'asc' });
+const sortOption = writable({ field: 'date', order: 'desc' });
 const filterType = writable(typeof localStorage !== 'undefined' ? localStorage.getItem('cc_current_filter') || 'all' : 'all');
 const selectedPaths = writable(new Set());
 const isLoading = writable(false);

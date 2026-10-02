@@ -566,8 +566,46 @@
                     </select>
                     <span class="material-symbols-outlined select-arrow">expand_more</span>
                   </div>
+                {:else if field.type === 'integer'}
+                  <div class="custom-number-stepper">
+                    <input
+                      class="form-input stepper-input"
+                      type="number"
+                      value={edits[field.name] ?? field.value}
+                      disabled={!field.editable || busy || maintenance.maintenance || $user?.role !== 'superuser'}
+                      on:input={event => edits = {...edits, [field.name]: event.target.value}}
+                    />
+                    <div class="stepper-buttons">
+                      <button
+                        type="button"
+                        class="stepper-btn"
+                        tabindex="-1"
+                        aria-label={$t('admin.increase')}
+                        disabled={!field.editable || busy || maintenance.maintenance || $user?.role !== 'superuser'}
+                        on:click={() => {
+                          const cur = parseInt(edits[field.name] ?? field.value ?? 0, 10) || 0;
+                          edits = {...edits, [field.name]: String(cur + 1)};
+                        }}
+                      >
+                        <span class="material-symbols-outlined">keyboard_arrow_up</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="stepper-btn"
+                        tabindex="-1"
+                        aria-label={$t('admin.decrease')}
+                        disabled={!field.editable || busy || maintenance.maintenance || $user?.role !== 'superuser'}
+                        on:click={() => {
+                          const cur = parseInt(edits[field.name] ?? field.value ?? 0, 10) || 0;
+                          edits = {...edits, [field.name]: String(Math.max(0, cur - 1))};
+                        }}
+                      >
+                        <span class="material-symbols-outlined">keyboard_arrow_down</span>
+                      </button>
+                    </div>
+                  </div>
                 {:else}
-                  <input class="form-input" type={field.type === 'integer' ? 'number' : 'text'} value={edits[field.name] ?? field.value} disabled={!field.editable || busy || maintenance.maintenance || $user?.role !== 'superuser'} on:input={event => edits = {...edits, [field.name]: event.target.value}} />
+                  <input class="form-input" type="text" value={edits[field.name] ?? field.value} disabled={!field.editable || busy || maintenance.maintenance || $user?.role !== 'superuser'} on:input={event => edits = {...edits, [field.name]: event.target.value}} />
                 {/if}
                 {#if field.pending}<small class="setting-pending">{$t('admin.pending')}: {String(field.effective)}</small>{/if}
               </div>

@@ -27,8 +27,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   export let scope = 'private';
   export let searchQuery = '';
   export let layoutMode = 'list'; // 'list' | 'grid'
-  export let sortBy = 'name'; // 'name' | 'date' | 'size' | 'type'
-  export let sortOrder = 'asc'; // 'asc' | 'desc'
+  export let sortBy = 'date'; // 'name' | 'date' | 'size' | 'type'
+  export let sortOrder = 'desc'; // 'asc' | 'desc'
 
   let trashEntries = [];
   let isLoading = true;

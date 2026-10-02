@@ -61,6 +61,234 @@ ImageDimensions calculateAspectRatioFit(int origW, int origH, int maxDimension) 
   return {targetW, targetH};
 }
 
+static int parseTiffOrientation(const uint8_t *data, size_t size) {
+  if (!data || size < 8) return 1;
+
+  bool littleEndian = false;
+  if (data[0] == 'I' && data[1] == 'I') {
+    littleEndian = true;
+  } else if (data[0] == 'M' && data[1] == 'M') {
+    littleEndian = false;
+  } else {
+    return 1;
+  }
+
+  auto read16 = [data, littleEndian](size_t offset) -> uint16_t {
+    if (littleEndian) {
+      return static_cast<uint16_t>(data[offset]) | (static_cast<uint16_t>(data[offset + 1]) << 8);
+    } else {
+      return (static_cast<uint16_t>(data[offset]) << 8) | static_cast<uint16_t>(data[offset + 1]);
+    }
+  };
+
+  auto read32 = [data, littleEndian](size_t offset) -> uint32_t {
+    if (littleEndian) {
+      return static_cast<uint32_t>(data[offset]) |
+             (static_cast<uint32_t>(data[offset + 1]) << 8) |
+             (static_cast<uint32_t>(data[offset + 2]) << 16) |
+             (static_cast<uint32_t>(data[offset + 3]) << 24);
+    } else {
+      return (static_cast<uint32_t>(data[offset]) << 24) |
+             (static_cast<uint32_t>(data[offset + 1]) << 16) |
+             (static_cast<uint32_t>(data[offset + 2]) << 8) |
+             static_cast<uint32_t>(data[offset + 3]);
+    }
+  };
+
+  uint16_t magic = read16(2);
+  if (magic != 42 && magic != 0x2A) return 1;
+
+  uint32_t ifd0Offset = read32(4);
+  if (ifd0Offset > size || ifd0Offset + 2 > size) return 1;
+
+  uint16_t numEntries = read16(ifd0Offset);
+  size_t cur = ifd0Offset + 2;
+
+  for (uint16_t i = 0; i < numEntries; ++i) {
+    if (cur + 12 > size) break;
+    uint16_t tag = read16(cur);
+    if (tag == 0x0112) {  // Orientation tag
+      uint16_t type = read16(cur + 2);
+      uint32_t count = read32(cur + 4);
+      if ((type == 3 || type == 4) && count >= 1) {  // SHORT or LONG
+        uint16_t val = read16(cur + 8);
+        if (val >= 1 && val <= 8) {
+          return val;
+        }
+      }
+    }
+    cur += 12;
+  }
+  return 1;
+}
+
+static int parseJpegOrientation(const uint8_t *data, size_t size) {
+  if (!data || size < 4) return 1;
+  if (data[0] != 0xFF || data[1] != 0xD8) return 1;  // Not JPEG SOI
+
+  size_t pos = 2;
+  while (pos + 4 <= size) {
+    if (data[pos] != 0xFF) {
+      pos++;
+      continue;
+    }
+    while (pos < size && data[pos] == 0xFF) {
+      pos++;
+    }
+    if (pos >= size) break;
+
+    uint8_t marker = data[pos++];
+    if (marker == 0xDA || marker == 0xD9) {  // SOS or EOI
+      break;
+    }
+    if (marker == 0x01 || (marker >= 0xD0 && marker <= 0xD7)) {
+      continue;  // Standalone markers without length
+    }
+
+    if (pos + 2 > size) break;
+    uint16_t len = (static_cast<uint16_t>(data[pos]) << 8) | static_cast<uint16_t>(data[pos + 1]);
+    if (len < 2 || pos + len > size) break;
+
+    if (marker == 0xE1) {  // APP1
+      // Check for "Exif\0\0"
+      if (len >= 8 && std::memcmp(data + pos + 2, "Exif\0\0", 6) == 0) {
+        int ori = parseTiffOrientation(data + pos + 8, len - 8);
+        if (ori >= 1 && ori <= 8) {
+          return ori;
+        }
+      }
+    }
+    pos += len;
+  }
+  return 1;
+}
+
+static int parseWebpOrientation(const uint8_t *data, size_t size) {
+  if (!data || size < 12) return 1;
+  if (std::memcmp(data, "RIFF", 4) != 0 || std::memcmp(data + 8, "WEBP", 4) != 0) {
+    return 1;
+  }
+  size_t pos = 12;
+  while (pos + 8 <= size) {
+    const char *fourcc = reinterpret_cast<const char *>(data + pos);
+    uint32_t chunkSize = static_cast<uint32_t>(data[pos + 4]) |
+                         (static_cast<uint32_t>(data[pos + 5]) << 8) |
+                         (static_cast<uint32_t>(data[pos + 6]) << 16) |
+                         (static_cast<uint32_t>(data[pos + 7]) << 24);
+    pos += 8;
+    if (pos + chunkSize > size) break;
+
+    if (std::memcmp(fourcc, "EXIF", 4) == 0) {
+      if (chunkSize >= 6 && std::memcmp(data + pos, "Exif\0\0", 6) == 0) {
+        return parseTiffOrientation(data + pos + 6, chunkSize - 6);
+      }
+      return parseTiffOrientation(data + pos, chunkSize);
+    }
+    pos += chunkSize + (chunkSize & 1);  // Pad to even byte
+  }
+  return 1;
+}
+
+int parseExifOrientation(const uint8_t *data, std::size_t size) {
+  if (!data || size < 4) return 1;
+
+  if (data[0] == 0xFF && data[1] == 0xD8) {
+    return parseJpegOrientation(data, size);
+  }
+  if (size >= 12 && std::memcmp(data, "RIFF", 4) == 0 && std::memcmp(data + 8, "WEBP", 4) == 0) {
+    return parseWebpOrientation(data, size);
+  }
+  if ((data[0] == 'I' && data[1] == 'I') || (data[0] == 'M' && data[1] == 'M')) {
+    return parseTiffOrientation(data, size);
+  }
+  if (size >= 6 && std::memcmp(data, "Exif\0\0", 6) == 0) {
+    return parseTiffOrientation(data + 6, size - 6);
+  }
+  return 1;
+}
+
+DecodedImage applyOrientation(DecodedImage img, int orientation) {
+  if (orientation <= 1 || orientation > 8) {
+    return img;
+  }
+
+  const int w = img.width;
+  const int h = img.height;
+  if (w <= 0 || h <= 0 || img.rgba.size() < static_cast<size_t>(w) * h * 4) {
+    return img;
+  }
+
+  DecodedImage rotated;
+  rotated.channels = 4;
+  if (orientation == 5 || orientation == 6 || orientation == 7 || orientation == 8) {
+    rotated.width = h;
+    rotated.height = w;
+  } else {
+    rotated.width = w;
+    rotated.height = h;
+  }
+  rotated.rgba.resize(static_cast<size_t>(rotated.width) * rotated.height * 4);
+
+  const auto *src32 = reinterpret_cast<const uint32_t *>(img.rgba.data());
+  auto *dst32 = reinterpret_cast<uint32_t *>(rotated.rgba.data());
+
+  switch (orientation) {
+    case 2:  // Flip horizontal
+      for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+          dst32[y * w + (w - 1 - x)] = src32[y * w + x];
+        }
+      }
+      break;
+    case 3:  // Rotate 180
+      for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+          dst32[(h - 1 - y) * w + (w - 1 - x)] = src32[y * w + x];
+        }
+      }
+      break;
+    case 4:  // Flip vertical
+      for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+          dst32[(h - 1 - y) * w + x] = src32[y * w + x];
+        }
+      }
+      break;
+    case 5:  // Transpose (flip horizontal + rotate 270 CW)
+      for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+          dst32[x * h + y] = src32[y * w + x];
+        }
+      }
+      break;
+    case 6:  // Rotate 90 CW
+      for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+          dst32[x * h + (h - 1 - y)] = src32[y * w + x];
+        }
+      }
+      break;
+    case 7:  // Transverse (flip horizontal + rotate 90 CW)
+      for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+          dst32[(w - 1 - x) * h + (h - 1 - y)] = src32[y * w + x];
+        }
+      }
+      break;
+    case 8:  // Rotate 270 CW / 90 CCW
+      for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+          dst32[(w - 1 - x) * h + y] = src32[y * w + x];
+        }
+      }
+      break;
+    default:
+      return img;
+  }
+
+  return rotated;
+}
+
 std::optional<DecodedImage> decodeImageToRgba(const uint8_t *data, std::size_t size) {
   if (!data || size == 0) {
     return std::nullopt;
@@ -77,7 +305,8 @@ std::optional<DecodedImage> decodeImageToRgba(const uint8_t *data, std::size_t s
       img.channels = 4;
       img.rgba.assign(rgba, rgba + (static_cast<size_t>(w) * h * 4));
       WebPFree(rgba);
-      return img;
+      int orientation = parseExifOrientation(data, size);
+      return applyOrientation(std::move(img), orientation);
     }
     if (rgba) {
       WebPFree(rgba);
@@ -115,6 +344,29 @@ std::optional<DecodedImage> decodeImageToRgba(const uint8_t *data, std::size_t s
                             plane + (static_cast<size_t>(y) * stride),
                             static_cast<size_t>(imgW * 4));
               }
+
+              // Check if HEIF has an EXIF metadata block with orientation
+              int numBlocks = heif_image_handle_get_number_of_metadata_blocks(handle.get(), "Exif");
+              if (numBlocks > 0) {
+                std::vector<heif_item_id> blockIds(numBlocks);
+                heif_image_handle_get_list_of_metadata_block_IDs(handle.get(), "Exif", blockIds.data(), numBlocks);
+                size_t metaSize = heif_image_handle_get_metadata_size(handle.get(), blockIds[0]);
+                if (metaSize > 8) {
+                  std::vector<uint8_t> metaBuf(metaSize);
+                  heif_image_handle_get_metadata(handle.get(), blockIds[0], metaBuf.data());
+                  int ori = 1;
+                  for (size_t off = 0; off + 8 <= metaSize && off < 32; ++off) {
+                    if ((metaBuf[off] == 'I' && metaBuf[off + 1] == 'I') ||
+                        (metaBuf[off] == 'M' && metaBuf[off + 1] == 'M')) {
+                      ori = parseTiffOrientation(metaBuf.data() + off, metaSize - off);
+                      break;
+                    }
+                  }
+                  if (ori > 1 && ori <= 8) {
+                    return applyOrientation(std::move(decoded), ori);
+                  }
+                }
+              }
               return decoded;
             }
           }
@@ -142,7 +394,9 @@ std::optional<DecodedImage> decodeImageToRgba(const uint8_t *data, std::size_t s
   img.channels = 4;
   img.rgba.assign(pixels, pixels + (static_cast<size_t>(w) * h * 4));
   stbi_image_free(pixels);
-  return img;
+
+  int orientation = parseExifOrientation(data, size);
+  return applyOrientation(std::move(img), orientation);
 }
 
 std::vector<uint8_t> resizeRgba(const uint8_t *srcRgba, int srcW, int srcH, int dstW, int dstH) {

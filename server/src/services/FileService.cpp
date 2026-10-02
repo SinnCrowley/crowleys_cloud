@@ -99,7 +99,8 @@ std::string FileService::classifyType(const std::filesystem::path &path) const {
       {".mp4", "video"}, {".mkv", "video"}, {".mov", "video"}, {".webm", "video"},
       {".mp3", "audio"}, {".wav", "audio"}, {".ogg", "audio"}, {".flac", "audio"}, {".m4a", "audio"},
       {".pdf", "document"}, {".doc", "document"}, {".docx", "document"}, {".xls", "document"},
-      {".xlsx", "document"}, {".ppt", "document"}, {".pptx", "document"}, {".txt", "document"}};
+      {".xlsx", "document"}, {".ppt", "document"}, {".pptx", "document"}, {".txt", "document"},
+      {".json", "document"}};
   auto ext = path.extension().string();
   std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   auto it = map.find(ext);
@@ -116,7 +117,8 @@ std::string FileService::mimeTypeFor(const std::filesystem::path &path) const {
       {".pdf", "application/pdf"}, {".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
       {".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
       {".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"},
-      {".txt", "text/plain"}};
+      {".txt", "text/plain"},
+      {".json", "application/json"}};
   auto ext = path.extension().string();
   std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   auto it = map.find(ext);

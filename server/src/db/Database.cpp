@@ -271,6 +271,14 @@ void Database::migrate() {
     }
   }
 
+  // Migrate JSON files previously indexed as "other" to "document"
+  try {
+    exec(
+        "UPDATE file_index SET type = 'document', mime_type = 'application/json' WHERE (rel_path LIKE '%.json' OR name LIKE '%.json') AND type = 'other';"
+        "UPDATE trash SET type = 'document', mime_type = 'application/json' WHERE (original_path LIKE '%.json' OR name LIKE '%.json') AND type = 'other';");
+  } catch (...) {
+  }
+
   TransactionGuard transaction(*this);
   exec("CREATE TABLE IF NOT EXISTS schema_migrations(name TEXT PRIMARY KEY)");
   bool adminMigrated = false;

@@ -16,6 +16,7 @@
 import 'dart:io';
 
 import 'package:crowleys_cloud/app_constants.dart';
+import 'package:crowleys_cloud/category_data_cache.dart';
 import 'package:crowleys_cloud/file_browser_controller.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +57,65 @@ void main() {
   group('FileBrowserController', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
+      CategoryDataCache.instance.clear();
     });
+
+    test('default sorting is date descending', () {
+      final controller = FileBrowserController(
+        category: const FileCategory('Documents', Icons.description),
+        loadOnInit: false,
+      );
+      expect(controller.sortBy, SortBy.date);
+      expect(controller.sortAscending, false);
+      controller.disposeController();
+    });
+
+    test(
+      'default sorting remains date descending after initialize with empty prefs',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final fake = _FakeStrategy([]);
+        final controller = FileBrowserController(
+          category: const FileCategory('Documents', Icons.description),
+          fileWalkStrategy: fake,
+          loadOnInit: false,
+        );
+        await controller.initialize();
+        expect(controller.sortBy, SortBy.date);
+        expect(controller.sortAscending, false);
+        controller.disposeController();
+      },
+    );
+
+    test(
+      'loads persisted sort preferences and uses them after initialize',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'sortBy': SortBy.name.index,
+          'sortAscending': true,
+        });
+        final fake = _FakeStrategy([]);
+        final controller = FileBrowserController(
+          category: const FileCategory('Documents', Icons.description),
+          fileWalkStrategy: fake,
+          loadOnInit: false,
+        );
+        await controller.initialize();
+        expect(controller.sortBy, SortBy.name);
+        expect(controller.sortAscending, true);
+        controller.disposeController();
+      },
+    );
+
+    test(
+      'entityMatchesCategory recognizes .json as Documents and not Other',
+      () {
+        final jsonFile = File('/tmp/test_data.json');
+        expect(entityMatchesCategory(jsonFile, 'Documents'), isTrue);
+        expect(entityMatchesCategory(jsonFile, 'Other'), isFalse);
+        expect(entityMatchesCategory(jsonFile, 'Photos'), isFalse);
+      },
+    );
 
     test('search debounce triggers one reload with latest value', () async {
       final fake = _FakeStrategy([]);

@@ -186,6 +186,87 @@ void testInMemoryCryptoAndThumbnailing() {
   std::cout << "[PASS] testInMemoryCryptoAndThumbnailing passed." << std::endl;
 }
 
+void testExifOrientationAndRotation() {
+  std::cout << "[TEST] Running testExifOrientationAndRotation..." << std::endl;
+
+  // 1. Test applyOrientation with 2x3 image
+  // Row 0: Red, Green
+  // Row 1: Blue, Yellow
+  // Row 2: Cyan, Magenta
+  DecodedImage orig;
+  orig.width = 2;
+  orig.height = 3;
+  orig.channels = 4;
+  orig.rgba = {
+    255, 0, 0, 255,     0, 255, 0, 255,      // Row 0: Red, Green
+    0, 0, 255, 255,     255, 255, 0, 255,    // Row 1: Blue, Yellow
+    0, 255, 255, 255,   255, 0, 255, 255     // Row 2: Cyan, Magenta
+  };
+
+  // Orientation 6: Rotate 90 CW. Dimensions become 3x2.
+  // New Row 0: Cyan, Blue, Red
+  // New Row 1: Magenta, Yellow, Green
+  auto rot6 = applyOrientation(orig, 6);
+  TEST_ASSERT(rot6.width == 3, "Rotated 90 CW width should be 3");
+  TEST_ASSERT(rot6.height == 2, "Rotated 90 CW height should be 2");
+
+  // Check top-left (new Row 0, Col 0) == Cyan (orig 0, 2)
+  TEST_ASSERT(rot6.rgba[0] == 0 && rot6.rgba[1] == 255 && rot6.rgba[2] == 255, "Top-left is Cyan");
+  // Check top-right (new Row 0, Col 2) == Red (orig 0, 0)
+  TEST_ASSERT(rot6.rgba[8] == 255 && rot6.rgba[9] == 0 && rot6.rgba[10] == 0, "Top-right is Red");
+  // Check bottom-left (new Row 1, Col 0) == Magenta (orig 1, 2)
+  TEST_ASSERT(rot6.rgba[12] == 255 && rot6.rgba[13] == 0 && rot6.rgba[14] == 255, "Bottom-left is Magenta");
+  // Check bottom-right (new Row 1, Col 2) == Green (orig 1, 0)
+  TEST_ASSERT(rot6.rgba[20] == 0 && rot6.rgba[21] == 255 && rot6.rgba[22] == 0, "Bottom-right is Green");
+
+  // Orientation 8: Rotate 270 CW. Dimensions become 3x2.
+  auto rot8 = applyOrientation(orig, 8);
+  TEST_ASSERT(rot8.width == 3, "Rotated 270 CW width should be 3");
+  TEST_ASSERT(rot8.height == 2, "Rotated 270 CW height should be 2");
+  // Check top-left == Green
+  TEST_ASSERT(rot8.rgba[0] == 0 && rot8.rgba[1] == 255 && rot8.rgba[2] == 0, "Top-left is Green");
+  // Check bottom-right == Cyan
+  TEST_ASSERT(rot8.rgba[20] == 0 && rot8.rgba[21] == 255 && rot8.rgba[22] == 255, "Bottom-right is Cyan");
+
+  // Orientation 3: Rotate 180. Dimensions remain 2x3.
+  auto rot3 = applyOrientation(orig, 3);
+  TEST_ASSERT(rot3.width == 2, "Rotated 180 width should be 2");
+  TEST_ASSERT(rot3.height == 3, "Rotated 180 height should be 3");
+  // Check top-left == Magenta
+  TEST_ASSERT(rot3.rgba[0] == 255 && rot3.rgba[1] == 0 && rot3.rgba[2] == 255, "Top-left is Magenta");
+
+  // 2. Test parseExifOrientation with synthetic JPEG EXIF
+  std::vector<uint8_t> jpegWithExif = {
+    0xFF, 0xD8, // SOI
+    0xFF, 0xE1, // APP1
+    0x00, 0x1E, // Length = 30 bytes
+    'E', 'x', 'i', 'f', 0x00, 0x00, // "Exif\0\0"
+    'I', 'I',   // Little endian TIFF
+    0x2A, 0x00, // TIFF magic 42
+    0x08, 0x00, 0x00, 0x00, // Offset to IFD0 = 8
+    0x01, 0x00, // 1 entry in IFD0
+    0x12, 0x01, // Tag = 0x0112 (Orientation)
+    0x03, 0x00, // Type = 3 (SHORT)
+    0x01, 0x00, 0x00, 0x00, // Count = 1
+    0x06, 0x00, 0x00, 0x00, // Value = 6 (Rotate 90 CW)
+    0xFF, 0xD9  // EOI
+  };
+
+  int parsedOri = parseExifOrientation(jpegWithExif.data(), jpegWithExif.size());
+  TEST_ASSERT(parsedOri == 6, "parseExifOrientation must extract orientation 6");
+
+  // Change orientation value to 8
+  jpegWithExif[30] = 0x08;
+  parsedOri = parseExifOrientation(jpegWithExif.data(), jpegWithExif.size());
+  TEST_ASSERT(parsedOri == 8, "parseExifOrientation must extract orientation 8");
+
+  // Plain non-exif buffer should return 1
+  std::vector<uint8_t> emptyJpeg = { 0xFF, 0xD8, 0xFF, 0xD9 };
+  TEST_ASSERT(parseExifOrientation(emptyJpeg.data(), emptyJpeg.size()) == 1, "Non-exif JPEG returns 1");
+
+  std::cout << "[PASS] testExifOrientationAndRotation passed." << std::endl;
+}
+
 int main() {
   std::cout << "=========================================================" << std::endl;
   std::cout << "Starting In-Memory WebP & Zero Disk Temp Files Test Suite" << std::endl;
@@ -195,6 +276,7 @@ int main() {
   testWebpEncodeDecode();
   testResizeAndThumbnail();
   testInMemoryCryptoAndThumbnailing();
+  testExifOrientationAndRotation();
 
   std::cout << "=========================================================" << std::endl;
   std::cout << "ALL IN-MEMORY WEBP & CRYPTO TESTS PASSED CLEANLY!" << std::endl;

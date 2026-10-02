@@ -94,7 +94,7 @@ class MediaStoreLoadStrategy implements FileLoadStrategy {
       _ => RequestType.common,
     };
 
-    final effectiveSortAscending = sortAscending ?? true;
+    final effectiveSortAscending = sortAscending ?? false;
     final orderOption = OrderOption(
       type: OrderOptionType.createDate,
       asc: effectiveSortAscending,
@@ -547,8 +547,8 @@ class FileBrowserController extends ChangeNotifier {
   final Set<FileItem> selectedFiles = {};
   final List<Directory> directoryHistory = [];
 
-  SortBy sortBy = SortBy.name;
-  bool sortAscending = true;
+  SortBy sortBy = SortBy.date;
+  bool sortAscending = false;
   String searchQuery = '';
 
   bool _selectAllActive = false;
@@ -630,8 +630,8 @@ class FileBrowserController extends ChangeNotifier {
 
   Future<void> _loadSortPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    sortBy = SortBy.values[prefs.getInt('sortBy') ?? 0];
-    sortAscending = prefs.getBool('sortAscending') ?? true;
+    sortBy = SortBy.values[prefs.getInt('sortBy') ?? SortBy.date.index];
+    sortAscending = prefs.getBool('sortAscending') ?? false;
     notifyListeners();
   }
 

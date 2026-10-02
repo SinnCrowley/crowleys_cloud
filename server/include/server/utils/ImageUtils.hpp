@@ -42,6 +42,18 @@ struct DecodedImage {
 ImageDimensions calculateAspectRatioFit(int origW, int origH, int maxDimension);
 
 /**
+ * Extracts EXIF orientation (1..8) from image data (JPEG APP1, WebP EXIF chunk, or raw TIFF).
+ * Returns 1 (normal) if not found or invalid.
+ */
+int parseExifOrientation(const uint8_t *data, std::size_t size);
+
+/**
+ * Transforms RGBA pixel buffer according to EXIF orientation (1..8) so it becomes upright.
+ * Swaps width and height for 90-degree and 270-degree rotations.
+ */
+DecodedImage applyOrientation(DecodedImage img, int orientation);
+
+/**
  * Decodes an image from memory buffer (JPEG, PNG, GIF, BMP, WebP) into RGBA8888.
  */
 std::optional<DecodedImage> decodeImageToRgba(const uint8_t *data, std::size_t size);

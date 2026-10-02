@@ -21,8 +21,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   export let searchQuery = '';
   export let layoutMode = 'grid';
-  export let sortBy = 'name';
-  export let sortOrder = 'asc';
+  export let sortBy = 'date';
+  export let sortOrder = 'desc';
   export let currentTheme = 'dark';
   export let isAuthenticated = false;
   export let currentRoute = 'dashboard';

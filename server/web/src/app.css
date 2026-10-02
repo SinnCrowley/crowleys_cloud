@@ -72,6 +72,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.*/
 
 /* Dark Theme (Default) */
 :root[data-theme="dark"], body.theme-dark {
+  color-scheme: dark;
   --bg-background: #1E1E1E;
   --bg-surface: #2C2C2C;
   --bg-surface-hover: #353535;
@@ -89,6 +90,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.*/
 
 /* Light Theme */
 :root[data-theme="light"], body.theme-light {
+  color-scheme: light;
   --bg-background: #F4F5F8;
   --bg-surface: #FFFFFF;
   --bg-surface-hover: #F8F9FA;
@@ -909,8 +911,138 @@ body {
 
 /* Custom slider input */
 .settings-slider {
+  -webkit-appearance: none;
+  appearance: none;
   width: 150px;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
   accent-color: var(--accent-color);
+  transition: background-color 0.2s ease;
+}
+
+.settings-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--border-color);
+  border-radius: var(--radius-full);
+  transition: background-color 0.2s ease;
+}
+
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--accent-color);
+  cursor: pointer;
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  margin-top: -5px;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.settings-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.settings-slider::-moz-range-track {
+  height: 6px;
+  background: var(--border-color);
+  border-radius: var(--radius-full);
+  transition: background-color 0.2s ease;
+}
+
+.settings-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--accent-color);
+  cursor: pointer;
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.settings-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Custom number stepper */
+.custom-number-stepper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.stepper-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 32px 0 16px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.stepper-input::-webkit-inner-spin-button,
+.stepper-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stepper-buttons {
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  bottom: 3px;
+  width: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
+}
+
+.stepper-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--text-sub);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.stepper-btn:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-main);
+}
+
+.stepper-btn:active {
+  color: var(--accent-color);
+}
+
+.stepper-btn .material-symbols-outlined {
+  font-size: 18px;
+  line-height: 1;
+  user-select: none;
+}
+
+/* Form inputs number spin buttons matching theme */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  cursor: pointer;
+  opacity: 0.8;
+}
+input[type="number"]:hover::-webkit-inner-spin-button {
+  opacity: 1;
 }
 
 /* Sync Primary variable with Svelte store accent color dynamic binding */

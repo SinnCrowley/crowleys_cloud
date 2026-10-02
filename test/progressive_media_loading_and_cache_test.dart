@@ -1227,6 +1227,8 @@ void main() {
           mediaStoreStrategy: strategy,
           loadOnInit: false,
         );
+        controller.sortBy = SortBy.name;
+        controller.sortAscending = true;
 
         final reloadFuture = controller.reload();
         await Future<void>.delayed(const Duration(milliseconds: 5));

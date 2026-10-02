@@ -131,6 +131,46 @@ void main() {
     },
   );
 
+  test(
+    'uses default server sort preferences (date descending) on initial launch',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+
+      final store = InMemorySecretStore();
+      await store.saveTokens(
+        serverId: 'srv',
+        accessToken: 'token',
+        refreshToken: 'refresh',
+      );
+
+      final client = MockClient((request) async {
+        expect(request.url.queryParameters['sort'], 'date');
+        expect(request.url.queryParameters['order'], 'desc');
+        return http.Response(jsonEncode({'entries': []}), 200);
+      });
+
+      final controller = ServerBrowserController(
+        profile: ServerProfile(
+          id: 'srv',
+          displayName: 'Test',
+          baseUrl: 'http://localhost:7777',
+          authMode: 'login',
+          lastUsedAt: DateTime.now().toUtc(),
+          syncPrefs: const {},
+        ),
+        serverId: 'srv',
+        authService: AuthService(secretStore: store),
+        client: client,
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(controller.sortBy, ServerSortBy.date);
+      expect(controller.sortAscending, false);
+      controller.disposeController();
+      controller.dispose();
+    },
+  );
+
   test('server file items compare by path', () {
     final first = ServerFileItem(
       name: 'a.txt',
@@ -1193,15 +1233,18 @@ ServerFileItem _serverItem({required String name, required String path}) {
   );
 }
 
-String _cacheKey() {
+String _cacheKey({
+  ServerSortBy sort = ServerSortBy.date,
+  String order = 'desc',
+}) {
   return jsonEncode({
     'serverId': 'srv',
     'scope': 'private',
     'path': '',
     'selectedType': 'all',
     'searchQuery': '',
-    'sort': ServerSortBy.name.name,
-    'order': 'asc',
+    'sort': sort.name,
+    'order': order,
     'showHiddenFiles': false,
   });
 }

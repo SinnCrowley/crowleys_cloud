@@ -406,12 +406,16 @@ static void testHeicClassificationAndMimeType() {
   assert(files.classifyType("PHOTO.HEIC") == "photo");
   assert(files.classifyType("image.heif") == "photo");
   assert(files.classifyType("image.avif") == "photo");
+  assert(files.classifyType("data.json") == "document");
+  assert(files.classifyType("CONFIG.JSON") == "document");
 
   assert(files.mimeTypeFor("photo.heic") == "image/heic");
   assert(files.mimeTypeFor("PHOTO.HEIC") == "image/heic");
   assert(files.mimeTypeFor("image.heif") == "image/heif");
   assert(files.mimeTypeFor("image.avif") == "image/avif");
-  std::cout << "  [PASS] HEIC classification and MIME type passed." << std::endl;
+  assert(files.mimeTypeFor("data.json") == "application/json");
+  assert(files.mimeTypeFor("CONFIG.JSON") == "application/json");
+  std::cout << "  [PASS] HEIC and JSON classification and MIME type passed." << std::endl;
 }
 
 int main() {

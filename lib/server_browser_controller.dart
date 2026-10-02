@@ -82,8 +82,8 @@ class ServerBrowserController extends ChangeNotifier {
   String scope = 'private';
   String selectedType = 'all';
   String searchQuery = '';
-  ServerSortBy sortBy = ServerSortBy.name;
-  bool sortAscending = true;
+  ServerSortBy sortBy = ServerSortBy.date;
+  bool sortAscending = false;
   bool isLoading = false;
   String? error;
   String? operationMessage;
@@ -211,8 +211,9 @@ class ServerBrowserController extends ChangeNotifier {
 
   Future<void> _loadSortPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    sortBy = ServerSortBy.values[prefs.getInt(_sortByPrefKey) ?? 0];
-    sortAscending = prefs.getBool(_sortAscendingPrefKey) ?? true;
+    sortBy = ServerSortBy
+        .values[prefs.getInt(_sortByPrefKey) ?? ServerSortBy.date.index];
+    sortAscending = prefs.getBool(_sortAscendingPrefKey) ?? false;
     notifyListeners();
   }
 
