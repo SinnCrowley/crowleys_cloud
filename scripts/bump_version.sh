@@ -65,6 +65,7 @@ PUBSPEC_FILE="${ROOT_DIR}/pubspec.yaml"
 APP_CONSTANTS="${ROOT_DIR}/lib/app_constants.dart"
 CMAKE_FILE="${ROOT_DIR}/server/CMakeLists.txt"
 VCPKG_JSON="${ROOT_DIR}/server/vcpkg.json"
+PKGBUILD_FILE="${ROOT_DIR}/packaging/arch/PKGBUILD"
 DOCKER_COMPOSE="${ROOT_DIR}/server/docker-compose.yml"
 WEB_DIR="${ROOT_DIR}/server/web"
 PACKAGE_JSON="${WEB_DIR}/package.json"
@@ -115,6 +116,13 @@ fi
 if [ -f "${DOCKER_COMPOSE}" ]; then
   sed -i -E "s|(image:[[:space:]]*.*crowleys-cloud-server:v)[^[:space:]]+|\1${NEW_VERSION}|" "${DOCKER_COMPOSE}"
   echo "✓ Updated ${DOCKER_COMPOSE} -> image tag v${NEW_VERSION}"
+fi
+
+# 5b. Update packaging/arch/PKGBUILD (pkgver=X.Y.Z, pkgrel=1)
+if [ -f "${PKGBUILD_FILE}" ]; then
+  sed -i -E "s/^pkgver=.*/pkgver=${NEW_VERSION}/" "${PKGBUILD_FILE}"
+  sed -i -E "s/^pkgrel=.*/pkgrel=1/" "${PKGBUILD_FILE}"
+  echo "✓ Updated ${PKGBUILD_FILE} -> pkgver = '${NEW_VERSION}'"
 fi
 
 # 6. Update server/web/package.json & server/web/package-lock.json
@@ -174,7 +182,7 @@ if [ "$NO_COMMIT" = false ]; then
   echo ""
   echo "Staging changed files..."
   STAGED_FILES=()
-  for f in "${PUBSPEC_FILE}" "${APP_CONSTANTS}" "${CMAKE_FILE}" "${VCPKG_JSON}" "${DOCKER_COMPOSE}" "${PACKAGE_JSON}" "${PACKAGE_LOCK}" "${ROOT_DIR}/server/public"; do
+  for f in "${PUBSPEC_FILE}" "${APP_CONSTANTS}" "${CMAKE_FILE}" "${VCPKG_JSON}" "${PKGBUILD_FILE}" "${DOCKER_COMPOSE}" "${PACKAGE_JSON}" "${PACKAGE_LOCK}" "${ROOT_DIR}/server/public"; do
     if [ -e "$f" ]; then
       STAGED_FILES+=("$f")
     fi

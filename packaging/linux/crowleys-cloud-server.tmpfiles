@@ -1,0 +1,6 @@
+# Type Path Mode User Group Age Argument
+d /var/lib/crowleys_cloud 0750 crowleys_cloud crowleys_cloud -
+d /var/lib/crowleys_cloud/data 0750 crowleys_cloud crowleys_cloud -
+d /var/lib/crowleys_cloud/storage 0750 crowleys_cloud crowleys_cloud -
+d /var/lib/crowleys_cloud/uploads 0750 crowleys_cloud crowleys_cloud -
+d /var/log/crowleys_cloud 0750 crowleys_cloud crowleys_cloud -

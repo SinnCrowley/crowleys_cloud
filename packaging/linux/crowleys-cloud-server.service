@@ -1,0 +1,23 @@
+[Unit]
+Description=Crowley's Cloud Server
+Documentation=https://github.com/SinnCrowley/crowleys_cloud
+After=network.target
+
+[Service]
+Type=simple
+User=crowleys_cloud
+Group=crowleys_cloud
+WorkingDirectory=/var/lib/crowleys_cloud
+ExecStart=/usr/bin/crowleys_cloud_server /etc/crowleys_cloud/config.json
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=65536
+
+# Security hardening
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+ReadWritePaths=/var/lib/crowleys_cloud /var/log/crowleys_cloud
+
+[Install]
+WantedBy=multi-user.target

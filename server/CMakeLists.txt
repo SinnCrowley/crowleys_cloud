@@ -71,12 +71,19 @@ set(BUILD_YAML_CONFIG OFF CACHE BOOL "" FORCE)
 set(BUILD_C-ARES OFF CACHE BOOL "" FORCE)
 
 # Fetch and configure Drogon C++ Web Framework (v1.9.13)
+if(POLICY CMP0169)
+  cmake_policy(SET CMP0169 OLD)
+endif()
 FetchContent_Declare(
   drogon
   GIT_REPOSITORY https://github.com/drogonframework/drogon.git
   GIT_TAG v1.9.13
 )
-FetchContent_MakeAvailable(drogon)
+FetchContent_GetProperties(drogon)
+if(NOT drogon_POPULATED)
+  FetchContent_Populate(drogon)
+  add_subdirectory(${drogon_SOURCE_DIR} ${drogon_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
 
 # Trantor's OpenSSLProvider.cc uses Windows CryptoAPI (CertOpenSystemStoreW, HCRYPTPROV_LEGACY)
 # on Windows without explicitly including <wincrypt.h>. Patch OpenSSLProvider.cc directly if fetched.
@@ -660,13 +667,89 @@ endif()
 # ------------------------------------------------------------------------------
 include(GNUInstallDirs)
 install(TARGETS crowleys_cloud_server DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(DIRECTORY config/ DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/crowleys_cloud
-  PATTERN "config.local.json" EXCLUDE
-  PATTERN "config.local.json.init-lock" EXCLUDE
-  PATTERN "encryption-rotation.keys.json*" EXCLUDE
-  PATTERN "config.local.json.*.tmp" EXCLUDE)
+
+# Install configuration templates and defaults
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../packaging/linux/config.json")
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../packaging/linux/config.json"
+    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/crowleys_cloud)
+else()
+  install(DIRECTORY config/ DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/crowleys_cloud
+    PATTERN "config.local.json" EXCLUDE
+    PATTERN "config.local.json.init-lock" EXCLUDE
+    PATTERN "encryption-rotation.keys.json*" EXCLUDE
+    PATTERN "config.local.json.*.tmp" EXCLUDE)
+endif()
+
+# Install static web interface assets if public/ directory exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/public")
+  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/public"
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/crowleys_cloud)
+endif()
+
+# Install systemd service unit, sysusers, and tmpfiles on Linux
+if(UNIX AND NOT APPLE)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../packaging/linux/crowleys-cloud-server.service")
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../packaging/linux/crowleys-cloud-server.service"
+      DESTINATION lib/systemd/system)
+  endif()
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../packaging/linux/crowleys-cloud-server.sysusers")
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../packaging/linux/crowleys-cloud-server.sysusers"
+      DESTINATION lib/sysusers.d
+      RENAME crowleys-cloud-server.conf)
+  endif()
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../packaging/linux/crowleys-cloud-server.tmpfiles")
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../packaging/linux/crowleys-cloud-server.tmpfiles"
+      DESTINATION lib/tmpfiles.d
+      RENAME crowleys-cloud-server.conf)
+  endif()
+endif()
 
 # ------------------------------------------------------------------------------
 # 7. Licensing
 # ------------------------------------------------------------------------------
 set(PROJECT_LICENSE "AGPL-3.0-or-later")
+
+# ------------------------------------------------------------------------------
+# 8. CPack Packaging Configuration
+# ------------------------------------------------------------------------------
+set(CPACK_PACKAGE_NAME "crowleys-cloud-server")
+set(CPACK_PACKAGE_VENDOR "Sinn Crowley")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "High-performance self-hosted multi-server file cloud")
+set(CPACK_PACKAGE_DESCRIPTION "Crowley's Cloud Server is a high-performance C++ backend for file synchronization, multi-server storage, and media indexing.")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/SinnCrowley/crowleys_cloud")
+set(CPACK_PACKAGE_CONTACT "Sinn Crowley <sinn@crowleyscloud.com>")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+if(EXISTS "${PROJECT_SOURCE_DIR}/../LICENSE")
+  set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/../LICENSE")
+endif()
+set(CPACK_STRIP_FILES TRUE)
+
+# Debian / Ubuntu package settings (.deb)
+set(CPACK_DEBIAN_PACKAGE_SECTION "net")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
+set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+set(CPACK_DEBIAN_PACKAGE_SUGGESTS "ffmpeg")
+
+set(DEBIAN_POSTINST "${PROJECT_SOURCE_DIR}/../packaging/debian/postinst")
+set(DEBIAN_PRERM "${PROJECT_SOURCE_DIR}/../packaging/debian/prerm")
+set(DEBIAN_POSTRM "${PROJECT_SOURCE_DIR}/../packaging/debian/postrm")
+if(EXISTS "${DEBIAN_POSTINST}" AND EXISTS "${DEBIAN_PRERM}" AND EXISTS "${DEBIAN_POSTRM}")
+  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${DEBIAN_POSTINST};${DEBIAN_PRERM};${DEBIAN_POSTRM}")
+endif()
+
+# Fedora / RedHat package settings (.rpm)
+set(CPACK_RPM_PACKAGE_AUTOREQ ON)
+set(CPACK_RPM_PACKAGE_LICENSE "AGPLv3+")
+set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
+set(CPACK_RPM_PACKAGE_SUGGESTS "ffmpeg")
+set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
+
+# Archive generator settings
+set(CPACK_ARCHIVE_COMPONENT_INSTALL OFF)
+
+include(CPack)

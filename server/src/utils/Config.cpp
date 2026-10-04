@@ -71,7 +71,14 @@ std::string resolveConfigPath(int argc, char *argv[]) {
     return "./config/config.json";
   }
 
-  // 3. Fallback to <exeDir>/config/config.json if available
+  // 3. System-wide configuration: /etc/crowleys_cloud/config.json
+#ifndef _WIN32
+  if (std::filesystem::exists("/etc/crowleys_cloud/config.json", ec)) {
+    return "/etc/crowleys_cloud/config.json";
+  }
+#endif
+
+  // 4. Fallback to <exeDir>/config/config.json if available
   if (!exeDir.empty()) {
     auto p1 = exeDir / "config" / "config.json";
     auto cp = std::filesystem::weakly_canonical(p1, ec);
@@ -230,6 +237,15 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
             }
           }
         }
+#ifndef _WIN32
+        if (!std::filesystem::exists(resolved, ec)) {
+          if (std::filesystem::exists("/usr/share/crowleys_cloud/public", ec)) {
+            resolved = "/usr/share/crowleys_cloud/public";
+          } else if (std::filesystem::exists("/usr/local/share/crowleys_cloud/public", ec)) {
+            resolved = "/usr/local/share/crowleys_cloud/public";
+          }
+        }
+#endif
       }
       auto cp = std::filesystem::weakly_canonical(resolved, ec);
       return (!ec && !cp.empty()) ? cp.generic_string() : resolved.generic_string();
@@ -237,6 +253,15 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
 
     // 2. Only if baseDir is completely unavailable, fall back to CWD
     auto cwdCandidate = std::filesystem::current_path(ec) / p;
+#ifndef _WIN32
+    if (isPublicAsset && !std::filesystem::exists(cwdCandidate, ec)) {
+      if (std::filesystem::exists("/usr/share/crowleys_cloud/public", ec)) {
+        cwdCandidate = "/usr/share/crowleys_cloud/public";
+      } else if (std::filesystem::exists("/usr/local/share/crowleys_cloud/public", ec)) {
+        cwdCandidate = "/usr/local/share/crowleys_cloud/public";
+      }
+    }
+#endif
     auto cp = std::filesystem::weakly_canonical(cwdCandidate, ec);
     return (!ec && !cp.empty()) ? cp.generic_string() : cwdCandidate.generic_string();
   };

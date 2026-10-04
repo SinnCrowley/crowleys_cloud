@@ -56,6 +56,10 @@ ORIGINAL_REQUEST.md
 /server/storage/
 /server/uploads/
 /server/logs/
+_CPack_Packages/
+*.deb
+*.rpm
+*.pkg.tar.zst
 
 # Local configuration overrides & secrets
 .env

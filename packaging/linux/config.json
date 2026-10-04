@@ -1,0 +1,22 @@
+{
+  "host": "0.0.0.0",
+  "port": 8080,
+  "storage_root": "/var/lib/crowleys_cloud/storage",
+  "db_path": "/var/lib/crowleys_cloud/data/server.sqlite3",
+  "temp_upload_dir": "/var/lib/crowleys_cloud/uploads",
+  "public_dir": "/usr/share/crowleys_cloud/public",
+  "jwt_secret": "",
+  "upload_limit_bytes": 10737418240,
+  "rate_limit_per_minute": 10,
+  "access_token_ttl_seconds": 86400,
+  "refresh_token_ttl_seconds": 7776000,
+  "log_dir": "/var/log/crowleys_cloud",
+  "log_level": "INFO",
+  "access_log_enabled": true,
+  "video_thumbs_enabled": true,
+  "ffmpeg_binary": "ffmpeg",
+  "log_retention_days": 30,
+  "hash_files": true,
+  "encryption_key": "",
+  "trash_retention_days": 7
+}

@@ -1,0 +1,29 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Create system user/group via sysusers if available
+        if command -v systemd-sysusers >/dev/null 2>&1; then
+            systemd-sysusers crowleys-cloud-server.conf || true
+        elif ! getent passwd crowleys_cloud >/dev/null; then
+            useradd --system --user-group --home-dir /var/lib/crowleys_cloud --shell /usr/sbin/nologin crowleys_cloud || true
+        fi
+
+        # Create directories with proper permissions via tmpfiles
+        if command -v systemd-tmpfiles >/dev/null 2>&1; then
+            systemd-tmpfiles --create crowleys-cloud-server.conf || true
+        else
+            mkdir -p /var/lib/crowleys_cloud/data /var/lib/crowleys_cloud/storage /var/lib/crowleys_cloud/uploads /var/log/crowleys_cloud
+            chown -R crowleys_cloud:crowleys_cloud /var/lib/crowleys_cloud /var/log/crowleys_cloud
+            chmod 750 /var/lib/crowleys_cloud /var/log/crowleys_cloud
+        fi
+
+        # Reload systemd
+        if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+            systemctl --system daemon-reload >/dev/null 2>&1 || true
+        fi
+    ;;
+esac
+
+exit 0

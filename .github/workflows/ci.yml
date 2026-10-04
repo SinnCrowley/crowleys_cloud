@@ -324,6 +324,242 @@ jobs:
           retention-days: 30
 
   # ------------------------------------------------------------------------------
+  # 1d. Linux Debian / Ubuntu Packages (.deb) (x86_64 and ARM64)
+  # Reserved strictly for release tags (v*) and manual workflow_dispatch
+  # ------------------------------------------------------------------------------
+  build-server-linux-deb:
+    name: Package Debian/Ubuntu (.deb ${{ matrix.arch }})
+    needs: [test-web, build-server]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev dpkg-dev file
+
+      - name: Download Web Client Bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: web-static-assets
+          path: server/public
+
+      - name: Configure CMake
+        run: |
+          cmake -S server -B server/build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DCMAKE_INSTALL_SYSCONFDIR=/etc \
+            -DCMAKE_INSTALL_LOCALSTATEDIR=/var
+
+      - name: Compile Server Binary
+        run: cmake --build server/build --parallel $(nproc)
+
+      - name: Build Debian Package
+        run: cpack --config server/build/CPackConfig.cmake -G DEB
+
+      - name: Verify Debian Package
+        run: |
+          dpkg -I server/build/*.deb
+          dpkg -c server/build/*.deb
+          sudo dpkg -i server/build/*.deb
+          crowleys_cloud_server --help || true
+
+      - name: Upload Debian Package Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-linux-deb-${{ matrix.arch }}
+          path: server/build/*.deb
+          retention-days: 30
+
+  # ------------------------------------------------------------------------------
+  # 1e. Linux Fedora / RedHat Packages (.rpm) (x86_64 and aarch64)
+  # Reserved strictly for release tags (v*) and manual workflow_dispatch
+  # ------------------------------------------------------------------------------
+  build-server-linux-rpm:
+    name: Package Fedora (.rpm ${{ matrix.arch }})
+    needs: [test-web, build-server]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.runner }}
+    container:
+      image: fedora:40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Install Build Dependencies
+        run: |
+          dnf install -y gcc-c++ cmake git rpm-build openssl-devel sqlite-devel zlib-devel protobuf-devel libwebp-devel jsoncpp-devel libuuid-devel libheif-devel
+
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Download Web Client Bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: web-static-assets
+          path: server/public
+
+      - name: Configure CMake
+        run: |
+          cmake -S server -B server/build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DCMAKE_INSTALL_SYSCONFDIR=/etc \
+            -DCMAKE_INSTALL_LOCALSTATEDIR=/var
+
+      - name: Compile Server Binary
+        run: cmake --build server/build --parallel $(nproc)
+
+      - name: Build RPM Package
+        run: cpack --config server/build/CPackConfig.cmake -G RPM
+
+      - name: Verify RPM Package
+        run: |
+          rpm -qip server/build/*.rpm
+          rpm -qlp server/build/*.rpm
+          rpm -ivh server/build/*.rpm
+
+      - name: Upload RPM Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-linux-rpm-${{ matrix.arch }}
+          path: server/build/*.rpm
+          retention-days: 30
+
+  # ------------------------------------------------------------------------------
+  # 1f. Arch Linux Package (.pkg.tar.zst) (x86_64)
+  # Reserved strictly for release tags (v*) and manual workflow_dispatch
+  # ------------------------------------------------------------------------------
+  build-server-linux-arch:
+    name: Package Arch Linux (.pkg.tar.zst)
+    needs: [test-web, build-server]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+    steps:
+      - name: Install Build Dependencies
+        run: |
+          pacman -Syu --noconfirm cmake git openssl sqlite zlib protobuf libwebp jsoncpp util-linux-libs ffmpeg libheif
+
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Download Web Client Bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: web-static-assets
+          path: server/public
+
+      - name: Build Arch Package via makepkg
+        run: |
+          useradd -m builder
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+          tar --exclude='./server/build' --exclude='./build' --exclude='./.git' -czf packaging/arch/crowleys_cloud.tar.gz --transform 's,^\.,crowleys_cloud,' -C "$GITHUB_WORKSPACE" .
+          sed -i -E 's|source=\(.*|source=("crowleys_cloud.tar.gz")|' packaging/arch/PKGBUILD
+          chown builder:builder packaging/arch/crowleys_cloud.tar.gz packaging/arch/PKGBUILD
+          su builder -c "cd packaging/arch && makepkg -s --noconfirm"
+
+      - name: Verify Arch Package
+        run: |
+          pacman -Qip packaging/arch/*.pkg.tar.zst
+          pacman -Qlp packaging/arch/*.pkg.tar.zst
+          pacman -U --noconfirm packaging/arch/*.pkg.tar.zst
+
+      - name: Upload Arch Package Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-linux-arch-x64
+          path: packaging/arch/*.pkg.tar.zst
+          retention-days: 30
+
+  # ------------------------------------------------------------------------------
+  # 1g. Generic Linux Portable Archive (.tar.gz) (x64 and arm64)
+  # Reserved strictly for release tags (v*) and manual workflow_dispatch
+  # ------------------------------------------------------------------------------
+  build-server-linux-tarball:
+    name: Package Linux Portable Archive (${{ matrix.arch }})
+    needs: [test-web, build-server]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev
+
+      - name: Download Web Client Bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: web-static-assets
+          path: server/public
+
+      - name: Configure CMake
+        run: |
+          cmake -S server -B server/build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Compile Server Binary
+        run: cmake --build server/build --parallel $(nproc)
+
+      - name: Package Linux Release Archive
+        run: |
+          DIST_DIR="dist/crowleys-cloud-server-linux-${{ matrix.arch }}"
+          mkdir -p "$DIST_DIR/config"
+          mkdir -p "$DIST_DIR/public"
+          mkdir -p "$DIST_DIR/services"
+          cp server/build/crowleys_cloud_server "$DIST_DIR/"
+          chmod +x "$DIST_DIR/crowleys_cloud_server"
+          cp packaging/linux/run.sh "$DIST_DIR/"
+          chmod +x "$DIST_DIR/run.sh"
+          cp packaging/linux/crowleys-cloud-server.service "$DIST_DIR/services/"
+          cp packaging/linux/crowleys-cloud-server.sysusers "$DIST_DIR/services/"
+          cp packaging/linux/crowleys-cloud-server.tmpfiles "$DIST_DIR/services/"
+          cp server/config/config.json server/config/config.local.example.json "$DIST_DIR/config/"
+          cp -R server/public/. "$DIST_DIR/public/"
+          tar -czvf "crowleys-cloud-server-linux-${{ matrix.arch }}.tar.gz" -C "$DIST_DIR" .
+
+      - name: Test Packaged Linux Server
+        run: |
+          mkdir -p "$RUNNER_TEMP/Linux release"
+          tar -xzf "crowleys-cloud-server-linux-${{ matrix.arch }}.tar.gz" -C "$RUNNER_TEMP/Linux release"
+          python3 server/test/release_smoke_test.py "$RUNNER_TEMP/Linux release"
+
+      - name: Upload Linux Archive Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-linux-${{ matrix.arch }}
+          path: crowleys-cloud-server-linux-${{ matrix.arch }}.tar.gz
+          retention-days: 30
+
+  # ------------------------------------------------------------------------------
   # 2. Web Frontend Build & Verification (runs on changes / tags / dispatch)
   # ------------------------------------------------------------------------------
   test-web:
@@ -665,7 +901,7 @@ jobs:
   # ------------------------------------------------------------------------------
   create-release:
     name: Publish GitHub Release
-    needs: [build-server, build-server-macos, build-server-windows, test-web, build-android, build-ios, merge-docker-manifest]
+    needs: [build-server, build-server-macos, build-server-windows, build-server-linux-deb, build-server-linux-rpm, build-server-linux-arch, build-server-linux-tarball, test-web, build-android, build-ios, merge-docker-manifest]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -706,6 +942,48 @@ jobs:
           name: server-macos-arm64
           path: .
 
+      - name: Download Linux DEB amd64 Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: server-linux-deb-amd64
+          path: .
+
+      - name: Download Linux DEB arm64 Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: server-linux-deb-arm64
+          path: .
+
+      - name: Download Linux RPM x86_64 Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: server-linux-rpm-x86_64
+          path: .
+
+      - name: Download Linux RPM aarch64 Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: server-linux-rpm-aarch64
+          path: .
+
+      - name: Download Linux Arch Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: server-linux-arch-x64
+          path: .
+
+      - name: Download Linux x64 Tarball Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: server-linux-x64
+          path: .
+
+      - name: Download Linux ARM64 Tarball Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: server-linux-arm64
+          path: .
+
       - name: Rename APK with Version
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"
@@ -725,6 +1003,37 @@ jobs:
           echo "" >> release_notes.md
           echo "" >> release_notes.md
           echo "---" >> release_notes.md
+          echo "### Linux Packages" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "#### Debian / Ubuntu (.deb)" >> release_notes.md
+          echo "- **x86_64 / amd64**: \`crowleys-cloud-server_*_amd64.deb\`" >> release_notes.md
+          echo "- **ARM64**: \`crowleys-cloud-server_*_arm64.deb\`" >> release_notes.md
+          echo '```bash' >> release_notes.md
+          echo 'sudo apt install ./crowleys-cloud-server_*_<arch>.deb' >> release_notes.md
+          echo 'sudo systemctl enable --now crowleys-cloud-server' >> release_notes.md
+          echo '```' >> release_notes.md
+          echo "" >> release_notes.md
+          echo "#### Fedora / RedHat (.rpm)" >> release_notes.md
+          echo "- **x86_64**: \`crowleys-cloud-server-*.x86_64.rpm\`" >> release_notes.md
+          echo "- **aarch64**: \`crowleys-cloud-server-*.aarch64.rpm\`" >> release_notes.md
+          echo '```bash' >> release_notes.md
+          echo 'sudo dnf install ./crowleys-cloud-server-*.<arch>.rpm' >> release_notes.md
+          echo 'sudo systemctl enable --now crowleys-cloud-server' >> release_notes.md
+          echo '```' >> release_notes.md
+          echo "" >> release_notes.md
+          echo "#### Arch Linux (.pkg.tar.zst & AUR)" >> release_notes.md
+          echo "- **Binary package**: \`crowleys-cloud-server-*-x86_64.pkg.tar.zst\`" >> release_notes.md
+          echo '```bash' >> release_notes.md
+          echo 'sudo pacman -U ./crowleys-cloud-server-*-x86_64.pkg.tar.zst' >> release_notes.md
+          echo 'sudo systemctl enable --now crowleys-cloud-server' >> release_notes.md
+          echo '```' >> release_notes.md
+          echo "- **AUR**: Install via \`yay -S crowleys-cloud-server\`." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "#### Generic Linux Portable Archive (.tar.gz)" >> release_notes.md
+          echo "- **x64**: \`crowleys-cloud-server-linux-x64.tar.gz\`" >> release_notes.md
+          echo "- **ARM64**: \`crowleys-cloud-server-linux-arm64.tar.gz\`" >> release_notes.md
+          echo "Extract and execute \`./run.sh\`." >> release_notes.md
+          echo "" >> release_notes.md
           echo "### macOS Server" >> release_notes.md
           echo "Download \`crowleys-cloud-server-macos-arm64.tar.gz\`, extract, and execute \`./run.sh\`." >> release_notes.md
           echo "" >> release_notes.md
@@ -753,6 +1062,10 @@ jobs:
             crowleys-cloud-server-windows-x64.zip
             crowleys-cloud-server-windows-arm64.zip
             crowleys-cloud-server-macos-arm64.tar.gz
+            crowleys-cloud-server-linux-*.tar.gz
+            *.deb
+            *.rpm
+            *.pkg.tar.zst
           draft: false
           prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-rc') || contains(github.ref, '-alpha') }}
         env:

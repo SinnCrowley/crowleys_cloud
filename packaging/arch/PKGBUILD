@@ -1,0 +1,36 @@
+# Maintainer: Sinn Crowley <sinn@crowleyscloud.com>
+pkgname=crowleys-cloud-server
+pkgver=0.9.0
+pkgrel=1
+pkgdesc="High-performance self-hosted multi-server file cloud backend"
+arch=('x86_64' 'aarch64')
+url="https://github.com/SinnCrowley/crowleys_cloud"
+license=('AGPL-3.0-or-later')
+depends=('openssl' 'sqlite' 'zlib' 'protobuf' 'libwebp' 'jsoncpp' 'util-linux-libs' 'ffmpeg')
+optdepends=('libheif: support for HEIC/HEIF image decoding and thumbnails')
+makedepends=('cmake' 'gcc' 'git' 'nodejs' 'npm')
+backup=('etc/crowleys_cloud/config.json')
+source=("git+https://github.com/SinnCrowley/crowleys_cloud.git#tag=v${pkgver}")
+sha256sums=('SKIP')
+
+build() {
+  cd "${srcdir}/crowleys_cloud"
+
+  if [ -d "server/web" ] && [ ! -f "server/public/index.html" ]; then
+    (cd server/web && npm ci && npm run build)
+  fi
+
+  rm -rf server/build
+  cmake -B server/build -S server \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_SYSCONFDIR=/etc \
+    -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
+    -DCMAKE_INSTALL_DATADIR=/usr/share
+  cmake --build server/build --parallel
+}
+
+package() {
+  cd "${srcdir}/crowleys_cloud"
+  DESTDIR="${pkgdir}" cmake --install server/build
+}
