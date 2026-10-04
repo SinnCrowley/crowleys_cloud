@@ -364,7 +364,7 @@ jobs:
         run: cmake --build server/build --parallel $(nproc)
 
       - name: Build Debian Package
-        run: cpack --config server/build/CPackConfig.cmake -G DEB
+        run: cpack --config server/build/CPackConfig.cmake -G DEB -B server/build
 
       - name: Verify Debian Package
         run: |
@@ -425,7 +425,7 @@ jobs:
         run: cmake --build server/build --parallel $(nproc)
 
       - name: Build RPM Package
-        run: cpack --config server/build/CPackConfig.cmake -G RPM
+        run: cpack --config server/build/CPackConfig.cmake -G RPM -B server/build
 
       - name: Verify RPM Package
         run: |
@@ -454,7 +454,7 @@ jobs:
     steps:
       - name: Install Build Dependencies
         run: |
-          pacman -Syu --noconfirm cmake git openssl sqlite zlib protobuf libwebp jsoncpp util-linux-libs ffmpeg libheif
+          pacman -Syu --noconfirm cmake git openssl sqlite zlib protobuf libwebp jsoncpp util-linux-libs ffmpeg libheif nodejs npm sudo
 
       - name: Checkout Code
         uses: actions/checkout@v7
@@ -468,12 +468,13 @@ jobs:
       - name: Build Arch Package via makepkg
         run: |
           useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
           chown -R builder:builder "$GITHUB_WORKSPACE"
           tar --exclude='./server/build' --exclude='./build' --exclude='./.git' -czf /tmp/crowleys_cloud.tar.gz --transform 's,^\.,crowleys_cloud,' -C "$GITHUB_WORKSPACE" .
           mv /tmp/crowleys_cloud.tar.gz packaging/arch/crowleys_cloud.tar.gz
           sed -i -E 's|source=\(.*|source=("crowleys_cloud.tar.gz")|' packaging/arch/PKGBUILD
           chown builder:builder packaging/arch/crowleys_cloud.tar.gz packaging/arch/PKGBUILD
-          su builder -c "cd packaging/arch && makepkg -s --noconfirm"
+          su builder -c "cd packaging/arch && makepkg --noconfirm"
 
       - name: Verify Arch Package
         run: |
