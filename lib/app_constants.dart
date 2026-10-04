@@ -62,6 +62,6 @@ const documentExtensions = {
 
 const textExtensions = {'.txt', '.md', '.log', '.csv', '.json'};
 
-const String appVersion = '0.9.0';
+const String appVersion = '0.10.0';
 const String githubRepoOwner = 'SinnCrowley';
 const String githubRepoName = 'crowleys_cloud';

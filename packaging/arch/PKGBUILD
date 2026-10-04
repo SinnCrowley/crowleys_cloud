@@ -1,6 +1,6 @@
 # Maintainer: Sinn Crowley <sinn@crowleyscloud.com>
 pkgname=crowleys-cloud-server
-pkgver=0.9.0
+pkgver=0.10.0
 pkgrel=1
 pkgdesc="High-performance self-hosted multi-server file cloud backend"
 arch=('x86_64' 'aarch64')
