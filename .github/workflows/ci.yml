@@ -235,29 +235,26 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v7
 
-      - name: Restore vcpkg Binary Cache
-        uses: actions/cache/restore@v6
-        id: vcpkg-cache
+      - name: Set up vcpkg binary cache environment
+        shell: pwsh
+        run: |
+          $cacheDir = Join-Path $env:GITHUB_WORKSPACE "vcpkg_cache"
+          New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
+          echo "VCPKG_DEFAULT_BINARY_CACHE=$cacheDir" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Cache vcpkg binaries
+        uses: actions/cache@v6
         with:
-          path: ${{ github.workspace }}/vcpkg_cache
+          path: |
+            ${{ github.workspace }}/vcpkg_cache
+            server/vcpkg_installed
           key: vcpkg-${{ runner.os }}-${{ matrix.triplet }}-${{ hashFiles('server/vcpkg.json') }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ matrix.triplet }}-
 
-      - name: Create vcpkg Cache Directory
-        shell: pwsh
-        run: New-Item -ItemType Directory -Force -Path "${{ github.workspace }}/vcpkg_cache" | Out-Null
-
       - name: Install Dependencies via vcpkg
         run: |
           vcpkg install --x-manifest-root=server --triplet ${{ matrix.triplet }} --host-triplet ${{ matrix.host_triplet }}
-
-      - name: Save vcpkg Binary Cache
-        if: steps.vcpkg-cache.outputs.cache-exact-match != 'true'
-        uses: actions/cache/save@v6
-        with:
-          path: ${{ github.workspace }}/vcpkg_cache
-          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
 
       - name: Configure CMake
         run: |
@@ -472,7 +469,8 @@ jobs:
         run: |
           useradd -m builder
           chown -R builder:builder "$GITHUB_WORKSPACE"
-          tar --exclude='./server/build' --exclude='./build' --exclude='./.git' -czf packaging/arch/crowleys_cloud.tar.gz --transform 's,^\.,crowleys_cloud,' -C "$GITHUB_WORKSPACE" .
+          tar --exclude='./server/build' --exclude='./build' --exclude='./.git' -czf /tmp/crowleys_cloud.tar.gz --transform 's,^\.,crowleys_cloud,' -C "$GITHUB_WORKSPACE" .
+          mv /tmp/crowleys_cloud.tar.gz packaging/arch/crowleys_cloud.tar.gz
           sed -i -E 's|source=\(.*|source=("crowleys_cloud.tar.gz")|' packaging/arch/PKGBUILD
           chown builder:builder packaging/arch/crowleys_cloud.tar.gz packaging/arch/PKGBUILD
           su builder -c "cd packaging/arch && makepkg -s --noconfirm"

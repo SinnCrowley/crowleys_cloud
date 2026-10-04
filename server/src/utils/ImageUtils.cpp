@@ -332,7 +332,14 @@ std::optional<DecodedImage> decodeImageToRgba(const uint8_t *data, std::size_t s
             int imgW = heif_image_get_width(img.get(), heif_channel_interleaved);
             int imgH = heif_image_get_height(img.get(), heif_channel_interleaved);
             size_t stride = 0;
-            const uint8_t *plane = heif_image_get_plane_readonly2(img.get(), heif_channel_interleaved, &stride);
+            const uint8_t *plane = nullptr;
+#if defined(LIBHEIF_NUMERIC_VERSION) && LIBHEIF_NUMERIC_VERSION >= 0x01180000
+            plane = heif_image_get_plane_readonly2(img.get(), heif_channel_interleaved, &stride);
+#else
+            int strideInt = 0;
+            plane = heif_image_get_plane_readonly(img.get(), heif_channel_interleaved, &strideInt);
+            stride = (strideInt > 0) ? static_cast<size_t>(strideInt) : 0;
+#endif
             if (plane && imgW > 0 && imgH > 0 && stride >= static_cast<size_t>(imgW * 4)) {
               DecodedImage decoded;
               decoded.width = imgW;
