@@ -123,6 +123,10 @@ if [ -f "${PKGBUILD_FILE}" ]; then
   sed -i -E "s/^pkgver=.*/pkgver=${NEW_VERSION}/" "${PKGBUILD_FILE}"
   sed -i -E "s/^pkgrel=.*/pkgrel=1/" "${PKGBUILD_FILE}"
   echo "✓ Updated ${PKGBUILD_FILE} -> pkgver = '${NEW_VERSION}'"
+  if command -v makepkg >/dev/null 2>&1; then
+    (cd "${ROOT_DIR}/packaging/arch" && makepkg --printsrcinfo > .SRCINFO)
+    echo "✓ Regenerated ${ROOT_DIR}/packaging/arch/.SRCINFO"
+  fi
 fi
 
 # 6. Update server/web/package.json & server/web/package-lock.json
@@ -182,7 +186,7 @@ if [ "$NO_COMMIT" = false ]; then
   echo ""
   echo "Staging changed files..."
   STAGED_FILES=()
-  for f in "${PUBSPEC_FILE}" "${APP_CONSTANTS}" "${CMAKE_FILE}" "${VCPKG_JSON}" "${PKGBUILD_FILE}" "${DOCKER_COMPOSE}" "${PACKAGE_JSON}" "${PACKAGE_LOCK}" "${ROOT_DIR}/server/public"; do
+  for f in "${PUBSPEC_FILE}" "${APP_CONSTANTS}" "${CMAKE_FILE}" "${VCPKG_JSON}" "${PKGBUILD_FILE}" "${ROOT_DIR}/packaging/arch/.SRCINFO" "${DOCKER_COMPOSE}" "${PACKAGE_JSON}" "${PACKAGE_LOCK}" "${ROOT_DIR}/server/public"; do
     if [ -e "$f" ]; then
       STAGED_FILES+=("$f")
     fi

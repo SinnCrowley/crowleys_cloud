@@ -1,0 +1,27 @@
+pkgbase = crowleys-cloud-server
+	pkgdesc = High-performance self-hosted multi-server file cloud backend
+	pkgver = 0.10.0
+	pkgrel = 1
+	url = https://github.com/SinnCrowley/crowleys_cloud
+	arch = x86_64
+	arch = aarch64
+	license = AGPL-3.0-or-later
+	makedepends = cmake
+	makedepends = gcc
+	makedepends = git
+	makedepends = nodejs
+	makedepends = npm
+	depends = openssl
+	depends = sqlite
+	depends = zlib
+	depends = protobuf
+	depends = libwebp
+	depends = jsoncpp
+	depends = util-linux-libs
+	depends = ffmpeg
+	optdepends = libheif: support for HEIC/HEIF image decoding and thumbnails
+	backup = etc/crowleys_cloud/config.json
+	source = git+https://github.com/SinnCrowley/crowleys_cloud.git#tag=v0.10.0
+	sha256sums = SKIP
+
+pkgname = crowleys-cloud-server
