@@ -24,7 +24,78 @@
 #include <filesystem>
 #include <chrono>
 #include <cstdlib>
+#include <iostream>
 #include <limits>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
+
+namespace {
+
+bool isPortAvailable(const std::string &host, uint16_t port) {
+#ifdef _WIN32
+  WSADATA wsaData;
+  if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) return true;
+#endif
+
+  bool isV6 = (host.find(':') != std::string::npos);
+  int domain = isV6 ? AF_INET6 : AF_INET;
+  int sock = socket(domain, SOCK_STREAM, 0);
+  if (sock < 0) {
+#ifdef _WIN32
+    WSACleanup();
+#endif
+    return true;
+  }
+
+  int opt = 1;
+#ifdef _WIN32
+  setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&opt), sizeof(opt));
+#else
+  setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+#endif
+
+  bool available = false;
+  if (isV6) {
+    struct sockaddr_in6 addr6 {};
+    addr6.sin6_family = AF_INET6;
+    addr6.sin6_port = htons(port);
+    if (host == "::" || host.empty()) {
+      addr6.sin6_addr = in6addr_any;
+    } else {
+      inet_pton(AF_INET6, host.c_str(), &addr6.sin6_addr);
+    }
+    available = (bind(sock, reinterpret_cast<struct sockaddr *>(&addr6), sizeof(addr6)) == 0);
+  } else {
+    struct sockaddr_in addr4 {};
+    addr4.sin_family = AF_INET;
+    addr4.sin_port = htons(port);
+    if (host.empty() || host == "0.0.0.0") {
+      addr4.sin_addr.s_addr = htonl(INADDR_ANY);
+    } else {
+      inet_pton(AF_INET, host.c_str(), &addr4.sin_addr);
+    }
+    available = (bind(sock, reinterpret_cast<struct sockaddr *>(&addr4), sizeof(addr4)) == 0);
+  }
+
+#ifdef _WIN32
+  closesocket(sock);
+  WSACleanup();
+#else
+  close(sock);
+#endif
+
+  return available;
+}
+
+}  // namespace
 
 int main(int argc, char *argv[]) {
   const std::string configPath = server::utils::resolveConfigPath(argc, argv);
@@ -34,6 +105,19 @@ int main(int argc, char *argv[]) {
     appCtx.config = server::utils::loadConfig(configPath, true);
   } catch (const std::exception &e) {
     LOG_ERROR << e.what();
+    return 1;
+  }
+
+  if (!isPortAvailable(appCtx.config.host, appCtx.config.port)) {
+    LOG_ERROR << "Failed to bind to " << appCtx.config.host << ":" << appCtx.config.port
+              << ": Address already in use. Is another server instance running?";
+    std::cerr << "\n[ERROR] Cannot bind to " << appCtx.config.host << ":" << appCtx.config.port
+              << ": Address already in use.\n"
+              << "Another instance of Crowley's Cloud Server or another service is already using port "
+              << appCtx.config.port << ".\n"
+              << "If you have the systemd service running, stop it via: sudo systemctl stop crowleys-cloud-server\n"
+              << "Or configure a different port in config.local.json (e.g. \"port\": "
+              << (appCtx.config.port + 1) << ").\n" << std::endl;
     return 1;
   }
 

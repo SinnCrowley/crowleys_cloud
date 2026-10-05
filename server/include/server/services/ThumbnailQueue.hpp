@@ -108,7 +108,7 @@ class ThumbnailQueue {
   /**
    * Signals the queue and workers to stop, waking up all waiting threads and joining cleanly.
    */
-  void stop();
+  void stop(bool logShutdown = true);
 
   /**
    * Enqueues a task into the queue. Non-blocking.

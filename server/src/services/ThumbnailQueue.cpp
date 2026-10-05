@@ -63,7 +63,7 @@ ThumbnailQueue::ThumbnailQueue(const utils::Config &config,
       numWorkers_(numWorkers == 0 ? 0 : std::clamp<size_t>(numWorkers, 1, 2)) {}
 
 ThumbnailQueue::~ThumbnailQueue() {
-  stop();
+  stop(false);
 }
 
 void ThumbnailQueue::start() {
@@ -79,7 +79,7 @@ void ThumbnailQueue::start() {
   LOG_INFO << "ThumbnailQueue worker pool started with " << numWorkers_ << " thread(s) @ nice(10).";
 }
 
-void ThumbnailQueue::stop() {
+void ThumbnailQueue::stop(bool logShutdown) {
   {
     std::lock_guard<std::mutex> lock(mutex_);
     if (stopped_) return;
@@ -94,7 +94,9 @@ void ThumbnailQueue::stop() {
   }
   workers_.clear();
   running_ = false;
-  LOG_INFO << "ThumbnailQueue worker pool stopped cleanly.";
+  if (logShutdown) {
+    LOG_INFO << "ThumbnailQueue worker pool stopped cleanly.";
+  }
 }
 
 bool ThumbnailQueue::enqueue(const ThumbnailTask &task, std::optional<OverflowPolicy> policy) {
