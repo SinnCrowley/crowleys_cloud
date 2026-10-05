@@ -4,6 +4,11 @@ set -e
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
+# Include bundled shared libraries if present
+if [ -d "$DIR/lib" ]; then
+  export LD_LIBRARY_PATH="$DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
 CONFIG_FILE="config/config.json"
 if [ ! -f "$CONFIG_FILE" ] && [ -f "config.json" ]; then
   CONFIG_FILE="config.json"

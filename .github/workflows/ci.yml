@@ -513,7 +513,7 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev
+          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev patchelf
 
       - name: Download Web Client Bundle
         uses: actions/download-artifact@v8
@@ -536,6 +536,7 @@ jobs:
           mkdir -p "$DIST_DIR/services"
           cp server/build/crowleys_cloud_server "$DIST_DIR/"
           chmod +x "$DIST_DIR/crowleys_cloud_server"
+          python3 server/scripts/linux/bundle_linux.py --executable "$DIST_DIR/crowleys_cloud_server"
           cp packaging/linux/run.sh "$DIST_DIR/"
           chmod +x "$DIST_DIR/run.sh"
           cp packaging/linux/crowleys-cloud-server.service "$DIST_DIR/services/"

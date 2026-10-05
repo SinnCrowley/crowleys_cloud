@@ -349,6 +349,12 @@ add_executable(crowleys_cloud_server
 if(APPLE)
   target_link_options(crowleys_cloud_server PRIVATE "-Wl,-headerpad_max_install_names")
 endif()
+if(UNIX AND NOT APPLE)
+  set_target_properties(crowleys_cloud_server PROPERTIES
+    BUILD_RPATH "\$ORIGIN/lib:\$ORIGIN"
+    INSTALL_RPATH "\$ORIGIN/lib:\$ORIGIN"
+  )
+endif()
 
 target_include_directories(crowleys_cloud_server PRIVATE
   include
