@@ -68,6 +68,101 @@ The project utilizes CMake to configure and build. Protobuf code generation is h
 
 ---
 
+## Linux Packages & Service Installation (Ubuntu/Debian, Fedora, Arch Linux)
+
+Crowley's Cloud Server provides pre-built native packages with automated systemd service integration, sysusers creation, and FHS-compliant paths for all major Linux distributions (supporting both `x86_64` and `aarch64` / ARM64).
+
+### Installing Pre-Built Packages
+
+#### Ubuntu / Debian (.deb)
+```bash
+sudo apt install ./crowleys-cloud-server_<version>_amd64.deb
+# or on ARM64:
+sudo apt install ./crowleys-cloud-server_<version>_arm64.deb
+```
+
+#### Fedora / RHEL (.rpm)
+```bash
+sudo dnf install ./crowleys-cloud-server-<version>-1.x86_64.rpm
+# or on ARM64:
+sudo dnf install ./crowleys-cloud-server-<version>-1.aarch64.rpm
+```
+
+#### Arch Linux (AUR & pacman)
+From AUR using an AUR helper (e.g., `paru` or `yay`):
+```bash
+paru -S crowleys-cloud-server
+```
+Or manually using `makepkg`:
+```bash
+git clone https://aur.archlinux.org/crowleys-cloud-server.git
+cd crowleys-cloud-server
+makepkg -si
+```
+Or install the pre-compiled `.pkg.tar.zst` release directly:
+```bash
+sudo pacman -U crowleys-cloud-server-<version>-x86_64.pkg.tar.zst
+```
+
+#### Generic Linux (.tar.gz)
+Extract the standalone tarball and run the included installer:
+```bash
+tar -xzf crowleys-cloud-server-<version>-Linux.tar.gz
+cd crowleys-cloud-server-<version>-Linux
+sudo ./install.sh
+```
+
+---
+
+### Filesystem Layout & Permissions
+
+Installed packages adhere strictly to the Linux Filesystem Hierarchy Standard (FHS) and systemd security hardening:
+
+| Path | Purpose | Ownership & Permissions |
+| :--- | :--- | :--- |
+| `/usr/bin/crowleys_cloud_server` | Main server executable | `root:root` (`0755`) |
+| `/etc/crowleys_cloud/config.json` | Base static configuration file | `root:root` (`0644`) |
+| `/var/lib/crowleys_cloud/` | Persistent state directory (`$STATE_DIRECTORY`) | `crowleys_cloud:crowleys_cloud` (`0750`) |
+| `/var/lib/crowleys_cloud/storage/` | Physical encrypted file storage (`hash_files`) | `crowleys_cloud:crowleys_cloud` (`0750`) |
+| `/var/lib/crowleys_cloud/data/` | SQLite database (`server.sqlite3`) | `crowleys_cloud:crowleys_cloud` (`0750`) |
+| `/var/lib/crowleys_cloud/uploads/` | Chunked upload temporary staging | `crowleys_cloud:crowleys_cloud` (`0750`) |
+| `/var/lib/crowleys_cloud/config.local.json` | Generated runtime secrets & UI admin overrides | `crowleys_cloud:crowleys_cloud` (`0600`) |
+| `/var/log/crowleys_cloud/` | Server log files (`$LOGS_DIRECTORY`) | `crowleys_cloud:crowleys_cloud` (`0750`) |
+| `/usr/share/crowleys_cloud/public/` | Pre-built web client assets (Svelte SPA) | `root:root` (`0755`) |
+| `/usr/lib/systemd/system/crowleys-cloud-server.service` | Systemd service unit | `root:root` (`0644`) |
+
+---
+
+### Managing the Systemd Service
+
+Start and enable the server to run automatically on system boot:
+```bash
+sudo systemctl enable --now crowleys-cloud-server
+```
+
+Inspect service status and live log output:
+```bash
+sudo systemctl status crowleys-cloud-server
+sudo journalctl -u crowleys-cloud-server -f
+```
+
+Restart the service after modifying `/etc/crowleys_cloud/config.json`:
+```bash
+sudo systemctl restart crowleys-cloud-server
+```
+
+### Security & Hardening Isolation
+
+The systemd service unit runs under strict security isolation:
+- **Dedicated system user:** `crowleys_cloud` (created automatically via `sysusers.d`).
+- **Read-only system hierarchy:** `ProtectSystem=full` mounts `/usr`, `/boot`, and `/etc` as read-only.
+- **Home directory protection:** `ProtectHome=true` isolates user home directories.
+- **Privilege escalation block:** `NoNewPrivileges=true` prevents privilege escalation.
+- **Confined write access:** Only `/var/lib/crowleys_cloud` and `/var/log/crowleys_cloud` are mounted read-write.
+- **Clean backups:** Backing up `/var/lib/crowleys_cloud` creates a complete backup of all stored files, the SQLite database, and the cryptographic secrets in `config.local.json`.
+
+---
+
 ## Web Client Architecture (`server/web`)
 
 The web interface is built with **Svelte 4 + Vite** and uses pure Vanilla CSS and CSS custom variables to achieve a lightweight footprint (~28 KB gzipped) and visual parity with the Flutter mobile application.
@@ -430,10 +525,11 @@ This updates both C++ headers inside the server build target and Dart serializat
 
 ## Local configuration overrides
 
-The server loads its selected base config (`config/config.json` by default),
-then automatically applies **`config.local.json` from the same directory**.
-If it does not exist yet, you can create it from `config/config.local.example.json`; include only the
-values that should differ on your machine, for example:
+The server loads its selected base configuration, then automatically applies overrides from `config.local.json`.
+- **System Package (systemd service):** With the base configuration at `/etc/crowleys_cloud/config.json`, the systemd service runs with a read-only `/etc` (`ProtectSystem=full`). Generated secrets and web UI admin modifications are saved to the persistent state directory at `/var/lib/crowleys_cloud/config.local.json` (mode `0600`, owned by `crowleys_cloud`). Administrators can also place optional static overrides directly in `/etc/crowleys_cloud/config.local.json`.
+- **Portable & Development Mode:** The server applies `config.local.json` from the same directory as the base configuration (`config/config.local.json` by default).
+
+If it does not exist yet, you can create it from `config/config.local.example.json`; include only the values that should differ on your machine, for example:
 
 ```json
 {
@@ -454,16 +550,10 @@ Start the server normally, or supply the **base file** as its first argument:
 ./build/crowleys_cloud_server config/config.json
 ```
 
-An explicitly supplied `config.local.json` also includes the adjacent
-`config.json`. For other custom base filenames, the override is still named
-`config.local.json` in the same directory. Relative storage/log/database paths
-keep their usual base-config application directory, regardless of the shell's
-working directory.
+An explicitly supplied `config.local.json` also includes its corresponding base `config.json`.
+Relative storage/log/database paths keep their usual base-config application directory, regardless of the shell's working directory.
 
-Precedence: built-in defaults → base JSON → local JSON → supported environment
-variables (`CROWLEYS_JWT_SECRET`, `CROWLEYS_ENCRYPTION_KEY`). Local configuration
-does not bypass secret validation or rotate keys. Preserve the existing storage
-key when configuring a populated server.
+Precedence: built-in defaults → base JSON (`config.json`) → sibling local overrides (`/etc/.../config.local.json`) → persistent state overrides (`/var/lib/.../config.local.json`) → supported environment variables (`CROWLEYS_JWT_SECRET`, `CROWLEYS_ENCRYPTION_KEY`). Local configuration does not bypass secret validation or rotate keys. Preserve the existing storage key when configuring a populated server.
 
 The local file is ignored by Git and excluded from CMake installation, release
 archives and Docker build context. Updating files in an existing installation
@@ -473,11 +563,7 @@ those copied fields will remain overridden.
 
 ## First startup and persistent secrets
 
-On a fresh installation, start the server normally. Missing or shipped example
-secrets are replaced with independent random 32-byte values (64 hexadecimal
-characters), saved to `config.local.json` alongside the selected base config.
-Existing local fields are preserved. Subsequent launches, `git pull` and release
-updates reuse these values; they do not rewrite the local file.
+On a fresh installation, start the server normally. Missing or shipped example secrets are replaced with independent random 32-byte values (64 hexadecimal characters), saved to `config.local.json` (in `/var/lib/crowleys_cloud/config.local.json` for system services, or alongside the base config for portable installs). Existing local fields are preserved. Subsequent launches, package updates, and `git pull` reuse these values; they do not rewrite the local file.
 
 You can instead supply `jwt_secret` and `encryption_key` in local configuration,
 or `CROWLEYS_JWT_SECRET` / `CROWLEYS_ENCRYPTION_KEY` in the environment. Environment
@@ -489,7 +575,7 @@ Automatic initialization refuses to proceed if a database or nonempty storage
 already exists. Restore the original keys, or, for a disposable test installation,
 stop the server and move the old database and storage out of the configured paths
 before starting fresh. Never replace a populated storage key without migrating
-the encrypted data. Back up `config.local.json` with the database and storage.
+the encrypted data. Back up `config.local.json` with the database and storage (in packaged installations, backing up `/var/lib/crowleys_cloud` backs up data, database, and secrets together).
 
 Initialization writes a temporary file before replacing the local config and
 uses a `config.local.json.init-lock` directory to exclude concurrent writers.

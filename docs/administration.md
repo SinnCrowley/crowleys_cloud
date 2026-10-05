@@ -37,8 +37,8 @@ remove its journal or source files manually.
 ## Configuration
 
 The API returns effective and saved values, source, application mode and a revision.
-Updates require the revision from the last read; stale updates return 409.
-Changes are saved to the selected base file's sibling `config.local.json` using a
+Changes are saved to `config.local.json` (alongside the base configuration for portable
+installs, or in `/var/lib/crowleys_cloud/config.local.json` for system packages) using a
 private temporary file, durable write and atomic replacement. The base file remains
 unchanged. Infrastructure changes require an operator-managed restart. Changes to
 populated storage, database paths or storage format require a manual migration.

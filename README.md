@@ -1,6 +1,6 @@
-# Crowley's Cloud — Flutter Mobile Client
+# Crowley's Cloud
 
-A feature-rich, high-performance Flutter mobile application for **Crowley's Cloud**. It supports managing multiple server profiles, dynamic browsing, secure token storage, media thumbnail caching, background directory synchronization, and Protocol Buffers data transfer.
+A high-performance, secure self-hosted file cloud and background synchronization ecosystem. It consists of a C++ Drogon backend server, a lightweight Svelte web client, and a feature-rich Flutter cross-platform mobile application.
 
 ---
 
@@ -85,7 +85,43 @@ test/                               # Dart / Flutter unit and widget tests
 
 ---
 
-## Development & Build Commands
+## Server Installation & Linux Packages
+
+Crowley's Cloud Server provides pre-built native packages with automated systemd service integration for major Linux distributions (both `x86_64` and `aarch64` / ARM64):
+
+- **Ubuntu / Debian (`.deb`)**:
+  ```bash
+  sudo apt install ./crowleys-cloud-server_<version>_<arch>.deb
+  ```
+- **Fedora / RHEL (`.rpm`)**:
+  ```bash
+  sudo dnf install ./crowleys-cloud-server-<version>-1.<arch>.rpm
+  ```
+- **Arch Linux (AUR & `pacman`)**:
+  ```bash
+  # From AUR:
+  paru -S crowleys-cloud-server
+  # Or install release package:
+  sudo pacman -U crowleys-cloud-server-<version>-<arch>.pkg.tar.zst
+  ```
+- **Generic Linux (`.tar.gz`)**:
+  ```bash
+  tar -xzf crowleys-cloud-server-<version>-Linux.tar.gz
+  cd crowleys-cloud-server-<version>-Linux
+  sudo ./install.sh
+  ```
+
+Start and enable the systemd service:
+```bash
+sudo systemctl enable --now crowleys-cloud-server
+sudo systemctl status crowleys-cloud-server
+```
+
+Configuration is located at `/etc/crowleys_cloud/config.json`, while runtime data, database, and generated secrets reside securely in `/var/lib/crowleys_cloud/`. For full server documentation, see [server/README.md](server/README.md) and [docs/administration.md](docs/administration.md).
+
+---
+
+## Mobile Client Development & Build Commands
 
 Ensure you have the [Flutter SDK installed](https://docs.flutter.dev/get-started/install).
 
