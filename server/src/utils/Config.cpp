@@ -66,6 +66,11 @@ std::filesystem::path determineLocalConfigPath(const std::string &actualPath, co
     return std::filesystem::path(env);
   }
 
+  // If STATE_DIRECTORY is explicitly set (e.g. systemd StateDirectory=), use it
+  if (const auto stateDir = std::getenv("STATE_DIRECTORY"); stateDir && *stateDir != '\0') {
+    return std::filesystem::path(stateDir) / "config.local.json";
+  }
+
   const auto sibling = (!actualPath.empty() && !std::filesystem::is_directory(actualPath))
       ? (std::filesystem::path(actualPath).parent_path() / "config.local.json")
       : std::filesystem::path();
@@ -73,11 +78,6 @@ std::filesystem::path determineLocalConfigPath(const std::string &actualPath, co
   // If sibling directory is NOT under /etc and is writable, use sibling
   if (!sibling.empty() && !isUnderEtc(sibling.parent_path()) && isDirectoryWritable(sibling.parent_path())) {
     return sibling;
-  }
-
-  // Under /etc or unprivileged read-only directory: use state directory
-  if (const auto stateDir = std::getenv("STATE_DIRECTORY"); stateDir && *stateDir != '\0') {
-    return std::filesystem::path(stateDir) / "config.local.json";
   }
 
 #ifndef _WIN32

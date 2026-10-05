@@ -325,6 +325,7 @@ static void testLocalConfigOverrides() {
   std::filesystem::remove_all(root);
 }
 
+#ifndef _WIN32
 static void testReadOnlyAndStateDirectoryResolution() {
   std::cout << "[TEST] Read-only configuration directory and state directory resolution..." << std::endl;
   std::error_code ec;
@@ -351,13 +352,11 @@ static void testReadOnlyAndStateDirectoryResolution() {
               "  \"encryption_key\": \"default-local-encryption-key-for-testing\"\n"
               "}\n");
 
-#ifndef _WIN32
   // Make config directory read-only (r-x r-x r-x)
   std::filesystem::permissions(roConfigDir,
       std::filesystem::perms::owner_read | std::filesystem::perms::owner_exec |
       std::filesystem::perms::group_read | std::filesystem::perms::group_exec |
       std::filesystem::perms::others_read | std::filesystem::perms::others_exec);
-#endif
 
   try {
     // 1. Secret initialization should recognize that roConfigDir is read-only
@@ -378,36 +377,86 @@ static void testReadOnlyAndStateDirectoryResolution() {
     // 3. Test explicit STATE_DIRECTORY override
     const auto customStateDir = root / "custom_state";
     std::filesystem::create_directories(customStateDir);
-#ifndef _WIN32
     setenv("STATE_DIRECTORY", customStateDir.c_str(), 1);
-#else
-    _putenv_s("STATE_DIRECTORY", customStateDir.string().c_str());
-#endif
     Config stateCfg = loadConfig(base.string(), false);
     TEST_ASSERT(std::filesystem::weakly_canonical(stateCfg.localConfigPath, ec) ==
                 std::filesystem::weakly_canonical(customStateDir / "config.local.json", ec),
                 "localConfigPath must follow STATE_DIRECTORY when set");
 
-#ifndef _WIN32
     unsetenv("STATE_DIRECTORY");
-#else
-    _putenv_s("STATE_DIRECTORY", "");
-#endif
-
   } catch (...) {
-#ifndef _WIN32
+    unsetenv("STATE_DIRECTORY");
     std::filesystem::permissions(roConfigDir, std::filesystem::perms::owner_all);
-#endif
     std::filesystem::remove_all(root);
     throw;
   }
 
-#ifndef _WIN32
   std::filesystem::permissions(roConfigDir, std::filesystem::perms::owner_all);
-#endif
   std::filesystem::remove_all(root);
   std::cout << "  -> Verified read-only config dir and state dir redirection" << std::endl;
 }
+#else
+static void testStateDirectoryResolutionWindows() {
+  std::cout << "[TEST] State directory and portable config resolution (Windows)..." << std::endl;
+  std::error_code ec;
+  const auto root = std::filesystem::weakly_canonical(std::filesystem::temp_directory_path(), ec) /
+      ("config_win_state_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+  const auto configDir = root / "config";
+  const auto dataDir = root / "data";
+  const auto base = configDir / "config.json";
+
+  std::filesystem::create_directories(configDir);
+  std::filesystem::create_directories(dataDir);
+
+  const auto write = [](const std::filesystem::path &file, const std::string &json) {
+    std::ofstream out(file);
+    out << json;
+  };
+
+  write(base, "{\n"
+              "  \"port\": 8080,\n"
+              "  \"storage_root\": \"" + (dataDir / "storage").generic_string() + "\",\n"
+              "  \"db_path\": \"" + (dataDir / "server.sqlite3").generic_string() + "\",\n"
+              "  \"jwt_secret\": \"change-this-secret\",\n"
+              "  \"hash_files\": true,\n"
+              "  \"encryption_key\": \"default-local-encryption-key-for-testing\"\n"
+              "}\n");
+
+  try {
+    // 1. By default on Windows (portable installation), local config resolves to sibling config.local.json
+    Config cfg = loadConfig(base.string(), true);
+    TEST_ASSERT(!cfg.jwtSecret.empty() && cfg.jwtSecret != "change-this-secret", "JWT secret must be generated");
+    TEST_ASSERT(!cfg.encryptionKey.empty() && cfg.encryptionKey != "default-local-encryption-key-for-testing", "Encryption key must be generated");
+    TEST_ASSERT(std::filesystem::weakly_canonical(cfg.localConfigPath, ec) ==
+                std::filesystem::weakly_canonical(configDir / "config.local.json", ec),
+                "localConfigPath must resolve to sibling config.local.json by default on Windows");
+    TEST_ASSERT(std::filesystem::exists(configDir / "config.local.json"), "Generated config.local.json must exist in configDir");
+
+    // 2. Reloading picks up secrets from sibling config.local.json
+    Config reloaded = loadConfig(base.string(), false);
+    TEST_ASSERT(reloaded.jwtSecret == cfg.jwtSecret, "Reloaded JWT secret must match generated secret");
+    TEST_ASSERT(reloaded.encryptionKey == cfg.encryptionKey, "Reloaded encryption key must match generated key");
+
+    // 3. Test explicit STATE_DIRECTORY override
+    const auto customStateDir = root / "custom_state";
+    std::filesystem::create_directories(customStateDir);
+    _putenv_s("STATE_DIRECTORY", customStateDir.string().c_str());
+    Config stateCfg = loadConfig(base.string(), false);
+    TEST_ASSERT(std::filesystem::weakly_canonical(stateCfg.localConfigPath, ec) ==
+                std::filesystem::weakly_canonical(customStateDir / "config.local.json", ec),
+                "localConfigPath must follow STATE_DIRECTORY when set");
+
+    _putenv_s("STATE_DIRECTORY", "");
+  } catch (...) {
+    _putenv_s("STATE_DIRECTORY", "");
+    std::filesystem::remove_all(root);
+    throw;
+  }
+
+  std::filesystem::remove_all(root);
+  std::cout << "  -> Verified Windows portable config and state dir resolution" << std::endl;
+}
+#endif
 
 int main(int argc, char *argv[]) {
   std::cout << "========================================" << std::endl;
@@ -422,7 +471,11 @@ int main(int argc, char *argv[]) {
   testNonExistentDirectoryResolution();
   testMalformedAndEdgeCaseConfigs();
   testLocalConfigOverrides();
+#ifndef _WIN32
   testReadOnlyAndStateDirectoryResolution();
+#else
+  testStateDirectoryResolutionWindows();
+#endif
 
   std::cout << "\n[ALL TESTS PASSED CLEANLY]\n" << std::endl;
   return 0;
