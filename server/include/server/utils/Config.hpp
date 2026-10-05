@@ -22,6 +22,7 @@ namespace server::utils {
 
 struct Config {
   std::string sourcePath;
+  std::string localConfigPath;
   std::string registrationMode{"approval"};
   std::int64_t defaultQuotaBytes{0};
   std::string host{"0.0.0.0"};

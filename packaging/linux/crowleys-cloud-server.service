@@ -13,6 +13,10 @@ Restart=on-failure
 RestartSec=5s
 LimitNOFILE=65536
 
+# Systemd directory management
+StateDirectory=crowleys_cloud
+LogsDirectory=crowleys_cloud
+
 # Security hardening
 ProtectSystem=full
 ProtectHome=true

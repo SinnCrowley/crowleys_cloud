@@ -36,6 +36,9 @@ void setPhase(const std::string &value) {
 }
 }
 std::filesystem::path EncryptionRotationService::keyPath() const {
+  if (!ctx().config.localConfigPath.empty()) {
+    return std::filesystem::path(ctx().config.localConfigPath).parent_path() / "encryption-rotation.keys.json";
+  }
   return std::filesystem::path(ctx().config.sourcePath).parent_path() / "encryption-rotation.keys.json";
 }
 Json::Value EncryptionRotationService::keys() const {

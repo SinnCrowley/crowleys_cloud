@@ -144,10 +144,19 @@ Json::Value configJson(const utils::Config &config) {
   return value;
 }
 std::filesystem::path ConfigService::localPath() const {
+  if (!config_.localConfigPath.empty()) {
+    return std::filesystem::path(config_.localConfigPath);
+  }
   return std::filesystem::path(config_.sourcePath).parent_path() / "config.local.json";
 }
 std::string ConfigService::revision() const {
-  return utils::sha256Hex(contents(config_.sourcePath) + "|" + contents(localPath()));
+  std::string rev = contents(config_.sourcePath);
+  const auto sibling = std::filesystem::path(config_.sourcePath).parent_path() / "config.local.json";
+  if (sibling != localPath() && std::filesystem::exists(sibling)) {
+    rev += "|" + contents(sibling);
+  }
+  rev += "|" + contents(localPath());
+  return utils::sha256Hex(rev);
 }
 Json::Value ConfigService::overrides() const { return readObject(localPath()); }
 void ConfigService::persist(const Json::Value &values) {

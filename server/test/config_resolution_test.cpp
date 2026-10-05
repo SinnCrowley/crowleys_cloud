@@ -325,6 +325,87 @@ static void testLocalConfigOverrides() {
   std::filesystem::remove_all(root);
 }
 
+static void testReadOnlyAndStateDirectoryResolution() {
+  std::cout << "[TEST] Read-only configuration directory and state directory resolution..." << std::endl;
+  const auto root = std::filesystem::temp_directory_path() /
+      ("config_ro_state_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+  const auto roConfigDir = root / "ro_etc";
+  const auto stateDir = root / "var_lib";
+  const auto base = roConfigDir / "config.json";
+
+  std::filesystem::create_directories(roConfigDir);
+  std::filesystem::create_directories(stateDir);
+
+  const auto write = [](const std::filesystem::path &file, const std::string &json) {
+    std::ofstream out(file);
+    out << json;
+  };
+
+  write(base, "{\n"
+              "  \"port\": 8080,\n"
+              "  \"storage_root\": \"" + (stateDir / "storage").generic_string() + "\",\n"
+              "  \"db_path\": \"" + (stateDir / "data" / "server.sqlite3").generic_string() + "\",\n"
+              "  \"jwt_secret\": \"change-this-secret\",\n"
+              "  \"hash_files\": true,\n"
+              "  \"encryption_key\": \"default-local-encryption-key-for-testing\"\n"
+              "}\n");
+
+#ifndef _WIN32
+  // Make config directory read-only (r-x r-x r-x)
+  std::filesystem::permissions(roConfigDir,
+      std::filesystem::perms::owner_read | std::filesystem::perms::owner_exec |
+      std::filesystem::perms::group_read | std::filesystem::perms::group_exec |
+      std::filesystem::perms::others_read | std::filesystem::perms::others_exec);
+#endif
+
+  try {
+    // 1. Secret initialization should recognize that roConfigDir is read-only
+    // and store secrets in storageParent (stateDir) without throwing a filesystem error.
+    Config cfg = loadConfig(base.string(), true);
+    TEST_ASSERT(!cfg.jwtSecret.empty() && cfg.jwtSecret != "change-this-secret", "JWT secret must be generated");
+    TEST_ASSERT(!cfg.encryptionKey.empty() && cfg.encryptionKey != "default-local-encryption-key-for-testing", "Encryption key must be generated");
+    TEST_ASSERT(cfg.localConfigPath == (stateDir / "config.local.json").generic_string(),
+                "localConfigPath must resolve to writable stateDir");
+    TEST_ASSERT(std::filesystem::exists(stateDir / "config.local.json"), "Generated config.local.json must exist in stateDir");
+
+    // 2. Reloading should pick up secrets from stateDir
+    Config reloaded = loadConfig(base.string(), false);
+    TEST_ASSERT(reloaded.jwtSecret == cfg.jwtSecret, "Reloaded JWT secret must match generated secret");
+    TEST_ASSERT(reloaded.encryptionKey == cfg.encryptionKey, "Reloaded encryption key must match generated key");
+
+    // 3. Test explicit STATE_DIRECTORY override
+    const auto customStateDir = root / "custom_state";
+    std::filesystem::create_directories(customStateDir);
+#ifndef _WIN32
+    setenv("STATE_DIRECTORY", customStateDir.c_str(), 1);
+#else
+    _putenv_s("STATE_DIRECTORY", customStateDir.string().c_str());
+#endif
+    Config stateCfg = loadConfig(base.string(), false);
+    TEST_ASSERT(stateCfg.localConfigPath == (customStateDir / "config.local.json").generic_string(),
+                "localConfigPath must follow STATE_DIRECTORY when set");
+
+#ifndef _WIN32
+    unsetenv("STATE_DIRECTORY");
+#else
+    _putenv_s("STATE_DIRECTORY", "");
+#endif
+
+  } catch (...) {
+#ifndef _WIN32
+    std::filesystem::permissions(roConfigDir, std::filesystem::perms::owner_all);
+#endif
+    std::filesystem::remove_all(root);
+    throw;
+  }
+
+#ifndef _WIN32
+  std::filesystem::permissions(roConfigDir, std::filesystem::perms::owner_all);
+#endif
+  std::filesystem::remove_all(root);
+  std::cout << "  -> Verified read-only config dir and state dir redirection" << std::endl;
+}
+
 int main(int argc, char *argv[]) {
   std::cout << "========================================" << std::endl;
   std::cout << "Running Config & Runtime Path Resolution Tests" << std::endl;
@@ -338,6 +419,7 @@ int main(int argc, char *argv[]) {
   testNonExistentDirectoryResolution();
   testMalformedAndEdgeCaseConfigs();
   testLocalConfigOverrides();
+  testReadOnlyAndStateDirectoryResolution();
 
   std::cout << "\n[ALL TESTS PASSED CLEANLY]\n" << std::endl;
   return 0;

@@ -21,11 +21,88 @@
 #include <filesystem>
 #include <stdexcept>
 #include <cstdlib>
-
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 #include <drogon/drogon.h>
 
 namespace server::utils {
+namespace {
+
+bool isDirectoryWritable(const std::filesystem::path &dir) {
+  std::error_code ec;
+  if (!std::filesystem::exists(dir, ec)) {
+    auto parent = dir.parent_path();
+    if (parent.empty() || !std::filesystem::exists(parent, ec)) return false;
+#ifndef _WIN32
+    return ::access(parent.c_str(), W_OK) == 0;
+#else
+    return _waccess(parent.c_str(), 2) == 0;
+#endif
+  }
+  if (!std::filesystem::is_directory(dir, ec)) return false;
+#ifndef _WIN32
+  return ::access(dir.c_str(), W_OK) == 0;
+#else
+  return _waccess(dir.c_str(), 2) == 0;
+#endif
+}
+
+bool isUnderEtc(const std::filesystem::path &p) {
+#ifndef _WIN32
+  std::string s = p.generic_string();
+  return (s == "/etc" || s.rfind("/etc/", 0) == 0);
+#else
+  return false;
+#endif
+}
+
+std::filesystem::path determineLocalConfigPath(const std::string &actualPath, const Config &cfg) {
+  std::error_code ec;
+  if (const auto env = std::getenv("CROWLEYS_LOCAL_CONFIG"); env && *env != '\0') {
+    return std::filesystem::path(env);
+  }
+
+  const auto sibling = (!actualPath.empty() && !std::filesystem::is_directory(actualPath))
+      ? (std::filesystem::path(actualPath).parent_path() / "config.local.json")
+      : std::filesystem::path();
+
+  // If sibling directory is NOT under /etc and is writable, use sibling
+  if (!sibling.empty() && !isUnderEtc(sibling.parent_path()) && isDirectoryWritable(sibling.parent_path())) {
+    return sibling;
+  }
+
+  // Under /etc or unprivileged read-only directory: use state directory
+  if (const auto stateDir = std::getenv("STATE_DIRECTORY"); stateDir && *stateDir != '\0') {
+    return std::filesystem::path(stateDir) / "config.local.json";
+  }
+
+#ifndef _WIN32
+  if (!sibling.empty() && isUnderEtc(sibling.parent_path())) {
+    const std::filesystem::path varLib("/var/lib/crowleys_cloud");
+    if (std::filesystem::exists(varLib, ec) || isDirectoryWritable(varLib.parent_path())) {
+      return varLib / "config.local.json";
+    }
+  }
+#endif
+
+  if (!cfg.storageRoot.empty()) {
+    auto storageParent = std::filesystem::path(cfg.storageRoot).parent_path();
+    if (!storageParent.empty() && isDirectoryWritable(storageParent)) {
+      return storageParent / "config.local.json";
+    }
+    if (isDirectoryWritable(cfg.storageRoot)) {
+      return std::filesystem::path(cfg.storageRoot) / "config.local.json";
+    }
+  }
+
+  return sibling.empty() ? std::filesystem::path("config.local.json") : sibling;
+}
+
+}  // namespace
 
 std::string resolveConfigPath(int argc, char *argv[]) {
   if (argc > 1 && argv[1] != nullptr && argv[1][0] != '\0') {
@@ -119,7 +196,18 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
 
   // Passing config.local.json explicitly still includes its sibling base config.
   if (std::filesystem::path(actualPath).filename() == "config.local.json") {
-    actualPath = (std::filesystem::path(actualPath).parent_path() / "config.json").string();
+    auto siblingBase = std::filesystem::path(actualPath).parent_path() / "config.json";
+    if (std::filesystem::exists(siblingBase, ec)) {
+      actualPath = siblingBase.string();
+    }
+#ifndef _WIN32
+    else if (std::filesystem::exists("/etc/crowleys_cloud/config.json", ec)) {
+      actualPath = "/etc/crowleys_cloud/config.json";
+    }
+#endif
+    else {
+      actualPath = siblingBase.string();
+    }
   }
 
   auto applyFile = [&](const std::filesystem::path &file, bool local) {
@@ -175,12 +263,12 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
     applyFile(actualPath, false);
   }
 
-  // Never discover overrides from CWD: they belong to the selected base file.
-  if (!actualPath.empty() && !std::filesystem::is_directory(actualPath)) {
-    const auto localPath = std::filesystem::path(actualPath).parent_path() / "config.local.json";
-    if (std::filesystem::exists(localPath)) {
-      applyFile(localPath, true);
-    }
+  // Never discover overrides from CWD: they belong to the selected base file or state directory.
+  const auto siblingLocal = (!actualPath.empty() && !std::filesystem::is_directory(actualPath))
+      ? (std::filesystem::path(actualPath).parent_path() / "config.local.json")
+      : std::filesystem::path();
+  if (!siblingLocal.empty() && std::filesystem::exists(siblingLocal, ec)) {
+    applyFile(siblingLocal, true);
   }
 
   // Determine base directory for resolving relative application paths
@@ -272,6 +360,20 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
   cfg.publicDir = resolveRelative(cfg.publicDir, true);
   cfg.logDir = resolveRelative(cfg.logDir);
 
+  // Determine designated writable local configuration path
+  cfg.localConfigPath = determineLocalConfigPath(actualPath, cfg).lexically_normal().string();
+
+  // If localConfigPath is distinct from siblingLocal and exists, apply it as well
+  if (!cfg.localConfigPath.empty() && cfg.localConfigPath != siblingLocal.string() &&
+      std::filesystem::exists(cfg.localConfigPath, ec)) {
+    applyFile(cfg.localConfigPath, true);
+    cfg.storageRoot = resolveRelative(cfg.storageRoot);
+    cfg.dbPath = resolveRelative(cfg.dbPath);
+    cfg.tempUploadDir = resolveRelative(cfg.tempUploadDir);
+    cfg.publicDir = resolveRelative(cfg.publicDir, true);
+    cfg.logDir = resolveRelative(cfg.logDir);
+  }
+
   if (initializeSecrets) {
     auto environment = [&] {
       if (const auto value = std::getenv("CROWLEYS_JWT_SECRET"); value && *value != '\0') cfg.jwtSecret = value;
@@ -284,7 +386,9 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
       if (actualPath.empty() || !std::filesystem::is_regular_file(actualPath)) {
         throw std::runtime_error("Secret initialization requires an existing base config file");
       }
-      const auto local = std::filesystem::path(actualPath).parent_path() / "config.local.json";
+      const auto local = std::filesystem::path(cfg.localConfigPath);
+      std::error_code dirEc;
+      std::filesystem::create_directories(local.parent_path(), dirEc);
       const auto lock = std::filesystem::path(local.string() + ".init-lock");
       if (!std::filesystem::create_directory(lock)) {
         throw std::runtime_error("Secret initialization is locked; stop other server processes before removing " + lock.string());
