@@ -327,7 +327,8 @@ static void testLocalConfigOverrides() {
 
 static void testReadOnlyAndStateDirectoryResolution() {
   std::cout << "[TEST] Read-only configuration directory and state directory resolution..." << std::endl;
-  const auto root = std::filesystem::temp_directory_path() /
+  std::error_code ec;
+  const auto root = std::filesystem::weakly_canonical(std::filesystem::temp_directory_path(), ec) /
       ("config_ro_state_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
   const auto roConfigDir = root / "ro_etc";
   const auto stateDir = root / "var_lib";
@@ -364,7 +365,8 @@ static void testReadOnlyAndStateDirectoryResolution() {
     Config cfg = loadConfig(base.string(), true);
     TEST_ASSERT(!cfg.jwtSecret.empty() && cfg.jwtSecret != "change-this-secret", "JWT secret must be generated");
     TEST_ASSERT(!cfg.encryptionKey.empty() && cfg.encryptionKey != "default-local-encryption-key-for-testing", "Encryption key must be generated");
-    TEST_ASSERT(cfg.localConfigPath == (stateDir / "config.local.json").generic_string(),
+    TEST_ASSERT(std::filesystem::weakly_canonical(cfg.localConfigPath, ec) ==
+                std::filesystem::weakly_canonical(stateDir / "config.local.json", ec),
                 "localConfigPath must resolve to writable stateDir");
     TEST_ASSERT(std::filesystem::exists(stateDir / "config.local.json"), "Generated config.local.json must exist in stateDir");
 
@@ -382,7 +384,8 @@ static void testReadOnlyAndStateDirectoryResolution() {
     _putenv_s("STATE_DIRECTORY", customStateDir.string().c_str());
 #endif
     Config stateCfg = loadConfig(base.string(), false);
-    TEST_ASSERT(stateCfg.localConfigPath == (customStateDir / "config.local.json").generic_string(),
+    TEST_ASSERT(std::filesystem::weakly_canonical(stateCfg.localConfigPath, ec) ==
+                std::filesystem::weakly_canonical(customStateDir / "config.local.json", ec),
                 "localConfigPath must follow STATE_DIRECTORY when set");
 
 #ifndef _WIN32

@@ -361,7 +361,9 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
   cfg.logDir = resolveRelative(cfg.logDir);
 
   // Determine designated writable local configuration path
-  cfg.localConfigPath = determineLocalConfigPath(actualPath, cfg).lexically_normal().string();
+  auto determinedPath = determineLocalConfigPath(actualPath, cfg);
+  auto canonicalLocal = std::filesystem::weakly_canonical(determinedPath, ec);
+  cfg.localConfigPath = (!ec && !canonicalLocal.empty()) ? canonicalLocal.generic_string() : determinedPath.lexically_normal().generic_string();
 
   // If localConfigPath is distinct from siblingLocal and exists, apply it as well
   if (!cfg.localConfigPath.empty() && cfg.localConfigPath != siblingLocal.string() &&
