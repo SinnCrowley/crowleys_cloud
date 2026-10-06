@@ -70,6 +70,37 @@ set(BUILD_BROTLI OFF CACHE BOOL "" FORCE)
 set(BUILD_YAML_CONFIG OFF CACHE BOOL "" FORCE)
 set(BUILD_C-ARES OFF CACHE BOOL "" FORCE)
 
+# Statically compile JsonCpp so the server has zero external libjsoncpp.so dependency across distributions
+if(NOT WIN32)
+  set(JSONCPP_WITH_TESTS OFF CACHE BOOL "" FORCE)
+  set(JSONCPP_WITH_POST_BUILD_UNITTEST OFF CACHE BOOL "" FORCE)
+  set(JSONCPP_WITH_PKGCONFIG_SUPPORT OFF CACHE BOOL "" FORCE)
+  set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
+  FetchContent_Declare(
+    jsoncpp
+    GIT_REPOSITORY https://github.com/open-source-parsers/jsoncpp.git
+    GIT_TAG 1.9.6
+  )
+  FetchContent_GetProperties(jsoncpp)
+  if(NOT jsoncpp_POPULATED)
+    FetchContent_Populate(jsoncpp)
+    set(BUILD_SHARED_LIBS_OLD ${BUILD_SHARED_LIBS})
+    set(BUILD_SHARED_LIBS OFF)
+    add_subdirectory(${jsoncpp_SOURCE_DIR} ${jsoncpp_BINARY_DIR} EXCLUDE_FROM_ALL)
+    set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_OLD})
+  endif()
+  if(TARGET jsoncpp_static)
+    set_target_properties(jsoncpp_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    if(NOT TARGET Jsoncpp_lib)
+      add_library(Jsoncpp_lib INTERFACE IMPORTED)
+    endif()
+    set(Jsoncpp_FOUND TRUE CACHE BOOL "" FORCE)
+    set(JSONCPP_FOUND TRUE CACHE BOOL "" FORCE)
+    set(JSONCPP_INCLUDE_DIRS "${jsoncpp_SOURCE_DIR}/include" CACHE PATH "" FORCE)
+    set(JSONCPP_LIBRARIES jsoncpp_static CACHE STRING "" FORCE)
+  endif()
+endif()
+
 # Fetch and configure Drogon C++ Web Framework (v1.9.13)
 if(POLICY CMP0169)
   cmake_policy(SET CMP0169 OLD)
@@ -352,7 +383,7 @@ endif()
 if(UNIX AND NOT APPLE)
   set_target_properties(crowleys_cloud_server PROPERTIES
     BUILD_RPATH "\$ORIGIN/lib:\$ORIGIN"
-    INSTALL_RPATH "\$ORIGIN/lib:\$ORIGIN"
+    INSTALL_RPATH "\$ORIGIN/../lib/crowleys_cloud:\$ORIGIN/../lib64/crowleys_cloud:\$ORIGIN/lib:\$ORIGIN"
   )
 endif()
 
@@ -710,6 +741,30 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
+# Standalone package dependency bundling
+option(BUNDLE_PRIVATE_LIBS "Bundle volatile private shared libraries for distribution packages" OFF)
+if(BUNDLE_PRIVATE_LIBS AND UNIX AND NOT APPLE)
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  install(CODE "
+    set(_dest_dir \"\$ENV{DESTDIR}\")
+    set(_prefix \"\${CMAKE_INSTALL_PREFIX}\")
+    set(_exe_path \"\${_dest_dir}\${_prefix}/${CMAKE_INSTALL_BINDIR}/crowleys_cloud_server\")
+    set(_lib_dir \"\${_dest_dir}\${_prefix}/lib/crowleys_cloud\")
+    message(STATUS \"Bundling private libraries into \${_lib_dir} for \${_exe_path}...\")
+    execute_process(
+      COMMAND \"${Python3_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/scripts/linux/bundle_linux.py\"
+        --private-only
+        --executable \"\${_exe_path}\"
+        --lib-dir \"\${_lib_dir}\"
+        --rpath \"\\\$ORIGIN/../lib/crowleys_cloud:\\\$ORIGIN/../lib64/crowleys_cloud:\\\$ORIGIN/lib:\\\$ORIGIN\"
+      RESULT_VARIABLE _bundle_res
+    )
+    if(NOT _bundle_res EQUAL 0)
+      message(FATAL_ERROR \"Private library bundling failed with exit code: \${_bundle_res}\")
+    endif()
+  ")
+endif()
+
 # ------------------------------------------------------------------------------
 # 7. Licensing
 # ------------------------------------------------------------------------------
@@ -736,8 +791,8 @@ set(CPACK_STRIP_FILES TRUE)
 # Debian / Ubuntu package settings (.deb)
 set(CPACK_DEBIAN_PACKAGE_SECTION "net")
 set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libssl3 (>= 3.0.0) | libssl3t64, libsqlite3-0 (>= 3.0.0), zlib1g (>= 1:1.2.0), libwebp7 (>= 0.5.0) | libwebp6, libc6 (>= 2.35)")
 set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
 set(CPACK_DEBIAN_PACKAGE_SUGGESTS "ffmpeg")
 
@@ -750,6 +805,9 @@ endif()
 
 # Fedora / RedHat package settings (.rpm)
 set(CPACK_RPM_PACKAGE_AUTOREQ ON)
+set(CPACK_RPM_PACKAGE_AUTOPROV OFF)
+set(CPACK_RPM_PACKAGE_REQUIRES "openssl >= 3.0.0, sqlite >= 3.0.0, zlib, libwebp")
+set(CPACK_RPM_SPEC_MORE_DEFINE "%define __requires_exclude ^(libprotobuf|libabsl_|libutf8_validity|libjsoncpp|libheif|libx265|libde265|libaom|libopenh264|libbrotli|libzstd).*$\n%define __provides_exclude ^(libprotobuf|libabsl_|libutf8_validity|libjsoncpp|libheif|libx265|libde265|libaom|libopenh264|libbrotli|libzstd).*$\n%define __requires_exclude_from ^/usr/lib(64)?/crowleys_cloud/.*$\n%define __provides_exclude_from ^/usr/lib(64)?/crowleys_cloud/.*$")
 set(CPACK_RPM_PACKAGE_LICENSE "AGPLv3+")
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
 set(CPACK_RPM_PACKAGE_SUGGESTS "ffmpeg")

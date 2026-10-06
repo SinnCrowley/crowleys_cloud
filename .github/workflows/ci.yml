@@ -344,7 +344,7 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev dpkg-dev file
+          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev dpkg-dev file patchelf python3
 
       - name: Download Web Client Bundle
         uses: actions/download-artifact@v8
@@ -358,7 +358,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/usr \
             -DCMAKE_INSTALL_SYSCONFDIR=/etc \
-            -DCMAKE_INSTALL_LOCALSTATEDIR=/var
+            -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
+            -DBUNDLE_PRIVATE_LIBS=ON
 
       - name: Compile Server Binary
         run: cmake --build server/build --parallel $(nproc)
@@ -402,7 +403,7 @@ jobs:
     steps:
       - name: Install Build Dependencies
         run: |
-          dnf install -y gcc-c++ cmake git rpm-build openssl-devel sqlite-devel zlib-devel protobuf-devel libwebp-devel jsoncpp-devel libuuid-devel libheif-devel
+          dnf install -y gcc-c++ cmake git rpm-build openssl-devel sqlite-devel zlib-devel protobuf-devel libwebp-devel jsoncpp-devel libuuid-devel libheif-devel patchelf python3
 
       - name: Checkout Code
         uses: actions/checkout@v7
@@ -419,7 +420,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/usr \
             -DCMAKE_INSTALL_SYSCONFDIR=/etc \
-            -DCMAKE_INSTALL_LOCALSTATEDIR=/var
+            -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
+            -DBUNDLE_PRIVATE_LIBS=ON
 
       - name: Compile Server Binary
         run: cmake --build server/build --parallel $(nproc)
@@ -431,7 +433,9 @@ jobs:
         run: |
           rpm -qip server/build/*.rpm
           rpm -qlp server/build/*.rpm
+          rpm -qp --requires server/build/*.rpm
           rpm -ivh server/build/*.rpm
+          crowleys_cloud_server --help || true
 
       - name: Upload RPM Artifact
         uses: actions/upload-artifact@v7

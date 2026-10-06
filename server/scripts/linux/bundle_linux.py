@@ -44,11 +44,26 @@ SYSTEM_PATTERNS = [
     r'^libstdc\+\+\.so',
 ]
 
+# Standard distribution package libraries provided by distro package managers (Debian/Fedora)
+DISTRO_PACKAGE_PATTERNS = [
+    r'^libcrypto\.so',
+    r'^libssl\.so',
+    r'^libsqlite3\.so',
+    r'^libz\.so',
+    r'^libwebp\.so',
+    r'^libsharpyuv\.so',
+    r'^libuuid\.so',
+]
 
-def is_system_lib(name: str) -> bool:
+
+def is_system_lib(name: str, private_only: bool = False) -> bool:
     for pattern in SYSTEM_PATTERNS:
         if re.search(pattern, name):
             return True
+    if private_only:
+        for pattern in DISTRO_PACKAGE_PATTERNS:
+            if re.search(pattern, name):
+                return True
     return False
 
 
@@ -100,7 +115,7 @@ def get_dependencies(file_path: Path) -> dict[str, Path]:
     return deps
 
 
-def bundle(executable: Path, lib_dir: Path):
+def bundle(executable: Path, lib_dir: Path, rpath: str | None = None, private_only: bool = False):
     executable = executable.resolve()
     if not executable.exists():
         print(f"[ERROR] Executable not found: {executable}", file=sys.stderr)
@@ -109,18 +124,22 @@ def bundle(executable: Path, lib_dir: Path):
     lib_dir.mkdir(parents=True, exist_ok=True)
     patchelf_bin = shutil.which("patchelf")
 
+    if rpath is None:
+        rpath = "$ORIGIN/../lib/crowleys_cloud:$ORIGIN/../lib64/crowleys_cloud:$ORIGIN/lib:$ORIGIN" if private_only else "$ORIGIN/lib:$ORIGIN"
+
     copied_canonical = set()
     queue = [executable]
     all_libs_in_dir = set()
 
-    print(f"[BUNDLE] Inspecting dependencies for {executable}...")
+    mode_str = "private-only" if private_only else "all non-system"
+    print(f"[BUNDLE] Inspecting dependencies for {executable} (mode: {mode_str})...")
 
     while queue:
         current = queue.pop(0)
         deps = get_dependencies(current)
 
         for requested_name, target_path in deps.items():
-            if is_system_lib(requested_name) or is_system_lib(target_path.name):
+            if is_system_lib(requested_name, private_only) or is_system_lib(target_path.name, private_only):
                 continue
 
             real_path = target_path.resolve()
@@ -164,8 +183,8 @@ def bundle(executable: Path, lib_dir: Path):
         print("[BUNDLE] Configuring RPATH with patchelf...")
         try:
             executable.chmod(0o755)
-            subprocess.run([patchelf_bin, "--set-rpath", "$ORIGIN/lib:$ORIGIN", str(executable)], check=True)
-            print(f"  -> Set RPATH on executable: $ORIGIN/lib:$ORIGIN")
+            subprocess.run([patchelf_bin, "--set-rpath", rpath, str(executable)], check=True)
+            print(f"  -> Set RPATH on executable: {rpath}")
         except subprocess.CalledProcessError as e:
             print(f"[WARN] Failed to set RPATH on executable: {e}", file=sys.stderr)
 
@@ -186,13 +205,15 @@ def main():
     parser = argparse.ArgumentParser(description="Bundle non-system dependencies for Linux release.")
     parser.add_argument("--executable", required=True, type=Path, help="Path to staged executable.")
     parser.add_argument("--lib-dir", type=Path, default=None, help="Directory to store bundled libraries.")
+    parser.add_argument("--rpath", type=str, default=None, help="Custom RPATH to set on the executable.")
+    parser.add_argument("--private-only", action="store_true", help="Only bundle volatile private C++ libraries (exclude standard distro packages).")
     args = parser.parse_args()
 
     lib_dir = args.lib_dir
     if lib_dir is None:
         lib_dir = args.executable.parent / "lib"
 
-    bundle(args.executable, lib_dir)
+    bundle(args.executable, lib_dir, rpath=args.rpath, private_only=args.private_only)
 
 
 if __name__ == "__main__":

@@ -104,12 +104,12 @@ Or install the pre-compiled `.pkg.tar.zst` release directly:
 sudo pacman -U crowleys-cloud-server-<version>-x86_64.pkg.tar.zst
 ```
 
-#### Generic Linux (.tar.gz)
-Extract the standalone tarball and run the included installer:
+#### Generic Linux Portable Archive (.tar.gz)
+Extract the standalone portable archive and run `./run.sh` directly (no root privileges required):
 ```bash
-tar -xzf crowleys-cloud-server-<version>-Linux.tar.gz
-cd crowleys-cloud-server-<version>-Linux
-sudo ./install.sh
+tar -xzf crowleys-cloud-server-linux-<arch>.tar.gz
+cd crowleys-cloud-server-linux-<arch>
+./run.sh
 ```
 
 ---

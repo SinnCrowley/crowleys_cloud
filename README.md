@@ -104,11 +104,11 @@ Crowley's Cloud Server provides pre-built native packages with automated systemd
   # Or install release package:
   sudo pacman -U crowleys-cloud-server-<version>-<arch>.pkg.tar.zst
   ```
-- **Generic Linux (`.tar.gz`)**:
+- **Generic Linux Portable Archive (`.tar.gz`)**:
   ```bash
-  tar -xzf crowleys-cloud-server-<version>-Linux.tar.gz
-  cd crowleys-cloud-server-<version>-Linux
-  sudo ./install.sh
+  tar -xzf crowleys-cloud-server-linux-<arch>.tar.gz
+  cd crowleys-cloud-server-linux-<arch>
+  ./run.sh
   ```
 
 Start and enable the systemd service:
