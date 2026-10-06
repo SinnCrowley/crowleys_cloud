@@ -331,6 +331,19 @@ add_custom_command(
   VERBATIM
 )
 
+add_library(proto_gen STATIC
+  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
+  "${PROTO_GEN_DIR}/dir_entry.pb.h"
+)
+set_target_properties(proto_gen PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(proto_gen PUBLIC
+  "${PROTO_GEN_DIR}"
+  ${Protobuf_INCLUDE_DIRS}
+)
+target_link_libraries(proto_gen PUBLIC
+  ${PROTOBUF_TARGET}
+)
+
 # ------------------------------------------------------------------------------
 # 3. Executable Target Definition
 # ------------------------------------------------------------------------------
@@ -369,9 +382,6 @@ add_executable(crowleys_cloud_server
   src/utils/ImageUtils.cpp
   src/utils/BlurHashEncoder.cpp
   src/utils/ZipWriter.cpp
-
-  # Generated Protobuf Files
-  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
 )
 
 # ------------------------------------------------------------------------------
@@ -389,20 +399,18 @@ endif()
 
 target_include_directories(crowleys_cloud_server PRIVATE
   include
-  "${PROTO_GEN_DIR}"
-  ${Protobuf_INCLUDE_DIRS}
   ${SQLite3_INCLUDE_DIRS}
   ${WebP_INCLUDE_DIRS}
   ${WEBP_INCLUDE_DIRS}
 )
 
 target_link_libraries(crowleys_cloud_server PRIVATE
+  proto_gen
   drogon
   OpenSSL::Crypto
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  ${PROTOBUF_TARGET}
   ${WEBP_TARGET}
   ${PLATFORM_LIBS}
 )
@@ -458,23 +466,20 @@ add_executable(file_index_blurhash_test
   src/utils/Crypto.cpp
   src/utils/ImageUtils.cpp
   src/utils/BlurHashEncoder.cpp
-  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
 )
 target_include_directories(file_index_blurhash_test PRIVATE
   include
-  "${PROTO_GEN_DIR}"
-  ${Protobuf_INCLUDE_DIRS}
   ${SQLite3_INCLUDE_DIRS}
   ${WebP_INCLUDE_DIRS}
   ${WEBP_INCLUDE_DIRS}
 )
 target_link_libraries(file_index_blurhash_test PRIVATE
+  proto_gen
   drogon
   OpenSSL::Crypto
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  ${PROTOBUF_TARGET}
   ${WEBP_TARGET}
   ${PLATFORM_LIBS}
 )
@@ -489,23 +494,20 @@ add_executable(blurhash_adversarial_test
   src/utils/Crypto.cpp
   src/utils/ImageUtils.cpp
   src/utils/BlurHashEncoder.cpp
-  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
 )
 target_include_directories(blurhash_adversarial_test PRIVATE
   include
-  "${PROTO_GEN_DIR}"
-  ${Protobuf_INCLUDE_DIRS}
   ${SQLite3_INCLUDE_DIRS}
   ${WebP_INCLUDE_DIRS}
   ${WEBP_INCLUDE_DIRS}
 )
 target_link_libraries(blurhash_adversarial_test PRIVATE
+  proto_gen
   drogon
   OpenSSL::Crypto
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  ${PROTOBUF_TARGET}
   ${WEBP_TARGET}
   ${PLATFORM_LIBS}
 )
@@ -520,23 +522,20 @@ add_executable(blurhash_adversarial_challenge_test
   src/utils/Crypto.cpp
   src/utils/ImageUtils.cpp
   src/utils/BlurHashEncoder.cpp
-  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
 )
 target_include_directories(blurhash_adversarial_challenge_test PRIVATE
   include
-  "${PROTO_GEN_DIR}"
-  ${Protobuf_INCLUDE_DIRS}
   ${SQLite3_INCLUDE_DIRS}
   ${WebP_INCLUDE_DIRS}
   ${WEBP_INCLUDE_DIRS}
 )
 target_link_libraries(blurhash_adversarial_challenge_test PRIVATE
+  proto_gen
   drogon
   OpenSSL::Crypto
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  ${PROTOBUF_TARGET}
   ${WEBP_TARGET}
   ${PLATFORM_LIBS}
 )
@@ -553,23 +552,20 @@ add_executable(thumbnail_queue_test
   src/utils/Crypto.cpp
   src/utils/ImageUtils.cpp
   src/utils/BlurHashEncoder.cpp
-  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
 )
 target_include_directories(thumbnail_queue_test PRIVATE
   include
-  "${PROTO_GEN_DIR}"
-  ${Protobuf_INCLUDE_DIRS}
   ${SQLite3_INCLUDE_DIRS}
   ${WebP_INCLUDE_DIRS}
   ${WEBP_INCLUDE_DIRS}
 )
 target_link_libraries(thumbnail_queue_test PRIVATE
+  proto_gen
   drogon
   OpenSSL::Crypto
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  ${PROTOBUF_TARGET}
   ${WEBP_TARGET}
   ${PLATFORM_LIBS}
 )
@@ -586,23 +582,20 @@ add_executable(thumbnail_worker_pool_test
   src/utils/Crypto.cpp
   src/utils/ImageUtils.cpp
   src/utils/BlurHashEncoder.cpp
-  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
 )
 target_include_directories(thumbnail_worker_pool_test PRIVATE
   include
-  "${PROTO_GEN_DIR}"
-  ${Protobuf_INCLUDE_DIRS}
   ${SQLite3_INCLUDE_DIRS}
   ${WebP_INCLUDE_DIRS}
   ${WEBP_INCLUDE_DIRS}
 )
 target_link_libraries(thumbnail_worker_pool_test PRIVATE
+  proto_gen
   drogon
   OpenSSL::Crypto
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  ${PROTOBUF_TARGET}
   ${WEBP_TARGET}
   ${PLATFORM_LIBS}
 )
@@ -619,23 +612,20 @@ add_executable(upload_queue_adversarial_test
   src/utils/Crypto.cpp
   src/utils/ImageUtils.cpp
   src/utils/BlurHashEncoder.cpp
-  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
 )
 target_include_directories(upload_queue_adversarial_test PRIVATE
   include
-  "${PROTO_GEN_DIR}"
-  ${Protobuf_INCLUDE_DIRS}
   ${SQLite3_INCLUDE_DIRS}
   ${WebP_INCLUDE_DIRS}
   ${WEBP_INCLUDE_DIRS}
 )
 target_link_libraries(upload_queue_adversarial_test PRIVATE
+  proto_gen
   drogon
   OpenSSL::Crypto
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  ${PROTOBUF_TARGET}
   ${WEBP_TARGET}
   ${PLATFORM_LIBS}
 )
@@ -652,23 +642,20 @@ add_executable(thumbnail_adversarial_test
   src/utils/Crypto.cpp
   src/utils/ImageUtils.cpp
   src/utils/BlurHashEncoder.cpp
-  "${PROTO_GEN_DIR}/dir_entry.pb.cc"
 )
 target_include_directories(thumbnail_adversarial_test PRIVATE
   include
-  "${PROTO_GEN_DIR}"
-  ${Protobuf_INCLUDE_DIRS}
   ${SQLite3_INCLUDE_DIRS}
   ${WebP_INCLUDE_DIRS}
   ${WEBP_INCLUDE_DIRS}
 )
 target_link_libraries(thumbnail_adversarial_test PRIVATE
+  proto_gen
   drogon
   OpenSSL::Crypto
   ${SQLite3_LIBRARIES}
   Threads::Threads
   ZLIB::ZLIB
-  ${PROTOBUF_TARGET}
   ${WEBP_TARGET}
   ${PLATFORM_LIBS}
 )
