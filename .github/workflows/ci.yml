@@ -434,6 +434,7 @@ jobs:
           rpm -qip server/build/*.rpm
           rpm -qlp server/build/*.rpm
           rpm -qp --requires server/build/*.rpm
+          rpm -qp --provides server/build/*.rpm
           rpm -ivh server/build/*.rpm
           crowleys_cloud_server --help || true
 
