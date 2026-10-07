@@ -382,6 +382,7 @@ add_executable(crowleys_cloud_server
   src/utils/ImageUtils.cpp
   src/utils/BlurHashEncoder.cpp
   src/utils/ZipWriter.cpp
+  src/utils/GlibcCompat.cpp
 )
 
 # ------------------------------------------------------------------------------
@@ -395,6 +396,7 @@ if(UNIX AND NOT APPLE)
     BUILD_RPATH "\$ORIGIN/lib:\$ORIGIN"
     INSTALL_RPATH "\$ORIGIN/../lib/crowleys_cloud:\$ORIGIN/../lib64/crowleys_cloud:\$ORIGIN/lib:\$ORIGIN"
   )
+  target_link_options(crowleys_cloud_server PRIVATE "-Wl,--export-dynamic")
 endif()
 
 target_include_directories(crowleys_cloud_server PRIVATE
@@ -669,6 +671,14 @@ add_executable(config_resolution_test
 target_include_directories(config_resolution_test PRIVATE include)
 target_link_libraries(config_resolution_test PRIVATE drogon OpenSSL::Crypto Threads::Threads ${PLATFORM_LIBS})
 add_test(NAME config_resolution_test COMMAND config_resolution_test)
+
+add_executable(glibc_compat_test
+  test/glibc_compat_test.cpp
+  src/utils/GlibcCompat.cpp
+)
+target_include_directories(glibc_compat_test PRIVATE include)
+target_link_libraries(glibc_compat_test PRIVATE Threads::Threads ${PLATFORM_LIBS})
+add_test(NAME glibc_compat_test COMMAND glibc_compat_test)
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 if(Python3_Interpreter_FOUND)
