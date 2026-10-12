@@ -190,8 +190,7 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=x64-osx \
             -DVCPKG_HOST_TRIPLET=arm64-osx \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DProtobuf_PROTOC_EXECUTABLE="$(brew --prefix protobuf)/bin/protoc"
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build server/build-x64 --parallel $(sysctl -n hw.ncpu)
 
       - name: Show ccache statistics
