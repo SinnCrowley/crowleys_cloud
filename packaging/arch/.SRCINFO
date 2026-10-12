@@ -1,6 +1,6 @@
 pkgbase = crowleys-cloud-server
 	pkgdesc = High-performance self-hosted multi-server file cloud backend
-	pkgver = 0.10.0
+	pkgver = 0.10.1
 	pkgrel = 1
 	url = https://github.com/SinnCrowley/crowleys_cloud
 	arch = x86_64
@@ -16,12 +16,11 @@ pkgbase = crowleys-cloud-server
 	depends = zlib
 	depends = protobuf
 	depends = libwebp
-	depends = jsoncpp
 	depends = util-linux-libs
 	depends = ffmpeg
 	optdepends = libheif: support for HEIC/HEIF image decoding and thumbnails
 	backup = etc/crowleys_cloud/config.json
-	source = git+https://github.com/SinnCrowley/crowleys_cloud.git#tag=v0.10.0
+	source = git+https://github.com/SinnCrowley/crowleys_cloud.git#tag=v0.10.1
 	sha256sums = SKIP
 
 pkgname = crowleys-cloud-server
