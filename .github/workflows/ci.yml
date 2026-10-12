@@ -123,21 +123,14 @@ jobs:
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 1G
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg_cache
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
 
-      - name: Install ARM64 Dependencies
+      - name: Install ARM64 Dependencies (Homebrew)
         run: |
           brew install openssl@3 protobuf webp sqlite zlib jsoncpp ccache
-
-      - name: Install x86_64 Dependencies (Intel / Rosetta)
-        run: |
-          export HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
-          if [ ! -x /usr/local/bin/brew ]; then
-            NONINTERACTIVE=1 CI=1 arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          fi
-          arch -x86_64 /usr/local/bin/brew install openssl@3 protobuf webp sqlite zlib jsoncpp
 
       - name: Configure ccache
         uses: actions/cache@v6
@@ -151,6 +144,33 @@ jobs:
       - name: Zero ccache statistics
         run: ccache -z
 
+      - name: Cache vcpkg and x86_64 Dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg_cache
+            server/vcpkg_installed
+            /Users/runner/vcpkg
+          key: vcpkg-macos-x64-${{ hashFiles('server/vcpkg.json') }}-v1
+          restore-keys: |
+            vcpkg-macos-x64-
+
+      - name: Set up vcpkg for x86_64 Intel Build
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/vcpkg_cache"
+          if [ ! -x "$HOME/vcpkg/vcpkg" ]; then
+            rm -rf "$HOME/vcpkg"
+            git clone --depth 1 https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
+            "$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+          fi
+          echo "VCPKG_INSTALLATION_ROOT=$HOME/vcpkg" >> $GITHUB_ENV
+          echo "VCPKG_ROOT=$HOME/vcpkg" >> $GITHUB_ENV
+          echo "$HOME/vcpkg" >> $GITHUB_PATH
+
+      - name: Install x86_64 Dependencies via vcpkg
+        run: |
+          "$HOME/vcpkg/vcpkg" install --x-manifest-root=server --triplet x64-osx --host-triplet arm64-osx
+
       - name: Configure & Build Server (ARM64)
         run: |
           cmake -S server -B server/build-arm64 \
@@ -161,16 +181,17 @@ jobs:
             -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix openssl@3);$(brew --prefix protobuf);$(brew --prefix webp);$(brew --prefix sqlite);$(brew --prefix jsoncpp)"
           cmake --build server/build-arm64 --parallel $(sysctl -n hw.ncpu)
 
-      - name: Configure & Build Server (x86_64 Intel)
+      - name: Configure & Build Server (x86_64 Intel via vcpkg)
         run: |
-          X64_PREFIX="$(arch -x86_64 /usr/local/bin/brew --prefix)"
           cmake -S server -B server/build-x64 \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DCMAKE_TOOLCHAIN_FILE="$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-osx \
+            -DVCPKG_HOST_TRIPLET=arm64-osx \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DProtobuf_PROTOC_EXECUTABLE="$(brew --prefix protobuf)/bin/protoc" \
-            -DCMAKE_PREFIX_PATH="${X64_PREFIX};${X64_PREFIX}/opt/openssl@3;${X64_PREFIX}/opt/protobuf;${X64_PREFIX}/opt/webp;${X64_PREFIX}/opt/sqlite;${X64_PREFIX}/opt/jsoncpp"
+            -DProtobuf_PROTOC_EXECUTABLE="$(brew --prefix protobuf)/bin/protoc"
           cmake --build server/build-x64 --parallel $(sysctl -n hw.ncpu)
 
       - name: Show ccache statistics

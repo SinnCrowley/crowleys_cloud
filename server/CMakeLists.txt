@@ -16,8 +16,8 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Disable compiler extensions" FORCE)
 # Platform Hints & Compiler Settings
 # ------------------------------------------------------------------------------
 
-# Add Apple Homebrew search paths if on macOS
-if(APPLE)
+# Add Apple Homebrew search paths if on macOS and not using vcpkg
+if(APPLE AND NOT VCPKG_TOOLCHAIN)
   if(CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
     if(EXISTS "/usr/local")
       list(APPEND CMAKE_PREFIX_PATH "/usr/local")
@@ -237,6 +237,8 @@ if(NOT Protobuf_PROTOC_EXECUTABLE)
         "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_HOST_TRIPLET}/tools/protobuf"
         "${CMAKE_BINARY_DIR}/vcpkg_installed/x64-windows/tools/protobuf"
         "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/tools/protobuf"
+        "${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_HOST_TRIPLET}/tools/protobuf"
+        "${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/tools/protobuf"
         "${Protobuf_DIR}/../../../${VCPKG_HOST_TRIPLET}/tools/protobuf"
         "${Protobuf_DIR}/../../../x64-windows/tools/protobuf"
         "${Protobuf_DIR}/../../${VCPKG_HOST_TRIPLET}/tools/protobuf"
