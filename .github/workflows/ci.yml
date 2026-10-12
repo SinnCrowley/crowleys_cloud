@@ -201,7 +201,7 @@ jobs:
         run: ctest --test-dir server/build-arm64 --output-on-failure
 
       - name: Run Server Test Suite (x86_64 via Rosetta)
-        run: arch -x86_64 ctest --test-dir server/build-x64 --output-on-failure
+        run: ctest --test-dir server/build-x64 --output-on-failure
 
       - name: Download Web Client Bundle
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
@@ -263,7 +263,7 @@ jobs:
           echo "=== Testing Release Package (Native Apple Silicon / ARM64) ==="
           python3 server/test/release_smoke_test.py "$RUNNER_TEMP/macOS release"
           echo "=== Testing Release Package (Intel x86_64 via Rosetta 2) ==="
-          arch -x86_64 python3 server/test/release_smoke_test.py "$RUNNER_TEMP/macOS release"
+          SERVER_LAUNCHER="arch -x86_64" python3 server/test/release_smoke_test.py "$RUNNER_TEMP/macOS release"
 
       - name: Upload macOS Server Artifact
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'

@@ -56,9 +56,11 @@ with tempfile.TemporaryDirectory(prefix='crowley release test ') as temporary:
         finally:
             connection.close()
 
+    launcher = [part for part in os.environ.get('SERVER_LAUNCHER', '').split() if part]
+
     def launch(action):
         with (root / 'smoke.log').open('wb') as log:
-            command = [str(binary)] if automatic_config else [str(binary), str(base)]
+            command = launcher + ([str(binary)] if automatic_config else [str(binary), str(base)])
             process = subprocess.Popen(command, cwd=temporary, env=env, stdout=log, stderr=log)
             try:
                 for _ in range(200):
