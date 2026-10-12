@@ -112,11 +112,11 @@ jobs:
         run: ctest --test-dir server/build --output-on-failure
 
   # ------------------------------------------------------------------------------
-  # 1b. C++ Backend Server build & test check on macOS (Apple Clang, ARM64)
+  # 1b. C++ Backend Server build & test check on macOS (Universal: ARM64 + x86_64)
   # Reserved strictly for release tags (v*) and manual workflow_dispatch
   # ------------------------------------------------------------------------------
   build-server-macos:
-    name: Build & Test Server (macOS)
+    name: Build & Test Server (macOS Universal)
     needs: test-web
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
@@ -127,39 +127,61 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v7
 
-      - name: Install System Dependencies
+      - name: Install ARM64 Dependencies
         run: |
           brew install openssl@3 protobuf webp sqlite zlib jsoncpp ccache
+
+      - name: Install x86_64 Dependencies (Intel / Rosetta)
+        run: |
+          export HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
+          if [ ! -x /usr/local/bin/brew ]; then
+            NONINTERACTIVE=1 CI=1 arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+          arch -x86_64 /usr/local/bin/brew install openssl@3 protobuf webp sqlite zlib jsoncpp
 
       - name: Configure ccache
         uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ccache
-          key: ccache-macos-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: ccache-macos-universal-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            ccache-macos-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-
-            ccache-macos-
+            ccache-macos-universal-${{ hashFiles('server/CMakeLists.txt', 'server/vcpkg.json') }}-
+            ccache-macos-universal-
 
       - name: Zero ccache statistics
         run: ccache -z
 
-      - name: Configure CMake
+      - name: Configure & Build Server (ARM64)
         run: |
-          cmake -S server -B server/build \
+          cmake -S server -B server/build-arm64 \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix openssl@3);$(brew --prefix protobuf);$(brew --prefix webp);$(brew --prefix sqlite);$(brew --prefix jsoncpp)"
+          cmake --build server/build-arm64 --parallel $(sysctl -n hw.ncpu)
 
-      - name: Compile Server & Test Suite
-        run: cmake --build server/build --parallel $(sysctl -n hw.ncpu)
+      - name: Configure & Build Server (x86_64 Intel)
+        run: |
+          X64_PREFIX="$(arch -x86_64 /usr/local/bin/brew --prefix)"
+          cmake -S server -B server/build-x64 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DProtobuf_PROTOC_EXECUTABLE="$(brew --prefix protobuf)/bin/protoc" \
+            -DCMAKE_PREFIX_PATH="${X64_PREFIX};${X64_PREFIX}/opt/openssl@3;${X64_PREFIX}/opt/protobuf;${X64_PREFIX}/opt/webp;${X64_PREFIX}/opt/sqlite;${X64_PREFIX}/opt/jsoncpp"
+          cmake --build server/build-x64 --parallel $(sysctl -n hw.ncpu)
 
       - name: Show ccache statistics
         if: always()
         run: ccache -s
 
-      - name: Run Server Test Suite
-        run: ctest --test-dir server/build --output-on-failure
+      - name: Run Server Test Suite (ARM64)
+        run: ctest --test-dir server/build-arm64 --output-on-failure
+
+      - name: Run Server Test Suite (x86_64 via Rosetta)
+        run: arch -x86_64 ctest --test-dir server/build-x64 --output-on-failure
 
       - name: Download Web Client Bundle
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
@@ -168,42 +190,67 @@ jobs:
           name: web-static-assets
           path: server/public
 
-      - name: Package macOS Release Archive
+      - name: Package macOS Universal Release Archive
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         run: |
-          mkdir -p dist/crowleys-cloud-server-macos-arm64/config
-          mkdir -p dist/crowleys-cloud-server-macos-arm64/public
-          mkdir -p dist/crowleys-cloud-server-macos-arm64/services
-          if [ -f server/build/Release/crowleys_cloud_server ]; then
-            cp server/build/Release/crowleys_cloud_server dist/crowleys-cloud-server-macos-arm64/
-          elif [ -f server/build/crowleys_cloud_server ]; then
-            cp server/build/crowleys_cloud_server dist/crowleys-cloud-server-macos-arm64/
+          # 1. Stage ARM64 bundle and resolve transitive dylibs
+          mkdir -p dist/arm64
+          if [ -f server/build-arm64/Release/crowleys_cloud_server ]; then
+            cp server/build-arm64/Release/crowleys_cloud_server dist/arm64/
           else
-            echo "Error: crowleys_cloud_server does not exist in server/build or server/build/Release!"
-            exit 1
+            cp server/build-arm64/crowleys_cloud_server dist/arm64/
           fi
-          chmod +x dist/crowleys-cloud-server-macos-arm64/crowleys_cloud_server
-          cp server/scripts/macos/run.sh dist/crowleys-cloud-server-macos-arm64/
-          chmod +x dist/crowleys-cloud-server-macos-arm64/run.sh
-          cp server/scripts/macos/com.crowleyscloud.server.plist dist/crowleys-cloud-server-macos-arm64/services/
-          cp server/scripts/macos/README.md server/scripts/macos/install-agent.sh dist/crowleys-cloud-server-macos-arm64/services/
-          cp server/config/config.json server/config/config.local.example.json dist/crowleys-cloud-server-macos-arm64/config/
-          cp -R server/public/. dist/crowleys-cloud-server-macos-arm64/public/
-          cmake -DEXECUTABLE="$PWD/dist/crowleys-cloud-server-macos-arm64/crowleys_cloud_server" -P server/cmake/BundleMacOS.cmake
-          tar -czvf crowleys-cloud-server-macos-arm64.tar.gz -C dist/crowleys-cloud-server-macos-arm64 .
+          chmod +x dist/arm64/crowleys_cloud_server
+          cmake -DEXECUTABLE="$PWD/dist/arm64/crowleys_cloud_server" -P server/cmake/BundleMacOS.cmake
 
-      - name: Test Packaged macOS Server
+          # 2. Stage x86_64 bundle and resolve transitive dylibs
+          mkdir -p dist/x64
+          if [ -f server/build-x64/Release/crowleys_cloud_server ]; then
+            cp server/build-x64/Release/crowleys_cloud_server dist/x64/
+          else
+            cp server/build-x64/crowleys_cloud_server dist/x64/
+          fi
+          chmod +x dist/x64/crowleys_cloud_server
+          cmake -DEXECUTABLE="$PWD/dist/x64/crowleys_cloud_server" -P server/cmake/BundleMacOS.cmake
+
+          # 3. Merge into Universal Binary bundle
+          bash server/scripts/macos/create-universal-bundle.sh \
+            dist/arm64 \
+            dist/x64 \
+            dist/crowleys-cloud-server-macos-universal
+
+          # 4. Copy scripts, configs, launchd agent and web assets
+          mkdir -p dist/crowleys-cloud-server-macos-universal/config
+          mkdir -p dist/crowleys-cloud-server-macos-universal/public
+          mkdir -p dist/crowleys-cloud-server-macos-universal/services
+          cp server/scripts/macos/run.sh dist/crowleys-cloud-server-macos-universal/
+          chmod +x dist/crowleys-cloud-server-macos-universal/run.sh
+          cp server/scripts/macos/com.crowleyscloud.server.plist dist/crowleys-cloud-server-macos-universal/services/
+          cp server/scripts/macos/README.md server/scripts/macos/install-agent.sh dist/crowleys-cloud-server-macos-universal/services/
+          cp server/config/config.json server/config/config.local.example.json dist/crowleys-cloud-server-macos-universal/config/
+          cp -R server/public/. dist/crowleys-cloud-server-macos-universal/public/
+
+          # 5. Create release tarball
+          tar -czvf crowleys-cloud-server-macos-universal.tar.gz -C dist/crowleys-cloud-server-macos-universal .
+
+      - name: "Test Packaged macOS Server (Universal: ARM64 & Intel)"
         run: |
           mkdir -p "$RUNNER_TEMP/macOS release"
-          tar -xzf crowleys-cloud-server-macos-arm64.tar.gz -C "$RUNNER_TEMP/macOS release"
+          tar -xzf crowleys-cloud-server-macos-universal.tar.gz -C "$RUNNER_TEMP/macOS release"
+          echo "=== Verifying Universal Mach-O binary architectures ==="
+          lipo -info "$RUNNER_TEMP/macOS release/crowleys_cloud_server"
+          file "$RUNNER_TEMP/macOS release/crowleys_cloud_server"
+          echo "=== Testing Release Package (Native Apple Silicon / ARM64) ==="
           python3 server/test/release_smoke_test.py "$RUNNER_TEMP/macOS release"
+          echo "=== Testing Release Package (Intel x86_64 via Rosetta 2) ==="
+          arch -x86_64 python3 server/test/release_smoke_test.py "$RUNNER_TEMP/macOS release"
 
       - name: Upload macOS Server Artifact
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v7
         with:
-          name: server-macos-arm64
-          path: crowleys-cloud-server-macos-arm64.tar.gz
+          name: server-macos-universal
+          path: crowleys-cloud-server-macos-universal.tar.gz
           retention-days: 30
 
   # ------------------------------------------------------------------------------
@@ -944,7 +991,7 @@ jobs:
       - name: Download macOS Server Artifact
         uses: actions/download-artifact@v8
         with:
-          name: server-macos-arm64
+          name: server-macos-universal
           path: .
 
       - name: Download Linux DEB amd64 Artifact
@@ -1039,8 +1086,9 @@ jobs:
           echo "- **ARM64**: \`crowleys-cloud-server-linux-arm64.tar.gz\`" >> release_notes.md
           echo "Extract and execute \`./run.sh\`." >> release_notes.md
           echo "" >> release_notes.md
-          echo "### macOS Server" >> release_notes.md
-          echo "Download \`crowleys-cloud-server-macos-arm64.tar.gz\`, extract, and execute \`./run.sh\`." >> release_notes.md
+          echo "### macOS Server (Universal Binary)" >> release_notes.md
+          echo "Download \`crowleys-cloud-server-macos-universal.tar.gz\`, extract, and execute \`./run.sh\`." >> release_notes.md
+          echo "Supports both Apple Silicon (ARM64) and Intel (x86_64) Macs natively." >> release_notes.md
           echo "" >> release_notes.md
           echo "### Windows Server" >> release_notes.md
           echo "- **x64**: Download \`crowleys-cloud-server-windows-x64.zip\`, extract, and double-click \`run.bat\`." >> release_notes.md
@@ -1066,7 +1114,7 @@ jobs:
             crowleys-cloud-web-*.tar.gz
             crowleys-cloud-server-windows-x64.zip
             crowleys-cloud-server-windows-arm64.zip
-            crowleys-cloud-server-macos-arm64.tar.gz
+            crowleys-cloud-server-macos-universal.tar.gz
             crowleys-cloud-server-linux-*.tar.gz
             *.deb
             *.rpm

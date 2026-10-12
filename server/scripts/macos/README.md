@@ -1,9 +1,10 @@
-# macOS server (Apple Silicon / ARM64)
+# macOS server (Universal Binary: Apple Silicon & Intel)
 
 Extract the complete archive into a permanent, writable user folder, for example
 `~/Applications/CrowleysCloudServer`. Keep the executable, bundled `.dylib`
 libraries, `public/`, `config/` and `services/` together. Homebrew is not required
-for the packaged server. This archive does not support Intel Macs.
+for the packaged server. This archive contains a Universal Binary supporting both
+Apple Silicon (ARM64) and Intel (x86_64) Macs.
 
 Run from Terminal:
 
