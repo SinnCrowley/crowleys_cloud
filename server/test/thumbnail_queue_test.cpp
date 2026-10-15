@@ -14,12 +14,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #include "server/services/ThumbnailQueue.hpp"
+#include "server/AppContext.hpp"
 #include "server/db/Database.hpp"
 #include "server/services/FileService.hpp"
 #include "server/services/FileIndexService.hpp"
 #include "server/utils/Crypto.hpp"
 #include "server/utils/ImageUtils.hpp"
+#include "server/utils/BlurHashEncoder.hpp"
 #include <webp/encode.h>
+#include <webp/decode.h>
 
 #include <chrono>
 #include <cstdlib>
@@ -497,6 +500,229 @@ static void testCorruptedImageResilience() {
   std::cout << "  [PASS] Corrupted Image Resilience passed." << std::endl;
 }
 
+// 10. Pre-Generated Client Thumbnail Ingestion & Storage
+static void testStorePreGeneratedThumbnail() {
+  std::cout << "[TEST] Running Pre-Generated Client Thumbnail Ingestion test..." << std::endl;
+
+  auto tempDir = createTempDir("client_thumb_test");
+  auto dbPath = tempDir / "test.db";
+  auto videoFile = tempDir / "sample_video.mp4";
+
+  {
+    db::Database db(dbPath.string());
+    db.migrate();
+
+    utils::Config config;
+    config.storageRoot = tempDir.string();
+    config.dbPath = dbPath.string();
+
+    FileService fileService(config);
+    FileIndexService fileIndexService(db, fileService);
+
+    // Create dummy video file on disk
+    {
+      std::ofstream out(videoFile, std::ios::binary);
+      out << "DUMMY_MP4_CONTENT_1234567890";
+    }
+
+    // Generate valid 64x64 WebP
+    const int w = 64, h = 64;
+    std::vector<uint8_t> rgba(w * h * 4, 180);
+    uint8_t *webpData = nullptr;
+    size_t webpSize = WebPEncodeRGBA(rgba.data(), w, h, w * 4, 85.0f, &webpData);
+    TEST_ASSERT(webpSize > 0 && webpData != nullptr);
+
+    // Upsert video file into index
+    std::string sha256 = "video_sha256_abcdef";
+    fileIndexService.upsertFileExplicit(1, StorageScope::Private, "videos/sample.mp4", "sample.mp4", 1000, 100000, "video", "video/mp4", 1, sha256);
+
+    ThumbnailQueue queue(config, &fileService, &fileIndexService, 100, 0);
+
+    // Test 1: Store valid thumbnail
+    std::string outBlurHash;
+    bool ok = queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, "videos/sample.mp4", videoFile, sha256,
+        webpData, webpSize, 256, &outBlurHash);
+    TEST_ASSERT(ok);
+    TEST_ASSERT(!outBlurHash.empty());
+    TEST_ASSERT(utils::isValidBlurHash(outBlurHash));
+
+    // Verify thumbnail exists in .thumbs/1/<hash(key)>.webp
+    const auto key = ThumbnailTask::makeKey(1, sha256, 256);
+    const auto expectedPath = tempDir / ".thumbs" / "1" / (std::to_string(std::hash<std::string>{}(key)) + ".webp");
+    TEST_ASSERT(std::filesystem::exists(expectedPath));
+    TEST_ASSERT(std::filesystem::file_size(expectedPath) == webpSize);
+
+    // Verify mtime condition: thumbnail mtime >= video mtime
+    std::error_code ec;
+    auto videoMtime = std::filesystem::last_write_time(videoFile, ec);
+    auto thumbMtime = std::filesystem::last_write_time(expectedPath, ec);
+    TEST_ASSERT(!ec);
+    TEST_ASSERT(thumbMtime >= videoMtime);
+
+    // Verify file_index record updated: thumbnail_path="client", blurhash, thumbnail_updated_at > 0
+    ListIndexQuery q;
+    q.ownerUserId = 1;
+    q.scope = StorageScope::Private;
+    q.currentPath = "videos";
+    auto entries = fileIndexService.listDirectory(q);
+    TEST_ASSERT(!entries.empty());
+    bool foundEntry = false;
+    for (const auto &entry : entries) {
+      if (entry.name == "sample.mp4") {
+        TEST_ASSERT(entry.thumbnailUrl == "client");
+        TEST_ASSERT(entry.blurhash == outBlurHash);
+        foundEntry = true;
+        break;
+      }
+    }
+    TEST_ASSERT(foundEntry);
+
+    // Test 2: Invalid WebP bytes rejected
+    const uint8_t corruptBytes[] = "NOT_A_WEBP_IMAGE_GARBAGE";
+    std::string corruptBlurHash;
+    bool corruptOk = queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, "videos/corrupt.mp4", videoFile, "corrupt_sha",
+        corruptBytes, sizeof(corruptBytes) - 1, 256, &corruptBlurHash);
+    TEST_ASSERT(!corruptOk);
+    TEST_ASSERT(corruptBlurHash.empty());
+
+    // Test 3: Nullptr / 0 size rejected
+    TEST_ASSERT(!queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, "videos/null.mp4", videoFile, "null_sha",
+        nullptr, 0, 256, nullptr));
+
+    // Test 4: Truncated VP8 bitstream (header intact, body truncated)
+    // 30-byte valid VP8 WebP header (RIFF + VP8 chunk header + VP8 keyframe header + 64x64 dimensions)
+    const uint8_t truncVp8[30] = {
+        0x52, 0x49, 0x46, 0x46, 0x16, 0x00, 0x00, 0x00, // RIFF (22 bytes)
+        0x57, 0x45, 0x42, 0x50,                         // WEBP
+        0x56, 0x50, 0x38, 0x20, 0x0a, 0x00, 0x00, 0x00, // VP8 (10 bytes chunk)
+        0x30, 0x01, 0x00,                               // Frame tag (keyframe)
+        0x9d, 0x01, 0x2a,                               // Start code 0x9D012A
+        0x40, 0x00, 0x40, 0x00                          // 64x64 dimensions
+    };
+    int checkW = 0, checkH = 0;
+    TEST_ASSERT(WebPGetInfo(truncVp8, sizeof(truncVp8), &checkW, &checkH) == 1);
+    TEST_ASSERT(checkW == 64 && checkH == 64);
+    // WebPDecodeRGBA must fail on this truncated stream
+    uint8_t *checkDec = WebPDecodeRGBA(truncVp8, sizeof(truncVp8), &checkW, &checkH);
+    TEST_ASSERT(checkDec == nullptr);
+
+    std::string truncBlurHash;
+    bool truncOk = queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, "videos/trunc.mp4", videoFile, "trunc_sha",
+        truncVp8, sizeof(truncVp8), 256, &truncBlurHash);
+    TEST_ASSERT(!truncOk);
+    TEST_ASSERT(truncBlurHash.empty());
+
+    // CRITICAL: Ensure NO cached thumbnail was written to disk!
+    const auto truncKey = ThumbnailTask::makeKey(1, "trunc_sha", 256);
+    const auto truncExpectedPath = tempDir / ".thumbs" / "1" / (std::to_string(std::hash<std::string>{}(truncKey)) + ".webp");
+    TEST_ASSERT(!std::filesystem::exists(truncExpectedPath));
+
+    // Test 5: Truncated valid WebP (slice valid 64x64 webpData to 40 bytes)
+    TEST_ASSERT(webpSize > 40);
+    int w40 = 0, h40 = 0;
+    TEST_ASSERT(WebPGetInfo(webpData, 40, &w40, &h40) == 1);
+    std::string bh40;
+    bool ok40 = queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, "videos/trunc40.mp4", videoFile, "trunc40_sha",
+        webpData, 40, 256, &bh40);
+    TEST_ASSERT(!ok40);
+    TEST_ASSERT(bh40.empty());
+    const auto key40 = ThumbnailTask::makeKey(1, "trunc40_sha", 256);
+    const auto path40 = tempDir / ".thumbs" / "1" / (std::to_string(std::hash<std::string>{}(key40)) + ".webp");
+    TEST_ASSERT(!std::filesystem::exists(path40));
+
+    // Test 6: Corrupted bitstream body (header intact, body bytes filled with zeros)
+    std::vector<uint8_t> corruptBody(webpData, webpData + webpSize);
+    for (size_t i = 30; i < corruptBody.size(); ++i) {
+      corruptBody[i] = 0;
+    }
+    int wCb = 0, hCb = 0;
+    TEST_ASSERT(WebPGetInfo(corruptBody.data(), corruptBody.size(), &wCb, &hCb) == 1);
+    std::string bhCb;
+    bool okCb = queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, "videos/corrupt_body.mp4", videoFile, "cb_sha",
+        corruptBody.data(), corruptBody.size(), 256, &bhCb);
+    TEST_ASSERT(!okCb);
+    TEST_ASSERT(bhCb.empty());
+    const auto keyCb = ThumbnailTask::makeKey(1, "cb_sha", 256);
+    const auto pathCb = tempDir / ".thumbs" / "1" / (std::to_string(std::hash<std::string>{}(keyCb)) + ".webp");
+    TEST_ASSERT(!std::filesystem::exists(pathCb));
+
+    // Test 7: Truncated Lossless VP8L WebP (26 bytes)
+    const uint8_t truncVp8l[26] = {
+        0x52, 0x49, 0x46, 0x46, 0x1c, 0x00, 0x00, 0x00,
+        0x57, 0x45, 0x42, 0x50,
+        0x56, 0x50, 0x38, 0x4c, 0x0f, 0x00, 0x00, 0x00,
+        0x2f, 0x00, 0x00, 0x00, 0x00, 0x07
+    };
+    int wVp8l = 0, hVp8l = 0;
+    TEST_ASSERT(WebPGetInfo(truncVp8l, sizeof(truncVp8l), &wVp8l, &hVp8l) == 1);
+    std::string bhVp8l;
+    bool okVp8l = queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, "videos/trunc_vp8l.mp4", videoFile, "vp8l_sha",
+        truncVp8l, sizeof(truncVp8l), 256, &bhVp8l);
+    TEST_ASSERT(!okVp8l);
+    TEST_ASSERT(bhVp8l.empty());
+    const auto keyVp8l = ThumbnailTask::makeKey(1, "vp8l_sha", 256);
+    const auto pathVp8l = tempDir / ".thumbs" / "1" / (std::to_string(std::hash<std::string>{}(keyVp8l)) + ".webp");
+    TEST_ASSERT(!std::filesystem::exists(pathVp8l));
+
+    // Test 8: Oversized payload (> 2MB)
+    std::vector<uint8_t> oversizedBuf(2 * 1024 * 1024 + 10, 0);
+    std::memcpy(oversizedBuf.data(), truncVp8, sizeof(truncVp8));
+    std::string bhOver;
+    bool okOver = queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, "videos/oversized.mp4", videoFile, "over_sha",
+        oversizedBuf.data(), oversizedBuf.size(), 256, &bhOver);
+    TEST_ASSERT(!okOver);
+    TEST_ASSERT(bhOver.empty());
+
+    // Test 9: Oversized dimensions (> 1024px)
+    const uint8_t largeDimWebp[30] = {
+        0x52, 0x49, 0x46, 0x46, 0x16, 0x00, 0x00, 0x00,
+        0x57, 0x45, 0x42, 0x50,
+        0x56, 0x50, 0x38, 0x20, 0x0a, 0x00, 0x00, 0x00,
+        0x30, 0x01, 0x00,
+        0x9d, 0x01, 0x2a,
+        0x00, 0x08, 0x00, 0x08 // 2048x2048
+    };
+    std::string bhDim;
+    bool okDim = queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, "videos/largedim.mp4", videoFile, "dim_sha",
+        largeDimWebp, sizeof(largeDimWebp), 256, &bhDim);
+    TEST_ASSERT(!okDim);
+    TEST_ASSERT(bhDim.empty());
+
+    // Test 10: Fallback to scheduleThumbnail upon storePreGeneratedThumbnail failure
+    std::string fallbackRel = "videos/fallback.mp4";
+    std::string fallbackSha = "fallback_sha_123";
+    fileIndexService.upsertFileExplicit(1, StorageScope::Private, fallbackRel, "fallback.mp4", 1000, 100000, "video", "video/mp4", 1, fallbackSha);
+    bool thumbStored = queue.storePreGeneratedThumbnail(
+        1, 1, StorageScope::Private, fallbackRel, videoFile, fallbackSha,
+        truncVp8, sizeof(truncVp8), 256, nullptr);
+    TEST_ASSERT(!thumbStored);
+    // Simulating FileController fallback:
+    bool scheduled = queue.scheduleThumbnail(
+        1, 1, StorageScope::Private, fallbackRel, videoFile, "video", fallbackSha, 256, false, "");
+    TEST_ASSERT(scheduled);
+    TEST_ASSERT(queue.size() == 1);
+    auto popped = queue.pop();
+    TEST_ASSERT(popped.has_value());
+    TEST_ASSERT(popped->relPath == fallbackRel);
+    TEST_ASSERT(popped->sha256 == fallbackSha);
+
+    WebPFree(webpData);
+  }
+
+  std::error_code ec;
+  std::filesystem::remove_all(tempDir, ec);
+  std::cout << "  [PASS] Pre-Generated Client Thumbnail Ingestion test passed." << std::endl;
+}
+
 int main() {
   std::cout << "==================================================" << std::endl;
   std::cout << "Starting ThumbnailQueue & Worker Pool Test Suite" << std::endl;
@@ -511,9 +737,10 @@ int main() {
   testConcurrentStress();
   testPhotoWebPAndBlurHashPipeline();
   testCorruptedImageResilience();
+  testStorePreGeneratedThumbnail();
 
   std::cout << "==================================================" << std::endl;
-  std::cout << "ALL 9 TEST SUITES PASSED SUCCESSFULLY!" << std::endl;
+  std::cout << "ALL 10 TEST SUITES PASSED SUCCESSFULLY!" << std::endl;
   std::cout << "==================================================" << std::endl;
   return 0;
 }

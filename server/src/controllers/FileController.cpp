@@ -22,6 +22,7 @@
 #include "server/controllers/FileController.hpp"
 
 #include <drogon/MultiPart.h>
+#include <drogon/utils/Utilities.h>
 
 #include "server/AppContext.hpp"
 #include "server/utils/Crypto.hpp"
@@ -93,6 +94,64 @@ drogon::HttpResponsePtr uploadError(const std::exception &error) {
   return jsonError(code == "quota_exceeded" || code == "upload_limit_exceeded" ? drogon::k413RequestEntityTooLarge : drogon::k400BadRequest,
                    code, code);
 }
+
+// Helper to sanitize base64-encoded thumbnail payload (trims whitespace, bounds check <= 4MB, strips Data URI prefix)
+std::string sanitizeBase64Thumbnail(std::string_view raw) {
+  if (raw.empty()) return {};
+
+  size_t first = raw.find_first_not_of(" \t\r\n");
+  if (first == std::string_view::npos) return {};
+  size_t last = raw.find_last_not_of(" \t\r\n");
+  std::string_view s = raw.substr(first, last - first + 1);
+
+  // Bounds check base64 string length before decoding (<= 4MB limit)
+  constexpr size_t kMaxBase64HeaderLen = 4 * 1024 * 1024;
+  if (s.size() > kMaxBase64HeaderLen) {
+    return {};
+  }
+
+  // Defensive stripping of Data URI scheme (e.g. "data:image/webp;base64,") or "base64,"
+  const size_t prefixScanLen = std::min(s.size(), static_cast<size_t>(128));
+  std::string lowerPrefix;
+  lowerPrefix.resize(prefixScanLen);
+  std::transform(s.begin(), s.begin() + prefixScanLen, lowerPrefix.begin(),
+                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+  const size_t b64Marker = lowerPrefix.find("base64,");
+  if (b64Marker != std::string::npos) {
+    s.remove_prefix(b64Marker + 7);
+  } else if (lowerPrefix.starts_with("data:")) {
+    const size_t commaPos = s.find(',');
+    if (commaPos != std::string_view::npos) {
+      s.remove_prefix(commaPos + 1);
+    }
+  }
+
+  first = s.find_first_not_of(" \t\r\n");
+  if (first == std::string_view::npos) return {};
+  last = s.find_last_not_of(" \t\r\n");
+  s = s.substr(first, last - first + 1);
+
+  if (s.empty()) return {};
+
+  return std::string(s);
+}
+
+std::string decodeBase64ThumbnailHeader(const drogon::HttpRequestPtr &req) {
+  const auto &hdr = req->getHeader("x-thumbnail");
+  const auto &thumbHdr = !hdr.empty() ? hdr : req->getHeader("x-thumb");
+  if (thumbHdr.empty()) return {};
+
+  std::string sanitized = sanitizeBase64Thumbnail(thumbHdr);
+  if (sanitized.empty()) return {};
+
+  try {
+    return drogon::utils::base64Decode(sanitized);
+  } catch (...) {
+    return {};
+  }
+}
+
 
 
 Json::Value formatDirEntryJson(const services::IndexedDirEntry &entry,
@@ -984,7 +1043,9 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
     return;
   }
 
-  if (req->contentType() == drogon::CT_MULTIPART_FORM_DATA) {
+  const auto offsetStr = req->getParameter("offset");
+
+  if (req->contentType() == drogon::CT_MULTIPART_FORM_DATA && offsetStr.empty()) {
     drogon::MultiPartParser parser;
     if (parser.parse(req) != 0) {
       callback(jsonError(drogon::k400BadRequest, "Failed to parse multipart request"));
@@ -997,17 +1058,72 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       return;
     }
 
+    const drogon::HttpFile *thumbFile = nullptr;
+    std::vector<const drogon::HttpFile *> uploadFiles;
+    for (const auto &file : files) {
+      if (file.getItemName() == "thumbnail" || file.getItemName() == "thumb") {
+        thumbFile = &file;
+      } else {
+        uploadFiles.push_back(&file);
+      }
+    }
+
+    if (uploadFiles.empty()) {
+      callback(jsonError(drogon::k400BadRequest, "No files found in multipart payload"));
+      return;
+    }
+
+    std::string decodedHeaderThumb;
+    std::string decodedPartThumb;
+    const uint8_t *thumbBytes = nullptr;
+    size_t thumbLen = 0;
+
+    if (thumbFile != nullptr && thumbFile->fileLength() > 0) {
+      std::string_view partView(thumbFile->fileData(), thumbFile->fileLength());
+      if (partView.starts_with("data:") || partView.starts_with("base64,")) {
+        std::string sanitized = sanitizeBase64Thumbnail(partView);
+        if (!sanitized.empty()) {
+          try {
+            decodedPartThumb = drogon::utils::base64Decode(sanitized);
+          } catch (...) {}
+          if (!decodedPartThumb.empty()) {
+            thumbBytes = reinterpret_cast<const uint8_t *>(decodedPartThumb.data());
+            thumbLen = decodedPartThumb.size();
+          }
+        }
+      } else {
+        thumbBytes = reinterpret_cast<const uint8_t *>(thumbFile->fileData());
+        thumbLen = thumbFile->fileLength();
+      }
+    }
+
+    if (thumbBytes == nullptr || thumbLen == 0) {
+      decodedHeaderThumb = decodeBase64ThumbnailHeader(req);
+      if (!decodedHeaderThumb.empty()) {
+        thumbBytes = reinterpret_cast<const uint8_t *>(decodedHeaderThumb.data());
+        thumbLen = decodedHeaderThumb.size();
+      }
+    }
+
     const auto targetPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
     const bool hashFiles = server::ctx().config.hashFiles;
     Json::Value body;
     body["ok"] = true;
     body["uploaded"] = Json::arrayValue;
 
-    for (const auto &file : files) {
+    for (const auto *filePtr : uploadFiles) {
+      const auto &file = *filePtr;
       std::string fileName = file.getFileName();
       if (fileName.empty()) continue;
 
-      std::string relPath = targetPath.empty() ? fileName : (targetPath + "/" + fileName);
+      std::string relPath;
+      if (targetPath.empty()) {
+        relPath = fileName;
+      } else if (targetPath == fileName || targetPath.ends_with("/" + fileName)) {
+        relPath = targetPath;
+      } else {
+        relPath = targetPath + "/" + fileName;
+      }
       relPath = services::FileIndexService::normalizeRelPath(relPath);
 
       std::string_view fileData = file.fileData();
@@ -1015,6 +1131,18 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
 
       try {
         UploadQuota quota(userId, *scope, relPath, fileLength);
+        const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+        const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+        std::int64_t cacheUserId = ownerUserId;
+        if (*scope == services::StorageScope::Shared) {
+          auto sharedOwner = server::ctx().fileIndexService->getSharedFileOwner(relPath);
+          if (sharedOwner.has_value()) {
+            cacheUserId = *sharedOwner;
+          }
+        }
+        const auto type = server::ctx().fileService->classifyType(fileName);
+        const auto mimeType = server::ctx().fileService->mimeTypeFor(fileName);
+
         if (hashFiles) {
           std::string plainData(fileData.data(), fileLength);
           std::string plainSha256 = utils::sha256Hex(plainData);
@@ -1034,17 +1162,21 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
           const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
                                std::chrono::system_clock::now().time_since_epoch())
                                .count();
-          const auto type = server::ctx().fileService->classifyType(fileName);
-          const auto mimeType = server::ctx().fileService->mimeTypeFor(fileName);
-          const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-          const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+
+          bool thumbStored = false;
+          std::string blurHash;
+          if ((type == "photo" || type == "video") && thumbBytes != nullptr && thumbLen > 0 && server::ctx().thumbnailQueue) {
+            thumbStored = server::ctx().thumbnailQueue->storePreGeneratedThumbnail(
+                ownerUserId, cacheUserId, *scope, relPath, physicalPath, plainSha256, thumbBytes, thumbLen, 256, &blurHash);
+          }
 
           server::ctx().fileIndexService->upsertFileExplicit(
-              ownerUserId, *scope, relPath, fileName, fileLength, now, type, mimeType, uploaderUserId, plainSha256);
-          if (type == "photo" || type == "video") {
+              ownerUserId, *scope, relPath, fileName, fileLength, now, type, mimeType, uploaderUserId, plainSha256,
+              thumbStored ? "client" : "", blurHash);
+          if (!thumbStored && (type == "photo" || type == "video")) {
             if (server::ctx().thumbnailQueue) {
               server::ctx().thumbnailQueue->scheduleThumbnail(
-                  ownerUserId, ownerUserId, *scope, relPath, physicalPath, type, plainSha256, 256, hashFiles, server::ctx().config.encryptionKey);
+                  ownerUserId, cacheUserId, *scope, relPath, physicalPath, type, plainSha256, 256, hashFiles, server::ctx().config.encryptionKey);
             }
           }
         } else {
@@ -1058,15 +1190,20 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
           if (!out) throw std::runtime_error("Failed to write file");
 
           utils::portableRename(tmp, target);
-          const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-          const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+
+          bool thumbStored = false;
+          std::string blurHash;
+          if ((type == "photo" || type == "video") && thumbBytes != nullptr && thumbLen > 0 && server::ctx().thumbnailQueue) {
+            thumbStored = server::ctx().thumbnailQueue->storePreGeneratedThumbnail(
+                ownerUserId, cacheUserId, *scope, relPath, target, "", thumbBytes, thumbLen, 256, &blurHash);
+          }
+
           server::ctx().fileIndexService->upsertFile(
-              ownerUserId, *scope, relPath, target, uploaderUserId);
-          const auto type = server::ctx().fileService->classifyType(fileName);
-          if (type == "photo" || type == "video") {
+              ownerUserId, *scope, relPath, target, uploaderUserId, thumbStored ? "client" : "", blurHash);
+          if (!thumbStored && (type == "photo" || type == "video")) {
             if (server::ctx().thumbnailQueue) {
               server::ctx().thumbnailQueue->scheduleThumbnail(
-                  ownerUserId, ownerUserId, *scope, relPath, target, type, "", 256, hashFiles, server::ctx().config.encryptionKey);
+                  ownerUserId, cacheUserId, *scope, relPath, target, type, "", 256, hashFiles, server::ctx().config.encryptionKey);
             }
           }
         }
@@ -1094,7 +1231,6 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
     return;
   }
 
-  const auto offsetStr = req->getParameter("offset");
   const auto totalStr = req->getParameter("total");
   const auto isLastStr = req->getParameter("is_last");
 
@@ -1103,6 +1239,42 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       std::size_t offset = std::stoull(offsetStr);
       std::size_t total = totalStr.empty() ? 0 : std::stoull(totalStr);
       bool isLast = isLastStr == "true";
+
+      const char *chunkData = nullptr;
+      std::size_t chunkLength = 0;
+      const uint8_t *multipartThumbBytes = nullptr;
+      std::size_t multipartThumbLen = 0;
+
+      if (req->contentType() == drogon::CT_MULTIPART_FORM_DATA) {
+        drogon::MultiPartParser parser;
+        if (parser.parse(req) != 0) {
+          callback(jsonError(drogon::k400BadRequest, "Failed to parse multipart request"));
+          return;
+        }
+        const auto &files = parser.getFiles();
+        const drogon::HttpFile *chunkFile = nullptr;
+        const drogon::HttpFile *thumbFile = nullptr;
+        for (const auto &f : files) {
+          if (f.getItemName() == "thumbnail" || f.getItemName() == "thumb") {
+            thumbFile = &f;
+          } else {
+            chunkFile = &f;
+          }
+        }
+        if (chunkFile == nullptr) {
+          callback(jsonError(drogon::k400BadRequest, "No chunk found in multipart payload"));
+          return;
+        }
+        chunkData = chunkFile->fileData();
+        chunkLength = chunkFile->fileLength();
+        if (thumbFile != nullptr) {
+          multipartThumbBytes = reinterpret_cast<const uint8_t *>(thumbFile->fileData());
+          multipartThumbLen = thumbFile->fileLength();
+        }
+      } else {
+        chunkData = req->bodyData();
+        chunkLength = req->bodyLength();
+      }
 
       const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
       const auto tmpDir = std::filesystem::path(server::ctx().config.storageRoot) / ".tmp_uploads";
@@ -1113,8 +1285,8 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
 
       std::error_code sizeError;
       const auto existingSize = std::filesystem::file_size(tmpPath, sizeError);
-      if (total == 0 || offset > total || req->bodyLength() > total - offset ||
-          (isLast && offset + req->bodyLength() != total)) {
+      if (total == 0 || offset > total || chunkLength > total - offset ||
+          (isLast && offset + chunkLength != total)) {
         callback(jsonError(drogon::k400BadRequest, "Invalid upload range"));
         return;
       }
@@ -1125,7 +1297,7 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       UploadQuota quota(userId, *scope, relPath, total);
       auto mode = (offset == 0) ? (std::ios::binary | std::ios::trunc) : (std::ios::binary | std::ios::app);
       std::ofstream out(tmpPath, mode);
-      out.write(req->bodyData(), static_cast<std::streamsize>(req->bodyLength()));
+      out.write(chunkData, static_cast<std::streamsize>(chunkLength));
       out.close();
       if (!out) throw std::runtime_error("Failed to write upload chunk");
 
@@ -1133,6 +1305,47 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       const bool completed = currentSize == total;
 
       if (completed) {
+        std::string decodedHeaderThumb;
+        std::string decodedPartThumb;
+        const uint8_t *thumbBytes = nullptr;
+        std::size_t thumbLen = 0;
+        if (multipartThumbBytes != nullptr && multipartThumbLen > 0) {
+          std::string_view partView(reinterpret_cast<const char *>(multipartThumbBytes), multipartThumbLen);
+          if (partView.starts_with("data:") || partView.starts_with("base64,")) {
+            std::string sanitized = sanitizeBase64Thumbnail(partView);
+            if (!sanitized.empty()) {
+              try {
+                decodedPartThumb = drogon::utils::base64Decode(sanitized);
+              } catch (...) {}
+              if (!decodedPartThumb.empty()) {
+                thumbBytes = reinterpret_cast<const uint8_t *>(decodedPartThumb.data());
+                thumbLen = decodedPartThumb.size();
+              }
+            }
+          } else {
+            thumbBytes = multipartThumbBytes;
+            thumbLen = multipartThumbLen;
+          }
+        }
+
+        if (thumbBytes == nullptr || thumbLen == 0) {
+          decodedHeaderThumb = decodeBase64ThumbnailHeader(req);
+          if (!decodedHeaderThumb.empty()) {
+            thumbBytes = reinterpret_cast<const uint8_t *>(decodedHeaderThumb.data());
+            thumbLen = decodedHeaderThumb.size();
+          }
+        }
+
+        const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+        const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+        std::int64_t cacheUserId = ownerUserId;
+        if (*scope == services::StorageScope::Shared) {
+          auto sharedOwner = server::ctx().fileIndexService->getSharedFileOwner(relPath);
+          if (sharedOwner.has_value()) {
+            cacheUserId = *sharedOwner;
+          }
+        }
+
         const bool hashFiles = server::ctx().config.hashFiles;
         if (hashFiles) {
           const auto fileSize = currentSize;
@@ -1156,15 +1369,21 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
                                .count();
           const auto type = server::ctx().fileService->classifyType(fileName);
           const auto mimeType = server::ctx().fileService->mimeTypeFor(fileName);
-          const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-          const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+
+          bool thumbStored = false;
+          std::string blurHash;
+          if ((type == "photo" || type == "video") && thumbBytes != nullptr && thumbLen > 0 && server::ctx().thumbnailQueue) {
+            thumbStored = server::ctx().thumbnailQueue->storePreGeneratedThumbnail(
+                ownerUserId, cacheUserId, *scope, relPath, physicalPath, plainSha256, thumbBytes, thumbLen, 256, &blurHash);
+          }
 
           server::ctx().fileIndexService->upsertFileExplicit(
-              ownerUserId, *scope, relPath, fileName, fileSize, now, type, mimeType, uploaderUserId, plainSha256);
-          if (type == "photo" || type == "video") {
+              ownerUserId, *scope, relPath, fileName, fileSize, now, type, mimeType, uploaderUserId, plainSha256,
+              thumbStored ? "client" : "", blurHash);
+          if (!thumbStored && (type == "photo" || type == "video")) {
             if (server::ctx().thumbnailQueue) {
               server::ctx().thumbnailQueue->scheduleThumbnail(
-                  ownerUserId, ownerUserId, *scope, relPath, physicalPath, type, plainSha256, 256, hashFiles, server::ctx().config.encryptionKey);
+                  ownerUserId, cacheUserId, *scope, relPath, physicalPath, type, plainSha256, 256, hashFiles, server::ctx().config.encryptionKey);
             }
           }
         } else {
@@ -1172,16 +1391,22 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
           std::filesystem::create_directories(target.parent_path());
           utils::portableRename(tmpPath, target);
 
-          const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-          const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
-          server::ctx().fileIndexService->upsertFile(
-              ownerUserId, *scope, relPath, target, uploaderUserId);
           const auto fileName = std::filesystem::path(relPath).filename().string();
           const auto type = server::ctx().fileService->classifyType(fileName);
-          if (type == "photo" || type == "video") {
+
+          bool thumbStored = false;
+          std::string blurHash;
+          if ((type == "photo" || type == "video") && thumbBytes != nullptr && thumbLen > 0 && server::ctx().thumbnailQueue) {
+            thumbStored = server::ctx().thumbnailQueue->storePreGeneratedThumbnail(
+                ownerUserId, cacheUserId, *scope, relPath, target, "", thumbBytes, thumbLen, 256, &blurHash);
+          }
+
+          server::ctx().fileIndexService->upsertFile(
+              ownerUserId, *scope, relPath, target, uploaderUserId, thumbStored ? "client" : "", blurHash);
+          if (!thumbStored && (type == "photo" || type == "video")) {
             if (server::ctx().thumbnailQueue) {
               server::ctx().thumbnailQueue->scheduleThumbnail(
-                  ownerUserId, ownerUserId, *scope, relPath, target, type, "", 256, hashFiles, server::ctx().config.encryptionKey);
+                  ownerUserId, cacheUserId, *scope, relPath, target, type, "", 256, hashFiles, server::ctx().config.encryptionKey);
             }
           }
         }
@@ -1220,6 +1445,27 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
   try {
     const auto quotaPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
     UploadQuota quota(userId, *scope, quotaPath, req->bodyLength());
+
+    std::string decodedHeaderThumb;
+    const uint8_t *thumbBytes = nullptr;
+    std::size_t thumbLen = 0;
+    decodedHeaderThumb = decodeBase64ThumbnailHeader(req);
+    if (!decodedHeaderThumb.empty()) {
+      thumbBytes = reinterpret_cast<const uint8_t *>(decodedHeaderThumb.data());
+      thumbLen = decodedHeaderThumb.size();
+    }
+
+    const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
+    const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
+    const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+    std::int64_t cacheUserId = ownerUserId;
+    if (*scope == services::StorageScope::Shared) {
+      auto sharedOwner = server::ctx().fileIndexService->getSharedFileOwner(relPath);
+      if (sharedOwner.has_value()) {
+        cacheUserId = *sharedOwner;
+      }
+    }
+
     const bool hashFiles = server::ctx().config.hashFiles;
     if (hashFiles) {
       std::string plainData(req->bodyData(), req->bodyLength());
@@ -1231,28 +1477,33 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       const auto physicalPath = dataDir / plainSha256;
 
       const auto stagedPath = dataDir / ("tmp_" + utils::randomTokenHex(16));
-          std::ofstream out(stagedPath, std::ios::binary | std::ios::trunc);
+      std::ofstream out(stagedPath, std::ios::binary | std::ios::trunc);
       out.write(cipherText.data(), cipherText.size());
       out.close();
       if (!out) throw std::runtime_error("Failed to write encrypted file");
       utils::portableRename(stagedPath, physicalPath);
 
-      const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
       const auto fileName = std::filesystem::path(relPath).filename().string();
       const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
                            std::chrono::system_clock::now().time_since_epoch())
                            .count();
       const auto type = server::ctx().fileService->classifyType(fileName);
       const auto mimeType = server::ctx().fileService->mimeTypeFor(fileName);
-      const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-      const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
+
+      bool thumbStored = false;
+      std::string blurHash;
+      if ((type == "photo" || type == "video") && thumbBytes != nullptr && thumbLen > 0 && server::ctx().thumbnailQueue) {
+        thumbStored = server::ctx().thumbnailQueue->storePreGeneratedThumbnail(
+            ownerUserId, cacheUserId, *scope, relPath, physicalPath, plainSha256, thumbBytes, thumbLen, 256, &blurHash);
+      }
 
       server::ctx().fileIndexService->upsertFileExplicit(
-          ownerUserId, *scope, relPath, fileName, req->bodyLength(), now, type, mimeType, uploaderUserId, plainSha256);
-      if (type == "photo" || type == "video") {
+          ownerUserId, *scope, relPath, fileName, req->bodyLength(), now, type, mimeType, uploaderUserId, plainSha256,
+          thumbStored ? "client" : "", blurHash);
+      if (!thumbStored && (type == "photo" || type == "video")) {
         if (server::ctx().thumbnailQueue) {
           server::ctx().thumbnailQueue->scheduleThumbnail(
-              ownerUserId, ownerUserId, *scope, relPath, physicalPath, type, plainSha256, 256, hashFiles, server::ctx().config.encryptionKey);
+              ownerUserId, cacheUserId, *scope, relPath, physicalPath, type, plainSha256, 256, hashFiles, server::ctx().config.encryptionKey);
         }
       }
     } else {
@@ -1266,17 +1517,22 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
       if (!out) throw std::runtime_error("Failed to write file");
 
       utils::portableRename(tmp, target);
-      const auto relPath = services::FileIndexService::normalizeRelPath(req->getParameter("path"));
       const auto fileName = std::filesystem::path(relPath).filename().string();
-      const auto ownerUserId = *scope == services::StorageScope::Shared ? 0 : userId;
-      const auto uploaderUserId = *scope == services::StorageScope::Shared ? userId : ownerUserId;
-      server::ctx().fileIndexService->upsertFile(
-          ownerUserId, *scope, relPath, target, uploaderUserId);
       const auto type = server::ctx().fileService->classifyType(fileName);
-      if (type == "photo" || type == "video") {
+
+      bool thumbStored = false;
+      std::string blurHash;
+      if ((type == "photo" || type == "video") && thumbBytes != nullptr && thumbLen > 0 && server::ctx().thumbnailQueue) {
+        thumbStored = server::ctx().thumbnailQueue->storePreGeneratedThumbnail(
+            ownerUserId, cacheUserId, *scope, relPath, target, "", thumbBytes, thumbLen, 256, &blurHash);
+      }
+
+      server::ctx().fileIndexService->upsertFile(
+          ownerUserId, *scope, relPath, target, uploaderUserId, thumbStored ? "client" : "", blurHash);
+      if (!thumbStored && (type == "photo" || type == "video")) {
         if (server::ctx().thumbnailQueue) {
           server::ctx().thumbnailQueue->scheduleThumbnail(
-              ownerUserId, ownerUserId, *scope, relPath, target, type, "", 256, hashFiles, server::ctx().config.encryptionKey);
+              ownerUserId, cacheUserId, *scope, relPath, target, type, "", 256, hashFiles, server::ctx().config.encryptionKey);
         }
       }
     }

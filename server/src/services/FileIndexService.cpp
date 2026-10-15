@@ -183,6 +183,74 @@ void FileIndexService::updateBlurHashBySha256(const std::string &sha256,
   sqlite3_step(stmt);
 }
 
+void FileIndexService::updateThumbnailMetadata(std::int64_t ownerUserId,
+                                               StorageScope scope,
+                                               const std::string &relPath,
+                                               const std::string &thumbnailPath,
+                                               const std::string &blurhash) {
+  const auto normalizedRel = normalizeRelPath(relPath);
+  if (normalizedRel.empty()) return;
+
+  const auto now = utils::nowMillis();
+  if (!blurhash.empty()) {
+    const char *sql =
+        "UPDATE file_index SET thumbnail_path = ?, thumbnail_updated_at = ?, blurhash = ? "
+        "WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0";
+    auto stmtGuard = db_.getStatement(sql);
+    auto *stmt = stmtGuard.get();
+    sqlite3_bind_text(stmt, 1, thumbnailPath.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(stmt, 2, now);
+    sqlite3_bind_text(stmt, 3, blurhash.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(stmt, 4, ownerUserId);
+    const auto scopeRaw = scopeToString(scope);
+    sqlite3_bind_text(stmt, 5, scopeRaw.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, normalizedRel.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_step(stmt);
+  } else {
+    const char *sql =
+        "UPDATE file_index SET thumbnail_path = ?, thumbnail_updated_at = ? "
+        "WHERE owner_user_id = ? AND scope = ? AND rel_path = ? AND is_deleted = 0";
+    auto stmtGuard = db_.getStatement(sql);
+    auto *stmt = stmtGuard.get();
+    sqlite3_bind_text(stmt, 1, thumbnailPath.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(stmt, 2, now);
+    sqlite3_bind_int64(stmt, 3, ownerUserId);
+    const auto scopeRaw = scopeToString(scope);
+    sqlite3_bind_text(stmt, 4, scopeRaw.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, normalizedRel.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_step(stmt);
+  }
+}
+
+void FileIndexService::updateThumbnailMetadataBySha256(const std::string &sha256,
+                                                       const std::string &thumbnailPath,
+                                                       const std::string &blurhash) {
+  if (sha256.empty()) return;
+  const auto now = utils::nowMillis();
+  if (!blurhash.empty()) {
+    const char *sql =
+        "UPDATE file_index SET thumbnail_path = ?, thumbnail_updated_at = ?, blurhash = ? "
+        "WHERE sha256 = ? AND is_deleted = 0";
+    auto stmtGuard = db_.getStatement(sql);
+    auto *stmt = stmtGuard.get();
+    sqlite3_bind_text(stmt, 1, thumbnailPath.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(stmt, 2, now);
+    sqlite3_bind_text(stmt, 3, blurhash.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, sha256.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_step(stmt);
+  } else {
+    const char *sql =
+        "UPDATE file_index SET thumbnail_path = ?, thumbnail_updated_at = ? "
+        "WHERE sha256 = ? AND is_deleted = 0";
+    auto stmtGuard = db_.getStatement(sql);
+    auto *stmt = stmtGuard.get();
+    sqlite3_bind_text(stmt, 1, thumbnailPath.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(stmt, 2, now);
+    sqlite3_bind_text(stmt, 3, sha256.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_step(stmt);
+  }
+}
+
 void FileIndexService::markDeleted(std::int64_t ownerUserId,
                                    StorageScope scope,
                                    const std::string &relPath) {

@@ -13,13 +13,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
+import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/sync_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 class _FakeScanner implements SyncFileScanner {
   _FakeScanner(this.candidates);
@@ -33,6 +39,7 @@ class _FakeScanner implements SyncFileScanner {
 class _FakeApiClient implements SyncApiClient {
   final createdFolders = <String>[];
   final uploadedPaths = <String>[];
+  final Map<String, Uint8List?> uploadedThumbnails = {};
   final existingPaths = <String>{};
   final Map<String, String> hashToExistingPath = {};
   String? failUploadPath;
@@ -60,6 +67,7 @@ class _FakeApiClient implements SyncApiClient {
     required ServerProfile server,
     required String remotePath,
     required File file,
+    Uint8List? thumbnailBytes,
   }) async {
     if (authRequired) throw const SyncException('Authentication required');
     if (maintenance) {
@@ -69,6 +77,7 @@ class _FakeApiClient implements SyncApiClient {
       throw const SyncException('Upload failed');
     }
     uploadedPaths.add(remotePath);
+    uploadedThumbnails[remotePath] = thumbnailBytes;
   }
 
   @override
@@ -117,6 +126,8 @@ Future<File> writeTestFile(
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late Directory tempDir;
   late ServerProfile server;
 
@@ -717,4 +728,227 @@ void main() {
       expect(candidates.single.remotePath, 'backup/ios/documents/doc.pdf');
     },
   );
+
+  group('Video thumbnail sync integration', () {
+    test(
+      'passes extracted video thumbnailBytes when syncing video files',
+      () async {
+        final videoFile = await writeTestFile(
+          tempDir,
+          'sample_video.mp4',
+          'dummy video',
+        );
+        final dummyThumbnail = Uint8List.fromList([
+          0x52,
+          0x49,
+          0x46,
+          0x46,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x57,
+          0x45,
+          0x42,
+          0x50,
+        ]);
+        final api = _FakeApiClient();
+        final stateStore = FileSyncStateStore(
+          fileProvider: () async => File('${tempDir.path}/state.json'),
+        );
+        final service = SyncService(
+          scanner: _FakeScanner([
+            SyncCandidate(
+              file: videoFile,
+              remotePath: 'backup/videos/sample_video.mp4',
+            ),
+          ]),
+          apiClient: api,
+          stateStore: stateStore,
+          videoPosterExtractor: (path) async => dummyThumbnail,
+        );
+
+        final result = await service.syncServer(server);
+
+        expect(result.status, SyncRunStatus.success);
+        expect(result.uploadedFiles, 1);
+        expect(api.uploadedPaths, ['backup/videos/sample_video.mp4']);
+        expect(
+          api.uploadedThumbnails['backup/videos/sample_video.mp4'],
+          equals(dummyThumbnail),
+        );
+      },
+    );
+
+    test(
+      'passes null thumbnailBytes when syncing non-video files (photos, documents)',
+      () async {
+        final photoFile = await writeTestFile(
+          tempDir,
+          'photo.jpg',
+          'jpeg content',
+        );
+        final docFile = await writeTestFile(
+          tempDir,
+          'report.pdf',
+          'pdf content',
+        );
+        final dummyThumbnail = Uint8List.fromList([1, 2, 3, 4]);
+        final api = _FakeApiClient();
+        final stateStore = FileSyncStateStore(
+          fileProvider: () async => File('${tempDir.path}/state.json'),
+        );
+        final service = SyncService(
+          scanner: _FakeScanner([
+            SyncCandidate(
+              file: photoFile,
+              remotePath: 'backup/photos/photo.jpg',
+            ),
+            SyncCandidate(file: docFile, remotePath: 'backup/docs/report.pdf'),
+          ]),
+          apiClient: api,
+          stateStore: stateStore,
+          videoPosterExtractor: (path) async => dummyThumbnail,
+        );
+
+        final result = await service.syncServer(server);
+
+        expect(result.status, SyncRunStatus.success);
+        expect(result.uploadedFiles, 2);
+        expect(api.uploadedThumbnails['backup/photos/photo.jpg'], isNull);
+        expect(api.uploadedThumbnails['backup/docs/report.pdf'], isNull);
+      },
+    );
+
+    test(
+      'gracefully continues video upload with null thumbnail if extraction fails or throws',
+      () async {
+        final videoFile = await writeTestFile(
+          tempDir,
+          'corrupt.mp4',
+          'broken video',
+        );
+        final api = _FakeApiClient();
+        final stateStore = FileSyncStateStore(
+          fileProvider: () async => File('${tempDir.path}/state.json'),
+        );
+        final service = SyncService(
+          scanner: _FakeScanner([
+            SyncCandidate(
+              file: videoFile,
+              remotePath: 'backup/videos/corrupt.mp4',
+            ),
+          ]),
+          apiClient: api,
+          stateStore: stateStore,
+          videoPosterExtractor: (path) async =>
+              throw Exception('Extraction crashed'),
+        );
+
+        final result = await service.syncServer(server);
+
+        expect(result.status, SyncRunStatus.success);
+        expect(result.uploadedFiles, 1);
+        expect(api.uploadedPaths, ['backup/videos/corrupt.mp4']);
+        expect(api.uploadedThumbnails['backup/videos/corrupt.mp4'], isNull);
+      },
+    );
+
+    test(
+      'HttpSyncApiClient attaches X-Thumbnail header on terminal chunk and 0-byte upload',
+      () async {
+        final thumbBytes = Uint8List.fromList([
+          0x52,
+          0x49,
+          0x46,
+          0x46,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x57,
+          0x45,
+          0x42,
+          0x50,
+        ]);
+        final capturedHeaders = <Map<String, String>>[];
+
+        final mockClient = MockClient((request) async {
+          if (request.url.path == '/api/files/upload-status') {
+            return http.Response(jsonEncode({'bytes_received': 0}), 200);
+          }
+          if (request.url.path == '/api/files') {
+            capturedHeaders.add(Map.from(request.headers));
+            return http.Response('', 200);
+          }
+          return http.Response('', 404);
+        });
+
+        final secretStore = InMemorySecretStore();
+        await secretStore.saveSyncToken(
+          serverId: 'srv',
+          syncToken: 'test_sync_token',
+        );
+        final authService = AuthService(secretStore: secretStore);
+        final syncApiClient = HttpSyncApiClient(
+          authService: authService,
+          client: mockClient,
+        );
+
+        // 1. Test chunked upload: file size 3 MB (> 2 MB chunk size)
+        final largeVideoFile = await writeTestFile(
+          tempDir,
+          'large_video.mp4',
+          'a' * (3 * 1024 * 1024),
+        );
+        await syncApiClient.uploadFile(
+          server: server,
+          remotePath: 'backup/videos/large_video.mp4',
+          file: largeVideoFile,
+          thumbnailBytes: thumbBytes,
+        );
+
+        expect(capturedHeaders.length, 2);
+        // First chunk (intermediate, is_last=false) must NOT have x-thumbnail
+        expect(capturedHeaders[0].containsKey('x-thumbnail'), isFalse);
+        // Second chunk (terminal, is_last=true) MUST have x-thumbnail
+        expect(
+          capturedHeaders[1]['x-thumbnail'],
+          equals(base64Encode(thumbBytes)),
+        );
+
+        // 2. Test 0-byte file: attaches x-thumbnail
+        capturedHeaders.clear();
+        final emptyVideoFile = await writeTestFile(
+          tempDir,
+          'empty_video.mp4',
+          '',
+        );
+        await syncApiClient.uploadFile(
+          server: server,
+          remotePath: 'backup/videos/empty_video.mp4',
+          file: emptyVideoFile,
+          thumbnailBytes: thumbBytes,
+        );
+
+        expect(capturedHeaders.length, 1);
+        expect(
+          capturedHeaders[0]['x-thumbnail'],
+          equals(base64Encode(thumbBytes)),
+        );
+
+        // 3. Test upload without thumbnail: no x-thumbnail header
+        capturedHeaders.clear();
+        await syncApiClient.uploadFile(
+          server: server,
+          remotePath: 'backup/videos/empty_video.mp4',
+          file: emptyVideoFile,
+          thumbnailBytes: null,
+        );
+
+        expect(capturedHeaders.length, 1);
+        expect(capturedHeaders[0].containsKey('x-thumbnail'), isFalse);
+      },
+    );
+  });
 }

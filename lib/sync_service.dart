@@ -19,6 +19,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:crowleys_cloud/thumbnail_service.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:crowleys_cloud/app_settings_service.dart';
 import 'package:crowleys_cloud/auth_service.dart';
@@ -665,6 +666,7 @@ abstract class SyncApiClient {
     required ServerProfile server,
     required String remotePath,
     required File file,
+    Uint8List? thumbnailBytes,
   });
 
   Future<bool> fileExists({
@@ -793,7 +795,16 @@ class HttpSyncApiClient implements SyncApiClient {
     required ServerProfile server,
     required String remotePath,
     required File file,
+    Uint8List? thumbnailBytes,
   }) async {
+    final String? thumbnailBase64;
+    if (thumbnailBytes != null && thumbnailBytes.isNotEmpty) {
+      final encoded = base64Encode(thumbnailBytes);
+      thumbnailBase64 = encoded.length <= 60000 ? encoded : null;
+    } else {
+      thumbnailBase64 = null;
+    }
+
     final totalBytes = await file.length();
     if (totalBytes == 0) {
       final uri = _apiUri(
@@ -807,6 +818,7 @@ class HttpSyncApiClient implements SyncApiClient {
           headers: {
             'authorization': 'Bearer $token',
             'content-type': 'application/octet-stream',
+            'x-thumbnail': ?thumbnailBase64,
           },
           body: const [],
         ),
@@ -852,6 +864,8 @@ class HttpSyncApiClient implements SyncApiClient {
             headers: {
               'authorization': 'Bearer $token',
               'content-type': 'application/octet-stream',
+              if (isLast && thumbnailBase64 != null)
+                'x-thumbnail': thumbnailBase64,
             },
             body: bytes,
           ),
@@ -982,16 +996,24 @@ class SyncException implements Exception {
   String toString() => 'SyncException($message)';
 }
 
+typedef VideoPosterExtractor = Future<Uint8List?> Function(String filePath);
+
 class SyncService {
   SyncService({
     required this.scanner,
     required this.apiClient,
     required this.stateStore,
-  });
+    VideoPosterExtractor? videoPosterExtractor,
+    VideoPosterExtractor? videoThumbnailExtractor,
+  }) : _videoPosterExtractor =
+           videoPosterExtractor ??
+           videoThumbnailExtractor ??
+           ThumbnailService.instance.extractVideoPoster;
 
   final SyncFileScanner scanner;
   final SyncApiClient apiClient;
   final SyncStateStore stateStore;
+  final VideoPosterExtractor _videoPosterExtractor;
 
   Future<String> calculateSha256(File file) async {
     final stream = file.openRead();
@@ -1181,10 +1203,28 @@ class SyncService {
           if (remoteFolder != '.' && createdFolders.add(remoteFolder)) {
             await _createFolderTree(server, remoteFolder);
           }
+
+          Uint8List? thumbnailBytes;
+          final ext = p.extension(candidate.file.path).toLowerCase();
+          final remoteExt = p.extension(candidate.remotePath).toLowerCase();
+          final isVideo =
+              videoExtensions.contains(ext) ||
+              videoExtensions.contains(remoteExt);
+          if (isVideo) {
+            try {
+              thumbnailBytes = await _videoPosterExtractor(candidate.file.path);
+            } catch (e) {
+              debugPrint(
+                '[SyncService] Video poster extraction failed for ${candidate.file.path}: $e',
+              );
+            }
+          }
+
           await apiClient.uploadFile(
             server: server,
             remotePath: candidate.remotePath,
             file: candidate.file,
+            thumbnailBytes: thumbnailBytes,
           );
           await stateStore.saveRecord(
             server.id,

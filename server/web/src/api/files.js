@@ -16,6 +16,7 @@
 import { apiGet, apiPost, apiDelete, apiMessage } from './client.js';
 import { get } from 'svelte/store';
 import { authStore } from '../stores/auth.js';
+import { blobToBase64 } from '../utils/videoThumbnail.js';
 
 function uploadError(xhr) {
   let data = null;
@@ -90,7 +91,7 @@ export const filesApi = {
     URL.revokeObjectURL(link.href);
   },
 
-  uploadFileSingle({ scope = 'private', path, file, onProgress, signal }, isRetry = false) {
+  uploadFileSingle({ scope = 'private', path, file, thumbnail = null, onProgress, signal }, isRetry = false) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       const params = new URLSearchParams({ scope, path });
@@ -150,7 +151,7 @@ export const filesApi = {
             });
 
             refreshed = true;
-            const retryResult = await this.uploadFileSingle({ scope, path, file, onProgress, signal }, true);
+            const retryResult = await this.uploadFileSingle({ scope, path, file, thumbnail, onProgress, signal }, true);
             resolve(retryResult);
           } catch (err) {
             if (refreshed || signal?.aborted) { reject(err); return; }
@@ -163,7 +164,15 @@ export const filesApi = {
       };
 
       xhr.onerror = () => reject(new Error(apiMessage('api.network_upload')));
-      xhr.send(file);
+
+      if (thumbnail) {
+        const formData = new FormData();
+        formData.append('file', file, file.name || 'file');
+        formData.append('thumbnail', thumbnail, 'thumbnail.webp');
+        xhr.send(formData);
+      } else {
+        xhr.send(file);
+      }
     });
   },
 
@@ -213,7 +222,7 @@ export const filesApi = {
     });
   },
 
-  async uploadFileChunked({ scope = 'private', path, file, chunkSize = 5 * 1024 * 1024, onProgress, signal }) {
+  async uploadFileChunked({ scope = 'private', path, file, thumbnail = null, chunkSize = 5 * 1024 * 1024, onProgress, signal }) {
     const totalSize = file.size;
     let offset = 0;
 
@@ -229,6 +238,16 @@ export const filesApi = {
 
     signal?.throwIfAborted();
     if (offset >= totalSize) offset = 0;
+
+    let thumbnailBase64 = null;
+    if (thumbnail) {
+      try {
+        thumbnailBase64 = await blobToBase64(thumbnail);
+      } catch (_) {
+        thumbnailBase64 = null;
+      }
+    }
+
     while (offset < totalSize) {
       signal?.throwIfAborted();
       const chunkEnd = Math.min(offset + chunkSize, totalSize);
@@ -243,7 +262,12 @@ export const filesApi = {
         is_last: isLast.toString()
       });
 
-      await apiPost(`/api/files?${params.toString()}`, chunk, { signal });
+      const options = { signal };
+      if (isLast && thumbnailBase64) {
+        options.headers = { 'X-Thumbnail': thumbnailBase64 };
+      }
+
+      await apiPost(`/api/files?${params.toString()}`, chunk, options);
       offset = chunkEnd;
 
       if (onProgress) {

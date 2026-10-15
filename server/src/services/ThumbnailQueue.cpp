@@ -18,7 +18,9 @@
 #include "server/utils/ImageUtils.hpp"
 #include "server/utils/PlatformUtils.hpp"
 #include "server/utils/Crypto.hpp"
+#include "server/utils/BlurHashEncoder.hpp"
 
+#include <webp/decode.h>
 #include <trantor/utils/Logger.h>
 #include <algorithm>
 
@@ -177,9 +179,11 @@ bool ThumbnailQueue::scheduleThumbnail(std::int64_t ownerUserId,
   std::filesystem::path tempBasePath;
   if (finalDestWebp.empty()) {
     std::string root = config_.storageRoot;
-    try {
-      if (!server::ctx().config.storageRoot.empty()) root = server::ctx().config.storageRoot;
-    } catch (...) {}
+    if (root.empty()) {
+      try {
+        if (!server::ctx().config.storageRoot.empty()) root = server::ctx().config.storageRoot;
+      } catch (...) {}
+    }
     const auto thumbRoot = std::filesystem::path(root) / ".thumbs" / std::to_string(effectiveUserId);
     std::error_code ec;
     std::filesystem::create_directories(thumbRoot, ec);
@@ -227,6 +231,132 @@ bool ThumbnailQueue::scheduleThumbnail(std::int64_t userId,
                                        bool isTrash,
                                        std::int64_t trashId) {
   return scheduleThumbnail(userId, userId, scope, relPath, sourcePath, fileType, sha256, thumbSize, isEncrypted, "", isTrash, trashId);
+}
+
+bool ThumbnailQueue::storePreGeneratedThumbnail(std::int64_t ownerUserId,
+                                                std::int64_t cacheUserId,
+                                                StorageScope scope,
+                                                const std::string &relPath,
+                                                const std::filesystem::path &sourcePath,
+                                                const std::string &sha256,
+                                                const uint8_t *thumbData,
+                                                std::size_t thumbSize,
+                                                int maxDimension,
+                                                std::string *outBlurHash) {
+  // 1. Guard against null pointer, empty payload, or oversized buffer (bound: thumbSize <= 2MB)
+  constexpr std::size_t kMaxThumbnailBytes = 2 * 1024 * 1024;
+  if (!thumbData || thumbSize == 0 || thumbSize > kMaxThumbnailBytes) {
+    LOG_WARN << "Client thumbnail rejected (null, empty, or exceeds 2MB limit: "
+             << thumbSize << " bytes) for: " << relPath;
+    return false;
+  }
+
+  // 2. Fast container header validation & dimension bound check (rawW <= 1024, rawH <= 1024)
+  constexpr int kMaxDimensionBound = 1024;
+  int rawW = 0, rawH = 0;
+  if (!WebPGetInfo(thumbData, thumbSize, &rawW, &rawH) || rawW <= 0 || rawH <= 0) {
+    LOG_WARN << "Client provided invalid WebP container header for: " << relPath;
+    return false;
+  }
+  if (rawW > kMaxDimensionBound || rawH > kMaxDimensionBound) {
+    LOG_WARN << "Client WebP header dimensions exceed 1024 bound ("
+             << rawW << "x" << rawH << ") for: " << relPath;
+    return false;
+  }
+
+  // 3. Full bitstream decoding validation via utils::decodeImageToRgba
+  // Validates decodability and bitstream completeness before persisting anything to disk
+  auto decoded = utils::decodeImageToRgba(thumbData, thumbSize);
+  if (!decoded.has_value() || decoded->width <= 0 || decoded->height <= 0 || decoded->rgba.empty()) {
+    LOG_WARN << "Client provided corrupted, truncated, or unrenderable WebP thumbnail for: " << relPath;
+    return false;
+  }
+  if (decoded->width > kMaxDimensionBound || decoded->height > kMaxDimensionBound) {
+    LOG_WARN << "Decoded WebP dimensions exceed 1024 bound ("
+             << decoded->width << "x" << decoded->height << ") for: " << relPath;
+    return false;
+  }
+
+  // 4. Compute BlurHash in-memory directly from validated RGBA buffer
+  std::string blurHash = utils::encodeBlurHash(decoded->rgba, decoded->width, decoded->height);
+  if (outBlurHash) {
+    *outBlurHash = blurHash;
+  }
+
+  // 5. Calculate storage paths
+  const int clampedSize = std::clamp(maxDimension, 64, 1024);
+  const auto effectiveUserId = (cacheUserId > 0) ? cacheUserId : ownerUserId;
+  std::string resolvedSha = sha256;
+  if (resolvedSha.empty() && std::filesystem::is_regular_file(sourcePath)) {
+    try {
+      resolvedSha = utils::sha256FileHex(sourcePath);
+    } catch (...) {}
+  }
+  const auto identifier = resolvedSha.empty() ? sourcePath.generic_string() : resolvedSha;
+  const auto key = ThumbnailTask::makeKey(effectiveUserId, identifier, clampedSize);
+
+  std::string root = config_.storageRoot;
+  if (root.empty()) {
+    try {
+      if (!server::ctx().config.storageRoot.empty()) root = server::ctx().config.storageRoot;
+    } catch (...) {}
+  }
+
+  const auto thumbRoot = std::filesystem::path(root) / ".thumbs" / std::to_string(effectiveUserId);
+  std::error_code ec;
+  std::filesystem::create_directories(thumbRoot, ec);
+  const auto tempBasePath = thumbRoot / std::to_string(std::hash<std::string>{}(key));
+  const auto finalDestWebp = std::filesystem::path(tempBasePath.string() + ".webp");
+
+  // 6. Atomically persist validated WebP bitstream to disk
+  std::vector<uint8_t> buffer(thumbData, thumbData + thumbSize);
+  if (!utils::saveBufferAtomically(finalDestWebp, buffer)) {
+    LOG_WARN << "Failed to atomically save client thumbnail for: " << relPath;
+    return false;
+  }
+
+  // 7. Synchronize mtime (ensure thumbnail mtime >= source file mtime)
+  std::error_code ecSrc, ecDest;
+  if (std::filesystem::exists(sourcePath, ecSrc) && !ecSrc) {
+    const auto srcMtime = std::filesystem::last_write_time(sourcePath, ecSrc);
+    if (!ecSrc) {
+      const auto destMtime = std::filesystem::last_write_time(finalDestWebp, ecDest);
+      if (!ecDest && destMtime < srcMtime) {
+        std::filesystem::last_write_time(finalDestWebp, srcMtime, ecDest);
+      }
+    }
+  }
+
+  // 8. Update file_index metadata with thumbnail_path = "client" and calculated blurhash
+  auto *idxService = fileIndexService_;
+  if (!idxService) {
+    try {
+      idxService = server::ctx().fileIndexService.get();
+    } catch (...) {}
+  }
+
+  if (idxService != nullptr) {
+    if (!resolvedSha.empty()) {
+      idxService->updateThumbnailMetadataBySha256(resolvedSha, "client", blurHash);
+    }
+    if (!relPath.empty()) {
+      idxService->updateThumbnailMetadata(ownerUserId, scope, relPath, "client", blurHash);
+    }
+  }
+
+  return true;
+}
+
+bool ThumbnailQueue::storePreGeneratedThumbnail(std::int64_t userId,
+                                                StorageScope scope,
+                                                const std::string &relPath,
+                                                const std::filesystem::path &sourcePath,
+                                                const std::string &sha256,
+                                                const uint8_t *thumbData,
+                                                std::size_t thumbSize,
+                                                int maxDimension,
+                                                std::string *outBlurHash) {
+  return storePreGeneratedThumbnail(userId, userId, scope, relPath, sourcePath, sha256, thumbData, thumbSize, maxDimension, outBlurHash);
 }
 
 std::optional<ThumbnailTask> ThumbnailQueue::pop() {

@@ -12,7 +12,9 @@ async function loadStore(name, api) {
     .replace("import { filesApi } from '../api/files.js';", `const filesApi = globalThis.${key};`)
     .replace(/import\s*\{\s*apiGet(?:,\s*apiMessage)?\s*\}\s*from\s*'\.\.\/api\/client\.js';/, 'const apiGet = async () => ({}); const apiMessage = (k) => k;')
     .replace("import { authStore } from './auth.js';", 'const authStore = { user: { set() {} } };')
-    .replace("import { refreshStats } from './stats.js';", 'const refreshStats = async () => {};');
+    .replace("import { refreshStats } from './stats.js';", 'const refreshStats = async () => {};')
+    .replace(/import\s*\{\s*isVideoFile,\s*extractVideoPoster\s*\}\s*from\s*['"]\.\.\/utils\/videoThumbnail\.js['"];?/,
+      `const isVideoFile = globalThis.${key}?.isVideoFile || (() => false); const extractVideoPoster = globalThis.${key}?.extractVideoPoster || (async () => null);`);
   return import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 }
 const settle = () => new Promise(resolve => setImmediate(resolve));
@@ -82,7 +84,8 @@ async function loadApi(client) {
     .replace("import { apiGet, apiPost, apiDelete, apiMessage } from './client.js';",
       `const { apiGet, apiPost, apiDelete, apiMessage } = globalThis.${key};`)
     .replace("import { authStore } from '../stores/auth.js';",
-      `const authStore = globalThis.${key}.authStore || {accessToken: { subscribe: callback => {callback('token'); return () => {};}}};`);
+      `const authStore = globalThis.${key}.authStore || {accessToken: { subscribe: callback => {callback('token'); return () => {};}}};`)
+    .replace("from '../utils/videoThumbnail.js'", `from '${import.meta.resolve('../src/utils/videoThumbnail.js')}'`);
   return import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 }
 

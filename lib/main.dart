@@ -1377,6 +1377,28 @@ class _MainScreenState extends State<MainScreen> {
     _transferManager.throwIfItemCanceled(transferItem);
     _transferManager.startItem(transferItem);
 
+    // Client-side video thumbnail poster extraction (Milestone 2)
+    String? thumbnailBase64;
+    final ext = p.extension(localFile.path).toLowerCase();
+    if (videoExtensions.contains(ext)) {
+      try {
+        final posterBytes = await ThumbnailService.instance.extractVideoPoster(
+          localFile.path,
+        );
+        if (posterBytes != null && posterBytes.isNotEmpty) {
+          final encoded = base64Encode(posterBytes);
+          if (encoded.length <= 60000) {
+            thumbnailBase64 = encoded;
+          }
+        }
+      } catch (e) {
+        debugPrint(
+          '[Upload] Failed to extract video poster for ${localFile.path}: $e',
+        );
+      }
+    }
+    _transferManager.throwIfItemCanceled(transferItem);
+
     // 0-byte file edge case
     if (totalBytes == 0) {
       final uri = Uri.parse(base)
@@ -1388,6 +1410,7 @@ class _MainScreenState extends State<MainScreen> {
           headers: {
             'authorization': 'Bearer $token',
             'content-type': 'application/octet-stream',
+            'x-thumbnail': ?thumbnailBase64,
           },
           body: const <int>[],
         );
@@ -1407,6 +1430,7 @@ class _MainScreenState extends State<MainScreen> {
               headers: {
                 'authorization': 'Bearer $token',
                 'content-type': 'application/octet-stream',
+                'x-thumbnail': ?thumbnailBase64,
               },
               body: const <int>[],
             );
@@ -1503,6 +1527,8 @@ class _MainScreenState extends State<MainScreen> {
               headers: {
                 'authorization': 'Bearer $token',
                 'content-type': 'application/octet-stream',
+                if (isLast && thumbnailBase64 != null)
+                  'x-thumbnail': thumbnailBase64,
               },
               body: bytes,
             );

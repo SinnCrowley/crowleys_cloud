@@ -18,6 +18,7 @@ import { filesApi } from '../api/files.js';
 import { apiGet, apiMessage } from '../api/client.js';
 import { authStore } from './auth.js';
 import { refreshStats } from './stats.js';
+import { isVideoFile, extractVideoPoster } from '../utils/videoThumbnail.js';
 
 const queue = writable([]);
 const activeRequests = new Map();
@@ -149,12 +150,26 @@ export const transfersStore = {
     };
 
     try {
+      if (controller.signal.aborted) return;
+
+      let thumbnailBlob = null;
+      if (isVideoFile(item.file)) {
+        try {
+          thumbnailBlob = await extractVideoPoster(item.file, { signal: controller.signal });
+        } catch (_) {
+          thumbnailBlob = null;
+        }
+      }
+
+      if (controller.signal.aborted) return;
+
       if (item.size > 10 * 1024 * 1024) {
         // Chunked upload for files > 10MB
         await filesApi.uploadFileChunked({
           scope: item.scope,
           path: item.path,
           file: item.file,
+          thumbnail: thumbnailBlob,
           onProgress: updateProgress,
           signal: controller.signal
         });
@@ -164,6 +179,7 @@ export const transfersStore = {
           scope: item.scope,
           path: item.path,
           file: item.file,
+          thumbnail: thumbnailBlob,
           onProgress: updateProgress,
           signal: controller.signal
         });

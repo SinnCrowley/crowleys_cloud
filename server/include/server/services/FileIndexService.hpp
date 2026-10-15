@@ -116,6 +116,16 @@ class FileIndexService {
   void updateBlurHashBySha256(const std::string &sha256,
                               const std::string &blurhash);
 
+  void updateThumbnailMetadata(std::int64_t ownerUserId,
+                               StorageScope scope,
+                               const std::string &relPath,
+                               const std::string &thumbnailPath,
+                               const std::string &blurhash = "");
+
+  void updateThumbnailMetadataBySha256(const std::string &sha256,
+                                       const std::string &thumbnailPath,
+                                       const std::string &blurhash = "");
+
   void markDeleted(std::int64_t ownerUserId, StorageScope scope, const std::string &relPath);
   void markDeletedPrefix(std::int64_t ownerUserId, StorageScope scope, const std::string &relPrefix);
 

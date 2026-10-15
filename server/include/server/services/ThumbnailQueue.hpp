@@ -148,6 +148,34 @@ class ThumbnailQueue {
                          std::int64_t trashId = 0);
 
   /**
+   * Directly stores and caches a client-provided pre-generated WebP thumbnail.
+   * Validates WebP bytes and decodes to RGBA, atomically saves to .thumbs/<effectiveUserId>/,
+   * ensures thumbnail mtime >= source file mtime, computes BlurHash in RAM,
+   * and updates file_index metadata with thumbnail_path='client'.
+   * Returns true on success, false if invalid WebP or failure.
+   */
+  bool storePreGeneratedThumbnail(std::int64_t ownerUserId,
+                                  std::int64_t cacheUserId,
+                                  StorageScope scope,
+                                  const std::string &relPath,
+                                  const std::filesystem::path &sourcePath,
+                                  const std::string &sha256,
+                                  const uint8_t *thumbData,
+                                  std::size_t thumbSize,
+                                  int maxDimension = 256,
+                                  std::string *outBlurHash = nullptr);
+
+  bool storePreGeneratedThumbnail(std::int64_t userId,
+                                  StorageScope scope,
+                                  const std::string &relPath,
+                                  const std::filesystem::path &sourcePath,
+                                  const std::string &sha256,
+                                  const uint8_t *thumbData,
+                                  std::size_t thumbSize,
+                                  int maxDimension = 256,
+                                  std::string *outBlurHash = nullptr);
+
+  /**
    * Pops the next available task from the queue.
    * Blocks until a task becomes available or the queue is stopped.
    * Atomically moves task key from pendingKeys_ to activeKeys_.

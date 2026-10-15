@@ -44,6 +44,7 @@ dependencies:
   photo_manager_image_provider: ^2.2.0 # ImageProvider wrapper for photo_manager AssetEntity
   #video_thumbnail: ^0.5.3               # Frame extraction thumbnail generation for local video files
   video_thumbnail_plus: ^0.0.2
+  image: ^4.10.1
 
   # Networking & Cryptography
   http: ^1.2.2       # HTTP client for REST backend communication
