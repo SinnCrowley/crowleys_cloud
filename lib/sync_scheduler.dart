@@ -201,9 +201,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
     List<ServerProfile> servers, {
     bool forceReRegister = false,
   }) async {
-    final secretStore = FlutterSecureSecretStore(
-      storage: defaultSecureStorage,
-    );
+    final secretStore = FlutterSecureSecretStore(storage: defaultSecureStorage);
     final prefs = await SharedPreferences.getInstance();
     for (final server in servers) {
       final uniqueName = '$syncBackgroundUniquePrefix${server.id}';
@@ -415,8 +413,7 @@ void syncCallbackDispatcher() {
       WidgetsFlutterBinding.ensureInitialized();
       DartPluginRegistrant.ensureInitialized();
       AppDatabase.ensurePlatformInitialized();
-      final isProcessingTask =
-          taskName == syncBackgroundProcessingTaskName;
+      final isProcessingTask = taskName == syncBackgroundProcessingTaskName;
       final isSyncTask =
           taskName == syncBackgroundTaskName ||
           taskName == Workmanager.iOSBackgroundTask ||
@@ -488,7 +485,9 @@ Future<bool> runBackgroundSync({
         await prefs.remove('sync_sched_config_$serverId');
       } else if (Platform.isIOS) {
         await Workmanager().cancelByUniqueName(syncBackgroundTaskName);
-        await Workmanager().cancelByUniqueName(syncBackgroundProcessingTaskName);
+        await Workmanager().cancelByUniqueName(
+          syncBackgroundProcessingTaskName,
+        );
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('sync_sched_config_ios_aggregate');
       }
@@ -500,8 +499,8 @@ Future<bool> runBackgroundSync({
   // BGProcessingTask runs when device is idle and allows longer runs (up to 5-10 min).
   final DateTime? deadline = Platform.isIOS
       ? (isProcessingTask
-          ? DateTime.now().add(const Duration(minutes: 5))
-          : DateTime.now().add(const Duration(seconds: 24)))
+            ? DateTime.now().add(const Duration(minutes: 5))
+            : DateTime.now().add(const Duration(seconds: 24)))
       : null;
 
   var anySuccess = false;
@@ -571,7 +570,9 @@ Future<bool> runBackgroundSync({
           final otherServers = servers.where((s) => s.id != server.id).toList();
           if (otherServers.isEmpty) {
             await Workmanager().cancelByUniqueName(syncBackgroundTaskName);
-            await Workmanager().cancelByUniqueName(syncBackgroundProcessingTaskName);
+            await Workmanager().cancelByUniqueName(
+              syncBackgroundProcessingTaskName,
+            );
             final prefs = await SharedPreferences.getInstance();
             await prefs.remove('sync_sched_config_ios_aggregate');
             return false;

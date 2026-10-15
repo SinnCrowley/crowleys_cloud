@@ -69,12 +69,8 @@ abstract class SecretStore {
 /// Default secure storage instance configured with [KeychainAccessibility.first_unlock]
 /// to allow background services (like iOS background sync) to read tokens when the phone is locked.
 const defaultSecureStorage = FlutterSecureStorage(
-  iOptions: IOSOptions(
-    accessibility: KeychainAccessibility.first_unlock,
-  ),
-  mOptions: MacOsOptions(
-    accessibility: KeychainAccessibility.first_unlock,
-  ),
+  iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  mOptions: MacOsOptions(accessibility: KeychainAccessibility.first_unlock),
 );
 
 /// Secure storage implementation leveraging [FlutterSecureStorage] with
