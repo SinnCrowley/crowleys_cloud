@@ -43,6 +43,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { statsStore, refreshStats } from './stores/stats.js';
   import { shareApi } from './api/share.js';
   import { t, i18n } from './stores/i18n.js';
+  import { autofocus, autofocusRename } from './utils/focus.js';
 
   // Destructure stores for template binding
   const { scope, currentPath, entries, searchQuery, sortOption, filterType, selectedPaths, isLoading, error } = filesStore;
@@ -562,8 +563,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   async function handleCreateFolderSubmit() {
     const name = newFolderName.trim();
-    newFolderModal = false;
     if (!name) return;
+    newFolderModal = false;
     const targetPath = $currentPath ? `${$currentPath}/${name}` : name;
     try {
       await filesApi.createFolder({ scope: $scope, path: targetPath });
@@ -1066,11 +1067,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   <!-- Share Link Dialog Modal -->
   {#if shareModal}
-    <div class="modal-backdrop" on:click|self={() => (shareModal = null)}>
+    <div
+      class="modal-backdrop"
+      tabindex="-1"
+      on:click|self={() => (shareModal = null)}
+      on:keydown={(e) => {
+        if (e.key === 'Escape') shareModal = null;
+        else if (e.key === 'Enter') copyShareUrl();
+      }}
+    >
       <div class="dialog-card">
         <h3 class="text-title">{$t('modals.share.title')}</h3>
         <p class="text-sub">{$t('modals.share.subtitle')}: {shareModal.file.name}</p>
-        <input type="text" class="form-input text-code" readonly value={shareModal.url} />
+        <input type="text" class="form-input text-code" readonly value={shareModal.url} use:autofocus={{ select: true }} />
         <div class="dialog-actions">
           <button class="btn btn-secondary" on:click={() => (shareModal = null)}>{$t('common.close')}</button>
           <button class="btn btn-primary" on:click={copyShareUrl} style="display: inline-flex; align-items: center; gap: 6px;">
@@ -1084,13 +1093,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   <!-- Rename Modal -->
   {#if renameModal}
-    <div class="modal-backdrop" on:click|self={() => (renameModal = null)}>
+    <div
+      class="modal-backdrop"
+      tabindex="-1"
+      on:click|self={() => (renameModal = null)}
+      on:keydown={(e) => e.key === 'Escape' && (renameModal = null)}
+    >
       <div class="dialog-card">
         <h3 class="text-title">{$t('modals.rename.title')}</h3>
         <input
           type="text"
           class="form-input text-body"
           bind:value={renameModal.newName}
+          use:autofocusRename
           on:keydown={(e) => e.key === 'Enter' && handleRenameSubmit()}
         />
         <div class="dialog-actions">
@@ -1103,7 +1118,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   <!-- New Folder Modal -->
   {#if newFolderModal}
-    <div class="modal-backdrop" on:click|self={() => (newFolderModal = false)}>
+    <div
+      class="modal-backdrop"
+      tabindex="-1"
+      on:click|self={() => (newFolderModal = false)}
+      on:keydown={(e) => e.key === 'Escape' && (newFolderModal = false)}
+    >
       <div class="dialog-card">
         <h3 class="text-title">{$t('modals.create_folder.title')}</h3>
         <input
@@ -1111,6 +1131,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           class="form-input text-body"
           placeholder={$t('modals.create_folder.placeholder')}
           bind:value={newFolderName}
+          use:autofocus
           on:keydown={(e) => e.key === 'Enter' && handleCreateFolderSubmit()}
         />
         <div class="dialog-actions">
@@ -1123,7 +1144,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   <!-- Confirm Drag-to-Move Modal -->
   {#if confirmMoveModal}
-    <div class="modal-backdrop" on:click|self={() => (confirmMoveModal = null)}>
+    <div
+      class="modal-backdrop"
+      tabindex="-1"
+      use:autofocus
+      on:click|self={() => (confirmMoveModal = null)}
+      on:keydown={(e) => {
+        if (e.key === 'Escape') confirmMoveModal = null;
+        else if (e.key === 'Enter') executeConfirmedMove();
+      }}
+    >
       <div class="dialog-card">
         <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">{$t('modals.move.title')}</h3>
         <p class="text-sub" style="margin: 0; line-height: 1.5;">
@@ -1139,7 +1169,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   <!-- Confirm Delete Modal (Single & Batch) -->
   {#if confirmDeleteModal}
-    <div class="modal-backdrop" on:click|self={() => (confirmDeleteModal = null)}>
+    <div
+      class="modal-backdrop"
+      tabindex="-1"
+      use:autofocus
+      on:click|self={() => (confirmDeleteModal = null)}
+      on:keydown={(e) => {
+        if (e.key === 'Escape') confirmDeleteModal = null;
+        else if (e.key === 'Enter') executeConfirmedDelete();
+      }}
+    >
       <div class="dialog-card">
         <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">{$t('modals.delete.title')}</h3>
         <p class="text-sub" style="margin: 8px 0 0 0; color: var(--text-sub); font-size: 14px; line-height: 1.5;">

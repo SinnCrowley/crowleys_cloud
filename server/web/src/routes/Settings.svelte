@@ -22,6 +22,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { authApi } from '../api/auth.js';
   import { languagePreference, i18n, t, selectableLanguages } from '../stores/i18n.js';
   import CustomSelect from '../components/CustomSelect.svelte';
+  import { autofocus } from '../utils/focus.js';
 
   const dispatch = createEventDispatcher();
 
@@ -70,6 +71,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let newPassword = '';
   let confirmNewPassword = '';
   let passwordError = '';
+  let showNewPassword = false;
+  let showConfirmPassword = false;
 
   const presetColors = [
     '#FA5252', // Red/Coral (default)
@@ -363,28 +366,68 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <!-- Change Password Modal Dialog -->
 {#if showPasswordModal}
-  <div class="modal-backdrop" on:click|self={() => (showPasswordModal = false)}>
+  <div
+    class="modal-backdrop"
+    tabindex="-1"
+    on:click|self={() => { showPasswordModal = false; passwordError = ''; }}
+    on:keydown={(e) => {
+      if (e.key === 'Escape') {
+        showPasswordModal = false;
+        passwordError = '';
+      }
+    }}
+  >
     <div class="dialog-card">
       <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">{$t('settings.change_password')}</h3>
-      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
-        <div>
-          <label class="text-caption" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">{$t('settings.new_password')}</label>
-          <input
-            type="password"
-            class="form-input text-body"
-            placeholder={$t('modals.auth.password_placeholder')}
-            bind:value={newPassword}
-          />
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px;">
+        <div class="password-field-group">
+          <label class="text-caption" for="settings-new-password" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">{$t('settings.new_password')}</label>
+          <div class="password-input-wrapper">
+            <input
+              id="settings-new-password"
+              type={showNewPassword ? 'text' : 'password'}
+              class="form-input text-body"
+              placeholder={$t('modals.auth.password_placeholder')}
+              bind:value={newPassword}
+              use:autofocus
+              on:keydown={(e) => e.key === 'Enter' && handleChangePassword()}
+            />
+            <button
+              type="button"
+              class="password-toggle-btn"
+              tabindex="-1"
+              on:click={() => (showNewPassword = !showNewPassword)}
+              title={showNewPassword ? $t('common.hide') || 'Hide' : $t('common.show') || 'Show'}
+            >
+              <span class="material-symbols-outlined" style="font-size: 20px;">
+                {showNewPassword ? 'visibility_off' : 'visibility'}
+              </span>
+            </button>
+          </div>
         </div>
-        <div>
-          <label class="text-caption" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">{$t('settings.confirm_new_password')}</label>
-          <input
-            type="password"
-            class="form-input text-body"
-            placeholder={$t('modals.auth.confirm_password_placeholder')}
-            bind:value={confirmNewPassword}
-            on:keydown={(e) => e.key === 'Enter' && handleChangePassword()}
-          />
+        <div class="password-field-group">
+          <label class="text-caption" for="settings-confirm-password" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">{$t('settings.confirm_new_password')}</label>
+          <div class="password-input-wrapper">
+            <input
+              id="settings-confirm-password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              class="form-input text-body"
+              placeholder={$t('modals.auth.confirm_password_placeholder')}
+              bind:value={confirmNewPassword}
+              on:keydown={(e) => e.key === 'Enter' && handleChangePassword()}
+            />
+            <button
+              type="button"
+              class="password-toggle-btn"
+              tabindex="-1"
+              on:click={() => (showConfirmPassword = !showConfirmPassword)}
+              title={showConfirmPassword ? $t('common.hide') || 'Hide' : $t('common.show') || 'Show'}
+            >
+              <span class="material-symbols-outlined" style="font-size: 20px;">
+                {showConfirmPassword ? 'visibility_off' : 'visibility'}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
       {#if passwordError}
@@ -404,9 +447,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     min-height: 100%;
   }
 
+  .password-field-group {
+    width: 100%;
+  }
+
+  .password-field-group .form-input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .dialog-card {
     width: 100%;
-    max-width: 400px;
+    max-width: 440px;
     background-color: var(--bg-surface);
     border-radius: var(--radius-xl);
     border: 1px solid var(--border-color);
@@ -414,5 +466,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     padding: var(--spacing-xl);
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
   }
 </style>

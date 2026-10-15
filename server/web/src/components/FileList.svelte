@@ -542,7 +542,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
           <div class="col-name cell-content">
             <div class="list-item-thumbnail">
-              <SmartThumbnail {item} {scope} viewMode="list" size={128} />
+              <SmartThumbnail {item} {scope} viewMode="list" size={256} />
             </div>
             <span class="file-name-text">{item.name}</span>
           </div>

@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { createEventDispatcher, onMount } from 'svelte';
   import { filesApi } from '../api/files.js';
   import { t } from '../stores/i18n.js';
+  import { autofocus } from '../utils/focus.js';
 
   export let scope = 'private';
   export let title = '';
@@ -97,7 +98,22 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="modal-backdrop" on:click|self={handleClose}>
+<div
+  class="modal-backdrop"
+  tabindex="-1"
+  on:click|self={handleClose}
+  on:keydown={(e) => {
+    if (e.key === 'Escape') {
+      if (showNewFolderInput) {
+        showNewFolderInput = false;
+      } else {
+        handleClose();
+      }
+    } else if (e.key === 'Enter' && !showNewFolderInput) {
+      handleSelect();
+    }
+  }}
+>
   <div class="folder-picker-card">
     <div class="picker-header">
       <h3 class="picker-title text-title">{modalTitle}</h3>
@@ -170,7 +186,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
           class="form-input text-body"
           placeholder={$t('modals.create_folder.placeholder')}
           bind:value={newFolderName}
-          on:keydown={(e) => e.key === 'Enter' && handleCreateFolder()}
+          use:autofocus
+          on:keydown={(e) => {
+            if (e.key === 'Enter') {
+              handleCreateFolder();
+            } else if (e.key === 'Escape') {
+              e.stopPropagation();
+              showNewFolderInput = false;
+            }
+          }}
         />
         <button class="btn btn-primary" on:click={handleCreateFolder}>{$t('common.ok')}</button>
         <button class="btn btn-secondary" on:click={() => (showNewFolderInput = false)}>{$t('common.cancel')}</button>

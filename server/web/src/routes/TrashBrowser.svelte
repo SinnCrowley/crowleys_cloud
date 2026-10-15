@@ -21,6 +21,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import RestoreConflictModal from '../components/RestoreConflictModal.svelte';
   import MediaPreviewModal from '../components/MediaPreviewModal.svelte';
   import SmartThumbnail from '../components/SmartThumbnail.svelte';
+  import { autofocus } from '../utils/focus.js';
 
   const dispatch = createEventDispatcher();
 
@@ -475,7 +476,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             </div>
             <div class="col-name cell-content font-medium">
               <div class="list-item-thumbnail">
-                <SmartThumbnail {item} scope="trash" trashId={item.id} viewMode="list" size={128} />
+                <SmartThumbnail {item} scope="trash" trashId={item.id} viewMode="list" size={256} />
               </div>
               <span class="file-name-text" title={item.name}>{item.name}</span>
             </div>
@@ -543,7 +544,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <!-- Custom confirmation modal for trash deletions -->
 {#if confirmDeleteModal}
-  <div class="modal-backdrop" on:click|self={() => (confirmDeleteModal = null)}>
+  <div
+    class="modal-backdrop"
+    tabindex="-1"
+    use:autofocus
+    on:click|self={() => (confirmDeleteModal = null)}
+    on:keydown={(e) => {
+      if (e.key === 'Escape') confirmDeleteModal = null;
+      else if (e.key === 'Enter') confirmDeleteAction();
+    }}
+  >
     <div class="dialog-card">
       <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">{confirmDeleteModal.title}</h3>
       <p class="text-sub" style="margin: 8px 0 0 0; color: var(--text-sub); font-size: 14px; line-height: 1.5;">

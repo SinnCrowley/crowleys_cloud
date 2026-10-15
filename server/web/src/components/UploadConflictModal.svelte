@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <script>
   import { createEventDispatcher } from 'svelte';
   import { t } from '../stores/i18n.js';
+  import { autofocus } from '../utils/focus.js';
 
   export let conflicts = [];
   export let nonConflicts = [];
@@ -129,7 +130,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="modal-backdrop" on:click|self={handleClose}>
+<div
+  class="modal-backdrop"
+  tabindex="-1"
+  use:autofocus
+  on:click|self={handleClose}
+  on:keydown={(e) => {
+    if (e.key === 'Escape') handleClose();
+    else if (e.key === 'Enter') handleOverwrite();
+  }}
+>
   <div class="conflict-modal-card">
     <div class="conflict-header">
       <div class="conflict-title-area">

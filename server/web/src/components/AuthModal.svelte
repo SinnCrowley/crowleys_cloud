@@ -19,6 +19,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { authStore } from '../stores/auth.js';
   import { filesStore } from '../stores/files.js';
   import { t } from '../stores/i18n.js';
+  import { autofocus } from '../utils/focus.js';
 
   const dispatch = createEventDispatcher();
   const { isAuthenticated, user, refreshToken } = authStore;
@@ -28,6 +29,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let username = '';
   let password = '';
   let confirmPassword = '';
+  let showPassword = false;
+  let showConfirmPassword = false;
   let serverUrl = window.location.origin;
   let errorMessage = '';
   let statusMessage = '';
@@ -223,6 +226,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
             class="form-input"
             bind:value={username}
             placeholder={$t('modals.auth.username_placeholder')}
+            use:autofocus
             required
           />
         </div>
@@ -248,14 +252,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         {#if activeTab !== 'recovery' || recoveryStep === 2}
           <div class="form-group">
             <label class="form-label" for="password">{$t(activeTab === 'recovery' ? 'recovery.newPasswordLabel' : 'modals.auth.password')}</label>
-            <input
-              id="password"
-              type="password"
-              class="form-input"
-              bind:value={password}
-              placeholder={$t('modals.auth.password_placeholder')}
-              required
-            />
+            <div class="password-input-wrapper">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                class="form-input"
+                bind:value={password}
+                placeholder={$t('modals.auth.password_placeholder')}
+                required
+              />
+              <button
+                type="button"
+                class="password-toggle-btn"
+                tabindex="-1"
+                on:click={() => (showPassword = !showPassword)}
+                title={showPassword ? $t('common.hide') || 'Hide' : $t('common.show') || 'Show'}
+              >
+                <span class="material-symbols-outlined" style="font-size: 20px;">
+                  {showPassword ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
+            </div>
           </div>
         {/if}
 
@@ -279,14 +296,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         {#if activeTab !== 'login' && (activeTab !== 'recovery' || recoveryStep === 2)}
           <div class="form-group">
             <label class="form-label" for="confirmPassword">{$t('modals.auth.confirm_password')}</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              class="form-input"
-              bind:value={confirmPassword}
-              placeholder={$t('modals.auth.confirm_password_placeholder')}
-              required
-            />
+            <div class="password-input-wrapper">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                class="form-input"
+                bind:value={confirmPassword}
+                placeholder={$t('modals.auth.confirm_password_placeholder')}
+                required
+              />
+              <button
+                type="button"
+                class="password-toggle-btn"
+                tabindex="-1"
+                on:click={() => (showConfirmPassword = !showConfirmPassword)}
+                title={showConfirmPassword ? $t('common.hide') || 'Hide' : $t('common.show') || 'Show'}
+              >
+                <span class="material-symbols-outlined" style="font-size: 20px;">
+                  {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
+            </div>
           </div>
         {/if}
 

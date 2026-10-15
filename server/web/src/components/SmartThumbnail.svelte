@@ -1,6 +1,27 @@
 <!-- Copyright (C) 2026 Sinn Crowley
      AGPL-3.0-or-later -->
 
+<script context="module">
+  // In-memory cache for loaded thumbnail URLs to prevent flashing blurhash
+  // when switching between views (e.g. grid <-> list) or remounting components
+  const loadedThumbnailsCache = new Set();
+  const MAX_CACHE_SIZE = 2500;
+
+  function markThumbnailLoaded(url) {
+    if (!url) return;
+    if (loadedThumbnailsCache.size >= MAX_CACHE_SIZE) {
+      // Remove oldest entries to keep memory bounded
+      const it = loadedThumbnailsCache.values();
+      for (let i = 0; i < 500; i++) {
+        const next = it.next();
+        if (next.done) break;
+        loadedThumbnailsCache.delete(next.value);
+      }
+    }
+    loadedThumbnailsCache.add(url);
+  }
+</script>
+
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { filesApi } from '../api/files.js';
@@ -58,13 +79,14 @@
   function resetState() {
     clearTimeout(retryTimer);
     retryTimer = null;
-    isLoaded = false;
     hasError = false;
     retryCount = 0;
     if (isMedia) {
       imageUrl = getBaseUrl();
+      isLoaded = loadedThumbnailsCache.has(imageUrl);
     } else {
       imageUrl = '';
+      isLoaded = false;
     }
   }
 
@@ -73,6 +95,9 @@
     retryTimer = null;
     isLoaded = true;
     hasError = false;
+    if (imageUrl) {
+      markThumbnailLoaded(imageUrl);
+    }
   }
 
   async function handleError() {
@@ -185,15 +210,17 @@
 <div class="smart-thumbnail-root {viewMode}">
   {#if isMedia && !hasError}
     <div class="thumbnail-wrapper">
-      {#if item.blurhash}
-        <BlurHashCanvas blurhash={item.blurhash} />
-      {:else}
-        <div class="placeholder-fallback" class:hidden={isLoaded}>
-          <span class="material-symbols-outlined placeholder-icon">
-            {item.type === 'video' || isVideoExt(item.name) ? 'movie' : 'image'}
-          </span>
-          <div class="shimmer-wave"></div>
-        </div>
+      {#if !isLoaded}
+        {#if item.blurhash}
+          <BlurHashCanvas blurhash={item.blurhash} />
+        {:else}
+          <div class="placeholder-fallback">
+            <span class="material-symbols-outlined placeholder-icon">
+              {item.type === 'video' || isVideoExt(item.name) ? 'movie' : 'image'}
+            </span>
+            <div class="shimmer-wave"></div>
+          </div>
+        {/if}
       {/if}
 
       {#if imageUrl}
