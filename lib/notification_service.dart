@@ -32,9 +32,12 @@ class SyncNotificationService {
   SyncNotificationService._();
   static final SyncNotificationService instance = SyncNotificationService._();
 
+  static const int syncNotificationId = 98765;
+
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  DateTime? _lastProgressUpdate;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -45,8 +48,8 @@ class SyncNotificationService {
     const DarwinInitializationSettings darwinSettings =
         DarwinInitializationSettings(
           requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
         );
     const initSettings = InitializationSettings(
       android: androidSettings,
@@ -79,7 +82,7 @@ class SyncNotificationService {
   }
 
   Future<void> showProgressNotification({
-    required int id,
+    int? id,
     required String title,
     required String body,
     int? progress,
@@ -87,6 +90,17 @@ class SyncNotificationService {
   }) async {
     await initialize();
 
+    final now = DateTime.now();
+    final isDone =
+        progress != null && maxProgress != null && progress >= maxProgress;
+    if (!isDone &&
+        _lastProgressUpdate != null &&
+        now.difference(_lastProgressUpdate!).inMilliseconds < 400) {
+      return;
+    }
+    _lastProgressUpdate = now;
+
+    final targetId = id ?? syncNotificationId;
     final l10n = _resolveNotificationL10n();
     final channelName = l10n.syncChannelName;
     final channelDescription = l10n.syncChannelDescription;
@@ -104,16 +118,26 @@ class SyncNotificationService {
       ongoing: true,
       playSound: false,
       enableVibration: false,
+      onlyAlertOnce: true,
     );
 
-    const darwinDetails = DarwinNotificationDetails();
+    const darwinDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: false,
+      presentSound: false,
+      presentBanner: true,
+      presentList: true,
+      sound: null,
+      interruptionLevel: InterruptionLevel.passive,
+      threadIdentifier: 'crowleys_cloud_sync',
+    );
     final details = NotificationDetails(
       android: androidDetails,
       iOS: darwinDetails,
       macOS: darwinDetails,
     );
     await _notificationsPlugin.show(
-      id: id,
+      id: targetId,
       title: title,
       body: body,
       notificationDetails: details,
@@ -121,15 +145,16 @@ class SyncNotificationService {
   }
 
   Future<void> showCompleteNotification({
-    required int id,
+    int? id,
     required String title,
     required String body,
     bool isError = false,
   }) async {
     await initialize();
+    final targetId = id ?? syncNotificationId;
 
     if (!isError) {
-      await _notificationsPlugin.cancel(id: id);
+      await _notificationsPlugin.cancel(id: targetId);
       return;
     }
 
@@ -141,20 +166,31 @@ class SyncNotificationService {
       'sync_channel',
       channelName,
       channelDescription: channelDescription,
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
+      importance: Importance.low,
+      priority: Priority.low,
       ongoing: false,
-      playSound: true,
+      playSound: false,
+      enableVibration: false,
+      onlyAlertOnce: true,
     );
 
-    const darwinDetails = DarwinNotificationDetails();
+    const darwinDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: false,
+      presentSound: false,
+      presentBanner: true,
+      presentList: true,
+      sound: null,
+      interruptionLevel: InterruptionLevel.passive,
+      threadIdentifier: 'crowleys_cloud_sync',
+    );
     final details = NotificationDetails(
       android: androidDetails,
       iOS: darwinDetails,
       macOS: darwinDetails,
     );
     await _notificationsPlugin.show(
-      id: id,
+      id: targetId,
       title: title,
       body: body,
       notificationDetails: details,

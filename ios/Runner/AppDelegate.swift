@@ -13,7 +13,10 @@ import workmanager_apple
     WorkmanagerPlugin.setPluginRegistrantCallback { registry in
       GeneratedPluginRegistrant.register(with: registry)
     }
-    WorkmanagerPlugin.registerPeriodicTask(withIdentifier: "crowleys_cloud_background_sync")
+    WorkmanagerPlugin.registerPeriodicTask(
+      withIdentifier: "crowleys_cloud_background_sync",
+      earliestBeginInSeconds: NSNumber(value: 15 * 60)
+    )
     WorkmanagerPlugin.registerBGProcessingTask(withIdentifier: "dev.fluttercommunity.workmanager.BackgroundProcessingTask")
     WorkmanagerPlugin.registerLaunchHandlers()
 

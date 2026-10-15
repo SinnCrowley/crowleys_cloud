@@ -461,7 +461,12 @@ class DeviceSyncFileScanner implements SyncFileScanner {
     if (!_effectiveIsIos) return const [];
 
     try {
-      final perm = await PhotoManager.requestPermissionExtend();
+      var perm = await PhotoManager.getPermissionState(
+        requestOption: const PermissionRequestOption(),
+      );
+      if (!perm.hasAccess && perm == PermissionState.notDetermined) {
+        perm = await PhotoManager.requestPermissionExtend();
+      }
       if (!perm.hasAccess) return const [];
 
       final includePhotos = selectedCategories.contains('photos');

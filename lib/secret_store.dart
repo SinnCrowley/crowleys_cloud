@@ -66,13 +66,25 @@ abstract class SecretStore {
   Future<void> clearCredentials(String serverId);
 }
 
+/// Default secure storage instance configured with [KeychainAccessibility.first_unlock]
+/// to allow background services (like iOS background sync) to read tokens when the phone is locked.
+const defaultSecureStorage = FlutterSecureStorage(
+  iOptions: IOSOptions(
+    accessibility: KeychainAccessibility.first_unlock,
+  ),
+  mOptions: MacOsOptions(
+    accessibility: KeychainAccessibility.first_unlock,
+  ),
+);
+
 /// Secure storage implementation leveraging [FlutterSecureStorage] with
 /// lifetime calculation, epoch token expiration tracking, and volatile in-memory fallback.
 class FlutterSecureSecretStore implements SecretStore {
   FlutterSecureSecretStore({
-    required this.storage,
+    FlutterSecureStorage? storage,
     AppSettingsService? settingsService,
-  }) : _settingsService = settingsService ?? AppSettingsService();
+  }) : storage = storage ?? defaultSecureStorage,
+       _settingsService = settingsService ?? AppSettingsService();
 
   final FlutterSecureStorage storage;
   final AppSettingsService _settingsService;

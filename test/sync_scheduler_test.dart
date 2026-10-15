@@ -18,6 +18,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crowleys_cloud/server_profile.dart';
+import 'package:crowleys_cloud/server_store.dart';
 import 'package:crowleys_cloud/storage/app_database.dart';
 import 'package:crowleys_cloud/sync_scheduler.dart';
 import 'package:flutter/services.dart';
@@ -71,6 +72,23 @@ class _RecordedOneOffTask {
   final ExistingWorkPolicy? existingWorkPolicy;
 }
 
+/// Recorded call for processing task registration.
+class _RecordedProcessingTask {
+  _RecordedProcessingTask({
+    required this.uniqueName,
+    required this.taskName,
+    this.initialDelay,
+    this.inputData,
+    this.constraints,
+  });
+
+  final String uniqueName;
+  final String taskName;
+  final Duration? initialDelay;
+  final Map<String, dynamic>? inputData;
+  final Constraints? constraints;
+}
+
 /// Full mock implementation of [Workmanager] for unit testing.
 class _MockWorkmanager implements Workmanager {
   int initializeCalls = 0;
@@ -81,6 +99,10 @@ class _MockWorkmanager implements Workmanager {
   final List<_RecordedPeriodicTask> registeredPeriodicTasks = [];
   bool shouldThrowOnRegisterPeriodic = false;
   Exception? registerPeriodicException;
+
+  final List<_RecordedProcessingTask> registeredProcessingTasks = [];
+  bool shouldThrowOnRegisterProcessing = false;
+  Exception? registerProcessingException;
 
   final List<_RecordedOneOffTask> registeredOneOffTasks = [];
   bool shouldThrowOnRegisterOneOff = false;
@@ -181,6 +203,34 @@ class _MockWorkmanager implements Workmanager {
         constraints: constraints,
         tag: tag,
         existingWorkPolicy: existingWorkPolicy,
+      ),
+    );
+  }
+
+  @override
+  Future<void> registerProcessingTask(
+    String uniqueName,
+    String taskName, {
+    Duration? initialDelay,
+    Map<String, dynamic>? inputData,
+    Constraints? constraints,
+  }) async {
+    if (shouldThrowOnRegisterProcessing) {
+      if (registerProcessingException != null) {
+        throw registerProcessingException!;
+      }
+      throw PlatformException(
+        code: 'WM_REGISTER_PROCESSING_FAILED',
+        message: 'Processing task registration rejected by platform',
+      );
+    }
+    registeredProcessingTasks.add(
+      _RecordedProcessingTask(
+        uniqueName: uniqueName,
+        taskName: taskName,
+        initialDelay: initialDelay,
+        inputData: inputData,
+        constraints: constraints,
       ),
     );
   }
@@ -462,8 +512,14 @@ void main() {
         expect(task.taskName, 'crowleys_cloud_background_sync');
         expect(task.tag, isNull);
         expect(task.frequency, const Duration(minutes: 30));
-        expect(task.initialDelay, Duration.zero);
+        expect(task.initialDelay, const Duration(minutes: 30));
         expect(task.existingWorkPolicy, ExistingPeriodicWorkPolicy.update);
+
+        expect(mockWm.registeredProcessingTasks.length, 1);
+        final procTask = mockWm.registeredProcessingTasks.single;
+        expect(procTask.uniqueName, syncBackgroundProcessingTaskName);
+        expect(procTask.taskName, syncBackgroundProcessingTaskName);
+        expect(procTask.initialDelay, const Duration(minutes: 30));
       },
     );
 
@@ -496,7 +552,11 @@ void main() {
       expect(mockWm.registeredPeriodicTasks.length, 1);
       final task = mockWm.registeredPeriodicTasks.single;
       expect(task.frequency, const Duration(minutes: 25));
-      expect(task.initialDelay, Duration.zero);
+      expect(task.initialDelay, const Duration(minutes: 25));
+
+      expect(mockWm.registeredProcessingTasks.length, 1);
+      final procTask = mockWm.registeredProcessingTasks.single;
+      expect(procTask.initialDelay, const Duration(minutes: 25));
     });
 
     test(
@@ -520,6 +580,10 @@ void main() {
           mockWm.registeredPeriodicTasks.last.frequency,
           const Duration(minutes: 15),
         );
+        expect(
+          mockWm.registeredPeriodicTasks.last.initialDelay,
+          const Duration(minutes: 15),
+        );
 
         // Above 10080 minutes (7 days) clamped down to 10080
         final serverHigh = _buildTestServer(
@@ -530,6 +594,10 @@ void main() {
         await scheduler.scheduleForServers([serverHigh], forceReRegister: true);
         expect(
           mockWm.registeredPeriodicTasks.last.frequency,
+          const Duration(minutes: 10080),
+        );
+        expect(
+          mockWm.registeredPeriodicTasks.last.initialDelay,
           const Duration(minutes: 10080),
         );
       },
@@ -642,14 +710,17 @@ void main() {
         // Initial registration
         await scheduler.scheduleForServers([server]);
         expect(mockWm.registeredPeriodicTasks.length, 1);
+        expect(mockWm.registeredProcessingTasks.length, 1);
 
         // Repeated registration with identical configuration is skipped
         await scheduler.scheduleForServers([server]);
         expect(mockWm.registeredPeriodicTasks.length, 1);
+        expect(mockWm.registeredProcessingTasks.length, 1);
 
         // forceReRegister: true forces re-registration
         await scheduler.scheduleForServers([server], forceReRegister: true);
         expect(mockWm.registeredPeriodicTasks.length, 2);
+        expect(mockWm.registeredProcessingTasks.length, 2);
 
         // Modified frequency triggers re-registration
         final serverModified = _buildTestServer(
@@ -659,6 +730,7 @@ void main() {
         );
         await scheduler.scheduleForServers([serverModified]);
         expect(mockWm.registeredPeriodicTasks.length, 3);
+        expect(mockWm.registeredProcessingTasks.length, 3);
       },
     );
 
@@ -684,6 +756,10 @@ void main() {
           mockWm.cancelledUniqueNames,
           contains('crowleys_cloud_background_sync'),
         );
+        expect(
+          mockWm.cancelledUniqueNames,
+          contains(syncBackgroundProcessingTaskName),
+        );
         expect(prefs.containsKey('sync_sched_config_ios_aggregate'), isFalse);
 
         // Scenario B: server with syncEnabled: false
@@ -698,6 +774,10 @@ void main() {
           mockWm.cancelledUniqueNames,
           contains('crowleys_cloud_background_sync'),
         );
+        expect(
+          mockWm.cancelledUniqueNames,
+          contains(syncBackgroundProcessingTaskName),
+        );
 
         // Scenario C: server with syncEnabled: true but empty categories and folders
         mockWm.cancelledUniqueNames.clear();
@@ -711,6 +791,10 @@ void main() {
         expect(
           mockWm.cancelledUniqueNames,
           contains('crowleys_cloud_background_sync'),
+        );
+        expect(
+          mockWm.cancelledUniqueNames,
+          contains(syncBackgroundProcessingTaskName),
         );
       },
     );
@@ -738,6 +822,34 @@ void main() {
 
         // Must not throw uncaught error
         await expectLater(scheduler.scheduleForServers([server]), completes);
+      },
+    );
+
+    test(
+      '2.9 triggerBackgroundSyncOnAppClose registers one-off task on iOS and schedules background tasks',
+      () async {
+        final mockWm = _MockWorkmanager();
+        final scheduler = WorkmanagerSyncBackgroundScheduler(
+          workmanager: mockWm,
+          isAndroid: false,
+          isIos: true,
+        );
+
+        final server = _buildTestServer(
+          id: 'srv_close',
+          syncCategories: ['photos'],
+        );
+        final store = ServerStore();
+        await store.save(servers: [server], activeServerId: server.id);
+
+        await scheduler.triggerBackgroundSyncOnAppClose();
+
+        expect(mockWm.registeredOneOffTasks.length, 1);
+        final oneOff = mockWm.registeredOneOffTasks.single;
+        expect(oneOff.uniqueName, 'crowleys_cloud_sync_app_close');
+        expect(oneOff.taskName, 'crowleys_cloud_background_sync');
+        expect(mockWm.registeredPeriodicTasks.length, 1);
+        expect(mockWm.registeredProcessingTasks.length, 1);
       },
     );
   });

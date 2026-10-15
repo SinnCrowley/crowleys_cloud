@@ -45,7 +45,6 @@ import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:crowleys_cloud/transfer_widgets.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
@@ -364,7 +363,7 @@ class _MainScreenState extends State<MainScreen> {
       store: ServerStore(),
       authService: AuthService(
         secretStore: FlutterSecureSecretStore(
-          storage: const FlutterSecureStorage(),
+          storage: defaultSecureStorage,
           settingsService: _appSettingsService,
         ),
       ),
@@ -397,6 +396,8 @@ class _MainScreenState extends State<MainScreen> {
     _transferManager.addListener(_transferListener);
     _lifecycleListener = AppLifecycleListener(
       onResume: () => unawaited(_checkAndRunAutoSync()),
+      onPause: () => unawaited(_onAppBackgroundOrClose()),
+      onHide: () => unawaited(_onAppBackgroundOrClose()),
     );
     _startForegroundAutoSync();
     unawaited(_initializeServers());
@@ -507,6 +508,22 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {});
     unawaited(_checkForAutoUpdates());
     unawaited(_checkAndRunAutoSync());
+  }
+
+  DateTime? _lastBackgroundSyncTrigger;
+
+  Future<void> _onAppBackgroundOrClose() async {
+    final now = DateTime.now();
+    if (_lastBackgroundSyncTrigger != null &&
+        now.difference(_lastBackgroundSyncTrigger!).inSeconds < 5) {
+      return;
+    }
+    _lastBackgroundSyncTrigger = now;
+    try {
+      await _syncScheduler.triggerBackgroundSyncOnAppClose();
+    } catch (e) {
+      debugPrint('[MainScreen] _onAppBackgroundOrClose error: $e');
+    }
   }
 
   void _startForegroundAutoSync() {

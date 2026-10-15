@@ -29,7 +29,6 @@ import 'package:crowleys_cloud/storage/app_database.dart';
 import 'package:crowleys_cloud/sync_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -45,6 +44,8 @@ AppLocalizations _resolveAppLocalizations() {
 }
 
 const syncBackgroundTaskName = 'crowleys_cloud_background_sync';
+const syncBackgroundProcessingTaskName =
+    'dev.fluttercommunity.workmanager.BackgroundProcessingTask';
 const syncBackgroundUniquePrefix = 'crowleys_cloud_sync_';
 const syncBackgroundTag = 'crowleys_cloud_sync';
 
@@ -58,6 +59,9 @@ abstract class SyncBackgroundScheduler {
     List<ServerProfile> servers, {
     bool forceReRegister = false,
   });
+
+  /// Triggers a background sync when the app is placed in the background or closed.
+  Future<void> triggerBackgroundSyncOnAppClose();
 
   /// Triggers a immediate one-off background sync execution for debugging.
   Future<void> debugTriggerOneOffSync(String serverId);
@@ -121,7 +125,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
     try {
       await initialize();
       final secretStore = FlutterSecureSecretStore(
-        storage: const FlutterSecureStorage(),
+        storage: defaultSecureStorage,
       );
       final syncToken = await secretStore.readSyncToken(serverId);
       await _workmanager.registerOneOffTask(
@@ -133,6 +137,41 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
       );
     } catch (e) {
       debugPrint('[SyncScheduler] debugTriggerOneOffSync failed: $e');
+    }
+  }
+
+  @override
+  Future<void> triggerBackgroundSyncOnAppClose() async {
+    if (!_effectiveIsAndroid && !_effectiveIsIos) return;
+    try {
+      await initialize();
+      if (!_isAvailable) return;
+      final store = ServerStore();
+      final snapshot = await store.load();
+      final enabledServers = snapshot.servers.where(_syncEnabled).toList();
+      if (enabledServers.isEmpty) return;
+
+      final allWifiOnly = enabledServers.every(_wifiOnly);
+      final allChargingOnly = enabledServers.every(_chargingOnly);
+
+      if (_effectiveIsIos) {
+        // Trigger immediate background task via beginBackgroundTask to sync before suspension
+        await _workmanager.registerOneOffTask(
+          'crowleys_cloud_sync_app_close',
+          syncBackgroundTaskName,
+          constraints: Constraints(
+            networkType: allWifiOnly
+                ? NetworkType.unmetered
+                : NetworkType.connected,
+            requiresCharging: allChargingOnly,
+          ),
+          existingWorkPolicy: ExistingWorkPolicy.keep,
+        );
+        // Ensure BGTaskScheduler has tasks scheduled
+        await _scheduleForServersIos(enabledServers, forceReRegister: true);
+      }
+    } catch (e) {
+      debugPrint('[SyncScheduler] triggerBackgroundSyncOnAppClose error: $e');
     }
   }
 
@@ -163,7 +202,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
     bool forceReRegister = false,
   }) async {
     final secretStore = FlutterSecureSecretStore(
-      storage: const FlutterSecureStorage(),
+      storage: defaultSecureStorage,
     );
     final prefs = await SharedPreferences.getInstance();
     for (final server in servers) {
@@ -234,6 +273,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
     if (enabledServers.isEmpty) {
       try {
         await _workmanager.cancelByUniqueName(syncBackgroundTaskName);
+        await _workmanager.cancelByUniqueName(syncBackgroundProcessingTaskName);
       } catch (e) {
         debugPrint('[SyncScheduler] iOS cancelByUniqueName error: $e');
       }
@@ -267,7 +307,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
         syncBackgroundTaskName,
         syncBackgroundTaskName,
         frequency: Duration(minutes: minFrequencyMinutes),
-        initialDelay: Duration.zero,
+        initialDelay: Duration(minutes: minFrequencyMinutes),
         constraints: Constraints(
           networkType: allWifiOnly
               ? NetworkType.unmetered
@@ -276,13 +316,24 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
         ),
         existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
       );
+      await _workmanager.registerProcessingTask(
+        syncBackgroundProcessingTaskName,
+        syncBackgroundProcessingTaskName,
+        initialDelay: Duration(minutes: minFrequencyMinutes),
+        constraints: Constraints(
+          networkType: allWifiOnly
+              ? NetworkType.unmetered
+              : NetworkType.connected,
+          requiresCharging: allChargingOnly,
+        ),
+      );
       await prefs.setString(prefKey, configJson);
     } on PlatformException catch (e) {
       debugPrint(
-        '[SyncScheduler] iOS registerPeriodicTask PlatformException: ${e.message}',
+        '[SyncScheduler] iOS registration PlatformException: ${e.message}',
       );
     } catch (e) {
-      debugPrint('[SyncScheduler] iOS registerPeriodicTask failed: $e');
+      debugPrint('[SyncScheduler] iOS registration failed: $e');
     }
   }
 
@@ -325,6 +376,7 @@ class WorkmanagerSyncBackgroundScheduler implements SyncBackgroundScheduler {
         }
       } else if (_effectiveIsIos) {
         await _workmanager.cancelByUniqueName(syncBackgroundTaskName);
+        await _workmanager.cancelByUniqueName(syncBackgroundProcessingTaskName);
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('sync_sched_config_ios_aggregate');
       }
@@ -363,16 +415,21 @@ void syncCallbackDispatcher() {
       WidgetsFlutterBinding.ensureInitialized();
       DartPluginRegistrant.ensureInitialized();
       AppDatabase.ensurePlatformInitialized();
+      final isProcessingTask =
+          taskName == syncBackgroundProcessingTaskName;
       final isSyncTask =
           taskName == syncBackgroundTaskName ||
           taskName == Workmanager.iOSBackgroundTask ||
           taskName == 'dev.fluttercommunity.workmanager.BackgroundFetch' ||
-          taskName ==
-              'dev.fluttercommunity.workmanager.BackgroundProcessingTask';
+          isProcessingTask;
       if (!isSyncTask) return true;
       final serverId = inputData?['serverId'] as String?;
       final syncToken = inputData?['syncToken'] as String?;
-      return await runBackgroundSync(serverId: serverId, syncToken: syncToken);
+      return await runBackgroundSync(
+        serverId: serverId,
+        syncToken: syncToken,
+        isProcessingTask: isProcessingTask,
+      );
     } catch (e, stack) {
       debugPrint('[SyncDispatcher] Uncaught background error: $e\n$stack');
       return false;
@@ -386,6 +443,7 @@ Future<bool> runBackgroundSync({
   String? syncToken,
   AppLocalizations? l10n,
   SyncStateStore? stateStore,
+  bool isProcessingTask = false,
 }) async {
   AppDatabase.ensurePlatformInitialized();
   final resolvedL10n = l10n ?? _resolveAppLocalizations();
@@ -393,7 +451,7 @@ Future<bool> runBackgroundSync({
   final snapshot = await store.load();
   final settingsService = AppSettingsService();
   final baseSecretStore = FlutterSecureSecretStore(
-    storage: const FlutterSecureStorage(),
+    storage: defaultSecureStorage,
     settingsService: settingsService,
   );
   final secretStore = OverrideSyncTokenSecretStore(
@@ -430,6 +488,7 @@ Future<bool> runBackgroundSync({
         await prefs.remove('sync_sched_config_$serverId');
       } else if (Platform.isIOS) {
         await Workmanager().cancelByUniqueName(syncBackgroundTaskName);
+        await Workmanager().cancelByUniqueName(syncBackgroundProcessingTaskName);
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('sync_sched_config_ios_aggregate');
       }
@@ -437,9 +496,12 @@ Future<bool> runBackgroundSync({
     return true;
   }
 
-  // iOS allocates ~30s for BGAppRefreshTask. Pass a safe 24-second deadline.
+  // iOS allocates ~30s for BGAppRefreshTask and one-off tasks.
+  // BGProcessingTask runs when device is idle and allows longer runs (up to 5-10 min).
   final DateTime? deadline = Platform.isIOS
-      ? DateTime.now().add(const Duration(seconds: 24))
+      ? (isProcessingTask
+          ? DateTime.now().add(const Duration(minutes: 5))
+          : DateTime.now().add(const Duration(seconds: 24)))
       : null;
 
   var anySuccess = false;
@@ -448,7 +510,7 @@ Future<bool> runBackgroundSync({
   for (final server in servers) {
     if (deadline != null && DateTime.now().isAfter(deadline)) break;
 
-    final notificationId = server.id.hashCode;
+    const notificationId = SyncNotificationService.syncNotificationId;
     final serverName = server.displayName;
 
     final result = await syncService.syncServer(
@@ -480,16 +542,21 @@ Future<bool> runBackgroundSync({
         isError: false,
       );
       // Keep the scheduled job and file state: the next run resumes the same files.
-    } else if (result.status == SyncRunStatus.serverUnreachable ||
-        result.status == SyncRunStatus.authRequired) {
+    } else if (result.status == SyncRunStatus.serverUnreachable) {
       anyFailure = true;
-      final isUnreachable = result.status == SyncRunStatus.serverUnreachable;
       await SyncNotificationService.instance.showCompleteNotification(
         id: notificationId,
         title: resolvedL10n.syncNotificationPausedTitle(serverName),
-        body: isUnreachable
-            ? resolvedL10n.syncNotificationUnreachableBody
-            : resolvedL10n.syncNotificationAuthRequiredBody,
+        body: resolvedL10n.syncNotificationUnreachableBody,
+        isError: true,
+      );
+      // Transient error: do NOT cancel the background task schedule!
+    } else if (result.status == SyncRunStatus.authRequired) {
+      anyFailure = true;
+      await SyncNotificationService.instance.showCompleteNotification(
+        id: notificationId,
+        title: resolvedL10n.syncNotificationPausedTitle(serverName),
+        body: resolvedL10n.syncNotificationAuthRequiredBody,
         isError: true,
       );
       try {
@@ -504,6 +571,7 @@ Future<bool> runBackgroundSync({
           final otherServers = servers.where((s) => s.id != server.id).toList();
           if (otherServers.isEmpty) {
             await Workmanager().cancelByUniqueName(syncBackgroundTaskName);
+            await Workmanager().cancelByUniqueName(syncBackgroundProcessingTaskName);
             final prefs = await SharedPreferences.getInstance();
             await prefs.remove('sync_sched_config_ios_aggregate');
             return false;
@@ -531,6 +599,34 @@ Future<bool> runBackgroundSync({
         isError: false,
       );
     }
+  }
+
+  // Re-schedule BGProcessingTask for iOS so processing tasks recur
+  if (Platform.isIOS && servers.isNotEmpty) {
+    try {
+      final minFrequencyMinutes = servers
+          .map((s) => s.syncPrefs['syncFrequency'] as int? ?? 15)
+          .reduce((a, b) => a < b ? a : b)
+          .clamp(15, 10080);
+      final allWifiOnly = servers.every(
+        (s) => (s.syncPrefs['backupWifiOnly'] as bool?) ?? true,
+      );
+      final allChargingOnly = servers.every(
+        (s) => s.syncPrefs['backupChargingOnly'] == true,
+      );
+
+      await Workmanager().registerProcessingTask(
+        syncBackgroundProcessingTaskName,
+        syncBackgroundProcessingTaskName,
+        initialDelay: Duration(minutes: minFrequencyMinutes),
+        constraints: Constraints(
+          networkType: allWifiOnly
+              ? NetworkType.unmetered
+              : NetworkType.connected,
+          requiresCharging: allChargingOnly,
+        ),
+      );
+    } catch (_) {}
   }
 
   if (Platform.isIOS) {
