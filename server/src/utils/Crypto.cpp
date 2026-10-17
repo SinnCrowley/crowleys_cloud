@@ -551,16 +551,18 @@ bool decryptFileToStream(const std::filesystem::path &srcPath, const std::string
   std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> context(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
   if (!context || EVP_DecryptInit_ex(context.get(), EVP_aes_256_cbc(), nullptr,
       reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) return false;
-  unsigned char encrypted[65536], plain[65536 + EVP_MAX_BLOCK_LENGTH];
-  while (input.read(reinterpret_cast<char *>(encrypted), sizeof(encrypted)) || input.gcount() > 0) {
+  constexpr size_t kChunkSize = 65536;
+  std::vector<unsigned char> encrypted(kChunkSize);
+  std::vector<unsigned char> plain(kChunkSize + EVP_MAX_BLOCK_LENGTH);
+  while (input.read(reinterpret_cast<char *>(encrypted.data()), encrypted.size()) || input.gcount() > 0) {
     int length = 0;
-    if (EVP_DecryptUpdate(context.get(), plain, &length, encrypted, static_cast<int>(input.gcount())) != 1) return false;
-    if (length) chunkCallback(reinterpret_cast<const char *>(plain), length);
+    if (EVP_DecryptUpdate(context.get(), plain.data(), &length, encrypted.data(), static_cast<int>(input.gcount())) != 1) return false;
+    if (length) chunkCallback(reinterpret_cast<const char *>(plain.data()), length);
   }
   if (input.bad()) return false;
   int length = 0;
-  if (EVP_DecryptFinal_ex(context.get(), plain, &length) != 1) return false;
-  if (length) chunkCallback(reinterpret_cast<const char *>(plain), length);
+  if (EVP_DecryptFinal_ex(context.get(), plain.data(), &length) != 1) return false;
+  if (length) chunkCallback(reinterpret_cast<const char *>(plain.data()), length);
   return true;
 }
 
@@ -596,13 +598,14 @@ bool reencryptFile(const std::filesystem::path &source, const std::filesystem::p
       EVP_EncryptInit_ex(context.get(), EVP_aes_256_cbc(), nullptr,
                         reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) return false;
   plainSize = 0;
+  std::vector<unsigned char> encrypted(65536 + 2 * EVP_MAX_BLOCK_LENGTH);
   const bool decrypted = decryptFileToStream(source, oldKey, [&](const char *plain, size_t size) {
-    unsigned char encrypted[65536 + 2 * EVP_MAX_BLOCK_LENGTH];
     int length = 0;
     if (size > 65536 + EVP_MAX_BLOCK_LENGTH || EVP_DigestUpdate(digest.get(), plain, size) != 1 ||
-        EVP_EncryptUpdate(context.get(), encrypted, &length, reinterpret_cast<const unsigned char *>(plain), static_cast<int>(size)) != 1)
+        EVP_EncryptUpdate(context.get(), encrypted.data(), &length, reinterpret_cast<const unsigned char *>(plain), static_cast<int>(size)) != 1) {
       throw std::runtime_error("Cannot reencrypt file");
-    output.write(reinterpret_cast<const char *>(encrypted), length);
+    }
+    output.write(reinterpret_cast<const char *>(encrypted.data()), length);
     if (!output) throw std::runtime_error("Cannot write rotated file");
     plainSize += size;
   });
