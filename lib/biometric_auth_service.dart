@@ -26,8 +26,14 @@ class BiometricAuthService {
   /// Checks if hardware biometrics can be checked and are supported on the host device.
   Future<bool> canAuthenticate() async {
     try {
-      final canCheck = await _auth.canCheckBiometrics;
-      final isSupported = await _auth.isDeviceSupported();
+      final canCheck = await _auth.canCheckBiometrics.timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => false,
+      );
+      final isSupported = await _auth.isDeviceSupported().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => false,
+      );
       return canCheck && isSupported;
     } catch (_) {
       return false;

@@ -699,12 +699,22 @@ class _MainScreenState extends State<MainScreen> {
         if (!mounted || !_serverManager.requiresAuth) {
           return;
         }
-        await _authenticateActiveServer();
+        await _authenticateActiveServer().timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            debugPrint('Authentication prompt timed out.');
+          },
+        );
       } catch (e, stack) {
         debugPrint('Error during authentication: $e\n$stack');
       } finally {
         _authPromptInFlight = false;
-        if (mounted) setState(() {});
+        if (mounted) {
+          if (_serverManager.requiresAuth) {
+            _authPromptDismissed = true;
+          }
+          setState(() {});
+        }
       }
     });
   }
@@ -2123,6 +2133,15 @@ class _MainScreenState extends State<MainScreen> {
                         l10n.openingSignIn,
                         style: TextStyle(color: appSubtext),
                         textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _authPromptDismissed = true;
+                          });
+                        },
+                        child: Text(l10n.cancel),
                       ),
                     ],
                   ),
