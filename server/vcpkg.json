@@ -1,6 +1,6 @@
 {
   "name": "crowleys-cloud-server",
-  "version-string": "1.0.0",
+  "version-string": "1.0.1",
   "description": "Crowley's Cloud C++ backend server",
   "dependencies": [
     "openssl",
