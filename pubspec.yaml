@@ -16,7 +16,7 @@
 name: crowleys_cloud
 description: "Mobile app for Crowley's Cloud Server"
 publish_to: 'none'
-version: 1.0.1+10001
+version: 1.0.2+10002
 
 environment:
   sdk: ^3.9.2
