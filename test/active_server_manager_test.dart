@@ -260,5 +260,45 @@ void main() {
         expect(manager.activeServer?.id, 's1');
       },
     );
+
+    test(
+      'updateServer updates server profile and clears connection error',
+      () async {
+        final s1 = ServerProfile(
+          id: 's1',
+          displayName: 'Server Old',
+          baseUrl: 'https://192.168.1.100',
+          port: '8080',
+          authMode: 'login',
+          lastUsedAt: DateTime.utc(2026, 5, 1),
+          syncPrefs: const {},
+        );
+        final store = _FakeServerStore(
+          ServerStoreSnapshot(servers: [s1], activeServerId: 's1'),
+        );
+        final auth = AuthService(
+          secretStore: InMemorySecretStore(),
+          gateway: _FakeAuthGateway(),
+        );
+        final manager = ActiveServerManager(store: store, authService: auth);
+        await manager.initialize();
+
+        manager.reportConnectionError(serverId: 's1', message: 'Timed out');
+        expect(manager.connectionErrorMessage, 'Timed out');
+
+        final updated = s1.copyWith(
+          displayName: 'Server New',
+          baseUrl: 'https://192.168.1.200',
+          port: '9090',
+        );
+        await manager.updateServer(updated);
+
+        expect(manager.activeServer?.displayName, 'Server New');
+        expect(manager.activeServer?.baseUrl, 'https://192.168.1.200');
+        expect(manager.activeServer?.port, '9090');
+        expect(manager.connectionErrorMessage, isNull);
+        expect(store.savedServers.first.baseUrl, 'https://192.168.1.200');
+      },
+    );
   });
 }

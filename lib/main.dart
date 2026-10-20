@@ -38,6 +38,7 @@ import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_setup_screen.dart';
 import 'package:crowleys_cloud/settings_screen.dart';
+import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:crowleys_cloud/server_store.dart';
 import 'package:crowleys_cloud/sync_scheduler.dart';
 import 'package:crowleys_cloud/sync_service.dart';
@@ -207,6 +208,9 @@ class _ActiveServerAuthDialog extends StatefulWidget {
     required this.canUseBiometrics,
     required this.onPasswordAuth,
     required this.onBiometricAuth,
+    this.onSwitchServer,
+    this.onAddServer,
+    this.onEditServer,
   });
 
   final ServerProfile active;
@@ -220,6 +224,9 @@ class _ActiveServerAuthDialog extends StatefulWidget {
   })
   onPasswordAuth;
   final Future<bool> Function(ServerProfile active) onBiometricAuth;
+  final VoidCallback? onSwitchServer;
+  final VoidCallback? onAddServer;
+  final VoidCallback? onEditServer;
 
   @override
   State<_ActiveServerAuthDialog> createState() =>
@@ -251,26 +258,69 @@ class _ActiveServerAuthDialogState extends State<_ActiveServerAuthDialog> {
       backgroundColor: appSurface,
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
       child: SingleChildScrollView(
-        child: AuthCard(
-          title: l10n.logIn,
-          subtitle: widget.active.displayName,
-          initialMode: AuthMode.login,
-          usernameController: _usernameController,
-          passwordController: _passwordController,
-          biometricAvailable: widget.canUseBiometrics,
-          leading: const _AuthServerBadge(),
-          onSubmit: (mode, {email}) async {
-            return widget.onPasswordAuth(
-              username: _usernameController.text.trim(),
-              password: _passwordController.text,
-              mode: mode,
-              email: email,
-            );
-          },
-          getBaseUrl: () => widget.active.connectionUrl,
-          onBiometricLogin: () async {
-            return widget.onBiometricAuth(widget.active);
-          },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AuthCard(
+              title: l10n.logIn,
+              subtitle:
+                  '${widget.active.displayName}\n(${widget.active.connectionUrl})',
+              initialMode: AuthMode.login,
+              usernameController: _usernameController,
+              passwordController: _passwordController,
+              biometricAvailable: widget.canUseBiometrics,
+              leading: const _AuthServerBadge(),
+              onSubmit: (mode, {email}) async {
+                return widget.onPasswordAuth(
+                  username: _usernameController.text.trim(),
+                  password: _passwordController.text,
+                  mode: mode,
+                  email: email,
+                );
+              },
+              getBaseUrl: () => widget.active.connectionUrl,
+              onBiometricLogin: () async {
+                return widget.onBiometricAuth(widget.active);
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  if (widget.onEditServer != null)
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                        widget.onEditServer!();
+                      },
+                      icon: const Icon(Icons.edit_outlined, size: 16),
+                      label: Text(l10n.edit),
+                    ),
+                  if (widget.onSwitchServer != null)
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                        widget.onSwitchServer!();
+                      },
+                      icon: const Icon(Icons.dns_outlined, size: 16),
+                      label: Text(l10n.chooseServer),
+                    ),
+                  if (widget.onAddServer != null)
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                        widget.onAddServer!();
+                      },
+                      icon: const Icon(Icons.add, size: 16),
+                      label: Text(l10n.addServer),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -723,9 +773,6 @@ class _MainScreenState extends State<MainScreen> {
     final active = _serverManager.activeServer;
     if (active == null) return;
 
-    final lastUsername = await _serverManager.authService.readLastUsername(
-      active.id,
-    );
     final hasSavedCredentials = await _serverManager.authService
         .hasSavedCredentials(active.id);
     final biometricLoginEnabled = await _appSettingsService
@@ -765,7 +812,12 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     if (!mounted) return;
-    await _showPasswordDialog(active, lastUsername, canUseBiometrics);
+    // When biometrics is not available, don't automatically pop up a modal dialog
+    // on app startup. Instead, reveal the screen with server details and buttons
+    // so the user can Sign In, Add Server, Switch Server, or Edit Server!
+    setState(() {
+      _authPromptDismissed = true;
+    });
   }
 
   Future<void> _showPasswordDialog(
@@ -793,6 +845,9 @@ class _MainScreenState extends State<MainScreen> {
                 );
               },
           onBiometricAuth: _authenticateWithBiometrics,
+          onSwitchServer: _openServerManagementDialog,
+          onAddServer: _openAddServerFlow,
+          onEditServer: () => _openEditServerDialog(active),
         );
       },
     );
@@ -891,52 +946,267 @@ class _MainScreenState extends State<MainScreen> {
     return true;
   }
 
-  Future<void> _chooseOtherServerFromExisting() async {
+  Future<void> _openServerManagementDialog() async {
     final l10n = AppLocalizations.of(context)!;
-    final activeId = _serverManager.activeServer?.id;
-    final otherServers = _serverManager.servers
-        .where((server) => server.id != activeId)
-        .toList(growable: false);
-    if (otherServers.isEmpty) return;
 
-    final selectedServerId = await showDialog<String>(
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final activeId = _serverManager.activeServer?.id;
+            final servers = _serverManager.servers;
+
+            return AlertDialog(
+              backgroundColor: appSurface,
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.chooseServer,
+                      style: TextStyle(color: appText),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.add, color: appAccent),
+                    tooltip: l10n.addServer,
+                    onPressed: () async {
+                      Navigator.of(dialogContext).pop();
+                      await _openAddServerFlow();
+                    },
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: servers.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Text(
+                          l10n.noServersConfiguredYet,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: appSubtext),
+                        ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: servers.length,
+                        itemBuilder: (context, index) {
+                          final server = servers[index];
+                          final isActive = server.id == activeId;
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            leading: Icon(
+                              Icons.dns,
+                              color: isActive ? appAccent : appSubtext,
+                            ),
+                            title: Text(
+                              server.displayName,
+                              style: TextStyle(
+                                color: appText,
+                                fontWeight: isActive
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                            subtitle: Text(
+                              server.connectionUrl,
+                              style: TextStyle(color: appSubtext),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isActive)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 4),
+                                    child: Icon(
+                                      Icons.check,
+                                      color: appAccent,
+                                      size: 20,
+                                    ),
+                                  ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.edit_outlined,
+                                    color: appSubtext,
+                                    size: 20,
+                                  ),
+                                  tooltip: l10n.edit,
+                                  onPressed: () async {
+                                    Navigator.of(dialogContext).pop();
+                                    await _openEditServerDialog(server);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    color: appSubtext,
+                                    size: 20,
+                                  ),
+                                  tooltip: l10n.removeServer,
+                                  onPressed: () async {
+                                    final confirmed =
+                                        await _confirmRemoveServer(server);
+                                    if (confirmed) {
+                                      await _serverManager.removeServer(
+                                        server.id,
+                                      );
+                                      if (!mounted) return;
+                                      setState(() {});
+                                      if (_serverManager.servers.isEmpty) {
+                                        if (dialogContext.mounted) {
+                                          Navigator.of(dialogContext).pop();
+                                        }
+                                      } else {
+                                        setDialogState(() {});
+                                      }
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                            onTap: () async {
+                              Navigator.of(dialogContext).pop();
+                              if (!isActive) {
+                                await _switchServer(server.id);
+                              }
+                            },
+                          );
+                        },
+                      ),
+              ),
+              actions: [
+                TextButton.icon(
+                  icon: const Icon(Icons.add),
+                  onPressed: () async {
+                    Navigator.of(dialogContext).pop();
+                    await _openAddServerFlow();
+                  },
+                  label: Text(l10n.addServer),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(l10n.cancel),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<bool> _confirmRemoveServer(ServerProfile server) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appSurface,
-        title: Text(l10n.chooseServer, style: TextStyle(color: appText)),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: otherServers.length,
-            itemBuilder: (context, index) {
-              final server = otherServers[index];
-              return ListTile(
-                leading: Icon(Icons.dns, color: appSubtext),
-                title: Text(
-                  server.displayName,
-                  style: TextStyle(color: appText),
+        title: Text(l10n.removeServer, style: TextStyle(color: appText)),
+        content: Text(
+          '${server.displayName}\n(${server.connectionUrl})',
+          style: TextStyle(color: appSubtext),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.remove),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
+  Future<void> _openEditServerDialog(ServerProfile server) async {
+    final l10n = AppLocalizations.of(context)!;
+    final nameController = TextEditingController(text: server.displayName);
+    final urlController = TextEditingController(text: server.connectionUrl);
+    final formKey = GlobalKey<FormState>();
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: appSurface,
+        title: Text(l10n.edit, style: TextStyle(color: appText)),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameController,
+                style: TextStyle(color: appText),
+                decoration: InputDecoration(
+                  labelText: l10n.serverNameLabel,
+                  labelStyle: TextStyle(color: appSubtext),
+                  hintText: l10n.serverNameHint,
                 ),
-                subtitle: Text(
-                  server.baseUrl,
-                  style: TextStyle(color: appSubtext),
+                validator: (val) => (val == null || val.trim().isEmpty)
+                    ? l10n.allFieldsRequired
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: urlController,
+                style: TextStyle(color: appText),
+                decoration: InputDecoration(
+                  labelText: 'URL',
+                  labelStyle: TextStyle(color: appSubtext),
+                  hintText: 'http://192.168.1.100:8080',
                 ),
-                onTap: () => Navigator.of(context).pop(server.id),
-              );
-            },
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return l10n.allFieldsRequired;
+                  }
+                  final parsed = UrlUtils.parseUrlInput(val.trim());
+                  if (parsed['baseUrl']!.isEmpty) {
+                    return l10n.pleaseEnterServerUrlFirst;
+                  }
+                  return null;
+                },
+              ),
+            ],
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState?.validate() == true) {
+                Navigator.of(dialogContext).pop(true);
+              }
+            },
+            child: Text(l10n.serverSetupSubmitButton),
           ),
         ],
       ),
     );
 
-    if (selectedServerId == null) return;
-    await _switchServer(selectedServerId);
+    if (saved != true || !mounted) return;
+
+    final parsed = UrlUtils.parseUrlInput(urlController.text.trim());
+    final updated = server.copyWith(
+      displayName: nameController.text.trim(),
+      baseUrl: parsed['baseUrl']!,
+      port: parsed['port']!.isNotEmpty ? parsed['port'] : null,
+    );
+
+    await _serverManager.updateServer(updated);
+    if (!mounted) return;
+    setState(() {
+      _authPromptDismissed = false;
+    });
   }
 
   void _onSearchChanged(String query) {
@@ -1972,6 +2242,18 @@ class _MainScreenState extends State<MainScreen> {
         appBar: AppBar(
           title: Text(l10n.authenticationRequired),
           backgroundColor: appSurface,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.dns_outlined),
+              tooltip: l10n.chooseServer,
+              onPressed: _openServerManagementDialog,
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: l10n.addServer,
+              onPressed: _openAddServerFlow,
+            ),
+          ],
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -2001,6 +2283,15 @@ class _MainScreenState extends State<MainScreen> {
                       Text(
                         l10n.signInToAccess(active.displayName),
                         style: TextStyle(color: appSubtext),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        active.connectionUrl,
+                        style: TextStyle(
+                          color: appSubtext.withValues(alpha: 0.7),
+                          fontSize: 13,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 28),
@@ -2101,21 +2392,58 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                         ),
                       ],
-                      if (_serverManager.servers.length > 1) ...[
-                        const SizedBox(height: 16),
-                        TextButton.icon(
-                          onPressed: _chooseOtherServerFromExisting,
-                          icon: Icon(Icons.swap_horiz, color: appAccent),
-                          label: Text(
-                            l10n.switchServer,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: appAccent,
-                              fontWeight: FontWeight.w600,
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: OutlinedButton.icon(
+                          onPressed: _openAddServerFlow,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: appText,
+                            side: BorderSide(color: appBorder),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
+                          icon: const Icon(Icons.add),
+                          label: Text(l10n.addServer),
                         ),
-                      ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: OutlinedButton.icon(
+                          onPressed: _openServerManagementDialog,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: appText,
+                            side: BorderSide(color: appBorder),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.dns_outlined),
+                          label: Text(
+                            _serverManager.servers.length > 1
+                                ? l10n.switchServer
+                                : l10n.chooseServer,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton.icon(
+                        onPressed: () => _openEditServerDialog(active),
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: Text(l10n.edit),
+                      ),
                     ],
                   )
                 : Column(
@@ -2135,13 +2463,29 @@ class _MainScreenState extends State<MainScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _authPromptDismissed = true;
-                          });
-                        },
-                        child: Text(l10n.cancel),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _authPromptDismissed = true;
+                              });
+                            },
+                            child: Text(l10n.cancel),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _authPromptDismissed = true;
+                              });
+                              _openAddServerFlow();
+                            },
+                            icon: const Icon(Icons.add, size: 16),
+                            label: Text(l10n.addServer),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -2152,13 +2496,22 @@ class _MainScreenState extends State<MainScreen> {
 
     if (_serverManager.connectionErrorMessage != null) {
       final active = _serverManager.activeServer;
-      final hasOtherServers = _serverManager.servers.any(
-        (server) => server.id != active?.id,
-      );
       return Scaffold(
         appBar: AppBar(
           title: Text(l10n.serverConnectionFailed),
           backgroundColor: appSurface,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.dns_outlined),
+              tooltip: l10n.chooseServer,
+              onPressed: _openServerManagementDialog,
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: l10n.addServer,
+              onPressed: _openAddServerFlow,
+            ),
+          ],
         ),
         body: Center(
           child: Padding(
@@ -2173,6 +2526,17 @@ class _MainScreenState extends State<MainScreen> {
                   style: TextStyle(color: appText, fontSize: 18),
                   textAlign: TextAlign.center,
                 ),
+                if (active != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    active.connectionUrl,
+                    style: TextStyle(
+                      color: appSubtext.withValues(alpha: 0.7),
+                      fontSize: 13,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Text(
                   _serverManager.connectionErrorMessage!,
@@ -2187,22 +2551,37 @@ class _MainScreenState extends State<MainScreen> {
                     child: Text(l10n.retry),
                   ),
                 ),
+                if (active != null) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openEditServerDialog(active),
+                      icon: const Icon(Icons.edit_outlined),
+                      label: Text(l10n.edit),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: hasOtherServers
-                        ? _chooseOtherServerFromExisting
-                        : null,
-                    child: Text(l10n.chooseOtherServer),
+                  child: OutlinedButton.icon(
+                    onPressed: _openServerManagementDialog,
+                    icon: const Icon(Icons.dns_outlined),
+                    label: Text(
+                      _serverManager.servers.length > 1
+                          ? l10n.chooseOtherServer
+                          : l10n.chooseServer,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton(
+                  child: OutlinedButton.icon(
                     onPressed: _openAddServerFlow,
-                    child: Text(l10n.addServer),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.addServer),
                   ),
                 ),
               ],

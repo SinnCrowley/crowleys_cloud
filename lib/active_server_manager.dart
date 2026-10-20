@@ -103,6 +103,7 @@ class ActiveServerManager extends ChangeNotifier {
       activeServer = null;
       requiresSetup = true;
       requiresAuth = false;
+      connectionErrorMessage = null;
       await _persist(activeId: null);
       notifyListeners();
       return;
@@ -110,6 +111,23 @@ class ActiveServerManager extends ChangeNotifier {
 
     if (activeServer?.id == serverId) {
       activeServer = _pickMostRecent(servers);
+      connectionErrorMessage = null;
+      await _refreshAuthAndConnectionState(activeServer!, l10n);
+    }
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> updateServer(
+    ServerProfile updated, [
+    AppLocalizations? l10n,
+  ]) async {
+    servers = servers
+        .map((s) => s.id == updated.id ? updated : s)
+        .toList(growable: false);
+    if (activeServer?.id == updated.id) {
+      activeServer = updated;
+      connectionErrorMessage = null;
       await _refreshAuthAndConnectionState(activeServer!, l10n);
     }
     await _persist();
