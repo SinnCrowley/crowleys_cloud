@@ -851,8 +851,8 @@ jobs:
       - name: Download iOS Build Artifacts
         run: flutter precache --ios
 
-      - name: Prepare iOS Workspace (No Code Sign)
-        run: flutter build ios --no-codesign
+      - name: Build iOS App (Simulator, No Code Sign)
+        run: flutter build ios --simulator
 
   # ------------------------------------------------------------------------------
   # 7. Build Server Docker Images natively per architecture (runs ONLY on version tag push)
