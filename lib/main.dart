@@ -208,9 +208,6 @@ class _ActiveServerAuthDialog extends StatefulWidget {
     required this.canUseBiometrics,
     required this.onPasswordAuth,
     required this.onBiometricAuth,
-    this.onSwitchServer,
-    this.onAddServer,
-    this.onEditServer,
   });
 
   final ServerProfile active;
@@ -224,9 +221,6 @@ class _ActiveServerAuthDialog extends StatefulWidget {
   })
   onPasswordAuth;
   final Future<bool> Function(ServerProfile active) onBiometricAuth;
-  final VoidCallback? onSwitchServer;
-  final VoidCallback? onAddServer;
-  final VoidCallback? onEditServer;
 
   @override
   State<_ActiveServerAuthDialog> createState() =>
@@ -258,69 +252,27 @@ class _ActiveServerAuthDialogState extends State<_ActiveServerAuthDialog> {
       backgroundColor: appSurface,
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
       child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AuthCard(
-              title: l10n.logIn,
-              subtitle:
-                  '${widget.active.displayName}\n(${widget.active.connectionUrl})',
-              initialMode: AuthMode.login,
-              usernameController: _usernameController,
-              passwordController: _passwordController,
-              biometricAvailable: widget.canUseBiometrics,
-              leading: const _AuthServerBadge(),
-              onSubmit: (mode, {email}) async {
-                return widget.onPasswordAuth(
-                  username: _usernameController.text.trim(),
-                  password: _passwordController.text,
-                  mode: mode,
-                  email: email,
-                );
-              },
-              getBaseUrl: () => widget.active.connectionUrl,
-              onBiometricLogin: () async {
-                return widget.onBiometricAuth(widget.active);
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  if (widget.onEditServer != null)
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop(false);
-                        widget.onEditServer!();
-                      },
-                      icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: Text(l10n.edit),
-                    ),
-                  if (widget.onSwitchServer != null)
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop(false);
-                        widget.onSwitchServer!();
-                      },
-                      icon: const Icon(Icons.dns_outlined, size: 16),
-                      label: Text(l10n.chooseServer),
-                    ),
-                  if (widget.onAddServer != null)
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop(false);
-                        widget.onAddServer!();
-                      },
-                      icon: const Icon(Icons.add, size: 16),
-                      label: Text(l10n.addServer),
-                    ),
-                ],
-              ),
-            ),
-          ],
+        child: AuthCard(
+          title: l10n.logIn,
+          subtitle:
+              '${widget.active.displayName}\n(${widget.active.connectionUrl})',
+          initialMode: AuthMode.login,
+          usernameController: _usernameController,
+          passwordController: _passwordController,
+          biometricAvailable: widget.canUseBiometrics,
+          leading: const _AuthServerBadge(),
+          onSubmit: (mode, {email}) async {
+            return widget.onPasswordAuth(
+              username: _usernameController.text.trim(),
+              password: _passwordController.text,
+              mode: mode,
+              email: email,
+            );
+          },
+          getBaseUrl: () => widget.active.connectionUrl,
+          onBiometricLogin: () async {
+            return widget.onBiometricAuth(widget.active);
+          },
         ),
       ),
     );
@@ -341,10 +293,18 @@ class _UploadPlan {
 }
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key, this.onLocaleChanged, this.syncService});
+  const MainScreen({
+    super.key,
+    this.onLocaleChanged,
+    this.syncService,
+    this.serverManager,
+    this.biometricAuthService,
+  });
 
   final Future<void> Function(Locale? locale)? onLocaleChanged;
   final SyncService? syncService;
+  final ActiveServerManager? serverManager;
+  final BiometricAuthService? biometricAuthService;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -409,15 +369,17 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _appSettingsService = AppSettingsService();
     _syncScheduler = WorkmanagerSyncBackgroundScheduler();
-    _serverManager = ActiveServerManager(
-      store: ServerStore(),
-      authService: AuthService(
-        secretStore: FlutterSecureSecretStore(
-          storage: defaultSecureStorage,
-          settingsService: _appSettingsService,
-        ),
-      ),
-    );
+    _serverManager =
+        widget.serverManager ??
+        ActiveServerManager(
+          store: ServerStore(),
+          authService: AuthService(
+            secretStore: FlutterSecureSecretStore(
+              storage: defaultSecureStorage,
+              settingsService: _appSettingsService,
+            ),
+          ),
+        );
     _syncService =
         widget.syncService ??
         SyncService(
@@ -425,7 +387,8 @@ class _MainScreenState extends State<MainScreen> {
           apiClient: HttpSyncApiClient(authService: _serverManager.authService),
           stateStore: const SqliteSyncStateStore(),
         );
-    _biometricAuthService = BiometricAuthService();
+    _biometricAuthService =
+        widget.biometricAuthService ?? BiometricAuthService();
     _searchTextListener = () => setState(() {});
     _searchController.addListener(_searchTextListener);
     _serverManagerListener = () {
@@ -465,7 +428,9 @@ class _MainScreenState extends State<MainScreen> {
     _searchFocusNode.dispose();
     _disposeLocalController();
     _disposeServerController();
-    _serverManager.dispose();
+    if (widget.serverManager == null) {
+      _serverManager.dispose();
+    }
     super.dispose();
   }
 
@@ -517,6 +482,9 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _requestAllPermissionsAtStartup() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return;
+    }
     try {
       await Permission.notification.request();
       if (Platform.isIOS) {
@@ -845,9 +813,6 @@ class _MainScreenState extends State<MainScreen> {
                 );
               },
           onBiometricAuth: _authenticateWithBiometrics,
-          onSwitchServer: _openServerManagementDialog,
-          onAddServer: _openAddServerFlow,
-          onEditServer: () => _openEditServerDialog(active),
         );
       },
     );
@@ -959,24 +924,15 @@ class _MainScreenState extends State<MainScreen> {
 
             return AlertDialog(
               backgroundColor: appSurface,
-              title: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.chooseServer,
-                      style: TextStyle(color: appText),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add, color: appAccent),
-                    tooltip: l10n.addServer,
-                    onPressed: () async {
-                      Navigator.of(dialogContext).pop();
-                      await _openAddServerFlow();
-                    },
-                  ),
-                ],
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 24,
               ),
+              titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              actionsOverflowButtonSpacing: 8,
+              title: Text(l10n.chooseServer, style: TextStyle(color: appText)),
               content: SizedBox(
                 width: double.maxFinite,
                 child: servers.isEmpty
@@ -988,92 +944,172 @@ class _MainScreenState extends State<MainScreen> {
                           style: TextStyle(color: appSubtext),
                         ),
                       )
-                    : ListView.builder(
+                    : ListView.separated(
                         shrinkWrap: true,
                         itemCount: servers.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
                         itemBuilder: (context, index) {
                           final server = servers[index];
                           final isActive = server.id == activeId;
-                          return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            leading: Icon(
-                              Icons.dns,
-                              color: isActive ? appAccent : appSubtext,
-                            ),
-                            title: Text(
-                              server.displayName,
-                              style: TextStyle(
-                                color: appText,
-                                fontWeight: isActive
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
+                          return Material(
+                            color: isActive
+                                ? appAccent.withValues(alpha: 0.08)
+                                : appBackground,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                color: isActive
+                                    ? appAccent.withValues(alpha: 0.5)
+                                    : appBorder.withValues(alpha: 0.3),
+                                width: isActive ? 1.5 : 1,
                               ),
                             ),
-                            subtitle: Text(
-                              server.connectionUrl,
-                              style: TextStyle(color: appSubtext),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (isActive)
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 4),
-                                    child: Icon(
-                                      Icons.check,
-                                      color: appAccent,
+                            clipBehavior: Clip.antiAlias,
+                            child: ListTile(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              leading: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: isActive
+                                      ? appAccent.withValues(alpha: 0.15)
+                                      : appSurface,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.dns_outlined,
+                                  color: isActive ? appAccent : appSubtext,
+                                  size: 18,
+                                ),
+                              ),
+                              title: Text(
+                                server.displayName,
+                                style: TextStyle(
+                                  color: appText,
+                                  fontWeight: isActive
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  server.connectionUrl,
+                                  style: TextStyle(
+                                    color: appSubtext,
+                                    fontSize: 13,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (isActive)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 4),
+                                      child: Icon(
+                                        Icons.check_circle,
+                                        color: appAccent,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  PopupMenuButton<String>(
+                                    icon: Icon(
+                                      Icons.more_vert,
+                                      color: appSubtext,
                                       size: 20,
                                     ),
-                                  ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.edit_outlined,
-                                    color: appSubtext,
-                                    size: 20,
-                                  ),
-                                  tooltip: l10n.edit,
-                                  onPressed: () async {
-                                    Navigator.of(dialogContext).pop();
-                                    await _openEditServerDialog(server);
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.delete_outline,
-                                    color: appSubtext,
-                                    size: 20,
-                                  ),
-                                  tooltip: l10n.removeServer,
-                                  onPressed: () async {
-                                    final confirmed =
-                                        await _confirmRemoveServer(server);
-                                    if (confirmed) {
-                                      await _serverManager.removeServer(
-                                        server.id,
-                                      );
-                                      if (!mounted) return;
-                                      setState(() {});
-                                      if (_serverManager.servers.isEmpty) {
-                                        if (dialogContext.mounted) {
-                                          Navigator.of(dialogContext).pop();
+                                    tooltip: l10n.edit,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    color: appSurface,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                        color: appBorder.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    onSelected: (action) async {
+                                      if (action == 'edit') {
+                                        Navigator.of(dialogContext).pop();
+                                        await _openEditServerDialog(server);
+                                      } else if (action == 'delete') {
+                                        final confirmed =
+                                            await _confirmRemoveServer(server);
+                                        if (confirmed) {
+                                          await _serverManager.removeServer(
+                                            server.id,
+                                          );
+                                          if (!mounted) return;
+                                          setState(() {});
+                                          if (_serverManager.servers.isEmpty) {
+                                            if (dialogContext.mounted) {
+                                              Navigator.of(dialogContext).pop();
+                                            }
+                                          } else {
+                                            setDialogState(() {});
+                                          }
                                         }
-                                      } else {
-                                        setDialogState(() {});
                                       }
-                                    }
-                                  },
-                                ),
-                              ],
+                                    },
+                                    itemBuilder: (context) => [
+                                      PopupMenuItem(
+                                        value: 'edit',
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.edit_outlined,
+                                              size: 20,
+                                              color: appText,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              l10n.edit,
+                                              style: TextStyle(color: appText),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'delete',
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.delete_outline,
+                                              size: 20,
+                                              color: Colors.redAccent,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              l10n.removeServer,
+                                              style: const TextStyle(
+                                                color: Colors.redAccent,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              onTap: () async {
+                                Navigator.of(dialogContext).pop();
+                                if (!isActive) {
+                                  await _switchServer(server.id);
+                                }
+                              },
                             ),
-                            onTap: () async {
-                              Navigator.of(dialogContext).pop();
-                              if (!isActive) {
-                                await _switchServer(server.id);
-                              }
-                            },
                           );
                         },
                       ),
@@ -2242,18 +2278,6 @@ class _MainScreenState extends State<MainScreen> {
         appBar: AppBar(
           title: Text(l10n.authenticationRequired),
           backgroundColor: appSurface,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.dns_outlined),
-              tooltip: l10n.chooseServer,
-              onPressed: _openServerManagementDialog,
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: l10n.addServer,
-              onPressed: _openAddServerFlow,
-            ),
-          ],
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -2463,8 +2487,10 @@ class _MainScreenState extends State<MainScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
                         children: [
                           TextButton(
                             onPressed: () {
@@ -2474,7 +2500,6 @@ class _MainScreenState extends State<MainScreen> {
                             },
                             child: Text(l10n.cancel),
                           ),
-                          const SizedBox(width: 8),
                           TextButton.icon(
                             onPressed: () {
                               setState(() {
