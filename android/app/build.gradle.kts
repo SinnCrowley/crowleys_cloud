@@ -25,7 +25,43 @@ val releaseSigningConfigured = listOf(releaseStoreFile, releaseStorePassword, re
 android {
     namespace = "com.sinncrowley.crowleys_cloud"
     compileSdk = 37
-    ndkVersion = flutter.ndkVersion
+    val installedNdkVersion = run {
+        // 1. Explicit override via ANDROID_NDK_VERSION
+        val explicitNdk = System.getenv("ANDROID_NDK_VERSION")?.takeIf { it.isNotBlank() }
+        if (explicitNdk != null) return@run explicitNdk
+
+        // 2. Discover SDK directory
+        val sdkDir = listOfNotNull(
+            System.getenv("ANDROID_HOME"),
+            System.getenv("ANDROID_SDK_ROOT"),
+            "/usr/local/lib/android/sdk",
+            "/opt/android-sdk"
+        ).map { File(it) }.firstOrNull { it.exists() && it.isDirectory }
+
+        val ndkDir = sdkDir?.let { File(it, "ndk") }?.takeIf { it.exists() && it.isDirectory }
+
+        // 3. Check paths pointed to by standard runner environment variables
+        val envPaths = listOfNotNull(
+            System.getenv("ANDROID_NDK"),
+            System.getenv("ANDROID_NDK_HOME"),
+            System.getenv("ANDROID_NDK_ROOT"),
+            System.getenv("ANDROID_NDK_LATEST_HOME")
+        ).map { File(it) }
+
+        val validEnvNdk = envPaths.firstOrNull { it.exists() && it.isDirectory }?.name
+        if (validEnvNdk != null) return@run validEnvNdk
+
+        // 4. Scan ndk directory for any installed version (prefer newest)
+        ndkDir?.listFiles()
+            ?.filter { it.isDirectory && !it.name.startsWith(".") }
+            ?.map { it.name }
+            ?.sortedDescending()
+            ?.firstOrNull()
+    }
+
+    ndkVersion = (installedNdkVersion ?: flutter.ndkVersion).also {
+        logger.lifecycle("Selected Android NDK version: $it")
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
