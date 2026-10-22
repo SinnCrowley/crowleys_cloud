@@ -67,8 +67,10 @@ abstract class SecretStore {
 }
 
 /// Default secure storage instance configured with [KeychainAccessibility.first_unlock]
-/// to allow background services (like iOS background sync) to read tokens when the phone is locked.
+/// to allow background services (like iOS background sync) to read tokens when the phone is locked,
+/// and [AndroidOptions.resetOnError] to recover from corrupted KeyStore entries.
 const defaultSecureStorage = FlutterSecureStorage(
+  aOptions: AndroidOptions(resetOnError: true),
   iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
   mOptions: MacOsOptions(accessibility: KeychainAccessibility.first_unlock),
 );
@@ -86,20 +88,44 @@ class FlutterSecureSecretStore implements SecretStore {
   final AppSettingsService _settingsService;
   final Map<String, String> _sessionTokens = {};
   final Map<String, String> _sessionRefreshTokens = {};
+  final Map<String, String> _sessionUsernames = {};
+  final Map<String, String> _sessionPasswords = {};
+  final Map<String, String> _sessionSyncTokens = {};
+
+  Future<void> _safeWrite(String key, String value) async {
+    try {
+      await storage.write(key: key, value: value);
+    } catch (_) {
+      try {
+        await storage.delete(key: key);
+        await storage.write(key: key, value: value);
+      } catch (_) {
+        // Fall back gracefully to in-memory session if secure storage fails on device
+      }
+    }
+  }
+
+  Future<void> _safeDelete(String key) async {
+    try {
+      await storage.delete(key: key);
+    } catch (_) {}
+  }
 
   @override
   Future<void> clearToken(String serverId) async {
     _sessionTokens.remove(serverId);
     _sessionRefreshTokens.remove(serverId);
-    await storage.delete(key: _tokenKey(serverId));
-    await storage.delete(key: _refreshTokenKey(serverId));
-    await storage.delete(key: _tokenExpiresAtKey(serverId));
+    await _safeDelete(_tokenKey(serverId));
+    await _safeDelete(_refreshTokenKey(serverId));
+    await _safeDelete(_tokenExpiresAtKey(serverId));
   }
 
   @override
   Future<void> clearCredentials(String serverId) async {
-    await storage.delete(key: _usernameKey(serverId));
-    await storage.delete(key: _passwordKey(serverId));
+    _sessionUsernames.remove(serverId);
+    _sessionPasswords.remove(serverId);
+    await _safeDelete(_usernameKey(serverId));
+    await _safeDelete(_passwordKey(serverId));
   }
 
   @override
@@ -136,8 +162,16 @@ class FlutterSecureSecretStore implements SecretStore {
 
   @override
   Future<String?> readLastUsername(String serverId) async {
+    final sessionUsername = _sessionUsernames[serverId];
+    if (sessionUsername != null && sessionUsername.isNotEmpty) {
+      return sessionUsername;
+    }
     try {
-      return await storage.read(key: _usernameKey(serverId));
+      final username = await storage.read(key: _usernameKey(serverId));
+      if (username != null && username.isNotEmpty) {
+        _sessionUsernames[serverId] = username;
+      }
+      return username;
     } catch (_) {
       return null;
     }
@@ -145,8 +179,16 @@ class FlutterSecureSecretStore implements SecretStore {
 
   @override
   Future<String?> readSavedPassword(String serverId) async {
+    final sessionPassword = _sessionPasswords[serverId];
+    if (sessionPassword != null && sessionPassword.isNotEmpty) {
+      return sessionPassword;
+    }
     try {
-      return await storage.read(key: _passwordKey(serverId));
+      final password = await storage.read(key: _passwordKey(serverId));
+      if (password != null && password.isNotEmpty) {
+        _sessionPasswords[serverId] = password;
+      }
+      return password;
     } catch (_) {
       return null;
     }
@@ -182,8 +224,10 @@ class FlutterSecureSecretStore implements SecretStore {
     required String username,
     required String password,
   }) async {
-    await storage.write(key: _usernameKey(serverId), value: username);
-    await storage.write(key: _passwordKey(serverId), value: password);
+    _sessionUsernames[serverId] = username;
+    _sessionPasswords[serverId] = password;
+    await _safeWrite(_usernameKey(serverId), username);
+    await _safeWrite(_passwordKey(serverId), password);
   }
 
   @override
@@ -191,13 +235,22 @@ class FlutterSecureSecretStore implements SecretStore {
     required String serverId,
     required String syncToken,
   }) async {
-    await storage.write(key: _syncTokenKey(serverId), value: syncToken);
+    _sessionSyncTokens[serverId] = syncToken;
+    await _safeWrite(_syncTokenKey(serverId), syncToken);
   }
 
   @override
   Future<String?> readSyncToken(String serverId) async {
+    final sessionSyncToken = _sessionSyncTokens[serverId];
+    if (sessionSyncToken != null && sessionSyncToken.isNotEmpty) {
+      return sessionSyncToken;
+    }
     try {
-      return await storage.read(key: _syncTokenKey(serverId));
+      final token = await storage.read(key: _syncTokenKey(serverId));
+      if (token != null && token.isNotEmpty) {
+        _sessionSyncTokens[serverId] = token;
+      }
+      return token;
     } catch (_) {
       return null;
     }
@@ -205,7 +258,8 @@ class FlutterSecureSecretStore implements SecretStore {
 
   @override
   Future<void> clearSyncToken(String serverId) async {
-    await storage.delete(key: _syncTokenKey(serverId));
+    _sessionSyncTokens.remove(serverId);
+    await _safeDelete(_syncTokenKey(serverId));
   }
 
   String _tokenKey(String serverId) => 'server_token_$serverId';
@@ -247,25 +301,31 @@ class FlutterSecureSecretStore implements SecretStore {
     required String accessToken,
     String? refreshToken,
   }) async {
-    final lifetime = await _settingsService.tokenLifetime();
-    if (lifetime.expiresOnAppClose) {
-      await storage.delete(key: _tokenKey(serverId));
-      await storage.delete(key: _refreshTokenKey(serverId));
-      await storage.delete(key: _tokenExpiresAtKey(serverId));
-      return;
-    }
+    try {
+      final lifetime = await _settingsService.tokenLifetime();
+      if (lifetime.expiresOnAppClose) {
+        await _safeDelete(_tokenKey(serverId));
+        await _safeDelete(_refreshTokenKey(serverId));
+        await _safeDelete(_tokenExpiresAtKey(serverId));
+        return;
+      }
 
-    final expiresAt = lifetime.neverExpiresOnDevice
-        ? -1
-        : DateTime.now().toUtc().add(lifetime.duration!).millisecondsSinceEpoch;
-    await storage.write(key: _tokenKey(serverId), value: accessToken);
-    if (refreshToken != null) {
-      await storage.write(key: _refreshTokenKey(serverId), value: refreshToken);
+      final expiresAt = lifetime.neverExpiresOnDevice
+          ? -1
+          : (lifetime.duration != null
+                ? DateTime.now()
+                      .toUtc()
+                      .add(lifetime.duration!)
+                      .millisecondsSinceEpoch
+                : -1);
+      await _safeWrite(_tokenKey(serverId), accessToken);
+      if (refreshToken != null) {
+        await _safeWrite(_refreshTokenKey(serverId), refreshToken);
+      }
+      await _safeWrite(_tokenExpiresAtKey(serverId), expiresAt.toString());
+    } catch (_) {
+      // Kept in _sessionTokens / _sessionRefreshTokens in memory
     }
-    await storage.write(
-      key: _tokenExpiresAtKey(serverId),
-      value: expiresAt.toString(),
-    );
   }
 }
 

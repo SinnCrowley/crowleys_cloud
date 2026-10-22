@@ -102,15 +102,32 @@ class HttpAuthGateway implements AuthGateway {
 
   Future<AuthResult> _postAuth(Uri uri, Map<String, Object?> payload) async {
     final l10n = platformAppLocalizations();
-    final response = await _client.post(
-      uri,
-      headers: const {'content-type': 'application/json'},
-      body: jsonEncode(payload),
-    );
+    final http.Response response;
+    try {
+      response = await _client.post(
+        uri,
+        headers: const {'content-type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+    } on SocketException {
+      throw AuthException(l10n.serverIsUnreachable);
+    } on http.ClientException catch (e) {
+      throw AuthException(
+        e.message.isNotEmpty ? e.message : l10n.serverIsUnreachable,
+      );
+    } on TimeoutException {
+      throw AuthException(l10n.serverIsUnreachable);
+    } on HandshakeException catch (e) {
+      throw AuthException(
+        e.message.isNotEmpty ? e.message : l10n.serverIsUnreachable,
+      );
+    }
 
     if (response.statusCode == 202 && uri.path.endsWith('/api/register')) {
-      final body = jsonDecode(response.body) as Map<String, Object?>;
-      if (body['status'] == 'pending') return const AuthResult.pending();
+      try {
+        final body = jsonDecode(response.body) as Map<String, Object?>;
+        if (body['status'] == 'pending') return const AuthResult.pending();
+      } catch (_) {}
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw AuthException(
@@ -120,7 +137,12 @@ class HttpAuthGateway implements AuthGateway {
       );
     }
 
-    final json = jsonDecode(response.body) as Map<String, Object?>;
+    final Map<String, Object?> json;
+    try {
+      json = jsonDecode(response.body) as Map<String, Object?>;
+    } on FormatException {
+      throw AuthException(l10n.connectionFailed('Invalid JSON'));
+    }
     final accessToken = json['access_token'] as String?;
     final refreshToken = json['refresh_token'] as String?;
     if (accessToken == null || accessToken.isEmpty) {

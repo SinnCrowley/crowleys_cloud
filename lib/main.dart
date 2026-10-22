@@ -865,11 +865,19 @@ class _MainScreenState extends State<MainScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.authFailed(e.message))));
       return false;
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('MainScreen auth error: $e\n$st');
       if (!mounted) return false;
+      final message = switch (e) {
+        SocketException() || http.ClientException() => l10n.serverIsUnreachable,
+        PlatformException(:final message) => l10n.authFailed(
+          message ?? e.toString(),
+        ),
+        _ => l10n.authFailedGeneric,
+      };
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(l10n.authFailedGeneric)));
+      ).showSnackBar(SnackBar(content: Text(message)));
       return false;
     }
     return true;

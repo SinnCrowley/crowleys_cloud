@@ -17,6 +17,7 @@ import 'dart:convert';
 
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/secret_store.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -426,4 +427,51 @@ void main() {
       expect(await overrideStoreEmpty.readSyncToken('srv1'), 'sync-delegate');
     },
   );
+
+  test(
+    'FlutterSecureSecretStore falls back to session memory if secure storage write throws',
+    () async {
+      final store = FlutterSecureSecretStore(
+        storage: const _FailingSecureStorage(),
+      );
+
+      // Should not throw even when platform KeyStore fails
+      await store.saveTokens(
+        serverId: 'srv_fail',
+        accessToken: 'mem_access',
+        refreshToken: 'mem_refresh',
+      );
+      await store.saveCredentials(
+        serverId: 'srv_fail',
+        username: 'alice',
+        password: 'password123',
+      );
+
+      expect(await store.readToken('srv_fail'), 'mem_access');
+      expect(await store.readRefreshToken('srv_fail'), 'mem_refresh');
+      expect(await store.readLastUsername('srv_fail'), 'alice');
+      expect(await store.readSavedPassword('srv_fail'), 'password123');
+    },
+  );
+}
+
+class _FailingSecureStorage extends FlutterSecureStorage {
+  const _FailingSecureStorage();
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    throw PlatformException(
+      code: 'KEYSTORE_ERROR',
+      message: 'Android KeyStore corrupted or unavailable',
+    );
+  }
 }

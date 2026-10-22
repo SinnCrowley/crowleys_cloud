@@ -13,6 +13,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:io';
+
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/auth_card.dart';
 import 'package:crowleys_cloud/auth_service.dart';
@@ -143,14 +147,22 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.authFailed(e.message))));
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('ServerSetupScreen auth error: $e\n$st');
       _usernameController.clear();
       _passwordController.clear();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
+      final message = switch (e) {
+        SocketException() || http.ClientException() => l10n.serverIsUnreachable,
+        PlatformException(:final message) => l10n.authFailed(
+          message ?? e.toString(),
+        ),
+        _ => l10n.authFailedGeneric,
+      };
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(l10n.authFailedGeneric)));
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
