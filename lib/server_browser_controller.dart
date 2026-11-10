@@ -741,20 +741,11 @@ class ServerBrowserController extends ChangeNotifier {
         failed++;
         continue;
       }
-      final ok = await _copyItemWithinScope(
-        item: item,
-        sourceScope: scope,
-        targetPath: targetPath,
+      final uri = _apiUri('/files/move').replace(
+        queryParameters: {'scope': scope, 'src': item.path, 'dest': targetPath},
       );
-      if (!ok) {
-        failed++;
-        continue;
-      }
-      final delResp = await _authorizedDeleteJson(_apiUri('/files'), {
-        'scope': scope,
-        'paths': [item.path],
-      });
-      if (delResp.statusCode >= 200 && delResp.statusCode < 300) {
+      final response = await _authorizedPostBytes(uri, const []);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         moved++;
         await _invalidateDirectory(scope: scope, path: _parentPath(item.path));
         await _invalidateDirectory(scope: scope, path: destinationPath);
@@ -1230,56 +1221,6 @@ class ServerBrowserController extends ChangeNotifier {
       allOk = allOk && ok;
     }
     return allOk;
-  }
-
-  Future<bool> _copyItemWithinScope({
-    required ServerFileItem item,
-    required String sourceScope,
-    required String targetPath,
-  }) async {
-    if (item.isDir) {
-      final createFolderUri = _apiUri(
-        '/folders',
-      ).replace(queryParameters: {'scope': sourceScope, 'path': targetPath});
-      final createFolderResponse = await _authorizedPostBytes(
-        createFolderUri,
-        const [],
-      );
-      if (createFolderResponse.statusCode < 200 ||
-          createFolderResponse.statusCode >= 300) {
-        return false;
-      }
-      final children = await _listDirAtScope(item.path, sourceScope);
-      var allOk = true;
-      for (final child in children) {
-        final childTargetPath = p.join(targetPath, p.basename(child.path));
-        final ok = await _copyItemWithinScope(
-          item: child,
-          sourceScope: sourceScope,
-          targetPath: childTargetPath,
-        );
-        allOk = allOk && ok;
-      }
-      return allOk;
-    }
-
-    final downloadUri = _apiUri(
-      '/files',
-    ).replace(queryParameters: {'scope': sourceScope, 'path': item.path});
-    final downloadResponse = await _authorizedGet(downloadUri);
-    if (downloadResponse.statusCode < 200 ||
-        downloadResponse.statusCode >= 300) {
-      return false;
-    }
-
-    final uploadUri = _apiUri(
-      '/files',
-    ).replace(queryParameters: {'scope': sourceScope, 'path': targetPath});
-    final uploadResponse = await _authorizedPostBytes(
-      uploadUri,
-      downloadResponse.bodyBytes,
-    );
-    return uploadResponse.statusCode >= 200 && uploadResponse.statusCode < 300;
   }
 
   Uri _publicShareUri(String rawUrl) {

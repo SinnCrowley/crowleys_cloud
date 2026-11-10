@@ -238,7 +238,9 @@ void main() {
           final controller = await createMockController(
             handler: (req) async {
               if (req.method == 'DELETE') deleteCalled = true;
-              if (req.url.path == '/api/files' && req.method == 'POST') {
+              if ((req.url.path == '/api/files' ||
+                      req.url.path == '/api/files/move') &&
+                  req.method == 'POST') {
                 copyCalled = true;
               }
               return http.Response(jsonEncode({'entries': []}), 200);
@@ -348,7 +350,8 @@ void main() {
 
           final controller = await createMockController(
             handler: (req) async {
-              if (req.url.path == '/api/files' && req.method == 'GET') {
+              if (req.url.path == '/api/files/move' ||
+                  (req.url.path == '/api/files' && req.method == 'GET')) {
                 return http.Response('error', 500);
               }
               return http.Response(jsonEncode({'entries': []}), 200);
@@ -384,6 +387,13 @@ void main() {
 
           final controller = await createMockController(
             handler: (req) async {
+              if (req.url.path == '/api/files/move') {
+                final src = req.url.queryParameters['src'] ?? '';
+                if (src.contains('partial_3') || src.contains('partial_4')) {
+                  return http.Response('forbidden', 403);
+                }
+                return http.Response('ok', 200);
+              }
               if (req.url.path == '/api/files' && req.method == 'GET') {
                 // Fail items 3 and 4
                 final path = req.url.queryParameters['path'] ?? '';
@@ -436,6 +446,10 @@ void main() {
           var networkCalls = 0;
           final controller = await createMockController(
             handler: (req) async {
+              if (req.url.path == '/api/files/move' && req.method == 'POST') {
+                networkCalls++;
+                return http.Response('ok', 200);
+              }
               if (req.url.path == '/api/files' && req.method == 'GET') {
                 networkCalls++;
                 return http.Response('ok', 200);
