@@ -170,46 +170,244 @@ static std::vector<unsigned char> hexToBytes(const std::string &hex) {
 }
 } // namespace
 
+bool isScramPasswordHash(const std::string &storedHash) {
+  return storedHash.rfind("$scram-", 0) == 0;
+}
+
 bool isLegacyPasswordHash(const std::string &storedHash) {
-  return storedHash.rfind("$argon2id$", 0) != 0;
+  return storedHash.rfind("$argon2id$", 0) != 0 && !isScramPasswordHash(storedHash);
+}
+
+std::vector<unsigned char> pbkdf2Sha256(const std::string &password, const std::vector<unsigned char> &salt, uint32_t iterations, size_t keyLen) {
+  std::vector<unsigned char> out(keyLen);
+  if (PKCS5_PBKDF2_HMAC(password.data(), static_cast<int>(password.size()),
+                        salt.data(), static_cast<int>(salt.size()),
+                        static_cast<int>(iterations),
+                        EVP_sha256(),
+                        static_cast<int>(keyLen),
+                        out.data()) != 1) {
+    throw std::runtime_error("PKCS5_PBKDF2_HMAC failed");
+  }
+  return out;
+}
+
+static std::vector<unsigned char> hmacSha256Raw(const std::vector<unsigned char> &key, const std::string &data) {
+  unsigned int len = 0;
+  std::vector<unsigned char> out(EVP_MAX_MD_SIZE);
+  HMAC(EVP_sha256(),
+       key.data(),
+       static_cast<int>(key.size()),
+       reinterpret_cast<const unsigned char *>(data.data()),
+       data.size(),
+       out.data(),
+       &len);
+  out.resize(len);
+  return out;
+}
+
+static std::vector<unsigned char> sha256Raw(const std::vector<unsigned char> &input) {
+  std::vector<unsigned char> hash(SHA256_DIGEST_LENGTH);
+  EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+  if (!ctx) throw std::runtime_error("EVP_MD_CTX_new failed");
+  EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr);
+  EVP_DigestUpdate(ctx, input.data(), input.size());
+  unsigned int len = 0;
+  EVP_DigestFinal_ex(ctx, hash.data(), &len);
+  EVP_MD_CTX_free(ctx);
+  hash.resize(len);
+  return hash;
+}
+
+static std::string bytesToHexStr(const unsigned char *data, size_t len) {
+  std::ostringstream ss;
+  for (size_t i = 0; i < len; ++i) {
+    ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(data[i]);
+  }
+  return ss.str();
+}
+
+static std::vector<unsigned char> xorBytes(const std::vector<unsigned char> &a, const std::vector<unsigned char> &b) {
+  size_t len = std::min(a.size(), b.size());
+  std::vector<unsigned char> out(len);
+  for (size_t i = 0; i < len; ++i) {
+    out[i] = a[i] ^ b[i];
+  }
+  return out;
+}
+
+bool scramGenerateKeys(const std::string &password, const std::string &saltHex, uint32_t iterations, std::string &outStoredKeyHex, std::string &outServerKeyHex) {
+  auto saltBytes = hexToBytes(saltHex);
+  if (saltBytes.empty() || iterations == 0) return false;
+  auto saltedPassword = pbkdf2Sha256(password, saltBytes, iterations, 32);
+  auto clientKey = hmacSha256Raw(saltedPassword, "Client Key");
+  auto storedKey = sha256Raw(clientKey);
+  auto serverKey = hmacSha256Raw(saltedPassword, "Server Key");
+  outStoredKeyHex = bytesToHexStr(storedKey.data(), storedKey.size());
+  outServerKeyHex = bytesToHexStr(serverKey.data(), serverKey.size());
+  return true;
+}
+
+bool scramArgon2idGenerateKeys(const std::string &password, const std::string &saltHex, uint32_t memCostKb, uint32_t timeCost, uint32_t lanes, std::string &outStoredKeyHex, std::string &outServerKeyHex) {
+  auto saltBytes = hexToBytes(saltHex);
+  if (saltBytes.empty() || memCostKb == 0 || timeCost == 0 || lanes == 0) return false;
+  std::vector<unsigned char> saltedPassword(32);
+  if (!deriveArgon2idRaw(password, saltBytes, memCostKb, timeCost, lanes, saltedPassword)) {
+    return false;
+  }
+  auto clientKey = hmacSha256Raw(saltedPassword, "Client Key");
+  auto storedKey = sha256Raw(clientKey);
+  auto serverKey = hmacSha256Raw(saltedPassword, "Server Key");
+  outStoredKeyHex = bytesToHexStr(storedKey.data(), storedKey.size());
+  outServerKeyHex = bytesToHexStr(serverKey.data(), serverKey.size());
+  return true;
+}
+
+std::string scramAuthMessage(const std::string &username, const std::string &nonce, const std::string &saltHex, uint32_t iterations) {
+  return "n=" + username + ",r=" + nonce + ",s=" + saltHex + ",i=" + std::to_string(iterations);
+}
+
+std::string scramArgon2idAuthMessage(const std::string &username, const std::string &nonce, const std::string &saltHex, uint32_t memCostKb, uint32_t timeCost, uint32_t lanes) {
+  return "n=" + username + ",r=" + nonce + ",s=" + saltHex + ",k=argon2id,m=" + std::to_string(memCostKb) + ",t=" + std::to_string(timeCost) + ",p=" + std::to_string(lanes);
+}
+
+bool scramVerifyClientProof(const std::string &storedKeyHex, const std::string &authMessage, const std::string &clientProofHex, const std::string &serverKeyHex, std::string &outServerSignatureHex) {
+  auto storedKey = hexToBytes(storedKeyHex);
+  auto clientProof = hexToBytes(clientProofHex);
+  if (storedKey.size() != 32 || clientProof.size() != 32) return false;
+  auto clientSignature = hmacSha256Raw(storedKey, authMessage);
+  auto clientKey = xorBytes(clientProof, clientSignature);
+  auto computedStoredKey = sha256Raw(clientKey);
+  if (computedStoredKey.size() != 32 || CRYPTO_memcmp(computedStoredKey.data(), storedKey.data(), 32) != 0) {
+    return false;
+  }
+  auto serverKey = hexToBytes(serverKeyHex);
+  if (serverKey.size() != 32) return false;
+  auto serverSignature = hmacSha256Raw(serverKey, authMessage);
+  outServerSignatureHex = bytesToHexStr(serverSignature.data(), serverSignature.size());
+  return true;
+}
+
+std::string scramComputeServerSignature(const std::string &serverKeyHex, const std::string &authMessage) {
+  auto serverKey = hexToBytes(serverKeyHex);
+  if (serverKey.size() != 32) return "";
+  auto serverSignature = hmacSha256Raw(serverKey, authMessage);
+  return bytesToHexStr(serverSignature.data(), serverSignature.size());
+}
+
+std::string scramHashPassword(const std::string &password, uint32_t iterations) {
+  std::vector<unsigned char> salt(16);
+  if (RAND_bytes(salt.data(), static_cast<int>(salt.size())) != 1) {
+    throw std::runtime_error("Failed to generate salt for SCRAM password hashing");
+  }
+  std::string saltHex = bytesToHexStr(salt.data(), salt.size());
+  std::string storedKeyHex, serverKeyHex;
+  if (!scramGenerateKeys(password, saltHex, iterations, storedKeyHex, serverKeyHex)) {
+    throw std::runtime_error("Failed to generate SCRAM keys");
+  }
+  return "$scram-sha-256$" + std::to_string(iterations) + "$" + saltHex + "$" + storedKeyHex + "$" + serverKeyHex;
+}
+
+std::string scramArgon2idHashPassword(const std::string &password, uint32_t memCostKb, uint32_t timeCost, uint32_t lanes) {
+  std::vector<unsigned char> salt(16);
+  if (RAND_bytes(salt.data(), static_cast<int>(salt.size())) != 1) {
+    throw std::runtime_error("Failed to generate salt for SCRAM-Argon2id password hashing");
+  }
+  std::string saltHex = bytesToHexStr(salt.data(), salt.size());
+  std::string storedKeyHex, serverKeyHex;
+  if (!scramArgon2idGenerateKeys(password, saltHex, memCostKb, timeCost, lanes, storedKeyHex, serverKeyHex)) {
+    throw std::runtime_error("Failed to generate SCRAM-Argon2id keys");
+  }
+  return "$scram-argon2id$m=" + std::to_string(memCostKb) + ",t=" + std::to_string(timeCost) + ",p=" + std::to_string(lanes) + "$" + saltHex + "$" + storedKeyHex + "$" + serverKeyHex;
+}
+
+bool parseScramHash(const std::string &hash, ScramHashInfo &outInfo) {
+  if (!isScramPasswordHash(hash)) return false;
+  std::vector<std::string> parts;
+  std::stringstream ss(hash);
+  std::string item;
+  while (std::getline(ss, item, '$')) {
+    parts.push_back(item);
+  }
+  if (parts.size() < 6) return false;
+
+  if (parts[1] == "scram-sha-256") {
+    outInfo.kdf = "sha-256";
+    try {
+      outInfo.iterations = static_cast<uint32_t>(std::stoul(parts[2]));
+    } catch (...) {
+      return false;
+    }
+    outInfo.saltHex = parts[3];
+    outInfo.storedKeyHex = parts[4];
+    outInfo.serverKeyHex = parts[5];
+    return !outInfo.saltHex.empty() && !outInfo.storedKeyHex.empty() && !outInfo.serverKeyHex.empty();
+  }
+
+  if (parts[1] == "scram-argon2id") {
+    outInfo.kdf = "argon2id";
+    outInfo.memCostKb = 19456;
+    outInfo.timeCost = 2;
+    outInfo.lanes = 1;
+    std::stringstream paramSs(parts[2]);
+    std::string paramKV;
+    while (std::getline(paramSs, paramKV, ',')) {
+      auto eqPos = paramKV.find('=');
+      if (eqPos != std::string::npos) {
+        std::string key = paramKV.substr(0, eqPos);
+        std::string val = paramKV.substr(eqPos + 1);
+        try {
+          if (key == "m") outInfo.memCostKb = static_cast<uint32_t>(std::stoul(val));
+          else if (key == "t") outInfo.timeCost = static_cast<uint32_t>(std::stoul(val));
+          else if (key == "p") outInfo.lanes = static_cast<uint32_t>(std::stoul(val));
+        } catch (...) {
+          return false;
+        }
+      }
+    }
+    outInfo.saltHex = parts[3];
+    outInfo.storedKeyHex = parts[4];
+    outInfo.serverKeyHex = parts[5];
+    return !outInfo.saltHex.empty() && !outInfo.storedKeyHex.empty() && !outInfo.serverKeyHex.empty();
+  }
+
+  return false;
+}
+
+bool parseScramHash(const std::string &hash, uint32_t &outIterations, std::string &outSaltHex, std::string &outStoredKeyHex, std::string &outServerKeyHex) {
+  ScramHashInfo info;
+  if (!parseScramHash(hash, info)) return false;
+  outIterations = info.iterations;
+  outSaltHex = info.saltHex;
+  outStoredKeyHex = info.storedKeyHex;
+  outServerKeyHex = info.serverKeyHex;
+  return true;
 }
 
 std::string hashPassword(const std::string &password) {
-  constexpr uint32_t memCostKb = 64 * 1024; // 64 MB
-  constexpr uint32_t timeCost = 3;
-  constexpr uint32_t lanes = 1;
-  constexpr std::size_t saltBytes = 16;
-  constexpr std::size_t hashBytes = 32;
-
-  std::vector<unsigned char> salt(saltBytes);
-  if (RAND_bytes(salt.data(), static_cast<int>(salt.size())) != 1) {
-    throw std::runtime_error("Failed to generate salt for password hashing");
-  }
-
-  std::vector<unsigned char> hash(hashBytes);
-  if (!deriveArgon2idRaw(password, salt, memCostKb, timeCost, lanes, hash)) {
-    // If Argon2id is not available in the active OpenSSL version (e.g. OpenSSL < 3.2),
-    // fallback gracefully to legacy SHA-256 hash.
-    return sha256Hex("pw|" + password);
-  }
-
-  std::ostringstream saltHexStream;
-  for (unsigned char b : salt) {
-    saltHexStream << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b);
-  }
-
-  std::ostringstream hashHexStream;
-  for (unsigned char b : hash) {
-    hashHexStream << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b);
-  }
-
-  std::ostringstream formatted;
-  formatted << "$argon2id$v=19$m=" << memCostKb << ",t=" << timeCost << ",p=" << lanes
-            << "$" << saltHexStream.str() << "$" << hashHexStream.str();
-  return formatted.str();
+  return scramArgon2idHashPassword(password, 19456, 2, 1);
 }
 
 bool verifyPasswordHash(const std::string &password, const std::string &storedHash) {
+  if (isScramPasswordHash(storedHash)) {
+    ScramHashInfo info;
+    if (!parseScramHash(storedHash, info)) {
+      return false;
+    }
+    std::string computedStoredKeyHex, computedServerKeyHex;
+    if (info.kdf == "argon2id") {
+      if (!scramArgon2idGenerateKeys(password, info.saltHex, info.memCostKb, info.timeCost, info.lanes, computedStoredKeyHex, computedServerKeyHex)) {
+        return false;
+      }
+    } else {
+      if (!scramGenerateKeys(password, info.saltHex, info.iterations, computedStoredKeyHex, computedServerKeyHex)) {
+        return false;
+      }
+    }
+    auto expected = hexToBytes(info.storedKeyHex);
+    auto actual = hexToBytes(computedStoredKeyHex);
+    if (expected.size() != 32 || actual.size() != 32) return false;
+    return CRYPTO_memcmp(expected.data(), actual.data(), 32) == 0;
+  }
   if (isLegacyPasswordHash(storedHash)) {
     const auto legacyHash = sha256Hex("pw|" + password);
     if (legacyHash.size() != storedHash.size()) return false;

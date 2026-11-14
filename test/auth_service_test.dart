@@ -17,6 +17,7 @@ import 'dart:convert';
 
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/secret_store.dart';
+import 'package:crowleys_cloud/shared/utils/scram_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -294,7 +295,12 @@ void main() {
         expect(request.method, 'POST');
         expect(request.url.path, '/api/account/password');
         expect(request.headers['authorization'], 'Bearer access');
-        expect(request.body, '{"new_password":"new-secret"}');
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body.containsKey('salt'), isTrue);
+        expect(body.containsKey('stored_key'), isTrue);
+        expect(body.containsKey('server_key'), isTrue);
+        expect(body['kdf'], 'argon2id');
+        expect(body['m'], 19456);
         return http.Response('{"ok":true}', 200);
       }),
     );
@@ -384,7 +390,11 @@ void main() {
           final body = jsonDecode(request.body) as Map<String, dynamic>;
           expect(body['username'], 'bob');
           expect(body['code'], '123456');
-          expect(body['new_password'], 'brand-new-secret');
+          expect(body.containsKey('salt'), isTrue);
+          expect(body.containsKey('stored_key'), isTrue);
+          expect(body.containsKey('server_key'), isTrue);
+          expect(body['kdf'], 'argon2id');
+          expect(body['m'], 19456);
           return http.Response('{"ok":true}', 200);
         }),
       );
@@ -394,6 +404,155 @@ void main() {
         username: 'bob',
         code: '123456',
         newPassword: 'brand-new-secret',
+      );
+    },
+  );
+
+  test('HttpAuthGateway.register sends SCRAM keys without password', () async {
+    final gateway = HttpAuthGateway(
+      client: MockClient((request) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/api/register');
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body['username'], 'alice');
+        expect(body['password'], isNull);
+        expect(body.containsKey('salt'), isTrue);
+        expect(body.containsKey('stored_key'), isTrue);
+        expect(body.containsKey('server_key'), isTrue);
+        expect(body['kdf'], 'argon2id');
+        expect(body['m'], 19456);
+        return http.Response(
+          '{"access_token":"acc1","refresh_token":"ref1"}',
+          200,
+        );
+      }),
+    );
+
+    final res = await gateway.register(
+      baseUrl: 'http://localhost:8080',
+      username: 'alice',
+      password: 'password123',
+    );
+    expect(res.accessToken, 'acc1');
+    expect(res.refreshToken, 'ref1');
+  });
+
+  test(
+    'HttpAuthGateway.login performs SCRAM challenge-response with mutual auth',
+    () async {
+      String? expectedSig;
+      final gateway = HttpAuthGateway(
+        client: MockClient((request) async {
+          if (request.method == 'GET' &&
+              request.url.path == '/api/auth/challenge') {
+            expect(request.url.queryParameters['username'], 'alice');
+            final clientNonce = request.url.queryParameters['nonce']!;
+            final nonce = '${clientNonce}servernonce123';
+            const saltHex = '0102030405060708090a0b0c0d0e0f10';
+            const memCostKb = 19456;
+            const timeCost = 2;
+            const lanes = 1;
+
+            final authMsg = ScramUtils.scramArgon2idAuthMessage(
+              'alice',
+              nonce,
+              saltHex,
+              memCostKb,
+              timeCost,
+              lanes,
+            );
+            final proof = await ScramUtils.computeArgon2idProof(
+              password: 'password123',
+              saltHex: saltHex,
+              memCostKb: memCostKb,
+              timeCost: timeCost,
+              lanes: lanes,
+              authMessage: authMsg,
+            );
+            expectedSig = proof.expectedServerSignatureHex;
+
+            return http.Response(
+              jsonEncode({
+                'auth_mode': 'scram-argon2id',
+                'salt': saltHex,
+                'm': memCostKb,
+                't': timeCost,
+                'p': lanes,
+                'nonce': nonce,
+                'challenge_token': 'sig123.9999999999',
+              }),
+              200,
+            );
+          } else if (request.method == 'POST' &&
+              request.url.path == '/api/login') {
+            final body = jsonDecode(request.body) as Map<String, dynamic>;
+            expect(body['username'], 'alice');
+            expect(body['password'], isNull);
+            expect(body.containsKey('client_proof'), isTrue);
+            expect(body['challenge_token'], 'sig123.9999999999');
+
+            return http.Response(
+              jsonEncode({
+                'access_token': 'acc-scram',
+                'refresh_token': 'ref-scram',
+                'server_signature': expectedSig,
+              }),
+              200,
+            );
+          }
+          return http.Response('Not found', 404);
+        }),
+      );
+
+      final res = await gateway.login(
+        baseUrl: 'http://localhost:8080',
+        username: 'alice',
+        password: 'password123',
+      );
+      expect(res.accessToken, 'acc-scram');
+      expect(res.refreshToken, 'ref-scram');
+    },
+  );
+
+  test(
+    'HttpAuthGateway.login throws if server signature does not match',
+    () async {
+      final gateway = HttpAuthGateway(
+        client: MockClient((request) async {
+          if (request.method == 'GET' &&
+              request.url.path == '/api/auth/challenge') {
+            return http.Response(
+              jsonEncode({
+                'auth_mode': 'scram',
+                'salt': '0102030405060708090a0b0c0d0e0f10',
+                'iterations': 4096,
+                'nonce': 'random_nonce_123',
+                'challenge_token': 'sig.9999999999',
+              }),
+              200,
+            );
+          } else if (request.method == 'POST' &&
+              request.url.path == '/api/login') {
+            return http.Response(
+              jsonEncode({
+                'access_token': 'acc-scram',
+                'refresh_token': 'ref-scram',
+                'server_signature': 'invalid_signature_hex',
+              }),
+              200,
+            );
+          }
+          return http.Response('Not found', 404);
+        }),
+      );
+
+      expect(
+        () => gateway.login(
+          baseUrl: 'http://localhost:8080',
+          username: 'alice',
+          password: 'password123',
+        ),
+        throwsA(isA<AuthException>()),
       );
     },
   );

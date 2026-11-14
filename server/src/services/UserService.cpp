@@ -84,6 +84,93 @@ std::optional<UserRecord> UserService::registerUser(const std::string &username,
   return UserRecord{.id = id, .username = username, .role = role, .status = status};
 }
 
+std::optional<UserRecord> UserService::registerUserWithScram(const std::string &username,
+                                                             const std::string &scramHash,
+                                                             std::string &error) {
+  if (username.empty() || username.size() > 128 || scramHash.empty() || scramHash.size() > 4096 ||
+      username.find_first_of("\r\n\t") != std::string::npos || !utils::isScramPasswordHash(scramHash)) {
+    error = "invalid_credentials";
+    return std::nullopt;
+  }
+  db::Database::TransactionGuard transaction(db_);
+  bool first;
+  {
+    auto guard = db_.getStatement("SELECT 1 FROM users LIMIT 1");
+    first = sqlite3_step(guard.get()) != SQLITE_ROW;
+  }
+  if (!first && config_.registrationMode == "closed") {
+    error = "registration_closed";
+    return std::nullopt;
+  }
+  const std::string role = first ? "superuser" : "user";
+  const std::string status = first || config_.registrationMode == "open" ? "active" : "pending";
+  auto guard = db_.getStatement(
+      "INSERT INTO users(username, password_hash, role, status, created_at) VALUES(?, ?, ?, ?, ?)");
+  auto *stmt = guard.get();
+  sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 2, scramHash.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 3, role.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 4, status.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_int64(stmt, 5, utils::nowSeconds());
+  if (sqlite3_step(stmt) != SQLITE_DONE) {
+    error = "username_exists";
+    return std::nullopt;
+  }
+  const auto id = sqlite3_last_insert_rowid(db_.raw());
+  transaction.commit();
+  return UserRecord{.id = id, .username = username, .role = role, .status = status};
+}
+
+std::optional<ScramCredentials> UserService::getScramCredentials(const std::string &username) {
+  auto stmtGuard = db_.getStatement("SELECT id, password_hash, role, status, password_reset_required FROM users WHERE username = ?");
+  auto *stmt = stmtGuard.get();
+  sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+  if (sqlite3_step(stmt) != SQLITE_ROW) {
+    return std::nullopt;
+  }
+  const auto id = sqlite3_column_int64(stmt, 0);
+  const auto *hash = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+  const auto hashStr = std::string(hash == nullptr ? "" : hash);
+  const auto *role = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+  const auto *status = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
+  const bool resetReq = sqlite3_column_int(stmt, 4) != 0;
+
+  utils::ScramHashInfo info;
+  if (!utils::parseScramHash(hashStr, info)) {
+    return ScramCredentials{
+      .userId = id,
+      .username = username,
+      .role = role ? role : "user",
+      .status = status ? status : "active",
+      .passwordResetRequired = resetReq,
+      .kdf = "",
+      .iterations = 0,
+      .memCostKb = 0,
+      .timeCost = 0,
+      .lanes = 0,
+      .saltHex = "",
+      .storedKeyHex = "",
+      .serverKeyHex = ""
+    };
+  }
+
+  return ScramCredentials{
+    .userId = id,
+    .username = username,
+    .role = role ? role : "user",
+    .status = status ? status : "active",
+    .passwordResetRequired = resetReq,
+    .kdf = info.kdf,
+    .iterations = info.iterations,
+    .memCostKb = info.memCostKb,
+    .timeCost = info.timeCost,
+    .lanes = info.lanes,
+    .saltHex = info.saltHex,
+    .storedKeyHex = info.storedKeyHex,
+    .serverKeyHex = info.serverKeyHex
+  };
+}
+
 std::optional<UserRecord> UserService::authenticate(const std::string &username,
                                                     const std::string &password) {
   auto stmtGuard = db_.getStatement("SELECT id, password_hash, role FROM users WHERE username = ?");
@@ -102,7 +189,7 @@ std::optional<UserRecord> UserService::authenticate(const std::string &username,
     return std::nullopt;
   }
 
-  if (utils::isLegacyPasswordHash(hashStr)) {
+  if (!utils::isScramPasswordHash(hashStr)) {
     try {
       const auto newHash = passwordHash(password);
       auto updateGuard = db_.getStatement("UPDATE users SET password_hash = ? WHERE id = ?");
@@ -110,9 +197,9 @@ std::optional<UserRecord> UserService::authenticate(const std::string &username,
       sqlite3_bind_text(updateStmt, 1, newHash.c_str(), -1, SQLITE_TRANSIENT);
       sqlite3_bind_int64(updateStmt, 2, id);
       sqlite3_step(updateStmt);
-      LOG_INFO << "Seamlessly upgraded legacy password hash to Argon2id for user: " << username;
+      LOG_INFO << "Seamlessly upgraded password hash to SCRAM-Argon2id for user: " << username;
     } catch (const std::exception &e) {
-      LOG_WARN << "Failed to upgrade legacy password hash for user " << username << ": " << e.what();
+      LOG_WARN << "Failed to upgrade password hash to SCRAM for user " << username << ": " << e.what();
     }
   }
 
@@ -453,6 +540,21 @@ bool UserService::changePassword(std::int64_t userId, const std::string &newPass
 
   const auto hash = passwordHash(newPassword);
   sqlite3_bind_text(stmt, 1, hash.c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_int64(stmt, 2, userId);
+  const auto rc = sqlite3_step(stmt);
+  const auto changes = sqlite3_changes(db_.raw());
+  if (rc != SQLITE_DONE || changes == 0) return false;
+  revokeAllRefreshTokens(userId);
+  return true;
+}
+
+bool UserService::changePasswordWithScram(std::int64_t userId, const std::string &scramHash) {
+  if (scramHash.empty() || scramHash.size() > 4096 || !utils::isScramPasswordHash(scramHash)) {
+    return false;
+  }
+  auto stmtGuard = db_.getStatement("UPDATE users SET password_hash = ? WHERE id = ?");
+  auto *stmt = stmtGuard.get();
+  sqlite3_bind_text(stmt, 1, scramHash.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_int64(stmt, 2, userId);
   const auto rc = sqlite3_step(stmt);
   const auto changes = sqlite3_changes(db_.raw());
@@ -866,6 +968,43 @@ bool UserService::verifyPasswordReset(const std::string &username, const std::st
     const auto hash = passwordHash(newPassword);
     auto guard = db_.getStatement("UPDATE users SET password_hash = ?, password_reset_required = 0, auth_version = auth_version + 1 WHERE id = ?");
     sqlite3_bind_text(guard.get(), 1, hash.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(guard.get(), 2, userId);
+    if (sqlite3_step(guard.get()) != SQLITE_DONE) throw std::runtime_error("Cannot reset password");
+    revokeAllRefreshTokens(userId);
+  }
+  transaction.commit();
+  return valid;
+}
+
+bool UserService::verifyPasswordResetWithScram(const std::string &username, const std::string &code, const std::string &scramHash) {
+  if (scramHash.empty() || scramHash.size() > 4096 || !utils::isScramPasswordHash(scramHash)) return false;
+  cleanupExpiredResetCodes();
+  db::Database::TransactionGuard transaction(db_);
+  std::int64_t userId, resetId;
+  std::string stored;
+  {
+    auto guard = db_.getStatement("SELECT u.id, r.id, r.code FROM users u JOIN password_resets r ON r.user_id = u.id "
+        "WHERE u.username = ? AND u.status IN ('active', 'blocked') AND r.expires_at > ? "
+        "AND r.used_at IS NULL AND r.attempts < 5 ORDER BY r.id DESC LIMIT 1");
+    sqlite3_bind_text(guard.get(), 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(guard.get(), 2, utils::nowSeconds());
+    if (sqlite3_step(guard.get()) != SQLITE_ROW) return false;
+    userId = sqlite3_column_int64(guard.get(), 0);
+    resetId = sqlite3_column_int64(guard.get(), 1);
+    stored = reinterpret_cast<const char *>(sqlite3_column_text(guard.get(), 2));
+  }
+  const auto digest = utils::hmacSha256Hex(config_.jwtSecret, std::to_string(userId) + "|" + code);
+  const bool valid = digest.size() == stored.size() && CRYPTO_memcmp(digest.data(), stored.data(), digest.size()) == 0;
+  {
+    auto guard = db_.getStatement(valid ? "UPDATE password_resets SET used_at = ? WHERE id = ?" :
+                                        "UPDATE password_resets SET attempts = attempts + 1 WHERE id = ? AND ? > 0");
+    sqlite3_bind_int64(guard.get(), 1, valid ? utils::nowSeconds() : resetId);
+    sqlite3_bind_int64(guard.get(), 2, valid ? resetId : 1);
+    if (sqlite3_step(guard.get()) != SQLITE_DONE) throw std::runtime_error("Cannot update recovery attempt");
+  }
+  if (valid) {
+    auto guard = db_.getStatement("UPDATE users SET password_hash = ?, password_reset_required = 0, auth_version = auth_version + 1 WHERE id = ?");
+    sqlite3_bind_text(guard.get(), 1, scramHash.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int64(guard.get(), 2, userId);
     if (sqlite3_step(guard.get()) != SQLITE_DONE) throw std::runtime_error("Cannot reset password");
     revokeAllRefreshTokens(userId);

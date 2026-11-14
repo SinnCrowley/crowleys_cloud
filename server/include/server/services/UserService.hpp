@@ -35,6 +35,22 @@ struct UserRecord {
   bool passwordResetRequired{false};
 };
 
+struct ScramCredentials {
+  std::int64_t userId{0};
+  std::string username;
+  std::string role;
+  std::string status{"active"};
+  bool passwordResetRequired{false};
+  std::string kdf{"argon2id"};
+  uint32_t iterations{0};
+  uint32_t memCostKb{19456};
+  uint32_t timeCost{2};
+  uint32_t lanes{1};
+  std::string saltHex;
+  std::string storedKeyHex;
+  std::string serverKeyHex;
+};
+
 struct AuthTokens {
   std::string accessToken;
   std::string refreshToken;
@@ -62,10 +78,15 @@ class UserService {
   std::optional<UserRecord> registerUser(const std::string &username,
                                          const std::string &password,
                                          std::string &error);
+  std::optional<UserRecord> registerUserWithScram(const std::string &username,
+                                                  const std::string &scramHash,
+                                                  std::string &error);
   std::optional<UserRecord> authenticate(const std::string &username,
                                          const std::string &password);
+  std::optional<ScramCredentials> getScramCredentials(const std::string &username);
 
   bool verifyPasswordReset(const std::string &username, const std::string &code, const std::string &newPassword);
+  bool verifyPasswordResetWithScram(const std::string &username, const std::string &code, const std::string &scramHash);
   bool requestPasswordReset(const std::string &username, std::string &codeOut, bool forceNew = false);
   std::vector<ResetCodeRecord> listResetCodes(std::int64_t actorId);
   bool deleteResetCode(std::int64_t actorId, std::int64_t resetId, std::string &error);
@@ -87,6 +108,7 @@ class UserService {
   void audit(std::int64_t actorId, const std::string &action, std::int64_t targetId);
   bool isLastActiveAdmin(std::int64_t userId) const;
   bool changePassword(std::int64_t userId, const std::string &newPassword);
+  bool changePasswordWithScram(std::int64_t userId, const std::string &scramHash);
   bool deleteAccount(std::int64_t userId);
   bool deleteUser(std::int64_t actorId, std::int64_t userId, std::string &error);
   void resumeDeletions();

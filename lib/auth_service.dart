@@ -19,6 +19,7 @@ import 'dart:io';
 
 import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/l10n/localization_fallback.dart';
+import 'package:crowleys_cloud/shared/utils/scram_utils.dart';
 import 'package:crowleys_cloud/shared/utils/url_utils.dart';
 import 'package:http/http.dart' as http;
 
@@ -71,7 +72,105 @@ class HttpAuthGateway implements AuthGateway {
     required String baseUrl,
     required String username,
     required String password,
-  }) {
+  }) async {
+    final l10n = platformAppLocalizations();
+    final clientNonce = ScramUtils.generateRandomHex(16);
+    final challengeUri = _endpoint(
+      baseUrl,
+      '/api/auth/challenge',
+    ).replace(queryParameters: {'username': username, 'nonce': clientNonce});
+
+    http.Response? challengeResp;
+    try {
+      challengeResp = await _client.get(challengeUri);
+    } on SocketException {
+      throw AuthException(l10n.serverIsUnreachable);
+    } on http.ClientException catch (e) {
+      throw AuthException(
+        e.message.isNotEmpty ? e.message : l10n.serverIsUnreachable,
+      );
+    } on TimeoutException {
+      throw AuthException(l10n.serverIsUnreachable);
+    } on HandshakeException catch (e) {
+      throw AuthException(
+        e.message.isNotEmpty ? e.message : l10n.serverIsUnreachable,
+      );
+    } catch (_) {}
+
+    if (challengeResp != null && challengeResp.statusCode == 200) {
+      try {
+        final chal = jsonDecode(challengeResp.body) as Map<String, Object?>;
+        final authMode = chal['auth_mode'] as String?;
+        if (authMode == 'scram-argon2id') {
+          final saltHex = chal['salt'] as String;
+          final memCostKb = (chal['m'] as num).toInt();
+          final timeCost = (chal['t'] as num).toInt();
+          final lanes = (chal['p'] as num).toInt();
+          final serverNonce = chal['nonce'] as String;
+          final challengeToken = chal['challenge_token'] as String;
+
+          final authMessage = ScramUtils.scramArgon2idAuthMessage(
+            username,
+            serverNonce,
+            saltHex,
+            memCostKb,
+            timeCost,
+            lanes,
+          );
+          final proof = await ScramUtils.computeArgon2idProof(
+            password: password,
+            saltHex: saltHex,
+            memCostKb: memCostKb,
+            timeCost: timeCost,
+            lanes: lanes,
+            authMessage: authMessage,
+          );
+
+          return await _postAuth(
+            _endpoint(baseUrl, '/api/login'),
+            {
+              'username': username,
+              'nonce': serverNonce,
+              'client_proof': proof.clientProofHex,
+              'challenge_token': challengeToken,
+            },
+            expectedServerSignature: proof.expectedServerSignatureHex,
+          );
+        } else if (authMode == 'scram') {
+          final saltHex = chal['salt'] as String;
+          final iterations = (chal['iterations'] as num).toInt();
+          final serverNonce = chal['nonce'] as String;
+          final challengeToken = chal['challenge_token'] as String;
+
+          final authMessage = ScramUtils.scramAuthMessage(
+            username,
+            serverNonce,
+            saltHex,
+            iterations,
+          );
+          final proof = ScramUtils.computeProof(
+            password: password,
+            saltHex: saltHex,
+            iterations: iterations,
+            authMessage: authMessage,
+          );
+
+          return await _postAuth(
+            _endpoint(baseUrl, '/api/login'),
+            {
+              'username': username,
+              'nonce': serverNonce,
+              'client_proof': proof.clientProofHex,
+              'challenge_token': challengeToken,
+            },
+            expectedServerSignature: proof.expectedServerSignatureHex,
+          );
+        }
+      } catch (e) {
+        if (e is AuthException) rethrow;
+      }
+    }
+
     return _postAuth(_endpoint(baseUrl, '/api/login'), {
       'username': username,
       'password': password,
@@ -83,11 +182,30 @@ class HttpAuthGateway implements AuthGateway {
     required String baseUrl,
     required String username,
     required String password,
-  }) {
-    return _postAuth(_endpoint(baseUrl, '/api/register'), {
-      'username': username,
-      'password': password,
-    });
+  }) async {
+    final scramKeys = await ScramUtils.generateArgon2idRegistrationKeys(
+      password,
+    );
+    try {
+      return await _postAuth(_endpoint(baseUrl, '/api/register'), {
+        'username': username,
+        'kdf': 'argon2id',
+        'salt': scramKeys.saltHex,
+        'm': scramKeys.memCostKb,
+        't': scramKeys.timeCost,
+        'p': scramKeys.lanes,
+        'stored_key': scramKeys.storedKeyHex,
+        'server_key': scramKeys.serverKeyHex,
+      });
+    } on AuthException catch (e) {
+      if (e.message.toLowerCase().contains('password are required')) {
+        return _postAuth(_endpoint(baseUrl, '/api/register'), {
+          'username': username,
+          'password': password,
+        });
+      }
+      rethrow;
+    }
   }
 
   @override
@@ -100,7 +218,11 @@ class HttpAuthGateway implements AuthGateway {
     });
   }
 
-  Future<AuthResult> _postAuth(Uri uri, Map<String, Object?> payload) async {
+  Future<AuthResult> _postAuth(
+    Uri uri,
+    Map<String, Object?> payload, {
+    String? expectedServerSignature,
+  }) async {
     final l10n = platformAppLocalizations();
     final http.Response response;
     try {
@@ -143,6 +265,14 @@ class HttpAuthGateway implements AuthGateway {
     } on FormatException {
       throw AuthException(l10n.connectionFailed('Invalid JSON'));
     }
+
+    if (expectedServerSignature != null) {
+      final serverSig = json['server_signature'] as String?;
+      if (serverSig != null && serverSig != expectedServerSignature) {
+        throw AuthException(l10n.authFailedGeneric);
+      }
+    }
+
     final accessToken = json['access_token'] as String?;
     final refreshToken = json['refresh_token'] as String?;
     if (accessToken == null || accessToken.isEmpty) {
@@ -408,6 +538,9 @@ class AuthService {
     required String code,
     required String newPassword,
   }) async {
+    final scramKeys = await ScramUtils.generateArgon2idRegistrationKeys(
+      newPassword,
+    );
     final uri = _endpoint(baseUrl, '/api/auth/reset-password/verify');
     final response = await _client.post(
       uri,
@@ -415,7 +548,13 @@ class AuthService {
       body: jsonEncode({
         'username': username,
         'code': code,
-        'new_password': newPassword,
+        'kdf': 'argon2id',
+        'salt': scramKeys.saltHex,
+        'm': scramKeys.memCostKb,
+        't': scramKeys.timeCost,
+        'p': scramKeys.lanes,
+        'stored_key': scramKeys.storedKeyHex,
+        'server_key': scramKeys.serverKeyHex,
       }),
     );
 
@@ -458,11 +597,22 @@ class AuthService {
       throw AuthException(platformAppLocalizations().authErrorNoSavedUsername);
     }
 
+    final scramKeys = await ScramUtils.generateArgon2idRegistrationKeys(
+      newPassword,
+    );
     await _sendAuthorizedJson(
       method: 'POST',
       uri: _endpoint(baseUrl, '/api/account/password'),
       token: token,
-      payload: {'new_password': newPassword},
+      payload: {
+        'kdf': 'argon2id',
+        'salt': scramKeys.saltHex,
+        'm': scramKeys.memCostKb,
+        't': scramKeys.timeCost,
+        'p': scramKeys.lanes,
+        'stored_key': scramKeys.storedKeyHex,
+        'server_key': scramKeys.serverKeyHex,
+      },
       fallbackMessage: platformAppLocalizations().passwordChangeFailedGeneric,
     );
 

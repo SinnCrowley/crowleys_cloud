@@ -22,6 +22,8 @@ namespace server::controllers {
 class AuthController : public drogon::HttpController<AuthController> {
  public:
   METHOD_LIST_BEGIN
+  ADD_METHOD_TO(AuthController::authChallenge, "/api/auth/challenge", drogon::Get);
+  ADD_METHOD_TO(AuthController::authChallenge, "/api/auth/challenge", drogon::Post);
   ADD_METHOD_TO(AuthController::registerUser, "/api/register", drogon::Post);
   ADD_METHOD_TO(AuthController::login, "/api/login", drogon::Post);
   ADD_METHOD_TO(AuthController::refresh, "/api/refresh", drogon::Post);
@@ -36,6 +38,8 @@ class AuthController : public drogon::HttpController<AuthController> {
 
   void account(const drogon::HttpRequestPtr &req,
                std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+  void authChallenge(const drogon::HttpRequestPtr &req,
+                     std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void registerUser(const drogon::HttpRequestPtr &req,
                     std::function<void(const drogon::HttpResponsePtr &)> &&callback);
   void login(const drogon::HttpRequestPtr &req,

@@ -65,6 +65,7 @@ dependencies:
   flutter_markdown_plus: ^1.0.12        # Rich markdown rendering for release changelogs
   device_info_plus: ^13.2.0
   package_info_plus: ^10.2.1
+  cryptography_plus: ^3.0.0
 
 dev_dependencies:
   flutter_test:
