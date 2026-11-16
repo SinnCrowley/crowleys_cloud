@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Lưu giữ tệp đã xóa trong",
         "help": "Số ngày trước khi các tệp trong thùng rác bị xóa vĩnh viễn."
+      },
+      "dev_log_reset_codes": {
+        "label": "Ghi nhật ký mã đặt lại (phát triển)",
+        "help": "Ghi các mã đặt lại mật khẩu tạm thời vào nhật ký máy chủ để gỡ lỗi."
       }
     },
     "units": {

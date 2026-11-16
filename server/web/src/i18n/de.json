@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Gelöschte Dateien aufbewahren für",
         "help": "Anzahl der Tage, bevor Dateien im Papierkorb endgültig gelöscht werden."
+      },
+      "dev_log_reset_codes": {
+        "label": "Reset-Codes protokollieren (Entwicklung)",
+        "help": "Schreibt temporäre Passwort-Reset-Codes zur Fehlerbehebung in die Serverprotokolle."
       }
     },
     "units": {

@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Silinen dosyaları saklama süresi",
         "help": "Çöp kutusundaki dosyaların kalıcı olarak silinmesinden önceki gün sayısı."
+      },
+      "dev_log_reset_codes": {
+        "label": "Sıfırlama kodlarını günlüğe kaydet (geliştirme)",
+        "help": "Hata ayıklama için geçici şifre sıfırlama kodlarını sunucu günlüklerine yazar."
       }
     },
     "units": {

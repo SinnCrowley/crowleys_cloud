@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Conserva i file eliminati per",
         "help": "Numero di giorni prima che i file nel cestino vengano rimossi definitivamente."
+      },
+      "dev_log_reset_codes": {
+        "label": "Registra codici di reimpostazione (sviluppo)",
+        "help": "Registra i codici temporanei di reimpostazione nei log del server per il debug."
       }
     },
     "units": {

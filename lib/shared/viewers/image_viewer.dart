@@ -23,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ImageViewer extends StatefulWidget {
   final List<FileItem> imageItems;
@@ -413,6 +414,11 @@ class _ImageViewerState extends State<ImageViewer>
                                         .thumbnailPlaceholderBuilder
                                         ?.call(item),
                                   )
+                                : item.pathSync.toLowerCase().endsWith('.svg')
+                                ? SvgPicture.file(
+                                    File(item.pathSync),
+                                    fit: BoxFit.contain,
+                                  )
                                 : Image.file(
                                     File(item.pathSync),
                                     fit: BoxFit.contain,
@@ -738,6 +744,12 @@ class _RemoteImageViewState extends State<_RemoteImageView> {
   @override
   Widget build(BuildContext context) {
     if (_file != null) {
+      final isSvg =
+          _file!.path.toLowerCase().endsWith('.svg') ||
+          widget.item.pathSync.toLowerCase().endsWith('.svg');
+      if (isSvg) {
+        return SvgPicture.file(_file!, fit: BoxFit.contain);
+      }
       return Image.file(_file!, fit: BoxFit.contain, gaplessPlayback: true);
     }
 

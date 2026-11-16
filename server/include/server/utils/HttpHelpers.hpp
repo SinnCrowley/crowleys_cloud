@@ -52,6 +52,53 @@ inline std::string formatETag(std::string_view raw) {
 }
 
 /**
+ * Safely formats Content-Disposition header conforming to RFC 6266 / RFC 5987.
+ * - Strips CRLF (\r, \n) and control characters to prevent HTTP Response Splitting.
+ * - Escapes double quotes and backslashes in quoted ASCII fallback filename.
+ * - Adds UTF-8 url-encoded filename* parameter for full unicode support.
+ */
+inline std::string formatContentDisposition(std::string_view dispositionType, std::string_view rawFileName) {
+  std::string sanitizedFallback;
+  sanitizedFallback.reserve(rawFileName.size());
+  for (unsigned char c : rawFileName) {
+    if (c == '\r' || c == '\n' || c == '\0' || c < 0x20 || c == 0x7F) {
+      continue;
+    }
+    if (c == '"' || c == '\\') {
+      sanitizedFallback.push_back('\\');
+      sanitizedFallback.push_back(static_cast<char>(c));
+    } else if (c < 0x80) {
+      sanitizedFallback.push_back(static_cast<char>(c));
+    } else {
+      sanitizedFallback.push_back('_');
+    }
+  }
+  if (sanitizedFallback.empty()) {
+    sanitizedFallback = "file";
+  }
+
+  std::string cleanUtf8;
+  cleanUtf8.reserve(rawFileName.size());
+  for (unsigned char c : rawFileName) {
+    if (c == '\r' || c == '\n' || c == '\0' || (c < 0x20 && c != '\t')) {
+      continue;
+    }
+    cleanUtf8.push_back(static_cast<char>(c));
+  }
+  if (cleanUtf8.empty()) {
+    cleanUtf8 = "file";
+  }
+
+  const std::string encodedUtf8 = drogon::utils::urlEncode(cleanUtf8);
+  std::string result(dispositionType);
+  result += "; filename=\"";
+  result += sanitizedFallback;
+  result += "\"; filename*=UTF-8''";
+  result += encodedUtf8;
+  return result;
+}
+
+/**
  * Validates whether the incoming If-None-Match header matches the target ETag(s)
  * according to RFC 7232 / RFC 9110 weak comparison rules.
  * Supports:

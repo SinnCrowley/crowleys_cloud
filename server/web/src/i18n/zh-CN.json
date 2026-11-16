@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "回收站保留天数",
         "help": "回收站中的文件被永久删除前的保留天数。"
+      },
+      "dev_log_reset_codes": {
+        "label": "记录重置验证码（开发调试）",
+        "help": "将用于调试的临时密码重置验证码输出到服务器日志中。"
       }
     },
     "units": {

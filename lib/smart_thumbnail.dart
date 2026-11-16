@@ -16,6 +16,7 @@
 import 'dart:typed_data';
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'file_item.dart';
 import 'thumbnail_service.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -192,20 +193,48 @@ class _FsThumbnailState extends State<_FsThumbnail> {
     future: _future,
     size: widget.size,
     blurhash: widget.item.serverFile?.blurhash,
+    isSvg: widget.item.pathSync.toLowerCase().endsWith('.svg'),
   );
 }
 
 // ── Общий FutureBuilder для обоих типов ──────────────────────────
 
+bool _looksLikeSvg(Uint8List bytes) {
+  if (bytes.length < 4) return false;
+  var start = 0;
+  if (bytes.length >= 3 &&
+      bytes[0] == 0xEF &&
+      bytes[1] == 0xBB &&
+      bytes[2] == 0xBF) {
+    start = 3;
+  }
+  while (start < bytes.length &&
+      (bytes[start] == 0x20 ||
+          bytes[start] == 0x09 ||
+          bytes[start] == 0x0A ||
+          bytes[start] == 0x0D)) {
+    start++;
+  }
+  if (start >= bytes.length) return false;
+  if (bytes[start] != 0x3C) return false; // '<'
+  final len = (bytes.length - start).clamp(0, 512);
+  final str = String.fromCharCodes(
+    bytes.sublist(start, start + len),
+  ).toLowerCase();
+  return str.contains('<svg');
+}
+
 class _ThumbnailFuture extends StatelessWidget {
   final Future<Uint8List?>? future;
   final double size;
   final String? blurhash;
+  final bool isSvg;
 
   const _ThumbnailFuture({
     required this.future,
     required this.size,
     this.blurhash,
+    this.isSvg = false,
   });
 
   @override
@@ -215,15 +244,24 @@ class _ThumbnailFuture extends StatelessWidget {
       builder: (_, snap) {
         if (snap.connectionState == ConnectionState.done) {
           if (snap.data != null) {
+            final data = snap.data!;
+            final isSvgData = isSvg || _looksLikeSvg(data);
             return ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.memory(
-                snap.data!,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                gaplessPlayback: true,
-              ),
+              child: isSvgData
+                  ? SvgPicture.memory(
+                      data,
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.memory(
+                      data,
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
+                      gaplessPlayback: true,
+                    ),
             );
           }
           return _Placeholder(

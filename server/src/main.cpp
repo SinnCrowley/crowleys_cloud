@@ -185,6 +185,25 @@ int main(int argc, char *argv[]) {
   {
     drogon::app().registerPostHandlingAdvice([](const drogon::HttpRequestPtr &req,
                                                 const drogon::HttpResponsePtr &resp) {
+      resp->addHeader("X-Content-Type-Options", "nosniff");
+      resp->addHeader("X-Frame-Options", "SAMEORIGIN");
+      resp->addHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+
+      const auto &ct = resp->getHeader("content-type");
+      if (resp->contentType() == drogon::CT_TEXT_HTML || ct.find("text/html") != std::string::npos) {
+        resp->addHeader("Content-Security-Policy",
+                        "default-src 'self'; "
+                        "script-src 'self' 'wasm-unsafe-eval'; "
+                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                        "font-src 'self' https://fonts.gstatic.com; "
+                        "img-src 'self' data: blob:; "
+                        "media-src 'self' blob:; "
+                        "frame-src 'self' blob:; "
+                        "object-src 'none'; "
+                        "base-uri 'self'; "
+                        "form-action 'self';");
+      }
+
       if (!server::ctx().accessLogEnabled.load()) return;
       LOG_INFO << "access method=" << req->methodString()
                << " path=" << req->path()

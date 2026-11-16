@@ -655,7 +655,14 @@ std::string FileIndexService::scopeToString(StorageScope scope) {
 
 std::string FileIndexService::normalizeRelPath(const std::string &rawPath) {
   if (rawPath.empty()) return "";
-  auto path = std::filesystem::path(rawPath).lexically_normal().relative_path().generic_string();
+  std::string sanitized;
+  sanitized.reserve(rawPath.size());
+  for (unsigned char c : rawPath) {
+    if (c == '\r' || c == '\n' || c == '\0' || c < 0x20) continue;
+    sanitized.push_back(static_cast<char>(c));
+  }
+  if (sanitized.empty()) return "";
+  auto path = std::filesystem::path(sanitized).lexically_normal().relative_path().generic_string();
   while (!path.empty() && path.front() == '/') path.erase(path.begin());
   if (path == ".") return "";
   return path;

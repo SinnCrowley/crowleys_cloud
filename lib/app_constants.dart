@@ -41,6 +41,7 @@ const photoExtensions = {
   '.avif',
   '.heif',
   '.heic',
+  '.svg',
 };
 
 const videoExtensions = {'.mp4', '.mkv', '.webm', '.mov', '.avi', '.flv'};

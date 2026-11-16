@@ -24,6 +24,11 @@
 #include <libheif/heif.h>
 #endif
 
+#ifdef CROWLEYS_CLOUD_HAS_LIBRSVG
+#include <librsvg/rsvg.h>
+#include <cairo/cairo.h>
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
@@ -289,6 +294,34 @@ DecodedImage applyOrientation(DecodedImage img, int orientation) {
   return rotated;
 }
 
+#ifdef CROWLEYS_CLOUD_HAS_LIBRSVG
+static bool isSvgData(const uint8_t *data, size_t size) {
+  if (!data || size < 4) return false;
+  // SVGZ check (gzip magic bytes 0x1F, 0x8B)
+  if (data[0] == 0x1F && data[1] == 0x8B) {
+    return true;
+  }
+  size_t offset = 0;
+  if (size >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF) {
+    offset = 3;
+  }
+  while (offset < size && (data[offset] == ' ' || data[offset] == '\t' || data[offset] == '\r' || data[offset] == '\n')) {
+    offset++;
+  }
+  if (offset >= size) return false;
+
+  size_t searchLimit = std::min(size, offset + 4096);
+  std::string lower;
+  lower.reserve(searchLimit - offset);
+  for (size_t i = offset; i < searchLimit; ++i) {
+    char c = static_cast<char>(data[i]);
+    lower.push_back((c >= 'A' && c <= 'Z') ? (c + 32) : c);
+  }
+
+  return (lower.find("<svg") != std::string::npos);
+}
+#endif
+
 std::optional<DecodedImage> decodeImageToRgba(const uint8_t *data, std::size_t size) {
   if (!data || size == 0) {
     return std::nullopt;
@@ -383,7 +416,103 @@ std::optional<DecodedImage> decodeImageToRgba(const uint8_t *data, std::size_t s
   }
 #endif
 
-  // 3. Decode with stb_image (JPEG, PNG, GIF, BMP, TGA, etc.)
+#ifdef CROWLEYS_CLOUD_HAS_LIBRSVG
+  // 3. Try SVG decoding via librsvg and cairo
+  if (isSvgData(data, size)) {
+    GError *err = nullptr;
+    RsvgHandle *handle = rsvg_handle_new_from_data(data, size, &err);
+    if (handle) {
+      double svgW = 0, svgH = 0;
+      gboolean hasSize = rsvg_handle_get_intrinsic_size_in_pixels(handle, &svgW, &svgH);
+      if (!hasSize || svgW <= 0 || svgH <= 0) {
+        gboolean hasVb = FALSE;
+        RsvgRectangle vb = {0, 0, 0, 0};
+        rsvg_handle_get_intrinsic_dimensions(handle, nullptr, nullptr, nullptr, nullptr, &hasVb, &vb);
+        if (hasVb && vb.width > 0 && vb.height > 0) {
+          svgW = vb.width;
+          svgH = vb.height;
+        }
+      }
+      if (svgW <= 0 || svgH <= 0) {
+        svgW = 512.0;
+        svgH = 512.0;
+      }
+
+      // Constrain maximum rasterization dimension to 2048 to prevent memory exhaustion
+      constexpr double kMaxSvgRasterDim = 2048.0;
+      if (svgW > kMaxSvgRasterDim || svgH > kMaxSvgRasterDim) {
+        if (svgW >= svgH) {
+          svgH = std::max(1.0, std::round(svgH * kMaxSvgRasterDim / svgW));
+          svgW = kMaxSvgRasterDim;
+        } else {
+          svgW = std::max(1.0, std::round(svgW * kMaxSvgRasterDim / svgH));
+          svgH = kMaxSvgRasterDim;
+        }
+      }
+
+      int intW = static_cast<int>(std::round(svgW));
+      int intH = static_cast<int>(std::round(svgH));
+      if (intW > 0 && intH > 0) {
+        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, intW, intH);
+        if (surface && cairo_surface_status(surface) == CAIRO_STATUS_SUCCESS) {
+          cairo_t *cr = cairo_create(surface);
+          RsvgRectangle viewport = {0, 0, static_cast<double>(intW), static_cast<double>(intH)};
+          gboolean rendered = rsvg_handle_render_document(handle, cr, &viewport, nullptr);
+          cairo_surface_flush(surface);
+
+          if (rendered) {
+            unsigned char *cairoData = cairo_image_surface_get_data(surface);
+            int stride = cairo_image_surface_get_stride(surface);
+            if (cairoData && stride >= intW * 4) {
+              DecodedImage decoded;
+              decoded.width = intW;
+              decoded.height = intH;
+              decoded.channels = 4;
+              decoded.rgba.resize(static_cast<size_t>(intW) * intH * 4);
+
+              for (int y = 0; y < intH; ++y) {
+                const uint8_t *rowSrc = cairoData + y * stride;
+                uint8_t *rowDst = decoded.rgba.data() + static_cast<size_t>(y) * intW * 4;
+                for (int x = 0; x < intW; ++x) {
+                  uint32_t pixel = *reinterpret_cast<const uint32_t *>(rowSrc + x * 4);
+                  uint8_t a = static_cast<uint8_t>((pixel >> 24) & 0xFF);
+                  uint8_t r_pre = static_cast<uint8_t>((pixel >> 16) & 0xFF);
+                  uint8_t g_pre = static_cast<uint8_t>((pixel >> 8) & 0xFF);
+                  uint8_t b_pre = static_cast<uint8_t>(pixel & 0xFF);
+
+                  // Un-premultiply alpha safely
+                  uint8_t r = a > 0 ? static_cast<uint8_t>(std::min(255, (r_pre * 255 + a / 2) / a)) : 0;
+                  uint8_t g = a > 0 ? static_cast<uint8_t>(std::min(255, (g_pre * 255 + a / 2) / a)) : 0;
+                  uint8_t b = a > 0 ? static_cast<uint8_t>(std::min(255, (b_pre * 255 + a / 2) / a)) : 0;
+
+                  rowDst[x * 4 + 0] = r;
+                  rowDst[x * 4 + 1] = g;
+                  rowDst[x * 4 + 2] = b;
+                  rowDst[x * 4 + 3] = a;
+                }
+              }
+
+              cairo_destroy(cr);
+              cairo_surface_destroy(surface);
+              g_object_unref(handle);
+              return decoded;
+            }
+          }
+          cairo_destroy(cr);
+        }
+        if (surface) {
+          cairo_surface_destroy(surface);
+        }
+      }
+      g_object_unref(handle);
+    }
+    if (err) {
+      g_error_free(err);
+    }
+  }
+#endif
+
+  // 4. Decode with stb_image (JPEG, PNG, GIF, BMP, TGA, etc.)
   int channelsInFile = 0;
   unsigned char *pixels = stbi_load_from_memory(
       data, static_cast<int>(size), &w, &h, &channelsInFile, 4);

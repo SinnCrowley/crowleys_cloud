@@ -44,7 +44,7 @@
   const RETRY_DELAYS = [600, 1200, 2000, 3000, 4000];
 
   function isImageExt(filename) {
-    return /\.(jpg|jpeg|png|gif|webp|bmp|heic|heif|avif|svg|ico)$/i.test(filename || '');
+    return /\.(jpg|jpeg|png|gif|webp|bmp|heic|heif|avif|svg|svgz|ico)$/i.test(filename || '');
   }
 
   function isVideoExt(filename) {
@@ -173,7 +173,9 @@
       case 'bmp':
       case 'heic':
       case 'avif':
-      case 'heif': return 'image';
+      case 'heif':
+      case 'svg':
+      case 'svgz': return 'image';
       case 'txt':
       case 'md':
       case 'json':

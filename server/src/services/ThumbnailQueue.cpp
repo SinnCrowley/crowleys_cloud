@@ -582,6 +582,9 @@ void ThumbnailQueue::processTask(const ThumbnailTask &task) {
                                      : (config_.ffmpegBinary.empty() ? "ffmpeg" : config_.ffmpegBinary);
       std::vector<std::string> args = {
           ffmpeg,
+          "-nostdin",
+          "-protocol_whitelist",
+          "file,crypto,data",
           "-hide_banner",
           "-loglevel",
           "error",

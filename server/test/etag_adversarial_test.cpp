@@ -255,12 +255,64 @@ void testPerformanceAndStress() {
   std::cout << "[PASS] testPerformanceAndStress passed." << std::endl;
 }
 
+void testFormatContentDisposition() {
+  std::cout << "[TEST] Running testFormatContentDisposition..." << std::endl;
+
+  // 1. Standard filename
+  {
+    auto cd = formatContentDisposition("attachment", "document.pdf");
+    TEST_ASSERT(cd == "attachment; filename=\"document.pdf\"; filename*=UTF-8''document.pdf",
+                "Standard attachment Content-Disposition");
+  }
+
+  // 2. Inline disposition
+  {
+    auto cd = formatContentDisposition("inline", "photo.jpg");
+    TEST_ASSERT(cd == "inline; filename=\"photo.jpg\"; filename*=UTF-8''photo.jpg",
+                "Standard inline Content-Disposition");
+  }
+
+  // 3. CRLF injection attempt
+  {
+    std::string malicious = "file.txt\r\nContent-Type: text/html\r\n\r\n<script>alert(1)</script>";
+    auto cd = formatContentDisposition("attachment", malicious);
+    TEST_ASSERT(cd.find('\r') == std::string::npos, "CRLF CR must be completely stripped");
+    TEST_ASSERT(cd.find('\n') == std::string::npos, "CRLF LF must be completely stripped");
+    TEST_ASSERT(cd.find("Content-Type:") == std::string::npos || cd.find("\r\nContent-Type:") == std::string::npos,
+                "Headers cannot be injected");
+  }
+
+  // 4. Quotes and backslashes in filename
+  {
+    auto cd = formatContentDisposition("inline", "test\"name\\file.txt");
+    TEST_ASSERT(cd.find("filename=\"test\\\"name\\\\file.txt\"") != std::string::npos,
+                "Double quotes and backslashes must be escaped in quoted filename");
+  }
+
+  // 5. Non-ASCII / UTF-8 filename
+  {
+    auto cd = formatContentDisposition("attachment", "отчет.pdf");
+    TEST_ASSERT(cd.find("filename*=UTF-8''%D0%BE%D1%82%D1%87%D0%B5%D1%82.pdf") != std::string::npos,
+                "UTF-8 filename* must be properly urlEncoded");
+  }
+
+  // 6. Empty / pure whitespace / control chars
+  {
+    auto cd = formatContentDisposition("attachment", "\r\n\0\t");
+    TEST_ASSERT(cd.find("filename=\"file\"") != std::string::npos,
+                "Empty/control-only filename falls back to 'file'");
+  }
+
+  std::cout << "[PASS] testFormatContentDisposition passed." << std::endl;
+}
+
 int main() {
   std::cout << "=========================================================" << std::endl;
   std::cout << "Starting Adversarial HTTP 304 & ETag Test Suite" << std::endl;
   std::cout << "=========================================================" << std::endl;
 
   testFormatETag();
+  testFormatContentDisposition();
   testMatchesIfNoneMatch_StandardAndMixedQuotes();
   testMatchesIfNoneMatch_WeakTags();
   testMatchesIfNoneMatch_Wildcard();

@@ -45,6 +45,7 @@ struct Config {
   bool hashFiles{false};
   std::string encryptionKey{""};
   int trashRetentionDays{30};
+  bool devLogResetCodes{false};
 };
 
 // Loads the base file, then its optional sibling config.local.json.

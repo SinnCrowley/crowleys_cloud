@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Uchovávat smazané soubory po dobu",
         "help": "Počet dní před trvalým odstraněním souborů z koše."
+      },
+      "dev_log_reset_codes": {
+        "label": "Zaznamenávat resetovací kódy (vývoj)",
+        "help": "Vypisuje dočasné kódy pro obnovení hesla do protokolů serveru pro ladění."
       }
     },
     "units": {

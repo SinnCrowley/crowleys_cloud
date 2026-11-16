@@ -670,6 +670,10 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
           sha256Val = shaDirectRaw;
         }
 
+        if (mimeType.empty() || mimeType == "application/octet-stream") {
+          mimeType = server::ctx().fileService->mimeTypeFor(fileName.empty() ? origPath : fileName);
+        }
+
         if (ownerId != userId) {
           callback(jsonError(drogon::k403Forbidden, "Forbidden"));
           return;
@@ -723,6 +727,10 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
           if (nameRaw) fileName = nameRaw;
           plainSize = sqlite3_column_int64(stmt, 3);
         }
+
+        if (mimeType.empty() || mimeType == "application/octet-stream") {
+          mimeType = server::ctx().fileService->mimeTypeFor(fileName.empty() ? normalizedPath : fileName);
+        }
       }
 
       if (sha256Val.empty()) {
@@ -747,6 +755,11 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
         return;
       }
 
+      const auto pathToCheck = fileName.empty() ? req->getParameter("path") : fileName;
+      auto ext = std::filesystem::path(pathToCheck).extension().string();
+      std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+      const bool isSvgz = (ext == ".svgz");
+
       if (req->isHead() || req->getMethod() == drogon::Head) {
         auto resp = drogon::HttpResponse::newHttpResponse();
         resp->setStatusCode(drogon::k200OK);
@@ -755,9 +768,12 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
         } else {
           resp->setContentTypeCode(drogon::CT_APPLICATION_OCTET_STREAM);
         }
+        if (isSvgz) {
+          resp->addHeader("Content-Encoding", "gzip");
+        }
         const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
         const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
-        resp->addHeader("Content-Disposition", std::string(dispositionType) + "; filename=\"" + fileName + "\"");
+        resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
         resp->addHeader("ETag", fileEtag);
         resp->addHeader("Cache-Control", "private, no-cache");
         resp->addHeader("Content-Length", std::to_string(plainSize));
@@ -775,9 +791,12 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       } else {
         resp->setContentTypeCode(drogon::CT_APPLICATION_OCTET_STREAM);
       }
+      if (isSvgz) {
+        resp->addHeader("Content-Encoding", "gzip");
+      }
       const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
       const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
-      resp->addHeader("Content-Disposition", std::string(dispositionType) + "; filename=\"" + fileName + "\"");
+      resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
       resp->addHeader("ETag", fileEtag);
       resp->addHeader("Cache-Control", "private, no-cache");
       callback(resp);
@@ -844,6 +863,13 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
     }
 
     auto resp = utils::storageFileResponse(fullPath, activity, server::ctx().fileService->mimeTypeFor(fullPath));
+    if (fullPath.extension().string() == ".svgz") {
+      resp->addHeader("Content-Encoding", "gzip");
+    }
+    const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
+    const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
+    const auto fileName = fullPath.filename().string();
+    resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
     resp->addHeader("ETag", quotedFileEtag);
     resp->addHeader("Cache-Control", "private, no-cache");
     callback(resp);
@@ -980,7 +1006,7 @@ void FileController::downloadZip(const drogon::HttpRequestPtr &req,
     }
 
     auto resp = utils::storageFileResponse(tmpZipPath, activity, "application/zip", true);
-    resp->addHeader("Content-Disposition", "attachment; filename=\"" + zipFilename + "\"");
+    resp->addHeader("Content-Disposition", utils::formatContentDisposition("attachment", zipFilename));
     callback(resp);
   } catch (const std::exception &e) {
     callback(jsonError(drogon::k400BadRequest, e.what()));
@@ -1125,6 +1151,9 @@ void FileController::uploadFile(const drogon::HttpRequestPtr &req,
         relPath = targetPath + "/" + fileName;
       }
       relPath = services::FileIndexService::normalizeRelPath(relPath);
+      if (relPath.empty()) continue;
+      fileName = std::filesystem::path(relPath).filename().string();
+      if (fileName.empty()) continue;
 
       std::string_view fileData = file.fileData();
       std::size_t fileLength = file.fileLength();
@@ -1641,6 +1670,11 @@ void FileController::createFolder(const drogon::HttpRequestPtr &req,
     return;
   }
 
+  if (*scope == services::StorageScope::Shared && role != "admin" && role != "superuser") {
+    callback(jsonError(drogon::k403Forbidden, "Administrator access required", "forbidden"));
+    return;
+  }
+
   const auto pathRaw = req->getParameter("path");
   if (pathRaw.empty()) {
     callback(jsonError(drogon::k400BadRequest, "path is required"));
@@ -1685,6 +1719,11 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
   const auto scope = services::parseScope(req->getParameter("scope"));
   if (!scope.has_value()) {
     callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+    return;
+  }
+
+  if (*scope == services::StorageScope::Shared && role != "admin" && role != "superuser") {
+    callback(jsonError(drogon::k403Forbidden, "Administrator access required", "forbidden"));
     return;
   }
 

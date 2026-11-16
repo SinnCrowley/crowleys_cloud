@@ -327,6 +327,31 @@ else()
   message(STATUS "libheif not found: HEIC/HEIF decoding disabled")
 endif()
 
+# librsvg & cairo Discovery for SVG image decoding & thumbnails
+set(HAVE_LIBRSVG FALSE)
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(LIBRSVG QUIET IMPORTED_TARGET librsvg-2.0 cairo)
+  if(TARGET PkgConfig::LIBRSVG)
+    set(LIBRSVG_TARGET PkgConfig::LIBRSVG)
+    set(HAVE_LIBRSVG TRUE)
+  elseif(LIBRSVG_FOUND)
+    set(LIBRSVG_TARGET ${LIBRSVG_LIBRARIES})
+    set(HAVE_LIBRSVG TRUE)
+  endif()
+endif()
+
+if(HAVE_LIBRSVG)
+  list(APPEND WEBP_TARGET ${LIBRSVG_TARGET})
+  if(LIBRSVG_INCLUDE_DIRS)
+    list(APPEND WEBP_INCLUDE_DIRS ${LIBRSVG_INCLUDE_DIRS})
+  endif()
+  add_compile_definitions(CROWLEYS_CLOUD_HAS_LIBRSVG)
+  message(STATUS "librsvg and cairo found: enabling SVG image decoding and thumbnails (${LIBRSVG_TARGET})")
+else()
+  message(STATUS "librsvg and/or cairo not found: SVG thumbnail decoding disabled")
+endif()
+
 # ------------------------------------------------------------------------------
 # 2. Protobuf Code Generation Configuration
 # ------------------------------------------------------------------------------
@@ -452,6 +477,16 @@ add_executable(webp_inmemory_test
 target_include_directories(webp_inmemory_test PRIVATE include ${WebP_INCLUDE_DIRS} ${WEBP_INCLUDE_DIRS})
 target_link_libraries(webp_inmemory_test PRIVATE OpenSSL::Crypto Threads::Threads ${WEBP_TARGET} ${PLATFORM_LIBS})
 add_test(NAME webp_inmemory_test COMMAND webp_inmemory_test)
+
+add_executable(svg_thumbnail_test
+  test/svg_thumbnail_test.cpp
+  src/utils/Crypto.cpp
+  src/utils/ImageUtils.cpp
+  src/utils/BlurHashEncoder.cpp
+)
+target_include_directories(svg_thumbnail_test PRIVATE include ${WebP_INCLUDE_DIRS} ${WEBP_INCLUDE_DIRS})
+target_link_libraries(svg_thumbnail_test PRIVATE OpenSSL::Crypto Threads::Threads ${WEBP_TARGET} ${PLATFORM_LIBS})
+add_test(NAME svg_thumbnail_test COMMAND svg_thumbnail_test)
 
 add_executable(webp_adversarial_test
   test/webp_adversarial_test.cpp

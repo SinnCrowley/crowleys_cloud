@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Przechowuj usunięte pliki przez",
         "help": "Liczba dni przed trwałym usunięciem plików z kosza."
+      },
+      "dev_log_reset_codes": {
+        "label": "Loguj kody resetowania (deweloperskie)",
+        "help": "Zapisuje tymczasowe kody resetowania hasła w logach serwera do debugowania."
       }
     },
     "units": {

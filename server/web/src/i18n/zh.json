@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "垃圾桶保留天數",
         "help": "垃圾桶中的檔案被永久刪除前的保留天數。"
+      },
+      "dev_log_reset_codes": {
+        "label": "記錄重設驗證碼（開發調試）",
+        "help": "將用於調試的臨時密碼重設驗證碼輸出到伺服器日誌中。"
       }
     },
     "units": {

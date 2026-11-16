@@ -55,6 +55,7 @@ abstract final class FileTypeUtils {
       'heic',
       'avif',
       'heif',
+      'svg',
     }.contains(ext);
   }
 

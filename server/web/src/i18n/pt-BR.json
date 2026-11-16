@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Manter arquivos excluídos por",
         "help": "Número de dias antes que os arquivos na lixeira sejam removidos permanentemente."
+      },
+      "dev_log_reset_codes": {
+        "label": "Registrar códigos de redefinição (desenvolvimento)",
+        "help": "Grava códigos temporários de redefinição nos logs do servidor para depuração."
       }
     },
     "units": {

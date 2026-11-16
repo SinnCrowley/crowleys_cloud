@@ -545,6 +545,10 @@
       "trash_retention_days": {
         "label": "Keep deleted files for",
         "help": "Number of days before files in the trash are permanently removed."
+      },
+      "dev_log_reset_codes": {
+        "label": "Log reset codes (development)",
+        "help": "Prints temporary password reset codes to server logs for debugging."
       }
     },
     "units": {

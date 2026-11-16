@@ -223,7 +223,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       case 'zip': case 'tar': case 'gz': case '7z': case 'rar': case 'bz2': case 'xz': return 'folder_zip';
       case 'mp3': case 'wav': case 'ogg': case 'flac': case 'm4a': case 'aac': return 'audiotrack';
       case 'mp4': case 'mkv': case 'avi': case 'mov': case 'webm': case 'flv': return 'movie';
-      case 'jpg': case 'jpeg': case 'png': case 'webp': case 'gif': case 'bmp': case 'heic': case 'avif': case 'heif': return 'image';
+      case 'jpg': case 'jpeg': case 'png': case 'webp': case 'gif': case 'bmp': case 'heic': case 'avif': case 'heif': case 'svg': case 'svgz': return 'image';
       case 'txt': case 'md': case 'json': case 'yaml': case 'yml': case 'xml': case 'log': case 'csv': case 'js': case 'ts': case 'html': case 'css': case 'dart': case 'cpp': case 'c': case 'h': case 'hpp': case 'py': case 'sh': return 'article';
       default:
         if (item.type === 'photo') return 'image';
@@ -237,7 +237,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   function isMediaItem(item) {
     if (!item || item.is_dir) return false;
     const name = item.name || '';
-    return /\.(jpg|jpeg|png|webp|gif|bmp|heic|avif|heif|mp4|mkv|avi|mov|webm|flv|mp3|wav|ogg|flac|m4a|aac)$/i.test(name);
+    return /\.(jpg|jpeg|png|webp|gif|bmp|heic|avif|heif|svg|svgz|mp4|mkv|avi|mov|webm|flv|mp3|wav|ogg|flac|m4a|aac)$/i.test(name);
   }
 
   let justLongPressed = false;

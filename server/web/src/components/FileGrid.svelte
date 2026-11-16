@@ -87,6 +87,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       case 'heic':
       case 'avif':
       case 'heif':
+      case 'svg':
+      case 'svgz':
         return 'image';
       case 'txt':
       case 'md':

@@ -18,5 +18,6 @@
   "log_retention_days": 30,
   "hash_files": true,
   "encryption_key": "",
-  "trash_retention_days": 7
+  "trash_retention_days": 7,
+  "dev_log_reset_codes": false
 }

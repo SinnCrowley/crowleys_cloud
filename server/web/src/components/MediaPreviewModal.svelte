@@ -34,19 +34,40 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let pdfObjectUrl = '';
   let isLoadingPdf = false;
   let pdfError = '';
+  let imageLoadError = false;
 
   $: activeFileType = getFileType(file);
   $: downloadUrl = file ? filesApi.getDownloadUrl({ scope, path: file.path, trashId: isTrash ? file.id : undefined }) : '';
   $: galleryIndex = items.findIndex((i) => isTrash ? (i.id === file?.id) : (i.path === file?.path));
   $: textLines = textContent ? textContent.split('\n') : [];
+  $: isSvgFile = isSvg(file?.name || file?.path);
+
+  $: if (file) {
+    imageLoadError = false;
+  }
+
+  function isSvg(filename) {
+    return /\.svgz?$/i.test(filename || '');
+  }
 
   function getFileType(item) {
     if (!item) return 'unsupported';
-    if (item.type === 'photo' || isImageExtension(item.name)) return 'image';
-    if (item.type === 'video' || isVideoExtension(item.name)) return 'video';
-    if (item.type === 'audio' || isAudioExtension(item.name)) return 'audio';
-    if (isPdfExtension(item.name)) return 'pdf';
-    if (isTextExtension(item.name)) return 'text';
+    const filename = item.name || item.path || '';
+    if (item.type === 'photo' || item.type === 'image' || isImageExtension(filename) || (item.mime_type && item.mime_type.startsWith('image/'))) {
+      return 'image';
+    }
+    if (item.type === 'video' || isVideoExtension(filename) || (item.mime_type && item.mime_type.startsWith('video/'))) {
+      return 'video';
+    }
+    if (item.type === 'audio' || isAudioExtension(filename) || (item.mime_type && item.mime_type.startsWith('audio/'))) {
+      return 'audio';
+    }
+    if (isPdfExtension(filename) || item.mime_type === 'application/pdf') {
+      return 'pdf';
+    }
+    if (isTextExtension(filename) || (item.mime_type && (item.mime_type.startsWith('text/') || item.mime_type === 'application/json'))) {
+      return 'text';
+    }
     return 'unsupported';
   }
 
@@ -55,7 +76,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   }
 
   function isImageExtension(filename) {
-    return /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)$/i.test(filename || '');
+    return /\.(jpg|jpeg|png|gif|webp|svg|svgz|bmp|ico|heic|heif|avif)$/i.test(filename || '');
   }
 
   function isVideoExtension(filename) {
@@ -238,7 +259,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
         <div class="stage-content">
           {#if activeFileType === 'image'}
-            <img src={downloadUrl} alt={file.name} class="preview-image" />
+            {#if imageLoadError}
+              <div class="unsupported-card">
+                <span class="material-symbols-outlined unsupported-icon">broken_image</span>
+                <h3 class="text-title">{$t('modals.preview.preview_not_available')}</h3>
+                <p class="text-sub">
+                  {$t('modals.preview.preview_not_available_sub')}
+                </p>
+                <button class="btn btn-primary" on:click={handleDownload}>
+                  <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+                  {$t('modals.preview.download_file', { size: formatSize(file.size) })}
+                </button>
+              </div>
+            {:else}
+              <img
+                src={downloadUrl}
+                alt={file.name}
+                class="preview-image"
+                class:preview-svg={isSvgFile}
+                on:error={() => (imageLoadError = true)}
+              />
+            {/if}
           {:else if activeFileType === 'video'}
             <!-- svelte-ignore a11y-media-has-caption -->
             <video src={downloadUrl} controls autoplay class="preview-video">
@@ -382,6 +423,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     object-fit: contain;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-card);
+  }
+
+  .preview-image.preview-svg {
+    width: 100%;
+    height: 100%;
   }
 
   .preview-video {

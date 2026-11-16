@@ -188,6 +188,7 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
   }
 
   const auto userId = req->attributes()->get<std::int64_t>("user_id");
+  const auto role = req->attributes()->get<std::string>("role");
 
   const auto json = req->getJsonObject();
   if (!json || !json->isMember("scope") || !json->isMember("path")) {
@@ -199,6 +200,11 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
   auto scope = services::parseScope(scopeRaw);
   if (!scope.has_value()) {
     callback(jsonError(drogon::k400BadRequest, "scope must be private or shared"));
+    return;
+  }
+
+  if (*scope == services::StorageScope::Shared && role != "admin" && role != "superuser") {
+    callback(jsonError(drogon::k403Forbidden, "Administrator access required", "forbidden"));
     return;
   }
 
@@ -226,7 +232,7 @@ void ShareController::createShare(const drogon::HttpRequestPtr &req,
         }
       }
     } else {
-      const auto resolved = server::ctx().fileService->resolvePath(userId, "user", *scope, (*json)["path"].asString(), false);
+      const auto resolved = server::ctx().fileService->resolvePath(userId, role, *scope, (*json)["path"].asString(), false);
       exists = std::filesystem::exists(resolved);
     }
 
@@ -412,12 +418,30 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
           return reader(data, size);
         });
     resp->addHeader("Content-Length", std::to_string(target.size));
-    resp->setContentTypeString(target.mimeType.empty() ? "application/octet-stream" : target.mimeType);
-    resp->addHeader("Content-Disposition", std::string(disposition) + "; filename=\"" + target.name + "\"");
+    std::string effMime = target.mimeType;
+    if (effMime.empty() || effMime == "application/octet-stream") {
+      effMime = server::ctx().fileService->mimeTypeFor(target.name);
+    }
+    resp->setContentTypeString(effMime);
+    auto ext = std::filesystem::path(target.name).extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (ext == ".svgz") {
+      resp->addHeader("Content-Encoding", "gzip");
+    }
+    resp->addHeader("Content-Disposition", utils::formatContentDisposition(disposition, target.name));
     callback(resp);
   } else {
-    auto resp = utils::storageFileResponse(target.physicalPath, activity, target.mimeType);
-    resp->addHeader("Content-Disposition", std::string(disposition) + "; filename=\"" + target.name + "\"");
+    std::string effMime = target.mimeType;
+    if (effMime.empty() || effMime == "application/octet-stream") {
+      effMime = server::ctx().fileService->mimeTypeFor(target.name);
+    }
+    auto resp = utils::storageFileResponse(target.physicalPath, activity, effMime);
+    auto ext = std::filesystem::path(target.name).extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (ext == ".svgz") {
+      resp->addHeader("Content-Encoding", "gzip");
+    }
+    resp->addHeader("Content-Disposition", utils::formatContentDisposition(disposition, target.name));
     callback(resp);
   }
 }
@@ -527,8 +551,8 @@ void ShareController::downloadZip(const drogon::HttpRequestPtr &req,
   }
 
   auto resp = utils::storageFileResponse(tmpZipPath, activity, "application/zip", true);
-  resp->addHeader("Content-Disposition", "attachment; filename=\"" + zipFilename + "\"");
-    callback(resp);
+  resp->addHeader("Content-Disposition", utils::formatContentDisposition("attachment", zipFilename));
+  callback(resp);
 }
 
 void ShareController::publicAsset(const drogon::HttpRequestPtr &req,

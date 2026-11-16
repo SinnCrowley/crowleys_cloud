@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Conserver les fichiers supprimés",
         "help": "Nombre de jours avant que les fichiers de la corbeille ne soient supprimés définitivement."
+      },
+      "dev_log_reset_codes": {
+        "label": "Journaliser les codes de réinitialisation (développement)",
+        "help": "Affiche les codes temporaires de réinitialisation dans les journaux du serveur pour le débogage."
       }
     },
     "units": {

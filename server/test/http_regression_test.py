@@ -177,6 +177,10 @@ def run(hash_files):
                 token=obj('/api/login',dict(username='review',password='changed-password'))['access_token']
                 obj('/api/register', dict(username='helper',password='helper-password'))
                 obj('/api/admin/users/2/approve', {}, token)
+                helper_reg = obj('/api/login', dict(username='helper', password='helper-password'))['access_token']
+                assert request('/api/folders?scope=shared&path=test_shared_folder', b'', helper_reg)[0] == 403
+                assert request('/api/files/move?scope=shared&src=a&dest=b', b'', helper_reg)[0] == 403
+                assert request('/api/share', dict(scope='shared', path='any'), helper_reg)[0] == 403
                 status, body = request('/api/admin/users/2', dict(role='admin'), token, method='PATCH')
                 assert status == 200, (status, body)
                 helper = obj('/api/login',dict(username='helper',password='helper-password'))['access_token']

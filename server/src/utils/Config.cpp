@@ -249,6 +249,7 @@ Config loadConfig(const std::string &path, bool initializeSecrets) {
       updated.hashFiles = json.get("hash_files", updated.hashFiles).asBool();
       updated.encryptionKey = json.get("encryption_key", updated.encryptionKey).asString();
       updated.trashRetentionDays = json.get("trash_retention_days", updated.trashRetentionDays).asInt();
+      updated.devLogResetCodes = json.get("dev_log_reset_codes", updated.devLogResetCodes).asBool();
       cfg = std::move(updated);
     } catch (...) {
       // Parser errors can include secret values; report only the file path.

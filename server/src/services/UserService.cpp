@@ -862,10 +862,12 @@ bool UserService::adminResetPassword(std::int64_t actorId, std::int64_t userId, 
   }
   revokeAllRefreshTokens(userId);
   audit(actorId, "user.password_reset", userId);
-  LOG_INFO << "\n========================================\n"
-           << "ADMIN GENERATED PASSWORD RESET FOR: " << user->username << "\n"
-           << "TEMPORARY CODE: " << code << " (Valid for 10 minutes)\n"
-           << "========================================\n";
+  if (config_.devLogResetCodes) {
+    LOG_INFO << "\n========================================\n"
+             << "ADMIN GENERATED PASSWORD RESET FOR: " << user->username << "\n"
+             << "TEMPORARY CODE: " << code << " (Valid for 10 minutes)\n"
+             << "========================================\n";
+  }
   transaction.commit();
   return true;
 }

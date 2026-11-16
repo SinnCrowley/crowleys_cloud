@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Conservar archivos eliminados durante",
         "help": "Número de días antes de que los archivos de la papelera se eliminen permanentemente."
+      },
+      "dev_log_reset_codes": {
+        "label": "Registrar códigos de restablecimiento (desarrollo)",
+        "help": "Muestra los códigos temporales de restablecimiento en los registros del servidor para depuración."
       }
     },
     "units": {

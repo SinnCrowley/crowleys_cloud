@@ -557,6 +557,10 @@
       "trash_retention_days": {
         "label": "Simpan berkas terhapus selama",
         "help": "Jumlah hari sebelum berkas di tempat sampah dihapus permanen."
+      },
+      "dev_log_reset_codes": {
+        "label": "Catat kode reset ke log (pengembangan)",
+        "help": "Mencetak kode reset kata sandi sementara ke log server untuk debugging."
       }
     },
     "units": {

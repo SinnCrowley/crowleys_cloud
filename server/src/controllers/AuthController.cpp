@@ -564,10 +564,14 @@ void AuthController::requestReset(const drogon::HttpRequestPtr &req,
   }
 
   const auto username = (*json)["username"].asString();
+  if (!server::ctx().authRateLimiter->allow("password-reset-user:" + username)) {
+    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
+    return;
+  }
   std::string code;
   const auto ok = server::ctx().userService->requestPasswordReset(username, code, false);
 
-  if (ok) {
+  if (ok && server::ctx().config.devLogResetCodes) {
     LOG_INFO << "\n========================================\n"
              << "PASSWORD RESET REQUESTED FOR: " << username << "\n"
              << "TEMPORARY CODE: " << code << " (Valid for 10 minutes)\n"
@@ -593,6 +597,10 @@ void AuthController::verifyReset(const drogon::HttpRequestPtr &req,
   }
 
   const auto username = (*json)["username"].asString();
+  if (!server::ctx().authRateLimiter->allow("password-reset-user:" + username)) {
+    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
+    return;
+  }
   const auto code = (*json)["code"].asString();
 
   if (json->isMember("salt") && json->isMember("stored_key") && json->isMember("server_key") && (json->isMember("iterations") || json->isMember("m") || json->isMember("kdf"))) {

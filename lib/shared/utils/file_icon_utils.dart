@@ -45,7 +45,8 @@ abstract final class FileIconUtils {
       'bmp' ||
       'heic' ||
       'avif' ||
-      'heif' => Icons.image,
+      'heif' ||
+      'svg' => Icons.image,
       'txt' ||
       'md' ||
       'json' ||

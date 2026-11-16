@@ -36,6 +36,7 @@ const Field fields[] = {
   {"hash_files", "boolean", "migration"},
   {"encryption_key", "string", "rotation"},
   {"trash_retention_days", "integer", "live"},
+  {"dev_log_reset_codes", "boolean", "live"},
 };
 bool secretField(const std::string &name) { return name == "jwt_secret" || name == "encryption_key"; }
 const char *environment(const std::string &name) {
@@ -107,6 +108,7 @@ void applyLive(utils::Config &config, const Json::Value &values) {
   config.ffmpegBinary = values["ffmpeg_binary"].asString();
   config.logRetentionDays = values["log_retention_days"].asInt64();
   config.trashRetentionDays = values["trash_retention_days"].asInt64();
+  config.devLogResetCodes = values["dev_log_reset_codes"].asBool();
   ctx().accessLogEnabled = config.accessLogEnabled;
   ctx().authRateLimiter->setLimit(config.rateLimitPerMinute);
   const auto level = config.logLevel;
@@ -141,6 +143,7 @@ Json::Value configJson(const utils::Config &config) {
   value["hash_files"] = config.hashFiles;
   value["encryption_key"] = config.encryptionKey;
   value["trash_retention_days"] = Json::Int64(config.trashRetentionDays);
+  value["dev_log_reset_codes"] = config.devLogResetCodes;
   return value;
 }
 std::filesystem::path ConfigService::localPath() const {

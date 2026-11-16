@@ -418,6 +418,15 @@ static void testHeicClassificationAndMimeType() {
   std::cout << "  [PASS] HEIC and JSON classification and MIME type passed." << std::endl;
 }
 
+static void testNormalizeRelPathSanitization() {
+  std::cout << "[TEST] Running normalizeRelPath sanitization test..." << std::endl;
+  assert(FileIndexService::normalizeRelPath("folder/file.txt") == "folder/file.txt");
+  assert(FileIndexService::normalizeRelPath("folder\r\n/file.txt") == "folder/file.txt");
+  assert(FileIndexService::normalizeRelPath("evil\r\nContent-Type:text\r\n\r\n.txt") == "evilContent-Type:text.txt");
+  assert(FileIndexService::normalizeRelPath("/root/../file.txt") == "file.txt");
+  std::cout << "  [PASS] normalizeRelPath sanitization passed." << std::endl;
+}
+
 int main() {
   std::cout << "========================================" << std::endl;
   std::cout << "   FileIndex BlurHash & Migration Test  " << std::endl;
@@ -430,6 +439,7 @@ int main() {
   testProtobufSerialization();
   testSharedDirectoryPropagation();
   testHeicClassificationAndMimeType();
+  testNormalizeRelPathSanitization();
 
   std::cout << "========================================" << std::endl;
   std::cout << " [ALL PASS] All FileIndex BlurHash & Sharing tests passed!" << std::endl;
