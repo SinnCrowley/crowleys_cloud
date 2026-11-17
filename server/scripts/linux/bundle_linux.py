@@ -27,8 +27,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-# System libraries that must be provided by the host glibc / C++ runtime
+# System libraries that must be provided by the host glibc / C++ runtime, kernel, or display server.
+# Bundling these causes glibc, kernel, or dynamic loader conflicts.
 SYSTEM_PATTERNS = [
+    # Glibc and low-level runtime
     r'^linux-vdso\.so',
     r'^ld-linux',
     r'^libc\.so',
@@ -40,8 +42,46 @@ SYSTEM_PATTERNS = [
     r'^libresolv\.so',
     r'^libutil\.so',
     r'^libnss_',
+    r'^libanl\.so',
+    # GCC / Clang runtimes
     r'^libgcc_s\.so',
     r'^libstdc\+\+\.so',
+    # System core, init, IPC, and security subsystems (host-provided)
+    r'^libsystemd\.so',
+    r'^libudev\.so',
+    r'^libmount\.so',
+    r'^libblkid\.so',
+    r'^libselinux\.so',
+    r'^libseccomp\.so',
+    r'^libcap\.so',
+    r'^libgcrypt\.so',
+    r'^libgpg-error\.so',
+    r'^libaudit\.so',
+    r'^libpam\.so',
+    r'^libkmod\.so',
+    r'^libdevmapper\.so',
+    # Core compression & system util libs standard across all distros
+    r'^liblzma\.so',
+    r'^libzstd\.so',
+    r'^liblz4\.so',
+    r'^libbz2\.so',
+    r'^libexpat\.so',
+    r'^libffi\.so',
+    # X11, Wayland, and GPU/Mesa driver libraries (must match host display server)
+    r'^libX11\.so',
+    r'^libX11-xcb\.so',
+    r'^libXau\.so',
+    r'^libXdmcp\.so',
+    r'^libXext\.so',
+    r'^libXrender\.so',
+    r'^libxcb',
+    r'^libGL\.so',
+    r'^libEGL\.so',
+    r'^libGLX\.so',
+    r'^libGLdispatch\.so',
+    r'^libdrm\.so',
+    r'^libgbm\.so',
+    r'^libwayland-',
 ]
 
 # Standard distribution package libraries provided by distro package managers (Debian/Fedora)
@@ -181,20 +221,34 @@ def bundle(executable: Path, lib_dir: Path, rpath: str | None = None, private_on
     # Patch RPATH with patchelf if available
     if patchelf_bin:
         print("[BUNDLE] Configuring RPATH with patchelf...")
+        force_rpath_flags = []
+        try:
+            help_out = subprocess.check_output([patchelf_bin, "--help"], stderr=subprocess.STDOUT).decode('utf-8', errors='replace')
+            if "--force-rpath" in help_out:
+                force_rpath_flags = ["--force-rpath"]
+        except Exception:
+            pass
+
         try:
             executable.chmod(0o755)
-            subprocess.run([patchelf_bin, "--set-rpath", rpath, str(executable)], check=True)
-            print(f"  -> Set RPATH on executable: {rpath}")
+            cmd = [patchelf_bin] + force_rpath_flags + ["--set-rpath", rpath, str(executable)]
+            subprocess.run(cmd, check=True)
+            print(f"  -> Set RPATH on executable: {rpath} (flags: {force_rpath_flags})")
         except subprocess.CalledProcessError as e:
             print(f"[WARN] Failed to set RPATH on executable: {e}", file=sys.stderr)
 
-        for lib_file in all_libs_in_dir:
+        patched_count = 0
+        for lib_file in sorted(all_libs_in_dir):
+            if not lib_file.is_file() or lib_file.is_symlink():
+                continue
             try:
                 lib_file.chmod(0o755)
-                subprocess.run([patchelf_bin, "--set-rpath", "$ORIGIN", str(lib_file)], check=True)
-            except subprocess.CalledProcessError:
-                pass
-        print(f"[BUNDLE] Successfully patched {len(all_libs_in_dir)} libraries.")
+                cmd = [patchelf_bin] + force_rpath_flags + ["--set-rpath", "$ORIGIN", str(lib_file)]
+                subprocess.run(cmd, check=True)
+                patched_count += 1
+            except subprocess.CalledProcessError as e:
+                print(f"[WARN] Failed to patch RPATH on {lib_file.name}: {e}", file=sys.stderr)
+        print(f"[BUNDLE] Successfully patched {patched_count} libraries.")
     else:
         print("[WARN] patchelf not found; relying on link-time RPATH and LD_LIBRARY_PATH wrapper.")
 

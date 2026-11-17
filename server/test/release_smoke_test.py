@@ -15,7 +15,7 @@ with tempfile.TemporaryDirectory(prefix='crowley release test ') as temporary:
     root = Path(temporary) / 'server with spaces'
     automatic_config = source.is_dir()
     if automatic_config:
-        shutil.copytree(source, root)
+        shutil.copytree(source, root, symlinks=(os.name != 'nt'))
         binary = root / ('crowleys_cloud_server.exe' if os.name == 'nt' else 'crowleys_cloud_server')
         assert not (root / 'config/config.local.json').exists(), 'Archive contains local secrets'
     else:
@@ -59,21 +59,48 @@ with tempfile.TemporaryDirectory(prefix='crowley release test ') as temporary:
     launcher = [part for part in os.environ.get('SERVER_LAUNCHER', '').split() if part]
 
     def launch(action):
-        with (root / 'smoke.log').open('wb') as log:
+        log_path = root / 'smoke.log'
+        with log_path.open('wb') as log:
             command = launcher + ([str(binary)] if automatic_config else [str(binary), str(base)])
             process = subprocess.Popen(command, cwd=temporary, env=env, stdout=log, stderr=log)
             try:
                 for _ in range(200):
-                    assert process.poll() is None, 'Packaged server exited; inspect dependency/startup configuration'
+                    if process.poll() is not None:
+                        log.flush()
+                        output = log_path.read_text(errors='replace')
+                        sys.stderr.write(
+                            f"\n[FAIL] Packaged server exited prematurely with code {process.returncode}!\n"
+                            f"=== Server Log (smoke.log) ===\n{output}\n==============================\n"
+                        )
+                        raise AssertionError(f'Packaged server exited (code {process.returncode}); inspect dependency/startup configuration:\n{output}')
                     try:
                         status, _ = request('/')
-                        assert status == 200, 'Packaged web assets unavailable'
-                        break
+                        if status == 200:
+                            break
+                        log.flush()
+                        output = log_path.read_text(errors='replace')
+                        sys.stderr.write(
+                            f"\n[FAIL] GET / returned unexpected status {status}!\n"
+                            f"=== Server Log (smoke.log) ===\n{output}\n==============================\n"
+                        )
+                        raise AssertionError(f'Packaged web assets unavailable (status {status}):\n{output}')
                     except OSError:
                         time.sleep(.05)
                 else:
-                    raise AssertionError('Server startup timed out')
+                    log.flush()
+                    output = log_path.read_text(errors='replace')
+                    sys.stderr.write(
+                        f"\n[FAIL] Packaged server startup timed out!\n"
+                        f"=== Server Log (smoke.log) ===\n{output}\n==============================\n"
+                    )
+                    raise AssertionError('Server startup timed out:\n' + output)
                 action()
+            except Exception:
+                log.flush()
+                if log_path.exists():
+                    output = log_path.read_text(errors='replace')
+                    sys.stderr.write(f"\n=== Server Log on failure ===\n{output}\n=============================\n")
+                raise
             finally:
                 process.terminate()
                 try:
@@ -110,7 +137,7 @@ with tempfile.TemporaryDirectory(prefix='crowley release test ') as temporary:
     # Missing keys with existing data must fail instead of silently generating new ones.
     local.write_text(json.dumps(settings))
     with (root / 'smoke.log').open('wb') as log:
-        result = subprocess.run([str(binary), str(base)], cwd=temporary, env=env, stdout=log, stderr=log, timeout=15)
+        result = subprocess.run(launcher + [str(binary), str(base)], cwd=temporary, env=env, stdout=log, stderr=log, timeout=15)
     assert result.returncode != 0
     assert json.loads(local.read_text()) == settings
     # Environment secrets override an incomplete local config without persisting them.
@@ -126,7 +153,7 @@ with tempfile.TemporaryDirectory(prefix='crowley release test ') as temporary:
     # An invalid file must not be overwritten, even when keys are absent.
     local.write_text('{invalid local JSON')
     with (root / 'smoke.log').open('wb') as log:
-        result = subprocess.run([str(binary), str(base)], cwd=temporary, env=env, stdout=log, stderr=log, timeout=15)
+        result = subprocess.run(launcher + [str(binary), str(base)], cwd=temporary, env=env, stdout=log, stderr=log, timeout=15)
     assert result.returncode != 0 and local.read_text() == '{invalid local JSON'
 
     # Also cover a completely absent local file and shipped placeholder secrets.
@@ -149,7 +176,7 @@ with tempfile.TemporaryDirectory(prefix='crowley release test ') as temporary:
     lock = local.with_name(local.name + '.init-lock')
     lock.mkdir()
     with (root / 'smoke.log').open('wb') as log:
-        result = subprocess.run([str(binary), str(base)], cwd=temporary, env=env, stdout=log, stderr=log, timeout=15)
+        result = subprocess.run(launcher + [str(binary), str(base)], cwd=temporary, env=env, stdout=log, stderr=log, timeout=15)
     assert result.returncode != 0 and not local.exists()
     assert lock.is_dir(), 'A competing initializer must not remove the active lock'
     lock.rmdir()
