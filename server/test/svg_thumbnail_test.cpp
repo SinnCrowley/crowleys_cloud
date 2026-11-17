@@ -138,6 +138,10 @@ void testSvgMalformedGraceful() {
 
 int main() {
   std::cout << "=== SVG Thumbnail & Decoding Tests ===" << std::endl;
+#ifndef CROWLEYS_CLOUD_HAS_LIBRSVG
+  std::cout << "  [SKIP] librsvg/cairo not enabled in this build. Skipping SVG tests." << std::endl;
+  return 0;
+#else
   testSvgDecodeStandard();
   testSvgDecodeViewBoxOnly();
   testSvgDecodeXmlPrologue();
@@ -145,4 +149,5 @@ int main() {
   testSvgMalformedGraceful();
   std::cout << "=== All SVG Tests Passed! ===" << std::endl;
   return 0;
+#endif
 }

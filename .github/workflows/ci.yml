@@ -80,7 +80,7 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev ccache
+          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev librsvg2-dev libcairo2-dev ccache
 
       - name: Configure ccache
         uses: actions/cache@v6
@@ -411,7 +411,7 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev dpkg-dev file patchelf python3
+          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev librsvg2-dev libcairo2-dev dpkg-dev file patchelf python3
 
       - name: Download Web Client Bundle
         uses: actions/download-artifact@v8
@@ -585,7 +585,7 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev patchelf
+          sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev zlib1g-dev protobuf-compiler libprotobuf-dev pkg-config libjsoncpp-dev uuid-dev libwebp-dev libheif-dev librsvg2-dev libcairo2-dev patchelf
 
       - name: Download Web Client Bundle
         uses: actions/download-artifact@v8

@@ -673,8 +673,8 @@ class AuthService {
       throw AuthException(platformAppLocalizations().authErrorNoSavedUsername);
     }
 
-    final curPw =
-        currentPassword ?? await secretStore.readSavedPassword(serverId);
+    final savedPassword = await secretStore.readSavedPassword(serverId);
+    final curPw = currentPassword ?? savedPassword;
     if (curPw == null || curPw.isEmpty) {
       throw AuthException(platformAppLocalizations().passwordCannotBeEmpty);
     }
@@ -682,11 +682,10 @@ class AuthService {
     final clientNonce = ScramUtils.generateRandomHex(16);
     dynamic challenge;
     try {
+      final reauthUri = _endpoint(baseUrl, '/api/account/reauth/challenge')
+          .replace(queryParameters: {'nonce': clientNonce});
       final res = await _client.get(
-        _endpoint(
-          baseUrl,
-          '/api/account/reauth/challenge',
-        ).replace(queryParameters: {'nonce': clientNonce}),
+        reauthUri,
         headers: {'authorization': 'Bearer $token'},
       );
       if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -696,11 +695,10 @@ class AuthService {
 
     if (challenge == null) {
       try {
-        final res = await _client.get(
-          _endpoint(baseUrl, '/api/auth/challenge').replace(
-            queryParameters: {'username': username, 'nonce': clientNonce},
-          ),
-        );
+        final query = {'username': username, 'nonce': clientNonce};
+        final challengeUri = _endpoint(baseUrl, '/api/auth/challenge')
+            .replace(queryParameters: query);
+        final res = await _client.get(challengeUri);
         if (res.statusCode >= 200 && res.statusCode < 300) {
           challenge = jsonDecode(res.body);
         }
