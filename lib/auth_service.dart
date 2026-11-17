@@ -333,6 +333,42 @@ String? accountErrorMessage(String body) {
 
     final isRu = l10n.localeName.startsWith('ru');
 
+    if (isRu) {
+      switch (key) {
+        case 'registration_pending':
+          return l10n.registrationPending;
+        case 'registration_closed':
+          return l10n.registrationClosed;
+        case 'account_blocked':
+          return l10n.accountBlocked;
+        case 'password_reset_required':
+          return l10n.passwordResetRequired;
+        case 'maintenance':
+          return l10n.serverMaintenance;
+        case 'quota_exceeded':
+          return l10n.storageQuotaExceeded;
+        case 'invalid_credentials':
+        case 'invalid credentials':
+          return 'Неверное имя пользователя или пароль.';
+        case 'user_already_exists':
+          return 'Пользователь с таким именем уже существует.';
+        case 'rate_limited':
+        case 'rate_limit_exceeded':
+        case 'rate limit exceeded':
+          return 'Слишком много запросов. Пожалуйста, подождите.';
+        case 'username_required':
+        case 'username is required':
+          return l10n.usernameIsRequired;
+        case 'invalid challenge parameters':
+        case 'invalid challenge token':
+        case 'challenge token expired':
+        case 'nonce already consumed':
+          return 'Сессия авторизации устарела. Попробуйте снова.';
+        default:
+          return data['error'] as String?;
+      }
+    }
+
     switch (key) {
       case 'registration_pending':
         return l10n.registrationPending;
@@ -348,19 +384,13 @@ String? accountErrorMessage(String body) {
         return l10n.storageQuotaExceeded;
       case 'invalid_credentials':
       case 'invalid credentials':
-        return isRu
-            ? 'Неверное имя пользователя или пароль.'
-            : 'Invalid username or password.';
+        return 'Invalid username or password.';
       case 'user_already_exists':
-        return isRu
-            ? 'Пользователь с таким именем уже существует.'
-            : 'A user with this username already exists.';
+        return 'A user with this username already exists.';
       case 'rate_limited':
       case 'rate_limit_exceeded':
       case 'rate limit exceeded':
-        return isRu
-            ? 'Слишком много запросов. Пожалуйста, подождите.'
-            : 'Too many requests. Please try again later.';
+        return 'Too many requests. Please try again later.';
       case 'username_required':
       case 'username is required':
         return l10n.usernameIsRequired;
@@ -368,9 +398,7 @@ String? accountErrorMessage(String body) {
       case 'invalid challenge token':
       case 'challenge token expired':
       case 'nonce already consumed':
-        return isRu
-            ? 'Сессия авторизации устарела. Попробуйте снова.'
-            : 'Authentication session expired. Please try again.';
+        return 'Authentication session expired. Please try again.';
       default:
         return data['error'] as String?;
     }
@@ -390,7 +418,7 @@ class AuthException implements Exception {
 
 class ServerUnreachableException extends AuthException {
   const ServerUnreachableException([String? message])
-    : super(message ?? 'Server is unreachable.');
+      : super(message ?? 'Server is unreachable.');
 }
 
 enum SessionCheckStatus {
@@ -682,8 +710,10 @@ class AuthService {
     final clientNonce = ScramUtils.generateRandomHex(16);
     dynamic challenge;
     try {
-      final reauthUri = _endpoint(baseUrl, '/api/account/reauth/challenge')
-          .replace(queryParameters: {'nonce': clientNonce});
+      final reauthUri = _endpoint(
+        baseUrl,
+        '/api/account/reauth/challenge',
+      ).replace(queryParameters: {'nonce': clientNonce});
       final res = await _client.get(
         reauthUri,
         headers: {'authorization': 'Bearer $token'},
@@ -696,8 +726,10 @@ class AuthService {
     if (challenge == null) {
       try {
         final query = {'username': username, 'nonce': clientNonce};
-        final challengeUri = _endpoint(baseUrl, '/api/auth/challenge')
-            .replace(queryParameters: query);
+        final challengeUri = _endpoint(
+          baseUrl,
+          '/api/auth/challenge',
+        ).replace(queryParameters: query);
         final res = await _client.get(challengeUri);
         if (res.statusCode >= 200 && res.statusCode < 300) {
           challenge = jsonDecode(res.body);

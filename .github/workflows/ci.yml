@@ -720,7 +720,12 @@ jobs:
         run: flutter pub get
 
       - name: Verify Code Formatting
-        run: dart format --output=none --set-exit-if-changed lib test
+        run: |
+          dart format --output=none --set-exit-if-changed lib test || {
+            echo "::error::dart format detected formatting differences:"
+            git diff lib test
+            exit 1
+          }
 
       - name: Run Static Analysis
         run: flutter analyze
