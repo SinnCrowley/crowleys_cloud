@@ -769,8 +769,9 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       auto ext = std::filesystem::path(pathToCheck).extension().string();
       std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
       const bool isSvgz = (ext == ".svgz");
+      const bool isSvg = (ext == ".svg" || ext == ".svgz" || mimeType == "image/svg+xml");
       const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
-      const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
+      const auto dispositionType = (isDownloadQuery || isSvg) ? "attachment" : "inline";
 
       const auto rangeHeader = req->getHeader("range");
       const auto rangeOpt = server::utils::parseRangeHeader(rangeHeader, plainSize);
@@ -799,6 +800,9 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
         }
         if (isSvgz) {
           resp->addHeader("Content-Encoding", "gzip");
+        }
+        if (isSvg) {
+          resp->addHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
         }
         resp->addHeader("Accept-Ranges", "bytes");
         resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
@@ -831,6 +835,9 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       }
       if (isSvgz) {
         resp->addHeader("Content-Encoding", "gzip");
+      }
+      if (isSvg) {
+        resp->addHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
       }
       resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
       resp->addHeader("ETag", fileEtag);
@@ -908,10 +915,13 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       return;
     }
 
-    const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
-    const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
+    const auto ext = fullPath.extension().string();
+    const bool isSvgz = (ext == ".svgz");
     const auto fileName = fullPath.filename().string();
     const auto mimeType = server::ctx().fileService->mimeTypeFor(fullPath);
+    const bool isSvg = (ext == ".svg" || ext == ".svgz" || mimeType == "image/svg+xml");
+    const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
+    const auto dispositionType = (isDownloadQuery || isSvg) ? "attachment" : "inline";
 
     if (req->isHead() || req->getMethod() == drogon::Head) {
       auto resp = drogon::HttpResponse::newHttpResponse();
@@ -925,8 +935,11 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       }
       resp->setContentTypeString(mimeType);
       resp->addHeader("Accept-Ranges", "bytes");
-      if (fullPath.extension().string() == ".svgz") {
+      if (isSvgz) {
         resp->addHeader("Content-Encoding", "gzip");
+      }
+      if (isSvg) {
+        resp->addHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
       }
       resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
       resp->addHeader("ETag", quotedFileEtag);
@@ -948,8 +961,11 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       resp->addHeader("Content-Length", std::to_string(fileSize));
     }
     resp->addHeader("Accept-Ranges", "bytes");
-    if (fullPath.extension().string() == ".svgz") {
+    if (isSvgz) {
       resp->addHeader("Content-Encoding", "gzip");
+    }
+    if (isSvg) {
+      resp->addHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
     }
     resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
     resp->addHeader("ETag", quotedFileEtag);

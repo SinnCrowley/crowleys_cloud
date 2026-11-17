@@ -449,7 +449,12 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
     if (ext == ".svgz") {
       resp->addHeader("Content-Encoding", "gzip");
     }
-    resp->addHeader("Content-Disposition", utils::formatContentDisposition(disposition, target.name));
+    const bool isSvg = (ext == ".svg" || ext == ".svgz" || effMime == "image/svg+xml");
+    const auto effectiveDisposition = (downloadMode || isSvg) ? "attachment" : "inline";
+    if (isSvg) {
+      resp->addHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+    }
+    resp->addHeader("Content-Disposition", utils::formatContentDisposition(effectiveDisposition, target.name));
     callback(resp);
   } else {
     std::string effMime = target.mimeType;
@@ -471,7 +476,12 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
     if (ext == ".svgz") {
       resp->addHeader("Content-Encoding", "gzip");
     }
-    resp->addHeader("Content-Disposition", utils::formatContentDisposition(disposition, target.name));
+    const bool isSvg = (ext == ".svg" || ext == ".svgz" || effMime == "image/svg+xml");
+    const auto effectiveDisposition = (downloadMode || isSvg) ? "attachment" : "inline";
+    if (isSvg) {
+      resp->addHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+    }
+    resp->addHeader("Content-Disposition", utils::formatContentDisposition(effectiveDisposition, target.name));
     callback(resp);
   }
 }

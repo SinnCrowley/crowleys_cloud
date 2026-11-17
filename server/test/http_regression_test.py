@@ -37,7 +37,7 @@ def run(hash_files):
         env = {k:v for k,v in os.environ.items() if k not in ('CROWLEYS_JWT_SECRET', 'CROWLEYS_ENCRYPTION_KEY')}
         with (root/'output.log').open('w') as log:
             process = subprocess.Popen([str(binary), str(config_path)], stdout=log, stderr=log, env=env)
-            def request(path, data=None, token=None, method=None, close=False, extra_headers=None):
+            def request(path, data=None, token=None, method=None, close=False, extra_headers=None, with_headers=False):
                 headers = {}
                 if isinstance(data, dict):
                     data = json.dumps(data).encode(); headers['Content-Type'] = 'application/json'
@@ -50,7 +50,10 @@ def run(hash_files):
                 try:
                     conn.request(method or ('POST' if data is not None else 'GET'), path, data, headers)
                     response = conn.getresponse()
-                    return response.status, response.read()
+                    body = response.read()
+                    if with_headers:
+                        return response.status, body, {k.lower(): v for k, v in response.getheaders()}
+                    return response.status, body
                 finally: conn.close()
             def obj(*args, **kw):
                 status, body = request(*args, **kw)
@@ -165,6 +168,48 @@ def run(hash_files):
                 assert status==200,(status,body)
                 with zipfile.ZipFile(io.BytesIO(body)) as archive:
                     assert archive.namelist()==['sub/ok.txt'],archive.namelist()
+
+                # SVG XSS mitigation: verify CSP and attachment disposition on shared & raw SVGs
+                import gzip
+                svg_payload = b'<svg xmlns="http://www.w3.org/2000/svg"><script>alert("XSS")</script><rect width="10" height="10" fill="red"/></svg>'
+                svgz_payload = gzip.compress(svg_payload)
+                assert upload('vector.svg', svg_payload)[0] == 201
+                assert upload('vector.svgz', svgz_payload)[0] == 201
+
+                st, body, hdrs = request('/api/files?' + urlencode(dict(scope='private', path='vector.svg')), token=token, with_headers=True)
+                assert st == 200 and body == svg_payload
+                assert 'attachment' in hdrs.get('content-disposition', '').lower()
+                assert 'sandbox' in hdrs.get('content-security-policy', '')
+                assert "default-src 'none'" in hdrs.get('content-security-policy', '')
+
+                svg_share = obj('/api/share', dict(scope='private', path='vector.svg'), token)['token']
+                st, body, hdrs = request('/s/' + svg_share + '/raw', with_headers=True)
+                assert st == 200 and body == svg_payload
+                assert hdrs.get('content-type', '').startswith('image/svg+xml')
+                assert 'attachment' in hdrs.get('content-disposition', '').lower()
+                assert 'sandbox' in hdrs.get('content-security-policy', '')
+                assert "default-src 'none'" in hdrs.get('content-security-policy', '')
+                assert "style-src 'unsafe-inline'" in hdrs.get('content-security-policy', '')
+
+                svgz_share = obj('/api/share', dict(scope='private', path='vector.svgz'), token)['token']
+                st, body, hdrs = request('/s/' + svgz_share + '/raw', with_headers=True)
+                assert st == 200 and body == svgz_payload
+                assert hdrs.get('content-type', '').startswith('image/svg+xml')
+                assert hdrs.get('content-encoding', '') == 'gzip'
+                assert 'attachment' in hdrs.get('content-disposition', '').lower()
+                assert 'sandbox' in hdrs.get('content-security-policy', '')
+                assert "default-src 'none'" in hdrs.get('content-security-policy', '')
+
+                assert upload('public_/nested.svg', svg_payload)[0] == 201
+                st, body, hdrs = request('/s/' + share + '/raw?p=nested.svg', with_headers=True)
+                assert st == 200 and body == svg_payload
+                assert 'attachment' in hdrs.get('content-disposition', '').lower()
+                assert 'sandbox' in hdrs.get('content-security-policy', '')
+                assert "default-src 'none'" in hdrs.get('content-security-policy', '')
+
+                st, body, hdrs = request('/s/' + share + '/raw?p=sub/ok.txt', with_headers=True)
+                assert st == 200 and body == b'contents'
+                assert 'inline' in hdrs.get('content-disposition', '').lower()
                 if hash_files:
                     # Literal prefixes must also isolate move/delete operations.
                     assert request('/api/files/move?'+urlencode(dict(scope='private',src='public_',dest='Moved')),b'',token)[0] == 200

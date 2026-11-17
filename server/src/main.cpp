@@ -190,7 +190,8 @@ int main(int argc, char *argv[]) {
       resp->addHeader("Referrer-Policy", "strict-origin-when-cross-origin");
 
       const auto &ct = resp->getHeader("content-type");
-      if (resp->contentType() == drogon::CT_TEXT_HTML || ct.find("text/html") != std::string::npos) {
+      const auto ctStr = resp->contentTypeString();
+      if (resp->contentType() == drogon::CT_TEXT_HTML || ct.find("text/html") != std::string::npos || ctStr.find("text/html") != std::string::npos) {
         resp->addHeader("Content-Security-Policy",
                         "default-src 'self'; "
                         "script-src 'self' 'wasm-unsafe-eval'; "
@@ -202,6 +203,11 @@ int main(int argc, char *argv[]) {
                         "object-src 'none'; "
                         "base-uri 'self'; "
                         "form-action 'self';");
+      } else if (ct.find("image/svg+xml") != std::string::npos || ctStr.find("image/svg+xml") != std::string::npos) {
+        resp->addHeader("Content-Security-Policy",
+                        "default-src 'none'; "
+                        "style-src 'unsafe-inline'; "
+                        "sandbox");
       }
 
       if (!server::ctx().accessLogEnabled.load()) return;
