@@ -15,7 +15,7 @@
 
 import 'dart:typed_data';
 import 'package:crowleys_cloud/app_constants.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'file_item.dart';
 import 'thumbnail_service.dart';

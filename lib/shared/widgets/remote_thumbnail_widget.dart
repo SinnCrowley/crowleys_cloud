@@ -15,7 +15,7 @@
 
 import 'dart:async';
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/shared/utils/blurhash_decoder.dart';
 import 'package:crowleys_cloud/shared/utils/scroll_throttler.dart';

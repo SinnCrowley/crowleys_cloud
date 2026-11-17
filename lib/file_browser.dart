@@ -25,7 +25,7 @@ import 'package:crowleys_cloud/shared/widgets/create_folder_dialog.dart';
 import 'package:crowleys_cloud/shared/widgets/selection_action_bar.dart';
 import 'package:crowleys_cloud/shared/widgets/selection_header_bar.dart';
 import 'package:crowleys_cloud/smart_thumbnail.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';

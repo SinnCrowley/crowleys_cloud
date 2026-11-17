@@ -17,7 +17,7 @@ import 'dart:io';
 
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as p;
 
 /// TextViewer displays plain text and Markdown files with syntax-friendly styling.
