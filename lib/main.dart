@@ -859,6 +859,12 @@ class _MainScreenState extends State<MainScreen> {
         return false;
       }
       await _serverManager.markAuthed(activeId);
+    } on ServerUnreachableException catch (e) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+      return false;
     } on AuthException catch (e) {
       if (!mounted) return false;
       ScaffoldMessenger.of(
@@ -1723,21 +1729,68 @@ class _MainScreenState extends State<MainScreen> {
     }
     _transferManager.throwIfItemCanceled(transferItem);
 
-    // 0-byte file edge case
-    if (totalBytes == 0) {
+    // Fast single streamed upload for files <= 50MB (1 HTTP request from start to end with live progress)
+    if (totalBytes <= 50 * 1024 * 1024) {
       final uri = Uri.parse(base)
           .resolve('/api/files')
           .replace(queryParameters: {'scope': 'private', 'path': remotePath});
       try {
-        final resp = await sendUpload(
-          uri,
-          headers: {
-            'authorization': 'Bearer $token',
-            'content-type': 'application/octet-stream',
-            'x-thumbnail': ?thumbnailBase64,
-          },
-          body: const <int>[],
-        );
+        Future<http.Response> executeStreamed(String currentToken) async {
+          while (true) {
+            _transferManager.throwIfCanceled();
+            _transferManager.throwIfItemCanceled(transferItem);
+
+            final request = http.StreamedRequest('POST', uri);
+            request.headers['authorization'] = 'Bearer $currentToken';
+            request.headers['content-type'] = 'application/octet-stream';
+            if (thumbnailBase64 != null) {
+              request.headers['x-thumbnail'] = thumbnailBase64;
+            }
+            request.contentLength = totalBytes;
+
+            StreamSubscription<List<int>>? subscription;
+            try {
+              if (totalBytes == 0) {
+                request.sink.close();
+              } else {
+                var bytesSent = 0;
+                subscription = localFile.openRead().listen(
+                  (chunk) {
+                    _transferManager.throwIfCanceled();
+                    _transferManager.throwIfItemCanceled(transferItem);
+                    bytesSent += chunk.length;
+                    _transferManager.updateItem(transferItem, bytesSent);
+                    request.sink.add(chunk);
+                  },
+                  onDone: () => request.sink.close(),
+                  onError: (Object err) => request.sink.addError(err),
+                  cancelOnError: true,
+                );
+              }
+
+              final streamedResp = await client.send(request);
+              final response = await http.Response.fromStream(streamedResp);
+
+              if (response.statusCode != 503 ||
+                  response.headers['x-crowley-maintenance'] != 'true') {
+                return response;
+              }
+              final seconds =
+                  (int.tryParse(response.headers['retry-after'] ?? '') ?? 5).clamp(
+                    1,
+                    300,
+                  );
+              await _transferManager.waitForMaintenance(
+                transferItem,
+                Duration(seconds: seconds),
+              );
+            } finally {
+              await subscription?.cancel();
+            }
+          }
+        }
+
+        var resp = await executeStreamed(token);
         if (resp.statusCode == 401) {
           try {
             await _serverManager.authService.refreshSession(
@@ -1749,34 +1802,22 @@ class _MainScreenState extends State<MainScreen> {
             );
           } catch (_) {}
           if (token != null && token.isNotEmpty) {
-            final retryResp = await sendUpload(
-              uri,
-              headers: {
-                'authorization': 'Bearer $token',
-                'content-type': 'application/octet-stream',
-                'x-thumbnail': ?thumbnailBase64,
-              },
-              body: const <int>[],
-            );
-            if (retryResp.statusCode >= 200 && retryResp.statusCode < 300) {
-              _transferManager.completeItem(transferItem);
-              return (ok: true, token: token, error: '');
-            }
+            _transferManager.updateItem(transferItem, 0);
+            resp = await executeStreamed(token);
           }
         }
         if (resp.statusCode >= 200 && resp.statusCode < 300) {
+          _transferManager.updateItem(transferItem, totalBytes);
           _transferManager.completeItem(transferItem);
           return (ok: true, token: token, error: '');
         }
-        _transferManager.failItem(
-          transferItem,
-          accountErrorMessage(resp.body) ?? 'HTTP ${resp.statusCode}',
-        );
-        return (
-          ok: false,
-          token: token,
-          error: accountErrorMessage(resp.body) ?? 'HTTP ${resp.statusCode}',
-        );
+        if (_isConnectionUnavailableStatus(resp.statusCode)) {
+          _transferManager.failItem(transferItem, l10n.serverDisconnected);
+          return (ok: false, token: token, error: l10n.serverDisconnected);
+        }
+        final err = accountErrorMessage(resp.body) ?? 'HTTP ${resp.statusCode}';
+        _transferManager.failItem(transferItem, err);
+        return (ok: false, token: token, error: err);
       } on SocketException {
         _transferManager.failItem(transferItem, l10n.serverDisconnected);
         return (ok: false, token: token, error: l10n.serverDisconnected);
@@ -1810,7 +1851,9 @@ class _MainScreenState extends State<MainScreen> {
       }
     } catch (_) {}
 
-    const chunkSize = 2 * 1024 * 1024;
+    const minChunkSize = 1 * 1024 * 1024;
+    const maxChunkSize = 16 * 1024 * 1024;
+    var currentChunkSize = 2 * 1024 * 1024;
     final raf = await localFile.open(mode: FileMode.read);
 
     try {
@@ -1820,11 +1863,11 @@ class _MainScreenState extends State<MainScreen> {
         await _transferManager.waitIfPaused();
         _transferManager.throwIfItemCanceled(transferItem);
 
-        final currentChunkSize = math.min(chunkSize, totalBytes - offset);
-        final isLast = (offset + currentChunkSize) >= totalBytes;
+        final readSize = math.min(currentChunkSize, totalBytes - offset);
+        final isLast = (offset + readSize) >= totalBytes;
 
         await raf.setPosition(offset);
-        final bytes = await raf.read(currentChunkSize);
+        final bytes = await raf.read(readSize);
 
         final chunkUri = Uri.parse(base)
             .resolve('/api/files')
@@ -1842,6 +1885,7 @@ class _MainScreenState extends State<MainScreen> {
         var attempts = 0;
         const maxRetries = 3;
         var backoff = const Duration(milliseconds: 50);
+        final stopwatch = Stopwatch()..start();
 
         while (attempts < maxRetries) {
           attempts++;
@@ -1874,6 +1918,8 @@ class _MainScreenState extends State<MainScreen> {
               break;
             }
 
+            currentChunkSize = minChunkSize;
+
             if (_isConnectionUnavailableStatus(response.statusCode)) {
               _transferManager.failItem(transferItem, l10n.serverDisconnected);
               return (ok: false, token: token, error: l10n.serverDisconnected);
@@ -1895,6 +1941,7 @@ class _MainScreenState extends State<MainScreen> {
               );
             }
           } on SocketException {
+            currentChunkSize = minChunkSize;
             if (attempts >= maxRetries) {
               _transferManager.failItem(transferItem, l10n.serverDisconnected);
               return (ok: false, token: token, error: l10n.serverDisconnected);
@@ -1902,6 +1949,7 @@ class _MainScreenState extends State<MainScreen> {
             await Future<void>.delayed(backoff);
             backoff *= 2;
           } on HttpException {
+            currentChunkSize = minChunkSize;
             if (attempts >= maxRetries) {
               _transferManager.failItem(transferItem, l10n.serverDisconnected);
               return (ok: false, token: token, error: l10n.serverDisconnected);
@@ -1909,6 +1957,7 @@ class _MainScreenState extends State<MainScreen> {
             await Future<void>.delayed(backoff);
             backoff *= 2;
           } on http.ClientException {
+            currentChunkSize = minChunkSize;
             if (_transferManager.isCanceled) throw TransferCanceledException();
             if (attempts >= maxRetries) {
               _transferManager.failItem(transferItem, l10n.serverDisconnected);
@@ -1929,6 +1978,14 @@ class _MainScreenState extends State<MainScreen> {
           _transferManager.failItem(transferItem, message);
           return (ok: false, token: token, error: message);
         }
+
+        stopwatch.stop();
+        final elapsedSec = math.max(0.05, stopwatch.elapsedMilliseconds / 1000.0);
+        final speed = bytes.length / elapsedSec; // bytes/sec
+        // Target ~2.0 seconds per chunk, aligned to 512KB
+        final targetChunk = ((speed * 2.0) / (512 * 1024)).round() * (512 * 1024);
+        currentChunkSize = targetChunk.clamp(minChunkSize, maxChunkSize);
+
         offset += bytes.length;
         _transferManager.updateItem(transferItem, offset);
       }

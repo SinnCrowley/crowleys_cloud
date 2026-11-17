@@ -277,9 +277,11 @@
     "account": "खाता और सुरक्षा",
     "logged_in": "इनके रूप में साइन इन हैं",
     "change_password": "पासवर्ड बदलें",
+    "current_password": "वर्तमान पासवर्ड",
     "new_password": "नया पासवर्ड",
     "confirm_new_password": "नए पासवर्ड की पुष्टि करें",
     "password_error_empty": "पासवर्ड खाली नहीं हो सकता",
+    "password_error_current_empty": "वर्तमान पासवर्ड खाली नहीं हो सकता",
     "password_error_mismatch": "पासवर्ड मेल नहीं खाते",
     "sign_out": "साइन आउट करें",
     "file_mgmt": "फ़ाइल प्रबंधन और खोज",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 घंटा",
     "login_1_day": "1 दिन",
     "login_30_days": "30 दिन",
-    "login_never": "कभी नहीं"
+    "login_never": "कभी नहीं",
+    "rebuild_index_hashed_unavailable": "फ़ाइल सिस्टम अनुक्रमणिका पुनर्निर्माण हैशेड संग्रहण के लिए उपलब्ध नहीं है."
   },
   "toasts": {
     "login_success": "साइन इन सफल रहा!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "सर्वर का रखरखाव चल रहा है। फ़ाइल संचालन बाद में फिर शुरू होंगे।",
     "storageQuotaExceeded": "स्टोरेज सीमा पार हो गई है। फ़ाइलें हटाएँ या व्यवस्थापक से सीमा बढ़ाने को कहें।",
     "resetPasswordStep1Body": "उपयोगकर्ता नाम दर्ज करें और व्यवस्थापक से छह अंकों का रिकवरी कोड माँगें।",
-    "resetPasswordStep2Body": "व्यवस्थापक से मिला छह अंकों का कोड और अपना नया पासवर्ड दर्ज करें।"
+    "resetPasswordStep2Body": "व्यवस्थापक से मिला छह अंकों का कोड और अपना नया पासवर्ड दर्ज करें।",
+    "hashedStorageRebuildUnavailable": "फ़ाइल सिस्टम अनुक्रमणिका पुनर्निर्माण हैशेड संग्रहण के लिए उपलब्ध नहीं है"
   },
   "recovery": {
     "resetPasswordTitle": "पासवर्ड रीसेट करें",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "सुपरयूज़र खाता संशोधित नहीं किया जा सकता।",
       "cannot_block_superuser": "सुपरयूज़र को ब्लॉक नहीं किया जा सकता।",
       "cannot_delete_superuser": "सुपरयूज़र को हटाया नहीं जा सकता।",
-      "quota_exceeded_default": "उपयोगकर्ता कोटा डिफ़ॉल्ट संग्रहण सीमा से अधिक नहीं हो सकता।"
+      "quota_exceeded_default": "उपयोगकर्ता कोटा डिफ़ॉल्ट संग्रहण सीमा से अधिक नहीं हो सकता।",
+      "hashed_storage_rebuild_unavailable": "फ़ाइल सिस्टम अनुक्रमणिका पुनर्निर्माण हैशेड संग्रहण के लिए उपलब्ध नहीं है."
     },
     "fields": {
       "registration_mode": {

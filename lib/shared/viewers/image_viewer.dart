@@ -764,13 +764,24 @@ class _RemoteImageViewState extends State<_RemoteImageView> {
     }
 
     return Stack(
+      fit: StackFit.expand,
       alignment: Alignment.center,
       children: [
-        if (widget.placeholder != null) widget.placeholder!,
+        if (widget.placeholder != null)
+          Positioned.fill(child: widget.placeholder!),
         if (_isLoading)
-          const CircularProgressIndicator(color: Colors.white)
+          const Center(child: CircularProgressIndicator(color: Colors.white))
         else if (errorMessage != null)
-          Text(errorMessage, style: const TextStyle(color: Colors.redAccent)),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                errorMessage,
+                style: const TextStyle(color: Colors.redAccent),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
       ],
     );
   }

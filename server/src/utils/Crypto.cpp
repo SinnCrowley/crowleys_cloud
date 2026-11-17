@@ -694,48 +694,92 @@ bool decryptFileAes256(const std::filesystem::path &srcPath, const std::filesyst
 }
 
 // Pull-based reading works with both keep-alive and Connection: close in Drogon.
+// Supports arbitrary byte-offset seeking and length bounding for HTTP Range requests.
 std::function<std::size_t(char *, std::size_t)> decryptedFileReader(
-    const std::filesystem::path &path, const std::string &keySource) {
+    const std::filesystem::path &path,
+    const std::string &keySource,
+    std::size_t startOffset,
+    std::size_t length) {
   struct Reader {
     std::ifstream input;
     std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> context{EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free};
     std::vector<unsigned char> pending;
     std::size_t offset{0};
+    std::size_t skip{0};
+    std::size_t bytesRemaining{std::numeric_limits<std::size_t>::max()};
     bool finished{false};
     explicit Reader(const std::filesystem::path &path) : input(path, std::ios::binary) {}
   };
   auto reader = std::make_shared<Reader>(path);
+  reader->bytesRemaining = length;
+  reader->skip = startOffset % 16;
+  const std::size_t blockIndex = startOffset / 16;
+
   unsigned char iv[16];
   const auto key = derive32ByteKey(keySource);
-  if (!reader->input.read(reinterpret_cast<char *>(iv), sizeof(iv)) || !reader->context ||
-      EVP_DecryptInit_ex(reader->context.get(), EVP_aes_256_cbc(), nullptr,
-                        reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) {
+
+  // Position input to read the 16-byte IV for blockIndex.
+  // In AES-256-CBC, IV for block 0 is at offset 0 (original IV).
+  // IV for block B (B > 0) is ciphertext block B-1, which is at offset 16 * B.
+  reader->input.seekg(static_cast<std::streamoff>(16 * blockIndex), std::ios::beg);
+  if (!reader->input.read(reinterpret_cast<char *>(iv), sizeof(iv)) || !reader->context) {
     throw std::runtime_error("Cannot open encrypted download");
   }
-  return [reader](char *output, std::size_t capacity) -> std::size_t {
-    if (!output || capacity == 0) return 0;
-    while (reader->offset == reader->pending.size() && !reader->finished) {
+
+  // Seek to ciphertext for blockIndex, which is at 16 * (blockIndex + 1).
+  reader->input.seekg(static_cast<std::streamoff>(16 * (blockIndex + 1)), std::ios::beg);
+
+  if (EVP_DecryptInit_ex(reader->context.get(), EVP_aes_256_cbc(), nullptr,
+                         reinterpret_cast<const unsigned char *>(key.data()), iv) != 1) {
+    throw std::runtime_error("Cannot initialize encrypted reader");
+  }
+
+  // If seeking into the file, or if bounded by range length, disable automatic padding check
+  // so intermediate blocks decrypt cleanly without expecting PKCS#7 padding.
+  const bool isFullDefault = (startOffset == 0 && length == std::numeric_limits<std::size_t>::max());
+  if (!isFullDefault) {
+    EVP_CIPHER_CTX_set_padding(reader->context.get(), 0);
+  }
+
+  return [reader, isFullDefault](char *output, std::size_t capacity) -> std::size_t {
+    if (!output || capacity == 0 || reader->bytesRemaining == 0) return 0;
+    while (reader->offset >= reader->pending.size() && !reader->finished && reader->bytesRemaining > 0) {
       unsigned char encrypted[65536];
       reader->input.read(reinterpret_cast<char *>(encrypted), sizeof(encrypted));
       const auto count = reader->input.gcount();
       reader->pending.resize(sizeof(encrypted) + EVP_MAX_BLOCK_LENGTH);
       reader->offset = 0;
-      int length = 0;
+      int len = 0;
       int ok;
       if (count > 0) {
-        ok = EVP_DecryptUpdate(reader->context.get(), reader->pending.data(), &length,
+        ok = EVP_DecryptUpdate(reader->context.get(), reader->pending.data(), &len,
                                encrypted, static_cast<int>(count));
       } else {
         reader->finished = true;
         ok = reader->input.bad() ? 0 : EVP_DecryptFinal_ex(
-            reader->context.get(), reader->pending.data(), &length);
+            reader->context.get(), reader->pending.data(), &len);
       }
-      if (ok != 1) { reader->finished = true; length = 0; }
-      reader->pending.resize(length);
+      if (ok != 1) { reader->finished = true; len = 0; }
+      reader->pending.resize(len);
+
+      if (reader->skip > 0 && reader->pending.size() > 0) {
+        const auto toSkip = std::min(reader->skip, reader->pending.size() - reader->offset);
+        reader->offset += toSkip;
+        reader->skip -= toSkip;
+      }
     }
-    const auto count = std::min(capacity, reader->pending.size() - reader->offset);
-    if (count) std::memcpy(output, reader->pending.data() + reader->offset, count);
-    reader->offset += count;
+
+    if (reader->offset >= reader->pending.size() || reader->bytesRemaining == 0) {
+      return 0;
+    }
+
+    const auto available = reader->pending.size() - reader->offset;
+    const auto count = std::min(capacity, std::min(available, reader->bytesRemaining));
+    if (count) {
+      std::memcpy(output, reader->pending.data() + reader->offset, count);
+      reader->offset += count;
+      reader->bytesRemaining -= count;
+    }
     return count;
   };
 }

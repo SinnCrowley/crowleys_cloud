@@ -84,9 +84,13 @@ async function parseResponse(response, responseType = null) {
     const accountMessages = {
       registration_pending: 'registrationPending', registration_closed: 'registrationClosed',
       account_blocked: 'accountBlocked', password_reset_required: 'passwordResetRequired',
-      maintenance: 'serverMaintenance', quota_exceeded: 'storageQuotaExceeded'
+      maintenance: 'serverMaintenance', quota_exceeded: 'storageQuotaExceeded',
+      hashed_storage_rebuild_unavailable: 'hashedStorageRebuildUnavailable'
     };
-    const messageKey = accountMessages[errorBody?.code];
+    let messageKey = accountMessages[errorBody?.code];
+    if (!messageKey && errorMsg === 'Filesystem index rebuild is unavailable for hashed storage') {
+      messageKey = 'hashedStorageRebuildUnavailable';
+    }
     throw new ApiError(response.status, messageKey ? apiMessage(`account_status.${messageKey}`) : errorMsg, errorBody);
   }
 

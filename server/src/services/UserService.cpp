@@ -535,7 +535,7 @@ bool UserService::decideApplication(std::int64_t actorId, std::int64_t userId, b
 }
 
 bool UserService::changePassword(std::int64_t userId, const std::string &newPassword) {
-  auto stmtGuard = db_.getStatement("UPDATE users SET password_hash = ? WHERE id = ?");
+  auto stmtGuard = db_.getStatement("UPDATE users SET password_hash = ?, password_reset_required = 0 WHERE id = ?");
   auto *stmt = stmtGuard.get();
 
   const auto hash = passwordHash(newPassword);
@@ -544,7 +544,7 @@ bool UserService::changePassword(std::int64_t userId, const std::string &newPass
   const auto rc = sqlite3_step(stmt);
   const auto changes = sqlite3_changes(db_.raw());
   if (rc != SQLITE_DONE || changes == 0) return false;
-  revokeAllRefreshTokens(userId);
+  revokeSessions(userId);
   return true;
 }
 
@@ -552,14 +552,14 @@ bool UserService::changePasswordWithScram(std::int64_t userId, const std::string
   if (scramHash.empty() || scramHash.size() > 4096 || !utils::isScramPasswordHash(scramHash)) {
     return false;
   }
-  auto stmtGuard = db_.getStatement("UPDATE users SET password_hash = ? WHERE id = ?");
+  auto stmtGuard = db_.getStatement("UPDATE users SET password_hash = ?, password_reset_required = 0 WHERE id = ?");
   auto *stmt = stmtGuard.get();
   sqlite3_bind_text(stmt, 1, scramHash.c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_int64(stmt, 2, userId);
   const auto rc = sqlite3_step(stmt);
   const auto changes = sqlite3_changes(db_.raw());
   if (rc != SQLITE_DONE || changes == 0) return false;
-  revokeAllRefreshTokens(userId);
+  revokeSessions(userId);
   return true;
 }
 

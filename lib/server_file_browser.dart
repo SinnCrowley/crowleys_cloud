@@ -22,6 +22,7 @@ import 'package:crowleys_cloud/server_browser_controller.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
+import 'package:crowleys_cloud/shared/utils/blurhash_decoder.dart';
 import 'package:flutter/material.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:open_file/open_file.dart';
@@ -118,6 +119,12 @@ class _ServerFileBrowserState extends State<ServerFileBrowser> {
             return controller.downloadTempForEdit(serverItem);
           },
           thumbnailPlaceholderBuilder: (fileItem) {
+            final blurhash = fileItem.serverFile?.blurhash;
+            if (blurhash != null && BlurHashDecoder.isValid(blurhash)) {
+              return SizedBox.expand(
+                child: BlurHashWidget(blurhash: blurhash, fit: BoxFit.contain),
+              );
+            }
             return SizedBox(
               width: 150,
               height: 150,

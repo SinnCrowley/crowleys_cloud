@@ -23,6 +23,12 @@ import 'package:crowleys_cloud/shared/utils/authenticated_http_client.dart';
 
 class MockAuthGateway implements AuthGateway {
   @override
+  Future<bool> ping(
+    String baseUrl, {
+    Duration timeout = const Duration(seconds: 4),
+  }) async => true;
+
+  @override
   Future<AuthResult> login({
     required String baseUrl,
     required String username,

@@ -28,6 +28,90 @@ function uploadError(xhr) {
   return error;
 }
 
+function sendChunkXhr(url, chunk, headers, signal, onChunkProgress, isRetry = false) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+
+    const token = get(authStore.accessToken);
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+    if (headers) {
+      for (const [k, v] of Object.entries(headers)) {
+        xhr.setRequestHeader(k, v);
+      }
+    }
+
+    if (onChunkProgress && xhr.upload) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          onChunkProgress(event.loaded);
+        }
+      };
+    }
+
+    const abort = () => xhr.abort();
+    xhr.onloadend = () => signal?.removeEventListener('abort', abort);
+    if (signal?.aborted) {
+      reject(new DOMException('Upload aborted', 'AbortError'));
+      return;
+    }
+    signal?.addEventListener('abort', abort, { once: true });
+
+    xhr.onload = async () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch (_) {
+          resolve({ ok: true });
+        }
+      } else if (xhr.status === 401 && !isRetry) {
+        let refreshed = false;
+        try {
+          const refreshToken = get(authStore.refreshToken);
+          if (!refreshToken) {
+            authStore.clearSession();
+            reject(new Error(apiMessage('api.upload_failed_status', { status: 401 })));
+            return;
+          }
+
+          const refreshRes = await fetch('/api/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: refreshToken })
+          });
+
+          if (!refreshRes.ok) {
+            authStore.clearSession();
+            reject(new Error(apiMessage('api.upload_failed_status', { status: 401 })));
+            return;
+          }
+
+          const refreshData = await refreshRes.json();
+          authStore.setSession({
+            accessToken: refreshData.access_token,
+            refreshToken: refreshData.refresh_token
+          });
+
+          refreshed = true;
+          const retryResult = await sendChunkXhr(url, chunk, headers, signal, onChunkProgress, true);
+          resolve(retryResult);
+        } catch (err) {
+          if (refreshed || signal?.aborted) { reject(err); return; }
+          authStore.clearSession();
+          reject(new Error(apiMessage('api.upload_failed_status', { status: 401 })));
+        }
+      } else {
+        reject(uploadError(xhr));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error(apiMessage('api.network_upload')));
+    xhr.send(chunk);
+  });
+}
+
 export const filesApi = {
   async listDir({ scope = 'private', path = '', type = 'all', q = '', sort = 'date', order = 'desc' } = {}) {
     const params = new URLSearchParams({ scope });
@@ -222,18 +306,20 @@ export const filesApi = {
     });
   },
 
-  async uploadFileChunked({ scope = 'private', path, file, thumbnail = null, chunkSize = 5 * 1024 * 1024, onProgress, signal }) {
+  async uploadFileChunked({ scope = 'private', path, file, thumbnail = null, chunkSize = null, onProgress, signal, checkResume = true }) {
     const totalSize = file.size;
     let offset = 0;
 
-    // Check resume status first
-    try {
-      const status = await this.getUploadStatus({ scope, path, signal });
-      if (status && typeof status.bytes_received === 'number') {
-        offset = status.bytes_received;
+    // Check resume status first if requested
+    if (checkResume) {
+      try {
+        const status = await this.getUploadStatus({ scope, path, signal });
+        if (status && typeof status.bytes_received === 'number') {
+          offset = status.bytes_received;
+        }
+      } catch (e) {
+        // Offset remains 0 if status query fails
       }
-    } catch (e) {
-      // Offset remains 0 if status query fails
     }
 
     signal?.throwIfAborted();
@@ -248,9 +334,17 @@ export const filesApi = {
       }
     }
 
+    const MIN_CHUNK = 2 * 1024 * 1024;      // 2 MB minimum
+    const MAX_CHUNK = 32 * 1024 * 1024;     // 32 MB maximum
+    const TARGET_DURATION = 2.0;            // 2.0 seconds target transmission per chunk
+
+    // If explicit chunkSize is passed (e.g. in tests), keep it fixed; otherwise dynamically adapt
+    const isFixedChunk = typeof chunkSize === 'number' && chunkSize > 0;
+    let currentChunkSize = isFixedChunk ? chunkSize : MIN_CHUNK;
+
     while (offset < totalSize) {
       signal?.throwIfAborted();
-      const chunkEnd = Math.min(offset + chunkSize, totalSize);
+      const chunkEnd = Math.min(offset + currentChunkSize, totalSize);
       const isLast = chunkEnd >= totalSize;
       const chunk = file.slice(offset, chunkEnd);
 
@@ -267,11 +361,38 @@ export const filesApi = {
         options.headers = { 'X-Thumbnail': thumbnailBase64 };
       }
 
-      await apiPost(`/api/files?${params.toString()}`, chunk, options);
+      const currentOffset = offset;
+      const startTime = Date.now();
+
+      if (typeof XMLHttpRequest !== 'undefined') {
+        await sendChunkXhr(
+          `/api/files?${params.toString()}`,
+          chunk,
+          options.headers,
+          signal,
+          (chunkLoaded) => {
+            if (onProgress) {
+              onProgress(currentOffset + chunkLoaded, totalSize);
+            }
+          }
+        );
+      } else {
+        await apiPost(`/api/files?${params.toString()}`, chunk, options);
+      }
+
+      const elapsed = Math.max(0.05, (Date.now() - startTime) / 1000);
       offset = chunkEnd;
 
       if (onProgress) {
         onProgress(offset, totalSize);
+      }
+
+      // Dynamically adapt next chunk size based on measured upload bandwidth
+      if (!isFixedChunk) {
+        const speed = chunk.size / elapsed; // bytes/sec
+        // Target ~2 seconds transmission per chunk, aligned to 1MB
+        const targetSize = Math.round((speed * TARGET_DURATION) / (1024 * 1024)) * 1024 * 1024;
+        currentChunkSize = Math.max(MIN_CHUNK, Math.min(MAX_CHUNK, targetSize || MIN_CHUNK));
       }
     }
 

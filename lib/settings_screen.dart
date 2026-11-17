@@ -343,17 +343,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final server = widget.serverManager.activeServer;
     if (server == null) return;
 
-    final password = await showDialog<String?>(
+    final result = await showDialog<_PasswordChangeResult?>(
       context: context,
       builder: (context) => const _PasswordChangeDialog(),
     );
-    if (password == null) return;
+    if (result == null) return;
 
     try {
       await widget.serverManager.authService.changePassword(
         serverId: server.id,
         baseUrl: server.connectionUrl,
-        newPassword: password,
+        currentPassword: result.currentPassword,
+        newPassword: result.newPassword,
       );
       await widget.serverManager.markAuthed(server.id);
       if (!mounted) return;
@@ -1797,6 +1798,15 @@ class _TextInputDialogState extends State<_TextInputDialog> {
   }
 }
 
+class _PasswordChangeResult {
+  final String currentPassword;
+  final String newPassword;
+  const _PasswordChangeResult({
+    required this.currentPassword,
+    required this.newPassword,
+  });
+}
+
 class _PasswordChangeDialog extends StatefulWidget {
   const _PasswordChangeDialog();
 
@@ -1805,14 +1815,17 @@ class _PasswordChangeDialog extends StatefulWidget {
 }
 
 class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
+  final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   String? _errorText;
+  bool _showCurrentPassword = false;
   bool _showNewPassword = false;
   bool _showConfirmPassword = false;
 
   @override
   void dispose() {
+    _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -1820,8 +1833,13 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
 
   void _submit() {
     final l10n = AppLocalizations.of(context)!;
+    final currentPassword = _currentPasswordController.text;
     final password = _newPasswordController.text;
     final confirm = _confirmPasswordController.text;
+    if (currentPassword.isEmpty) {
+      setState(() => _errorText = l10n.passwordCannotBeEmpty);
+      return;
+    }
     if (password.isEmpty) {
       setState(() => _errorText = l10n.enterNewPassword);
       return;
@@ -1830,7 +1848,10 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
       setState(() => _errorText = l10n.passwordsDoNotMatch);
       return;
     }
-    Navigator.of(context).pop(password);
+    Navigator.of(context).pop(_PasswordChangeResult(
+      currentPassword: currentPassword,
+      newPassword: password,
+    ));
   }
 
   @override
@@ -1844,8 +1865,29 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
-            controller: _newPasswordController,
+            controller: _currentPasswordController,
             autofocus: true,
+            obscureText: !_showCurrentPassword,
+            decoration: InputDecoration(
+              labelText: l10n.passwordLabel,
+              suffixIcon: IconButton(
+                tooltip: _showCurrentPassword
+                    ? l10n.hidePassword
+                    : l10n.showPassword,
+                icon: Icon(
+                  _showCurrentPassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
+                onPressed: () =>
+                    setState(() => _showCurrentPassword = !_showCurrentPassword),
+              ),
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _newPasswordController,
             obscureText: !_showNewPassword,
             decoration: InputDecoration(
               labelText: l10n.newPasswordFieldLabel,

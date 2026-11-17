@@ -150,12 +150,13 @@ test('Full E2E SCRAM auth between Web client crypto and C++ server binary', asyn
     assert.ok(loginData.access_token);
     assert.equal(loginData.server_signature, expectedServerSignatureHex, 'Server signature verified!');
 
-    // 4. Change password using SCRAM-Argon2id
+    // 4. Change password using SCRAM-Argon2id (Variant A: Zero-Knowledge Re-authentication)
     const newPassword = 'BrandNewWebPassword_999!';
     const newSalt = generateRandomHex(16);
     const newKeys = await scramArgon2idGenerateKeys(newPassword, newSalt, m, t, p);
 
-    const chgRes = await fetch(`${baseUrl}/api/account/password`, {
+    // 4a. Attempt change without proof must fail with 400
+    const noProofRes = await fetch(`${baseUrl}/api/account/password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -171,7 +172,69 @@ test('Full E2E SCRAM auth between Web client crypto and C++ server binary', asyn
         server_key: newKeys.serverKeyHex
       })
     });
+    assert.equal(noProofRes.status, 400);
+
+    // 4b. Attempt change with wrong proof must fail with 401
+    const badChalRes = await fetch(`${baseUrl}/api/account/reauth/challenge?nonce=${generateRandomHex(16)}`, {
+      headers: { 'Authorization': `Bearer ${loginData.access_token}` }
+    });
+    assert.equal(badChalRes.status, 200);
+    const badChal = await badChalRes.json();
+    const badAuthMsg = scramArgon2idAuthMessage(username, badChal.nonce, badChal.salt, badChal.m, badChal.t, badChal.p);
+    const badProof = await scramArgon2idComputeProof('WrongPassword', badChal.salt, badChal.m, badChal.t, badChal.p, badAuthMsg);
+
+    const wrongProofRes = await fetch(`${baseUrl}/api/account/password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${loginData.access_token}`
+      },
+      body: JSON.stringify({
+        current_nonce: badChal.nonce,
+        current_client_proof: badProof.clientProofHex,
+        current_challenge_token: badChal.challenge_token,
+        salt: newSalt,
+        kdf: 'argon2id',
+        m,
+        t,
+        p,
+        stored_key: newKeys.storedKeyHex,
+        server_key: newKeys.serverKeyHex
+      })
+    });
+    assert.equal(wrongProofRes.status, 401);
+
+    // 4c. Successful change with valid proof
+    const reauthChalRes = await fetch(`${baseUrl}/api/account/reauth/challenge?nonce=${generateRandomHex(16)}`, {
+      headers: { 'Authorization': `Bearer ${loginData.access_token}` }
+    });
+    assert.equal(reauthChalRes.status, 200);
+    const reauthChal = await reauthChalRes.json();
+    const curAuthMsg = scramArgon2idAuthMessage(username, reauthChal.nonce, reauthChal.salt, reauthChal.m, reauthChal.t, reauthChal.p);
+    const curProof = await scramArgon2idComputeProof(password, reauthChal.salt, reauthChal.m, reauthChal.t, reauthChal.p, curAuthMsg);
+
+    const chgRes = await fetch(`${baseUrl}/api/account/password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${loginData.access_token}`
+      },
+      body: JSON.stringify({
+        current_nonce: reauthChal.nonce,
+        current_client_proof: curProof.clientProofHex,
+        current_challenge_token: reauthChal.challenge_token,
+        salt: newSalt,
+        kdf: 'argon2id',
+        m,
+        t,
+        p,
+        stored_key: newKeys.storedKeyHex,
+        server_key: newKeys.serverKeyHex
+      })
+    });
     assert.equal(chgRes.status, 200);
+    const chgData = await chgRes.json();
+    assert.equal(chgData.server_signature, curProof.expectedServerSignatureHex);
 
     // 5. Login with new password
     const newChalRes = await fetch(`${baseUrl}/api/auth/challenge?username=${username}&nonce=${generateRandomHex(16)}`);

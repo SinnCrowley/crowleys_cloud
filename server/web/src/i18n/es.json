@@ -277,9 +277,11 @@
     "account": "Cuenta y seguridad",
     "logged_in": "Sesión iniciada como",
     "change_password": "Cambiar contraseña",
+    "current_password": "Contraseña actual",
     "new_password": "Nueva contraseña",
     "confirm_new_password": "Confirmar nueva contraseña",
     "password_error_empty": "La contraseña no puede estar vacía",
+    "password_error_current_empty": "La contraseña actual no puede estar vacía",
     "password_error_mismatch": "Las contraseñas no coinciden",
     "sign_out": "Cerrar sesión",
     "file_mgmt": "Gestión de archivos y búsqueda",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 hora",
     "login_1_day": "1 día",
     "login_30_days": "30 días",
-    "login_never": "Nunca"
+    "login_never": "Nunca",
+    "rebuild_index_hashed_unavailable": "La reconstrucción del índice del sistema de archivos no está disponible para almacenamiento con hash."
   },
   "toasts": {
     "login_success": "¡Sesión iniciada correctamente!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "El servidor está en mantenimiento. Las operaciones con archivos se reanudarán más tarde.",
     "storageQuotaExceeded": "Se ha superado la cuota de almacenamiento. Elimine archivos o pida a un administrador que aumente el límite.",
     "resetPasswordStep1Body": "Introduzca su nombre de usuario y pida a un administrador un código de recuperación de seis dígitos.",
-    "resetPasswordStep2Body": "Introduzca el código de seis dígitos proporcionado por un administrador y su nueva contraseña."
+    "resetPasswordStep2Body": "Introduzca el código de seis dígitos proporcionado por un administrador y su nueva contraseña.",
+    "hashedStorageRebuildUnavailable": "La reconstrucción del índice del sistema de archivos no está disponible para almacenamiento con hash"
   },
   "recovery": {
     "resetPasswordTitle": "Restablecer contraseña",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "La cuenta de superusuario no se puede modificar.",
       "cannot_block_superuser": "El superusuario no puede ser bloqueado.",
       "cannot_delete_superuser": "El superusuario no puede ser eliminado.",
-      "quota_exceeded_default": "La cuota de usuario no puede exceder el límite de almacenamiento predeterminado."
+      "quota_exceeded_default": "La cuota de usuario no puede exceder el límite de almacenamiento predeterminado.",
+      "hashed_storage_rebuild_unavailable": "La reconstrucción del índice del sistema de archivos no está disponible para almacenamiento con hash."
     },
     "fields": {
       "registration_mode": {

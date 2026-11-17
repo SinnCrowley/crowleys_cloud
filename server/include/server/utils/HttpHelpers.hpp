@@ -221,6 +221,84 @@ inline drogon::HttpResponsePtr jsonOk() {
   return drogon::HttpResponse::newHttpJsonResponse(std::move(body));
 }
 
+struct HttpByteRange {
+  std::size_t start{0};
+  std::size_t end{0};
+  std::size_t length{0};
+  bool satisfiable{true};
+};
+
+/**
+ * Parses standard HTTP Range header (RFC 7233).
+ * Supports "bytes=START-END", "bytes=START-", and "bytes=-SUFFIX".
+ */
+inline std::optional<HttpByteRange> parseRangeHeader(const std::string &rangeHeader, std::size_t totalSize) {
+  if (rangeHeader.empty() || totalSize == 0) return std::nullopt;
+  const std::string prefix = "bytes=";
+  if (rangeHeader.rfind(prefix, 0) != 0) return std::nullopt;
+
+  std::string spec = rangeHeader.substr(prefix.size());
+  const auto commaPos = spec.find(',');
+  if (commaPos != std::string::npos) {
+    spec = spec.substr(0, commaPos);
+  }
+  while (!spec.empty() && (spec.front() == ' ' || spec.front() == '\t')) spec.erase(0, 1);
+  while (!spec.empty() && (spec.back() == ' ' || spec.back() == '\t')) spec.pop_back();
+
+  const auto dashPos = spec.find('-');
+  if (dashPos == std::string::npos) return std::nullopt;
+
+  const std::string startStr = spec.substr(0, dashPos);
+  const std::string endStr = spec.substr(dashPos + 1);
+
+  HttpByteRange r;
+  if (startStr.empty()) {
+    if (endStr.empty()) return std::nullopt;
+    try {
+      const auto suffixLen = std::stoull(endStr);
+      if (suffixLen == 0) {
+        r.satisfiable = false;
+        return r;
+      }
+      if (suffixLen >= totalSize) {
+        r.start = 0;
+      } else {
+        r.start = totalSize - static_cast<std::size_t>(suffixLen);
+      }
+      r.end = totalSize - 1;
+      r.length = r.end - r.start + 1;
+      r.satisfiable = true;
+      return r;
+    } catch (...) {
+      return std::nullopt;
+    }
+  }
+
+  try {
+    const auto startVal = std::stoull(startStr);
+    if (startVal >= totalSize) {
+      r.satisfiable = false;
+      return r;
+    }
+    r.start = static_cast<std::size_t>(startVal);
+    if (endStr.empty()) {
+      r.end = totalSize - 1;
+    } else {
+      const auto endVal = std::stoull(endStr);
+      r.end = std::min(static_cast<std::size_t>(endVal), totalSize - 1);
+      if (r.end < r.start) {
+        r.satisfiable = false;
+        return r;
+      }
+    }
+    r.length = r.end - r.start + 1;
+    r.satisfiable = true;
+    return r;
+  } catch (...) {
+    return std::nullopt;
+  }
+}
+
 /**
  * Extracts authenticated user ID and role from Drogon request attributes.
  * Returns true if both attributes are present, false otherwise.

@@ -277,9 +277,11 @@
     "account": "Akun & Keamanan",
     "logged_in": "Masuk sebagai",
     "change_password": "Ubah Kata Sandi",
+    "current_password": "Kata sandi saat ini",
     "new_password": "Kata Sandi Baru",
     "confirm_new_password": "Konfirmasi Kata Sandi Baru",
     "password_error_empty": "Kata sandi tidak boleh kosong",
+    "password_error_current_empty": "Kata sandi saat ini tidak boleh kosong",
     "password_error_mismatch": "Kata sandi tidak cocok",
     "sign_out": "Keluar",
     "file_mgmt": "Manajemen File & Pencarian",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 jam",
     "login_1_day": "1 hari",
     "login_30_days": "30 hari",
-    "login_never": "Tidak pernah"
+    "login_never": "Tidak pernah",
+    "rebuild_index_hashed_unavailable": "Pembangunan ulang indeks sistem berkas tidak tersedia untuk penyimpanan ter-hash."
   },
   "toasts": {
     "login_success": "Berhasil masuk!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "Server sedang dalam pemeliharaan. Operasi berkas akan dilanjutkan nanti.",
     "storageQuotaExceeded": "Kuota penyimpanan terlampaui. Hapus berkas atau minta administrator menaikkan batas Anda.",
     "resetPasswordStep1Body": "Masukkan nama pengguna dan minta kode pemulihan enam digit kepada administrator.",
-    "resetPasswordStep2Body": "Masukkan kode enam digit dari administrator dan kata sandi baru Anda."
+    "resetPasswordStep2Body": "Masukkan kode enam digit dari administrator dan kata sandi baru Anda.",
+    "hashedStorageRebuildUnavailable": "Pembangunan ulang indeks sistem berkas tidak tersedia untuk penyimpanan ter-hash"
   },
   "recovery": {
     "resetPasswordTitle": "Atur Ulang Kata Sandi",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "Akun superuser tidak dapat diubah.",
       "cannot_block_superuser": "Superuser tidak dapat diblokir.",
       "cannot_delete_superuser": "Superuser tidak dapat dihapus.",
-      "quota_exceeded_default": "Kuota pengguna tidak boleh melebihi batas penyimpanan default."
+      "quota_exceeded_default": "Kuota pengguna tidak boleh melebihi batas penyimpanan default.",
+      "hashed_storage_rebuild_unavailable": "Pembangunan ulang indeks sistem berkas tidak tersedia untuk penyimpanan ter-hash."
     },
     "fields": {
       "registration_mode": {

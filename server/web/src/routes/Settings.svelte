@@ -68,9 +68,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   // Change password modal state
   let showPasswordModal = false;
+  let currentPassword = '';
   let newPassword = '';
   let confirmNewPassword = '';
   let passwordError = '';
+  let showCurrentPassword = false;
   let showNewPassword = false;
   let showConfirmPassword = false;
 
@@ -154,14 +156,24 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       filesStore.loadDirectory();
     } catch (err) {
       rebuildSuccess = false;
-      rebuildMessage = err.message || i18n.format('toasts.search_rebuild_failed');
-      dispatch('toast', { message: i18n.format('toasts.search_rebuild_failed'), type: 'error' });
+      const isHashedStorage = err?.data?.code === 'hashed_storage_rebuild_unavailable' ||
+        err?.message === 'Filesystem index rebuild is unavailable for hashed storage' ||
+        err?.message === $t('account_status.hashedStorageRebuildUnavailable');
+      const msg = isHashedStorage
+        ? $t('account_status.hashedStorageRebuildUnavailable')
+        : (err.message || i18n.format('toasts.search_rebuild_failed'));
+      rebuildMessage = msg;
+      dispatch('toast', { message: msg, type: 'error' });
     } finally {
       isRebuilding = false;
     }
   }
 
   async function handleChangePassword() {
+    if (!currentPassword.trim()) {
+      passwordError = $t('settings.password_error_current_empty');
+      return;
+    }
     if (!newPassword.trim()) {
       passwordError = $t('settings.password_error_empty');
       return;
@@ -172,10 +184,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     }
     passwordError = '';
     try {
-      await authApi.changePassword(newPassword.trim());
+      await authApi.changePassword({
+        currentPassword: currentPassword.trim(),
+        newPassword: newPassword.trim(),
+        username: $user?.username
+      });
       showPasswordModal = false;
+      currentPassword = '';
       newPassword = '';
       confirmNewPassword = '';
+      showCurrentPassword = false;
+      showNewPassword = false;
+      showConfirmPassword = false;
       dispatch('toast', { message: $t('toasts.password_updated'), type: 'success' });
       authStore.clearSession();
     } catch (err) {
@@ -334,31 +354,33 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     <div class="settings-card">
       <h3 class="settings-card-title">{$t('settings.file_mgmt')}</h3>
       
-      <!-- Rebuild Index -->
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-title">{$t('settings.search_index')}</span>
-          <span class="settings-row-desc">{$t('settings.search_index_desc')}</span>
+      <!-- Rebuild Index (Admin/Superuser only) -->
+      {#if $user?.role === 'admin' || $user?.role === 'superuser'}
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <span class="settings-row-title">{$t('settings.search_index')}</span>
+            <span class="settings-row-desc">{$t('settings.search_index_desc')}</span>
+          </div>
+          <div class="settings-row-control">
+            <button
+              class="btn btn-primary"
+              disabled={isRebuilding}
+              on:click={handleRebuildIndex}
+            >
+              {isRebuilding ? $t('settings.rebuilding') : $t('settings.rebuild_index')}
+            </button>
+          </div>
         </div>
-        <div class="settings-row-control">
-          <button
-            class="btn btn-primary"
-            disabled={isRebuilding}
-            on:click={handleRebuildIndex}
-          >
-            {isRebuilding ? $t('settings.rebuilding') : $t('settings.rebuild_index')}
-          </button>
-        </div>
-      </div>
 
-      {#if rebuildMessage}
-        <div
-          style="margin-top: 12px; padding: 12px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500;
-                 background-color: {rebuildSuccess ? 'rgba(76, 175, 80, 0.15)' : 'rgba(255, 82, 82, 0.15)'};
-                 color: {rebuildSuccess ? 'var(--color-success)' : 'var(--color-danger)'};"
-        >
-          {rebuildMessage}
-        </div>
+        {#if rebuildMessage}
+          <div
+            style="margin-top: 12px; padding: 12px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500;
+                   background-color: {rebuildSuccess ? 'rgba(76, 175, 80, 0.15)' : 'rgba(255, 82, 82, 0.15)'};
+                   color: {rebuildSuccess ? 'var(--color-success)' : 'var(--color-danger)'};"
+          >
+            {rebuildMessage}
+          </div>
+        {/if}
       {/if}
     </div>
   </div>
@@ -381,6 +403,31 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
       <h3 class="text-title" style="margin: 0; color: var(--text-main); font-weight: 700;">{$t('settings.change_password')}</h3>
       <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px;">
         <div class="password-field-group">
+          <label class="text-caption" for="settings-current-password" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">{$t('settings.current_password')}</label>
+          <div class="password-input-wrapper">
+            <input
+              id="settings-current-password"
+              type={showCurrentPassword ? 'text' : 'password'}
+              class="form-input text-body"
+              placeholder={$t('modals.auth.password_placeholder')}
+              bind:value={currentPassword}
+              use:autofocus
+              on:keydown={(e) => e.key === 'Enter' && handleChangePassword()}
+            />
+            <button
+              type="button"
+              class="password-toggle-btn"
+              tabindex="-1"
+              on:click={() => (showCurrentPassword = !showCurrentPassword)}
+              title={showCurrentPassword ? $t('common.hide') || 'Hide' : $t('common.show') || 'Show'}
+            >
+              <span class="material-symbols-outlined" style="font-size: 20px;">
+                {showCurrentPassword ? 'visibility_off' : 'visibility'}
+              </span>
+            </button>
+          </div>
+        </div>
+        <div class="password-field-group">
           <label class="text-caption" for="settings-new-password" style="display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-sub);">{$t('settings.new_password')}</label>
           <div class="password-input-wrapper">
             <input
@@ -389,7 +436,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
               class="form-input text-body"
               placeholder={$t('modals.auth.password_placeholder')}
               bind:value={newPassword}
-              use:autofocus
               on:keydown={(e) => e.key === 'Enter' && handleChangePassword()}
             />
             <button
@@ -434,7 +480,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
         <div class="text-caption" style="color: var(--color-danger); font-weight: 600; margin-top: 8px;">{passwordError}</div>
       {/if}
       <div class="dialog-actions" style="display: flex; justify-content: flex-end; gap: var(--spacing-sm); margin-top: 20px;">
-        <button class="btn btn-secondary" on:click={() => { showPasswordModal = false; passwordError = ''; }}>{$t('common.cancel')}</button>
+        <button class="btn btn-secondary" on:click={() => { showPasswordModal = false; currentPassword = ''; newPassword = ''; confirmNewPassword = ''; passwordError = ''; showCurrentPassword = false; showNewPassword = false; showConfirmPassword = false; }}>{$t('common.cancel')}</button>
         <button class="btn btn-primary" on:click={handleChangePassword}>{$t('common.save')}</button>
       </div>
     </div>

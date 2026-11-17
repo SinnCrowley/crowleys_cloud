@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { filesApi } from '../api/files.js';
   import { apiGet } from '../api/client.js';
   import { t } from '../stores/i18n.js';
+  import BlurHashCanvas from './BlurHashCanvas.svelte';
 
   export let file = null;
   export let items = [];
@@ -35,6 +36,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   let isLoadingPdf = false;
   let pdfError = '';
   let imageLoadError = false;
+  let imageLoaded = false;
 
   $: activeFileType = getFileType(file);
   $: downloadUrl = file ? filesApi.getDownloadUrl({ scope, path: file.path, trashId: isTrash ? file.id : undefined }) : '';
@@ -44,6 +46,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 
   $: if (file) {
     imageLoadError = false;
+    imageLoaded = false;
   }
 
   function isSvg(filename) {
@@ -164,8 +167,20 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     if (e.key === 'Escape') {
       dispatch('close');
     } else if (e.key === 'ArrowLeft') {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO')) {
+        return;
+      }
+      if (activeFileType === 'video' || activeFileType === 'audio') {
+        return;
+      }
       handlePrev();
     } else if (e.key === 'ArrowRight') {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO')) {
+        return;
+      }
+      if (activeFileType === 'video' || activeFileType === 'audio') {
+        return;
+      }
       handleNext();
     }
   }
@@ -272,17 +287,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
                 </button>
               </div>
             {:else}
-              <img
-                src={downloadUrl}
-                alt={file.name}
-                class="preview-image"
-                class:preview-svg={isSvgFile}
-                on:error={() => (imageLoadError = true)}
-              />
+              <div class="image-preview-wrapper">
+                {#if file.blurhash && !imageLoaded}
+                  <div class="preview-blurhash-container">
+                    <BlurHashCanvas blurhash={file.blurhash} />
+                  </div>
+                {/if}
+                <img
+                  src={downloadUrl}
+                  alt={file.name}
+                  class="preview-image"
+                  class:preview-svg={isSvgFile}
+                  class:has-blurhash={!!file.blurhash}
+                  class:loaded={imageLoaded}
+                  on:load={() => (imageLoaded = true)}
+                  on:error={() => (imageLoadError = true)}
+                />
+              </div>
             {/if}
           {:else if activeFileType === 'video'}
             <!-- svelte-ignore a11y-media-has-caption -->
-            <video src={downloadUrl} controls autoplay class="preview-video">
+            <video src={downloadUrl} controls autoplay preload="metadata" class="preview-video">
               Your browser does not support html5 video playback.
             </video>
           {:else if activeFileType === 'audio'}
@@ -417,12 +442,46 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     overflow: hidden;
   }
 
+  .image-preview-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  .preview-blurhash-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    pointer-events: none;
+  }
+
   .preview-image {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-card);
+    position: relative;
+    z-index: 1;
+  }
+
+  .preview-image.has-blurhash:not(.loaded) {
+    opacity: 0;
+  }
+
+  .preview-image.has-blurhash.loaded {
+    opacity: 1;
+    transition: opacity 0.25s ease-in-out;
   }
 
   .preview-image.preview-svg {

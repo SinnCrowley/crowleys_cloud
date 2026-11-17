@@ -401,6 +401,19 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
   const auto downloadMode = req->getParameter("download") == "1";
   const auto disposition = downloadMode ? "attachment" : "inline";
 
+  const auto rangeHeader = req->getHeader("range");
+  const auto rangeOpt = server::utils::parseRangeHeader(rangeHeader, target.size);
+  if (rangeOpt.has_value() && !rangeOpt->satisfiable) {
+    auto resp = drogon::HttpResponse::newHttpResponse();
+    resp->setStatusCode(drogon::k416RequestedRangeNotSatisfiable);
+    resp->addHeader("Content-Range", "bytes */" + std::to_string(target.size));
+    callback(resp);
+    return;
+  }
+
+  const std::size_t startOffset = rangeOpt.has_value() ? rangeOpt->start : 0;
+  const std::size_t streamLength = rangeOpt.has_value() ? rangeOpt->length : target.size;
+
   if (server::ctx().config.hashFiles) {
     if (target.sha256.empty()) {
       callback(jsonError(drogon::k404NotFound, "File hash not found"));
@@ -414,10 +427,18 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
     }
 
     auto resp = drogon::HttpResponse::newStreamResponse(
-        [reader = utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey), activity](char *data, size_t size) mutable {
+        [reader = utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey, startOffset, streamLength), activity](char *data, size_t size) mutable {
           return reader(data, size);
         });
-    resp->addHeader("Content-Length", std::to_string(target.size));
+    if (rangeOpt.has_value()) {
+      resp->setStatusCode(drogon::k206PartialContent);
+      resp->addHeader("Content-Range", "bytes " + std::to_string(rangeOpt->start) + "-" + std::to_string(rangeOpt->end) + "/" + std::to_string(target.size));
+      resp->addHeader("Content-Length", std::to_string(rangeOpt->length));
+    } else {
+      resp->setStatusCode(drogon::k200OK);
+      resp->addHeader("Content-Length", std::to_string(target.size));
+    }
+    resp->addHeader("Accept-Ranges", "bytes");
     std::string effMime = target.mimeType;
     if (effMime.empty() || effMime == "application/octet-stream") {
       effMime = server::ctx().fileService->mimeTypeFor(target.name);
@@ -435,7 +456,16 @@ void ShareController::rawFile(const drogon::HttpRequestPtr &req,
     if (effMime.empty() || effMime == "application/octet-stream") {
       effMime = server::ctx().fileService->mimeTypeFor(target.name);
     }
-    auto resp = utils::storageFileResponse(target.physicalPath, activity, effMime);
+    auto resp = utils::storageFileResponse(target.physicalPath, activity, effMime, false, startOffset, streamLength);
+    if (rangeOpt.has_value()) {
+      resp->setStatusCode(drogon::k206PartialContent);
+      resp->addHeader("Content-Range", "bytes " + std::to_string(rangeOpt->start) + "-" + std::to_string(rangeOpt->end) + "/" + std::to_string(target.size));
+      resp->addHeader("Content-Length", std::to_string(rangeOpt->length));
+    } else {
+      resp->setStatusCode(drogon::k200OK);
+      resp->addHeader("Content-Length", std::to_string(target.size));
+    }
+    resp->addHeader("Accept-Ranges", "bytes");
     auto ext = std::filesystem::path(target.name).extension().string();
     std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
     if (ext == ".svgz") {

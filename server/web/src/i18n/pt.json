@@ -277,9 +277,11 @@
     "account": "Conta e segurança",
     "logged_in": "Com sessão iniciada como",
     "change_password": "Alterar palavra-passe",
+    "current_password": "Palavra-passe atual",
     "new_password": "Nova palavra-passe",
     "confirm_new_password": "Confirmar nova palavra-passe",
     "password_error_empty": "A palavra-passe não pode estar vazia",
+    "password_error_current_empty": "A palavra-passe atual não pode estar vazia",
     "password_error_mismatch": "As palavras-passe não coincidem",
     "sign_out": "Terminar sessão",
     "file_mgmt": "Gestão de ficheiros e pesquisa",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 hora",
     "login_1_day": "1 dia",
     "login_30_days": "30 dias",
-    "login_never": "Nunca"
+    "login_never": "Nunca",
+    "rebuild_index_hashed_unavailable": "A reconstrução do índice do sistema de arquivos não está disponível para armazenamento com hash."
   },
   "toasts": {
     "login_success": "Sessão iniciada com sucesso!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "O servidor está em manutenção. As operações com ficheiros serão retomadas mais tarde.",
     "storageQuotaExceeded": "A quota de armazenamento foi excedida. Elimine ficheiros ou peça a um administrador para aumentar o limite.",
     "resetPasswordStep1Body": "Introduza o nome de utilizador e peça a um administrador um código de recuperação de seis dígitos.",
-    "resetPasswordStep2Body": "Introduza o código de seis dígitos fornecido por um administrador e a nova palavra-passe."
+    "resetPasswordStep2Body": "Introduza o código de seis dígitos fornecido por um administrador e a nova palavra-passe.",
+    "hashedStorageRebuildUnavailable": "A reconstrução do índice do sistema de arquivos não está disponível para armazenamento com hash"
   },
   "recovery": {
     "resetPasswordTitle": "Repor palavra-passe",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "A conta de superusuário não pode ser modificada.",
       "cannot_block_superuser": "O superusuário não pode ser bloqueado.",
       "cannot_delete_superuser": "O superusuário não pode ser excluído.",
-      "quota_exceeded_default": "A cota do usuário não pode exceder o limite de armazenamento padrão."
+      "quota_exceeded_default": "A cota do usuário não pode exceder o limite de armazenamento padrão.",
+      "hashed_storage_rebuild_unavailable": "A reconstrução do índice do sistema de arquivos não está disponível para armazenamento com hash."
     },
     "fields": {
       "registration_mode": {

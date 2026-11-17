@@ -277,9 +277,11 @@
     "account": "Account e sicurezza",
     "logged_in": "Accesso eseguito come",
     "change_password": "Cambia password",
+    "current_password": "Password attuale",
     "new_password": "Nuova password",
     "confirm_new_password": "Conferma nuova password",
     "password_error_empty": "La password non può essere vuota",
+    "password_error_current_empty": "La password attuale non può essere vuota",
     "password_error_mismatch": "Le password non corrispondono",
     "sign_out": "Esci",
     "file_mgmt": "Gestione file e ricerca",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 ora",
     "login_1_day": "1 giorno",
     "login_30_days": "30 giorni",
-    "login_never": "Mai"
+    "login_never": "Mai",
+    "rebuild_index_hashed_unavailable": "La ricostruzione dell'indice del file system non è disponibile per l'archiviazione con hash."
   },
   "toasts": {
     "login_success": "Accesso effettuato correttamente!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "Il server è in manutenzione. Le operazioni sui file riprenderanno più tardi.",
     "storageQuotaExceeded": "Quota di archiviazione superata. Elimina dei file o chiedi a un amministratore di aumentare il limite.",
     "resetPasswordStep1Body": "Inserisci il nome utente e chiedi a un amministratore un codice di recupero di sei cifre.",
-    "resetPasswordStep2Body": "Inserisci il codice di sei cifre fornito da un amministratore e la nuova password."
+    "resetPasswordStep2Body": "Inserisci il codice di sei cifre fornito da un amministratore e la nuova password.",
+    "hashedStorageRebuildUnavailable": "La ricostruzione dell'indice del file system non è disponibile per l'archiviazione con hash"
   },
   "recovery": {
     "resetPasswordTitle": "Reimposta password",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "L'account superutente non può essere modificato.",
       "cannot_block_superuser": "Il superutente non può essere bloccato.",
       "cannot_delete_superuser": "Il superutente non può essere eliminato.",
-      "quota_exceeded_default": "La quota utente non può superare il limite di archiviazione predefinito."
+      "quota_exceeded_default": "La quota utente non può superare il limite di archiviazione predefinito.",
+      "hashed_storage_rebuild_unavailable": "La ricostruzione dell'indice del file system non è disponibile per l'archiviazione con hash."
     },
     "fields": {
       "registration_mode": {

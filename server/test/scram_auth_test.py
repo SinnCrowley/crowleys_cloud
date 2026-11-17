@@ -192,11 +192,51 @@ def test_scram():
                 })
                 assert status == 401, f"Wrong password should be 401, got {status}: {bad_login}"
 
-                # 6. Password change with SCRAM-Argon2id
+                # 6. Password change with SCRAM-Argon2id (Variant A: Zero-Knowledge Re-authentication)
                 new_pw = "EvenBetterPassword456!"
                 new_salt = secrets.token_hex(16)
                 new_stored, new_server = scram_argon2id_generate_keys(new_pw, new_salt, m, t, p)
+
+                # Attempt change without current password proof must fail (400)
                 status, chg_res = req('POST', '/api/account/password', {
+                    'salt': new_salt,
+                    'kdf': 'argon2id',
+                    'm': m,
+                    't': t,
+                    'p': p,
+                    'stored_key': new_stored,
+                    'server_key': new_server
+                }, token=admin_token)
+                assert status == 400, f"Password change without proof should be 400, got {status}: {chg_res}"
+
+                # Attempt change with wrong current password proof must fail (401)
+                status, bad_reauth_chal = req('GET', f'/api/account/reauth/challenge?nonce={secrets.token_hex(16)}', token=admin_token)
+                assert status == 200, f"Reauth challenge failed: {status}, {bad_reauth_chal}"
+                bad_auth_msg = f"n=admin,r={bad_reauth_chal['nonce']},s={bad_reauth_chal['salt']},k=argon2id,m={m},t={t},p={p}"
+                bad_reauth_proof, _ = scram_argon2id_client_proof("WrongCurrentPassword", bad_reauth_chal['salt'], m, t, p, bad_auth_msg)
+                status, bad_chg_res = req('POST', '/api/account/password', {
+                    'current_nonce': bad_reauth_chal['nonce'],
+                    'current_client_proof': bad_reauth_proof,
+                    'current_challenge_token': bad_reauth_chal['challenge_token'],
+                    'salt': new_salt,
+                    'kdf': 'argon2id',
+                    'm': m,
+                    't': t,
+                    'p': p,
+                    'stored_key': new_stored,
+                    'server_key': new_server
+                }, token=admin_token)
+                assert status == 401, f"Password change with wrong proof should be 401, got {status}: {bad_chg_res}"
+
+                # Successful password change with valid current password proof
+                status, reauth_chal = req('GET', f'/api/account/reauth/challenge?nonce={secrets.token_hex(16)}', token=admin_token)
+                assert status == 200, f"Reauth challenge failed: {status}, {reauth_chal}"
+                cur_auth_msg = f"n=admin,r={reauth_chal['nonce']},s={reauth_chal['salt']},k=argon2id,m={m},t={t},p={p}"
+                cur_proof, _ = scram_argon2id_client_proof(admin_pw, reauth_chal['salt'], m, t, p, cur_auth_msg)
+                status, chg_res = req('POST', '/api/account/password', {
+                    'current_nonce': reauth_chal['nonce'],
+                    'current_client_proof': cur_proof,
+                    'current_challenge_token': reauth_chal['challenge_token'],
                     'salt': new_salt,
                     'kdf': 'argon2id',
                     'm': m,

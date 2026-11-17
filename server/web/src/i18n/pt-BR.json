@@ -277,9 +277,11 @@
     "account": "Conta e segurança",
     "logged_in": "Conectado como",
     "change_password": "Alterar senha",
+    "current_password": "Senha atual",
     "new_password": "Nova senha",
     "confirm_new_password": "Confirmar nova senha",
     "password_error_empty": "A senha não pode estar vazia",
+    "password_error_current_empty": "A senha atual não pode estar vazia",
     "password_error_mismatch": "As senhas não correspondem",
     "sign_out": "Sair",
     "file_mgmt": "Gerenciamento de arquivos e pesquisa",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 hora",
     "login_1_day": "1 dia",
     "login_30_days": "30 dias",
-    "login_never": "Nunca"
+    "login_never": "Nunca",
+    "rebuild_index_hashed_unavailable": "A reconstrução do índice do sistema de arquivos não está disponível para armazenamento com hash."
   },
   "toasts": {
     "login_success": "Login realizado com sucesso!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "O servidor está em manutenção. As operações com arquivos serão retomadas mais tarde.",
     "storageQuotaExceeded": "A cota de armazenamento foi excedida. Exclua arquivos ou peça a um administrador para aumentar o limite.",
     "resetPasswordStep1Body": "Digite o nome de usuário e peça a um administrador um código de recuperação de seis dígitos.",
-    "resetPasswordStep2Body": "Digite o código de seis dígitos fornecido por um administrador e a nova senha."
+    "resetPasswordStep2Body": "Digite o código de seis dígitos fornecido por um administrador e a nova senha.",
+    "hashedStorageRebuildUnavailable": "A reconstrução do índice do sistema de arquivos não está disponível para armazenamento com hash"
   },
   "recovery": {
     "resetPasswordTitle": "Redefinir senha",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "A conta de superusuário não pode ser modificada.",
       "cannot_block_superuser": "O superusuário não pode ser bloqueado.",
       "cannot_delete_superuser": "O superusuário não pode ser excluído.",
-      "quota_exceeded_default": "A cota do usuário não pode exceder o limite de armazenamento padrão."
+      "quota_exceeded_default": "A cota do usuário não pode exceder o limite de armazenamento padrão.",
+      "hashed_storage_rebuild_unavailable": "A reconstrução do índice do sistema de arquivos não está disponível para armazenamento com hash."
     },
     "fields": {
       "registration_mode": {

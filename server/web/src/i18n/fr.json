@@ -277,9 +277,11 @@
     "account": "Compte et sécurité",
     "logged_in": "Connecté en tant que",
     "change_password": "Changer le mot de passe",
+    "current_password": "Mot de passe actuel",
     "new_password": "Nouveau mot de passe",
     "confirm_new_password": "Confirmer le nouveau mot de passe",
     "password_error_empty": "Le mot de passe ne peut pas être vide",
+    "password_error_current_empty": "Le mot de passe actuel ne peut pas être vide",
     "password_error_mismatch": "Les mots de passe ne correspondent pas",
     "sign_out": "Se déconnecter",
     "file_mgmt": "Gestion des fichiers et recherche",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 heure",
     "login_1_day": "1 jour",
     "login_30_days": "30 jours",
-    "login_never": "Jamais"
+    "login_never": "Jamais",
+    "rebuild_index_hashed_unavailable": "La reconstruction de l’index du système de fichiers n’est pas disponible pour le stockage haché."
   },
   "toasts": {
     "login_success": "Connexion réussie !",
@@ -378,7 +381,8 @@
     "serverMaintenance": "Le serveur est en maintenance. Les opérations sur les fichiers reprendront plus tard.",
     "storageQuotaExceeded": "Le quota de stockage est dépassé. Supprimez des fichiers ou demandez à un administrateur d’augmenter votre limite.",
     "resetPasswordStep1Body": "Saisissez votre nom d’utilisateur et demandez un code de récupération à six chiffres à un administrateur.",
-    "resetPasswordStep2Body": "Saisissez le code à six chiffres fourni par un administrateur et votre nouveau mot de passe."
+    "resetPasswordStep2Body": "Saisissez le code à six chiffres fourni par un administrateur et votre nouveau mot de passe.",
+    "hashedStorageRebuildUnavailable": "La reconstruction de l’index du système de fichiers n’est pas disponible pour le stockage haché"
   },
   "recovery": {
     "resetPasswordTitle": "Réinitialiser le mot de passe",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "Le compte superutilisateur ne peut pas être modifié.",
       "cannot_block_superuser": "Le superutilisateur ne peut pas être bloqué.",
       "cannot_delete_superuser": "Le superutilisateur ne peut pas être supprimé.",
-      "quota_exceeded_default": "Le quota de l'utilisateur ne peut pas dépasser la limite de stockage par défaut."
+      "quota_exceeded_default": "Le quota de l'utilisateur ne peut pas dépasser la limite de stockage par défaut.",
+      "hashed_storage_rebuild_unavailable": "La reconstruction de l’index du système de fichiers n’est pas disponible pour le stockage haché."
     },
     "fields": {
       "registration_mode": {

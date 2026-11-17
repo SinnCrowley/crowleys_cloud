@@ -23,6 +23,19 @@
   let mounted = false;
   let nowSeconds = Math.floor(Date.now() / 1000);
   let copiedCode = null;
+  let isRebuildingIndex = false;
+
+  async function handleRebuildSearchIndex() {
+    isRebuildingIndex = true;
+    try {
+      await apiPost('/api/index/rebuild', { scope: 'private' });
+      dispatch('toast', { message: $t('toasts.search_rebuilt'), type: 'success' });
+    } catch (reason) {
+      fail(reason);
+    } finally {
+      isRebuildingIndex = false;
+    }
+  }
 
   let quotaUnit = 1024 * 1024 * 1024;
   let quotaDisplayValue = 10;
@@ -99,8 +112,19 @@
 
   function fail(reason) {
     const code = reason?.data?.code;
-    const translated = code ? $t(`admin.errors.${code}`) : '';
-    error = translated && translated !== `admin.errors.${code}` ? translated : reason.message || $t('common.error');
+    let translated = code ? $t(`admin.errors.${code}`) : '';
+    if (!translated || translated === `admin.errors.${code}`) {
+      translated = code ? $t(`account_status.${code}`) : '';
+    }
+    if ((!translated || translated === `account_status.${code}`) && code === 'hashed_storage_rebuild_unavailable') {
+      translated = $t('account_status.hashedStorageRebuildUnavailable');
+    }
+    if (!translated && reason?.message === 'Filesystem index rebuild is unavailable for hashed storage') {
+      translated = $t('account_status.hashedStorageRebuildUnavailable');
+    }
+    error = (translated && translated !== `admin.errors.${code}` && translated !== `account_status.${code}`)
+      ? translated
+      : (reason.message || $t('common.error'));
   }
   async function refresh() {
     const [people, pending, settings, state, codes] = await Promise.all([
@@ -255,6 +279,7 @@
     }, 1000);
     const timer = setInterval(async () => {
       if (busy || !mounted) return;
+      if (!maintenance?.maintenance && !maintenance?.running) return;
       try {
         const state = await apiGet('/api/admin/maintenance');
         if (!mounted) return;
@@ -667,6 +692,17 @@
             {/if}
           </form>
         {/each}
+        <div class="settings-card maintenance-card">
+          <div class="maintenance-card-header">
+            <h2>{$t('settings.search_index')}</h2>
+          </div>
+          <p class="setting-desc" style="margin-bottom: var(--spacing-md); line-height: 1.4;">{$t('settings.search_index_desc')}</p>
+          <div class="maintenance-actions">
+            <button type="button" class="btn btn-secondary" disabled={busy || isRebuildingIndex} on:click={handleRebuildSearchIndex}>
+              {isRebuildingIndex ? $t('settings.rebuilding') : $t('settings.rebuild_index')}
+            </button>
+          </div>
+        </div>
       </div>
     {/if}
   {/if}

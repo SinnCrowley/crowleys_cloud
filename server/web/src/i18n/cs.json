@@ -277,9 +277,11 @@
     "account": "Účet a zabezpečení",
     "logged_in": "Přihlášeni jako",
     "change_password": "Změnit heslo",
+    "current_password": "Současné heslo",
     "new_password": "Nové heslo",
     "confirm_new_password": "Potvrdit nové heslo",
     "password_error_empty": "Heslo nesmí být prázdné",
+    "password_error_current_empty": "Současné heslo nesmí být prázdné",
     "password_error_mismatch": "Hesla se neshodují",
     "sign_out": "Odhlásit se",
     "file_mgmt": "Správa souborů a hledání",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 hodina",
     "login_1_day": "1 den",
     "login_30_days": "30 dní",
-    "login_never": "Nikdy"
+    "login_never": "Nikdy",
+    "rebuild_index_hashed_unavailable": "Obnova indexu souborového systému není k dispozici pro hašované úložiště."
   },
   "toasts": {
     "login_success": "Přihlášení bylo úspěšné!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "Na serveru probíhá údržba. Operace se soubory budou obnoveny později.",
     "storageQuotaExceeded": "Byl překročen limit úložiště. Smažte soubory nebo požádejte správce o zvýšení limitu.",
     "resetPasswordStep1Body": "Zadejte uživatelské jméno a požádejte správce o šestimístný kód pro obnovení.",
-    "resetPasswordStep2Body": "Zadejte šestimístný kód od správce a nové heslo."
+    "resetPasswordStep2Body": "Zadejte šestimístný kód od správce a nové heslo.",
+    "hashedStorageRebuildUnavailable": "Obnova indexu souborového systému není k dispozici pro hašované úložiště"
   },
   "recovery": {
     "resetPasswordTitle": "Obnovit heslo",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "Účet superuživatele nelze upravovat.",
       "cannot_block_superuser": "Superuživatele nelze zablokovat.",
       "cannot_delete_superuser": "Superuživatele nelze smazat.",
-      "quota_exceeded_default": "Uživatelská kvóta nemůže překročit výchozí limit úložiště."
+      "quota_exceeded_default": "Uživatelská kvóta nemůže překročit výchozí limit úložiště.",
+      "hashed_storage_rebuild_unavailable": "Obnova indexu souborového systému není k dispozici pro hašované úložiště."
     },
     "fields": {
       "registration_mode": {

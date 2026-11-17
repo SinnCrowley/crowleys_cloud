@@ -277,9 +277,11 @@
     "account": "Hesap ve güvenlik",
     "logged_in": "Oturum açılan kullanıcı",
     "change_password": "Parolayı değiştir",
+    "current_password": "Mevcut şifre",
     "new_password": "Yeni parola",
     "confirm_new_password": "Yeni parolayı onayla",
     "password_error_empty": "Parola boş olamaz",
+    "password_error_current_empty": "Mevcut şifre boş olamaz",
     "password_error_mismatch": "Parolalar eşleşmiyor",
     "sign_out": "Oturumu kapat",
     "file_mgmt": "Dosya yönetimi ve arama",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 saat",
     "login_1_day": "1 gün",
     "login_30_days": "30 gün",
-    "login_never": "Asla"
+    "login_never": "Asla",
+    "rebuild_index_hashed_unavailable": "Dosya sistemi dizini yeniden oluşturma, karma depolama için kullanılamaz."
   },
   "toasts": {
     "login_success": "Oturum başarıyla açıldı!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "Sunucu bakımda. Dosya işlemleri daha sonra devam edecek.",
     "storageQuotaExceeded": "Depolama kotası aşıldı. Dosyaları silin veya yöneticiden sınırınızı artırmasını isteyin.",
     "resetPasswordStep1Body": "Kullanıcı adınızı girin ve bir yöneticiden altı haneli kurtarma kodu isteyin.",
-    "resetPasswordStep2Body": "Yöneticinin verdiği altı haneli kodu ve yeni parolanızı girin."
+    "resetPasswordStep2Body": "Yöneticinin verdiği altı haneli kodu ve yeni parolanızı girin.",
+    "hashedStorageRebuildUnavailable": "Dosya sistemi dizini yeniden oluşturma, karma depolama için kullanılamaz"
   },
   "recovery": {
     "resetPasswordTitle": "Şifreyi Sıfırla",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "Süper kullanıcı hesabı değiştirilemez.",
       "cannot_block_superuser": "Süper kullanıcı engellenemez.",
       "cannot_delete_superuser": "Süper kullanıcı silinemez.",
-      "quota_exceeded_default": "Kullanıcı kotası varsayılan depolama sınırını aşamaz."
+      "quota_exceeded_default": "Kullanıcı kotası varsayılan depolama sınırını aşamaz.",
+      "hashed_storage_rebuild_unavailable": "Dosya sistemi dizini yeniden oluşturma, karma depolama için kullanılamaz."
     },
     "fields": {
       "registration_mode": {

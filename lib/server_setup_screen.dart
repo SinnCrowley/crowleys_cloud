@@ -139,6 +139,13 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
           email: email,
         ),
       );
+    } on ServerUnreachableException catch (e) {
+      _usernameController.clear();
+      _passwordController.clear();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     } on AuthException catch (e) {
       _usernameController.clear();
       _passwordController.clear();

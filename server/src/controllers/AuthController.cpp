@@ -48,12 +48,22 @@ void cleanupExpiredNonces() {
 }
 }  // namespace
 
+void AuthController::ping(const drogon::HttpRequestPtr &req,
+                          std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  Json::Value body;
+  body["ok"] = true;
+  body["status"] = "online";
+  auto resp = drogon::HttpResponse::newHttpJsonResponse(body);
+  resp->addHeader("Cache-Control", "no-cache, no-store");
+  callback(resp);
+}
+
 void AuthController::authChallenge(const drogon::HttpRequestPtr &req,
                                    std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
   std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   auto &app = server::ctx();
   if (!app.authRateLimiter->allow(requestIp(req))) {
-    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
+    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded", "rate_limited"));
     return;
   }
 
@@ -73,7 +83,7 @@ void AuthController::authChallenge(const drogon::HttpRequestPtr &req,
   }
 
   if (username.empty()) {
-    callback(jsonError(drogon::k400BadRequest, "username is required"));
+    callback(jsonError(drogon::k400BadRequest, "username is required", "username_required"));
     return;
   }
 
@@ -150,13 +160,13 @@ void AuthController::registerUser(const drogon::HttpRequestPtr &req,
   std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   auto &app = server::ctx();
   if (!app.authRateLimiter->allow(requestIp(req))) {
-    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
+    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded", "rate_limited"));
     return;
   }
 
   const auto json = req->getJsonObject();
   if (!json || !(*json)["username"].isString()) {
-    callback(jsonError(drogon::k400BadRequest, "username is required"));
+    callback(jsonError(drogon::k400BadRequest, "username is required", "username_required"));
     return;
   }
 
@@ -269,13 +279,13 @@ void AuthController::login(const drogon::HttpRequestPtr &req,
   std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
   auto &app = server::ctx();
   if (!app.authRateLimiter->allow(requestIp(req))) {
-    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded"));
+    callback(jsonError(drogon::k429TooManyRequests, "Rate limit exceeded", "rate_limited"));
     return;
   }
 
   const auto json = req->getJsonObject();
   if (!json || !(*json)["username"].isString()) {
-    callback(jsonError(drogon::k400BadRequest, "username is required"));
+    callback(jsonError(drogon::k400BadRequest, "username is required", "username_required"));
     return;
   }
 
@@ -323,7 +333,7 @@ void AuthController::login(const drogon::HttpRequestPtr &req,
 
     auto cred = app.userService->getScramCredentials(username);
     if (!cred.has_value() || (cred->kdf.empty() && cred->iterations == 0)) {
-      callback(jsonError(drogon::k401Unauthorized, "Invalid credentials"));
+      callback(jsonError(drogon::k401Unauthorized, "Invalid credentials", "invalid_credentials"));
       return;
     }
 
@@ -346,19 +356,19 @@ void AuthController::login(const drogon::HttpRequestPtr &req,
 
     const auto expectedSig = server::utils::hmacSha256Hex(app.config.jwtSecret, sigMaterial);
     if (sig.size() != expectedSig.size() || CRYPTO_memcmp(sig.data(), expectedSig.data(), sig.size()) != 0) {
-      callback(jsonError(drogon::k401Unauthorized, "Invalid challenge token"));
+      callback(jsonError(drogon::k401Unauthorized, "Invalid challenge token", "invalid_credentials"));
       return;
     }
 
     std::string serverSignature;
     if (!server::utils::scramVerifyClientProof(cred->storedKeyHex, authMessage, clientProof, cred->serverKeyHex, serverSignature)) {
-      callback(jsonError(drogon::k401Unauthorized, "Invalid credentials"));
+      callback(jsonError(drogon::k401Unauthorized, "Invalid credentials", "invalid_credentials"));
       return;
     }
 
     auto user = app.userService->getUserById(cred->userId);
     if (!user.has_value()) {
-      callback(jsonError(drogon::k401Unauthorized, "Invalid credentials"));
+      callback(jsonError(drogon::k401Unauthorized, "Invalid credentials", "invalid_credentials"));
       return;
     }
 
@@ -383,13 +393,13 @@ void AuthController::login(const drogon::HttpRequestPtr &req,
 
   // 2. Legacy Login mode (plaintext password):
   if (!(*json)["password"].isString()) {
-    callback(jsonError(drogon::k400BadRequest, "password or SCRAM proof required"));
+    callback(jsonError(drogon::k400BadRequest, "password or SCRAM proof required", "invalid_credentials"));
     return;
   }
 
   auto user = app.userService->authenticate(username, (*json)["password"].asString());
   if (!user.has_value()) {
-    callback(jsonError(drogon::k401Unauthorized, "Invalid credentials"));
+    callback(jsonError(drogon::k401Unauthorized, "Invalid credentials", "invalid_credentials"));
     return;
   }
 
@@ -455,6 +465,81 @@ void AuthController::logout(const drogon::HttpRequestPtr &req,
   callback(drogon::HttpResponse::newHttpJsonResponse(body));
 }
 
+void AuthController::reauthChallenge(const drogon::HttpRequestPtr &req,
+                                     std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+  std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
+  if (!req->attributes()->find("user_id")) {
+    callback(jsonError(drogon::k401Unauthorized, "Unauthorized"));
+    return;
+  }
+  const auto userId = req->attributes()->get<std::int64_t>("user_id");
+  auto user = server::ctx().userService->getUserById(userId);
+  if (!user.has_value()) {
+    callback(jsonError(drogon::k404NotFound, "User not found"));
+    return;
+  }
+
+  std::string clientNonce = req->getParameter("nonce");
+  if (clientNonce.empty()) clientNonce = req->getParameter("client_nonce");
+  const auto json = req->getJsonObject();
+  if (clientNonce.empty() && json && (*json)["nonce"].isString()) {
+    clientNonce = (*json)["nonce"].asString();
+  }
+  if (clientNonce.empty() && json && (*json)["client_nonce"].isString()) {
+    clientNonce = (*json)["client_nonce"].asString();
+  }
+  if (clientNonce.empty()) {
+    clientNonce = server::utils::randomTokenHex(16);
+  }
+
+  auto cred = server::ctx().userService->getScramCredentials(user->username);
+  if (cred.has_value()) {
+    if (cred->kdf == "argon2id") {
+      const auto serverNonce = server::utils::randomTokenHex(16);
+      const auto nonce = clientNonce + "_" + serverNonce;
+      const auto expiresAt = server::utils::nowSeconds() + 120;
+      const auto sigMaterial = user->username + "|" + nonce + "|" + cred->saltHex + "|argon2id|" + std::to_string(cred->memCostKb) + "|" + std::to_string(cred->timeCost) + "|" + std::to_string(cred->lanes) + "|" + std::to_string(expiresAt);
+      const auto challengeToken = server::utils::hmacSha256Hex(server::ctx().config.jwtSecret, sigMaterial) + "." + std::to_string(expiresAt);
+
+      Json::Value body;
+      body["ok"] = true;
+      body["username"] = user->username;
+      body["auth_mode"] = "scram-argon2id";
+      body["salt"] = cred->saltHex;
+      body["m"] = cred->memCostKb;
+      body["t"] = cred->timeCost;
+      body["p"] = cred->lanes;
+      body["nonce"] = nonce;
+      body["challenge_token"] = challengeToken;
+      callback(drogon::HttpResponse::newHttpJsonResponse(body));
+      return;
+    } else if (cred->iterations > 0) {
+      const auto serverNonce = server::utils::randomTokenHex(16);
+      const auto nonce = clientNonce + "_" + serverNonce;
+      const auto expiresAt = server::utils::nowSeconds() + 120;
+      const auto sigMaterial = user->username + "|" + nonce + "|" + cred->saltHex + "|" + std::to_string(cred->iterations) + "|" + std::to_string(expiresAt);
+      const auto challengeToken = server::utils::hmacSha256Hex(server::ctx().config.jwtSecret, sigMaterial) + "." + std::to_string(expiresAt);
+
+      Json::Value body;
+      body["ok"] = true;
+      body["username"] = user->username;
+      body["auth_mode"] = "scram";
+      body["salt"] = cred->saltHex;
+      body["iterations"] = cred->iterations;
+      body["nonce"] = nonce;
+      body["challenge_token"] = challengeToken;
+      callback(drogon::HttpResponse::newHttpJsonResponse(body));
+      return;
+    }
+  }
+
+  Json::Value body;
+  body["ok"] = true;
+  body["username"] = user->username;
+  body["auth_mode"] = "legacy";
+  callback(drogon::HttpResponse::newHttpJsonResponse(body));
+}
+
 void AuthController::changePassword(const drogon::HttpRequestPtr &req,
                                     std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
   std::shared_lock<std::shared_mutex> configLock(server::ctx().configMutex);
@@ -469,7 +554,127 @@ void AuthController::changePassword(const drogon::HttpRequestPtr &req,
   }
 
   const auto userId = req->attributes()->get<std::int64_t>("user_id");
+  auto user = server::ctx().userService->getUserById(userId);
+  if (!user.has_value()) {
+    callback(jsonError(drogon::k404NotFound, "User not found"));
+    return;
+  }
 
+  auto cred = server::ctx().userService->getScramCredentials(user->username);
+  if (!cred.has_value()) {
+    callback(jsonError(drogon::k404NotFound, "User not found"));
+    return;
+  }
+
+  // --- Current Password Verification ---
+  std::string serverSignature;
+  std::string clientProof;
+  std::string nonce;
+  std::string challengeToken;
+
+  if (json->isMember("current_proof") && (*json)["current_proof"].isObject()) {
+    const auto &cp = (*json)["current_proof"];
+    if (cp.isMember("client_proof") && cp["client_proof"].isString()) clientProof = cp["client_proof"].asString();
+    if (cp.isMember("nonce") && cp["nonce"].isString()) nonce = cp["nonce"].asString();
+    if (cp.isMember("challenge_token") && cp["challenge_token"].isString()) challengeToken = cp["challenge_token"].asString();
+  }
+  if (clientProof.empty() && json->isMember("current_client_proof") && (*json)["current_client_proof"].isString()) {
+    clientProof = (*json)["current_client_proof"].asString();
+  }
+  if (nonce.empty() && json->isMember("current_nonce") && (*json)["current_nonce"].isString()) {
+    nonce = (*json)["current_nonce"].asString();
+  }
+  if (challengeToken.empty() && json->isMember("current_challenge_token") && (*json)["current_challenge_token"].isString()) {
+    challengeToken = (*json)["current_challenge_token"].asString();
+  }
+  if (clientProof.empty() && json->isMember("client_proof") && (*json)["client_proof"].isString()) {
+    clientProof = (*json)["client_proof"].asString();
+  }
+  if (nonce.empty() && json->isMember("nonce") && (*json)["nonce"].isString()) {
+    nonce = (*json)["nonce"].asString();
+  }
+  if (challengeToken.empty() && json->isMember("challenge_token") && (*json)["challenge_token"].isString()) {
+    challengeToken = (*json)["challenge_token"].asString();
+  }
+
+  std::string currentPassword;
+  if (json->isMember("current_password") && (*json)["current_password"].isString()) {
+    currentPassword = (*json)["current_password"].asString();
+  }
+
+  if (!clientProof.empty() || !nonce.empty() || !challengeToken.empty()) {
+    // Zero-Knowledge SCRAM proof provided
+    if (clientProof.empty() || nonce.empty() || challengeToken.empty()) {
+      callback(jsonError(drogon::k400BadRequest, "Incomplete current password proof", "current_password_required"));
+      return;
+    }
+    if (!cred.has_value() || (cred->kdf.empty() && cred->iterations == 0)) {
+      callback(jsonError(drogon::k401Unauthorized, "Invalid credentials", "invalid_current_password"));
+      return;
+    }
+
+    // Replay attack prevention:
+    {
+      std::lock_guard<std::mutex> lock(consumedNoncesMutex);
+      cleanupExpiredNonces();
+      if (consumedNonces.count(nonce)) {
+        callback(jsonError(drogon::k401Unauthorized, "Nonce already consumed", "invalid_current_password"));
+        return;
+      }
+      consumedNonces[nonce] = server::utils::nowSeconds();
+    }
+
+    auto dotPos = challengeToken.find('.');
+    if (dotPos == std::string::npos) {
+      callback(jsonError(drogon::k401Unauthorized, "Invalid challenge token", "invalid_current_password"));
+      return;
+    }
+    const auto sig = challengeToken.substr(0, dotPos);
+    std::int64_t expiresAt = 0;
+    try {
+      expiresAt = std::stoll(challengeToken.substr(dotPos + 1));
+    } catch (...) {
+      callback(jsonError(drogon::k401Unauthorized, "Invalid challenge token", "invalid_current_password"));
+      return;
+    }
+    if (server::utils::nowSeconds() > expiresAt) {
+      callback(jsonError(drogon::k401Unauthorized, "Challenge token expired", "invalid_current_password"));
+      return;
+    }
+
+    std::string sigMaterial;
+    std::string authMessage;
+    if (cred->kdf == "argon2id") {
+      sigMaterial = user->username + "|" + nonce + "|" + cred->saltHex + "|argon2id|" + std::to_string(cred->memCostKb) + "|" + std::to_string(cred->timeCost) + "|" + std::to_string(cred->lanes) + "|" + std::to_string(expiresAt);
+      authMessage = server::utils::scramArgon2idAuthMessage(user->username, nonce, cred->saltHex, cred->memCostKb, cred->timeCost, cred->lanes);
+    } else {
+      sigMaterial = user->username + "|" + nonce + "|" + cred->saltHex + "|" + std::to_string(cred->iterations) + "|" + std::to_string(expiresAt);
+      authMessage = server::utils::scramAuthMessage(user->username, nonce, cred->saltHex, cred->iterations);
+    }
+
+    const auto expectedSig = server::utils::hmacSha256Hex(server::ctx().config.jwtSecret, sigMaterial);
+    if (sig.size() != expectedSig.size() || CRYPTO_memcmp(sig.data(), expectedSig.data(), sig.size()) != 0) {
+      callback(jsonError(drogon::k401Unauthorized, "Invalid challenge token", "invalid_current_password"));
+      return;
+    }
+
+    if (!server::utils::scramVerifyClientProof(cred->storedKeyHex, authMessage, clientProof, cred->serverKeyHex, serverSignature)) {
+      callback(jsonError(drogon::k401Unauthorized, "Current password verification failed", "invalid_current_password"));
+      return;
+    }
+  } else if (!currentPassword.empty()) {
+    // Fallback: plaintext current password provided
+    if (!server::ctx().userService->authenticate(user->username, currentPassword).has_value()) {
+      callback(jsonError(drogon::k401Unauthorized, "Current password verification failed", "invalid_current_password"));
+      return;
+    }
+  } else {
+    // Neither SCRAM proof nor current_password provided
+    callback(jsonError(drogon::k400BadRequest, "Current password proof required", "current_password_required"));
+    return;
+  }
+
+  // --- Setting New Password ---
   // SCRAM password update
   if (json->isMember("salt") && json->isMember("stored_key") && json->isMember("server_key") && (json->isMember("iterations") || json->isMember("m") || json->isMember("kdf"))) {
     if (!(*json)["salt"].isString() || !(*json)["stored_key"].isString() || !(*json)["server_key"].isString()) {
@@ -507,6 +712,9 @@ void AuthController::changePassword(const drogon::HttpRequestPtr &req,
     Json::Value body;
     body["ok"] = true;
     body["message"] = "Password updated; all sessions revoked.";
+    if (!serverSignature.empty()) {
+      body["server_signature"] = serverSignature;
+    }
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
     return;
   }
@@ -525,6 +733,9 @@ void AuthController::changePassword(const drogon::HttpRequestPtr &req,
   Json::Value body;
   body["ok"] = true;
   body["message"] = "Password updated; all sessions revoked.";
+  if (!serverSignature.empty()) {
+    body["server_signature"] = serverSignature;
+  }
   callback(drogon::HttpResponse::newHttpJsonResponse(body));
 }
 

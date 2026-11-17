@@ -30,6 +30,12 @@ class _FakeAuthGateway implements AuthGateway {
   String? lastLoginPassword;
 
   @override
+  Future<bool> ping(
+    String baseUrl, {
+    Duration timeout = const Duration(seconds: 4),
+  }) async => true;
+
+  @override
   Future<AuthResult> login({
     required String baseUrl,
     required String username,
@@ -82,6 +88,9 @@ void main() {
         secretStore: secrets,
         gateway: HttpAuthGateway(
           client: MockClient((request) async {
+            if (request.url.path == '/api/ping') {
+              return http.Response('{"ok":true}', 200);
+            }
             expect(request.url.path, '/api/register');
             return http.Response(
               '{"status":"pending","code":"registration_pending"}',
@@ -292,6 +301,21 @@ void main() {
       secretStore: secrets,
       gateway: gateway,
       client: MockClient((request) async {
+        if (request.url.path == '/api/account/reauth/challenge') {
+          return http.Response(
+            jsonEncode({
+              'ok': true,
+              'auth_mode': 'scram-argon2id',
+              'salt': '0102030405060708090a0b0c0d0e0f10',
+              'm': 19456,
+              't': 2,
+              'p': 1,
+              'nonce': 'client_server',
+              'challenge_token': 'token.9999999999',
+            }),
+            200,
+          );
+        }
         expect(request.method, 'POST');
         expect(request.url.path, '/api/account/password');
         expect(request.headers['authorization'], 'Bearer access');
@@ -299,6 +323,9 @@ void main() {
         expect(body.containsKey('salt'), isTrue);
         expect(body.containsKey('stored_key'), isTrue);
         expect(body.containsKey('server_key'), isTrue);
+        expect(body.containsKey('current_client_proof'), isTrue);
+        expect(body.containsKey('current_nonce'), isTrue);
+        expect(body.containsKey('current_challenge_token'), isTrue);
         expect(body['kdf'], 'argon2id');
         expect(body['m'], 19456);
         return http.Response('{"ok":true}', 200);

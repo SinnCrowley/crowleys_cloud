@@ -59,6 +59,11 @@ abstract class AuthGateway {
     required String baseUrl,
     required String refreshToken,
   });
+
+  Future<bool> ping(
+    String baseUrl, {
+    Duration timeout = const Duration(seconds: 4),
+  }) async => true;
 }
 
 /// Concrete HTTP gateway performing login, registration, and refresh requests.
@@ -66,6 +71,26 @@ class HttpAuthGateway implements AuthGateway {
   HttpAuthGateway({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
+
+  @override
+  Future<bool> ping(
+    String baseUrl, {
+    Duration timeout = const Duration(seconds: 4),
+  }) async {
+    try {
+      final uri = _endpoint(baseUrl, '/api/ping');
+      final resp = await _client.get(uri).timeout(timeout);
+      return resp.statusCode >= 200 && resp.statusCode < 500;
+    } catch (_) {
+      try {
+        final uri = _endpoint(baseUrl, '/api/auth/challenge');
+        final resp = await _client.get(uri).timeout(timeout);
+        return resp.statusCode >= 200 && resp.statusCode < 500;
+      } catch (_) {
+        return false;
+      }
+    }
+  }
 
   @override
   Future<AuthResult> login({
@@ -301,15 +326,54 @@ String? accountErrorMessage(String body) {
   try {
     final data = jsonDecode(body) as Map<String, dynamic>;
     final l10n = platformAppLocalizations();
-    return switch (data['code']) {
-      'registration_pending' => l10n.registrationPending,
-      'registration_closed' => l10n.registrationClosed,
-      'account_blocked' => l10n.accountBlocked,
-      'password_reset_required' => l10n.passwordResetRequired,
-      'maintenance' => l10n.serverMaintenance,
-      'quota_exceeded' => l10n.storageQuotaExceeded,
-      _ => null,
-    };
+    final code = (data['code'] as String?)?.toLowerCase();
+    final error = (data['error'] as String?)?.toLowerCase();
+    final key = code ?? error;
+    if (key == null) return null;
+
+    final isRu = l10n.localeName.startsWith('ru');
+
+    switch (key) {
+      case 'registration_pending':
+        return l10n.registrationPending;
+      case 'registration_closed':
+        return l10n.registrationClosed;
+      case 'account_blocked':
+        return l10n.accountBlocked;
+      case 'password_reset_required':
+        return l10n.passwordResetRequired;
+      case 'maintenance':
+        return l10n.serverMaintenance;
+      case 'quota_exceeded':
+        return l10n.storageQuotaExceeded;
+      case 'invalid_credentials':
+      case 'invalid credentials':
+        return isRu
+            ? 'Неверное имя пользователя или пароль.'
+            : 'Invalid username or password.';
+      case 'user_already_exists':
+        return isRu
+            ? 'Пользователь с таким именем уже существует.'
+            : 'A user with this username already exists.';
+      case 'rate_limited':
+      case 'rate_limit_exceeded':
+      case 'rate limit exceeded':
+        return isRu
+            ? 'Слишком много запросов. Пожалуйста, подождите.'
+            : 'Too many requests. Please try again later.';
+      case 'username_required':
+      case 'username is required':
+        return l10n.usernameIsRequired;
+      case 'invalid challenge parameters':
+      case 'invalid challenge token':
+      case 'challenge token expired':
+      case 'nonce already consumed':
+        return isRu
+            ? 'Сессия авторизации устарела. Попробуйте снова.'
+            : 'Authentication session expired. Please try again.';
+      default:
+        return data['error'] as String?;
+    }
   } catch (_) {
     return null;
   }
@@ -322,6 +386,11 @@ class AuthException implements Exception {
 
   @override
   String toString() => 'AuthException($message)';
+}
+
+class ServerUnreachableException extends AuthException {
+  const ServerUnreachableException([String? message])
+    : super(message ?? 'Server is unreachable.');
 }
 
 enum SessionCheckStatus {
@@ -361,6 +430,12 @@ class AuthService {
     required AuthMode mode,
     String? email,
   }) async {
+    final isOnline = await gateway.ping(baseUrl);
+    if (!isOnline) {
+      final l10n = platformAppLocalizations();
+      throw ServerUnreachableException(l10n.serverIsUnreachable);
+    }
+
     final result = switch (mode) {
       AuthMode.register => await gateway.register(
         baseUrl: baseUrl,
@@ -586,6 +661,7 @@ class AuthService {
   Future<void> changePassword({
     required String serverId,
     required String baseUrl,
+    String? currentPassword,
     required String newPassword,
   }) async {
     final token = await readAccessToken(serverId);
@@ -597,22 +673,88 @@ class AuthService {
       throw AuthException(platformAppLocalizations().authErrorNoSavedUsername);
     }
 
+    final curPw = currentPassword ?? await secretStore.readSavedPassword(serverId);
+    if (curPw == null || curPw.isEmpty) {
+      throw AuthException(platformAppLocalizations().passwordCannotBeEmpty);
+    }
+
+    final clientNonce = ScramUtils.generateRandomHex(16);
+    dynamic challenge;
+    try {
+      final res = await _client.get(
+        _endpoint(baseUrl, '/api/account/reauth/challenge').replace(queryParameters: {'nonce': clientNonce}),
+        headers: {'authorization': 'Bearer $token'},
+      );
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        challenge = jsonDecode(res.body);
+      }
+    } catch (_) {}
+
+    if (challenge == null) {
+      try {
+        final res = await _client.get(
+          _endpoint(baseUrl, '/api/auth/challenge').replace(queryParameters: {
+            'username': username,
+            'nonce': clientNonce,
+          }),
+        );
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          challenge = jsonDecode(res.body);
+        }
+      } catch (_) {}
+    }
+
     final scramKeys = await ScramUtils.generateArgon2idRegistrationKeys(
       newPassword,
     );
+
+    final payload = <String, dynamic>{
+      'kdf': 'argon2id',
+      'salt': scramKeys.saltHex,
+      'm': scramKeys.memCostKb,
+      't': scramKeys.timeCost,
+      'p': scramKeys.lanes,
+      'stored_key': scramKeys.storedKeyHex,
+      'server_key': scramKeys.serverKeyHex,
+    };
+
+    if (challenge != null && challenge['auth_mode'] == 'scram-argon2id') {
+      final salt = challenge['salt'] as String;
+      final m = challenge['m'] as int;
+      final t = challenge['t'] as int;
+      final p = challenge['p'] as int;
+      final nonce = challenge['nonce'] as String;
+      final challengeToken = challenge['challenge_token'] as String;
+
+      final authMessage = ScramUtils.scramArgon2idAuthMessage(
+        username,
+        nonce,
+        salt,
+        m,
+        t,
+        p,
+      );
+      final proof = await ScramUtils.computeArgon2idProof(
+        password: curPw,
+        saltHex: salt,
+        memCostKb: m,
+        timeCost: t,
+        lanes: p,
+        authMessage: authMessage,
+      );
+
+      payload['current_nonce'] = nonce;
+      payload['current_client_proof'] = proof.clientProofHex;
+      payload['current_challenge_token'] = challengeToken;
+    } else {
+      payload['current_password'] = curPw;
+    }
+
     await _sendAuthorizedJson(
       method: 'POST',
       uri: _endpoint(baseUrl, '/api/account/password'),
       token: token,
-      payload: {
-        'kdf': 'argon2id',
-        'salt': scramKeys.saltHex,
-        'm': scramKeys.memCostKb,
-        't': scramKeys.timeCost,
-        'p': scramKeys.lanes,
-        'stored_key': scramKeys.storedKeyHex,
-        'server_key': scramKeys.serverKeyHex,
-      },
+      payload: payload,
       fallbackMessage: platformAppLocalizations().passwordChangeFailedGeneric,
     );
 

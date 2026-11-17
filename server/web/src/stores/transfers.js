@@ -23,12 +23,30 @@ import { isVideoFile, extractVideoPoster } from '../utils/videoThumbnail.js';
 const queue = writable([]);
 const activeRequests = new Map();
 const isDrawerOpen = writable(false);
+let statsRefreshTimer = null;
+
+function scheduleStatsRefresh() {
+  clearTimeout(statsRefreshTimer);
+  statsRefreshTimer = setTimeout(async () => {
+    try {
+      authStore.user.set(await apiGet('/api/account'));
+      await refreshStats();
+    } catch (_) {}
+  }, 400);
+}
 
 /**
  * Derived count of active transfers (running or queued).
  */
 export const activeCount = derived(queue, ($q) =>
   $q.filter((t) => t.status === 'running' || t.status === 'queued').length
+);
+
+/**
+ * Derived count of completed transfers.
+ */
+export const completedCount = derived(queue, ($q) =>
+  $q.filter((t) => t.status === 'completed').length
 );
 
 /**
@@ -44,6 +62,7 @@ export const transfersStore = {
   queue,
   isDrawerOpen,
   activeCount,
+  completedCount,
   totalSpeed,
 
   toggleDrawer() {
@@ -163,15 +182,18 @@ export const transfersStore = {
 
       if (controller.signal.aborted) return;
 
-      if (item.size > 10 * 1024 * 1024) {
-        // Chunked upload for files > 10MB
+      const SINGLE_UPLOAD_MAX_SIZE = 50 * 1024 * 1024; // 50MB matches mobile client threshold
+      if (item.size > SINGLE_UPLOAD_MAX_SIZE) {
+        // Adaptive chunked upload for files > 50MB
+        const isResumed = (item.transferred || 0) > 0;
         await filesApi.uploadFileChunked({
           scope: item.scope,
           path: item.path,
           file: item.file,
           thumbnail: thumbnailBlob,
           onProgress: updateProgress,
-          signal: controller.signal
+          signal: controller.signal,
+          checkResume: isResumed
         });
       } else {
         // Single upload for small files
@@ -192,10 +214,7 @@ export const transfersStore = {
           return { ...t, status: 'completed', progress: 100, transferred: item.size, speed: 0 };
         })
       );
-      try {
-        authStore.user.set(await apiGet('/api/account'));
-        await refreshStats();
-      } catch (_) {}
+      scheduleStatsRefresh();
     } catch (err) {
       const isQuota = err.status === 413 || err.data?.code === 'quota_exceeded' || err.message === 'storageQuotaExceeded';
       const errorMessage = isQuota

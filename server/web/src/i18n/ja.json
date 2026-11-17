@@ -277,9 +277,11 @@
     "account": "アカウントとセキュリティ",
     "logged_in": "サインイン中：",
     "change_password": "パスワードを変更",
+    "current_password": "現在のパスワード",
     "new_password": "新しいパスワード",
     "confirm_new_password": "新しいパスワードを確認",
     "password_error_empty": "パスワードは空にできません",
+    "password_error_current_empty": "現在のパスワードを入力してください",
     "password_error_mismatch": "パスワードが一致しません",
     "sign_out": "サインアウト",
     "file_mgmt": "ファイル管理と検索",
@@ -306,7 +308,8 @@
     "login_1_hour": "1時間",
     "login_1_day": "1日",
     "login_30_days": "30日",
-    "login_never": "なし"
+    "login_never": "なし",
+    "rebuild_index_hashed_unavailable": "ハッシュ化ストレージではファイルシステムインデックスの再構築は利用できません。"
   },
   "toasts": {
     "login_success": "サインインしました！",
@@ -378,7 +381,8 @@
     "serverMaintenance": "サーバーはメンテナンス中です。ファイル操作は後ほど再開されます。",
     "storageQuotaExceeded": "ストレージの上限を超えました。ファイルを削除するか、管理者に上限の引き上げを依頼してください。",
     "resetPasswordStep1Body": "ユーザー名を入力し、管理者に6桁の復旧コードを依頼してください。",
-    "resetPasswordStep2Body": "管理者から受け取った6桁のコードと新しいパスワードを入力してください。"
+    "resetPasswordStep2Body": "管理者から受け取った6桁のコードと新しいパスワードを入力してください。",
+    "hashedStorageRebuildUnavailable": "ハッシュ化ストレージではファイルシステムインデックスの再構築は利用できません"
   },
   "recovery": {
     "resetPasswordTitle": "パスワードを再設定",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "スーパーユーザーアカウントを変更することはできません。",
       "cannot_block_superuser": "スーパーユーザーを停止することはできません。",
       "cannot_delete_superuser": "スーパーユーザーを削除することはできません。",
-      "quota_exceeded_default": "ユーザーのクォータがデフォルトのストレージ制限を超えることはできません。"
+      "quota_exceeded_default": "ユーザーのクォータがデフォルトのストレージ制限を超えることはできません。",
+      "hashed_storage_rebuild_unavailable": "ハッシュ化ストレージではファイルシステムインデックスの再構築は利用できません。"
     },
     "fields": {
       "registration_mode": {

@@ -277,9 +277,11 @@
     "account": "계정 및 보안",
     "logged_in": "로그인 계정",
     "change_password": "비밀번호 변경",
+    "current_password": "현재 비밀번호",
     "new_password": "새 비밀번호",
     "confirm_new_password": "새 비밀번호 확인",
     "password_error_empty": "비밀번호는 비워 둘 수 없습니다",
+    "password_error_current_empty": "현재 비밀번호를 입력해주세요",
     "password_error_mismatch": "비밀번호가 일치하지 않습니다",
     "sign_out": "로그아웃",
     "file_mgmt": "파일 관리 및 검색",
@@ -306,7 +308,8 @@
     "login_1_hour": "1시간",
     "login_1_day": "1일",
     "login_30_days": "30일",
-    "login_never": "사용 안 함"
+    "login_never": "사용 안 함",
+    "rebuild_index_hashed_unavailable": "해시된 저장소에는 파일 시스템 색인 다시 만들기를 사용할 수 없습니다."
   },
   "toasts": {
     "login_success": "로그인했습니다!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "서버 점검 중입니다. 파일 작업은 나중에 재개됩니다.",
     "storageQuotaExceeded": "저장 공간 한도를 초과했습니다. 파일을 삭제하거나 관리자에게 한도 상향을 요청하세요.",
     "resetPasswordStep1Body": "사용자 이름을 입력하고 관리자에게 6자리 복구 코드를 요청하세요.",
-    "resetPasswordStep2Body": "관리자가 제공한 6자리 코드와 새 비밀번호를 입력하세요."
+    "resetPasswordStep2Body": "관리자가 제공한 6자리 코드와 새 비밀번호를 입력하세요.",
+    "hashedStorageRebuildUnavailable": "해시된 저장소에는 파일 시스템 색인 다시 만들기를 사용할 수 없습니다"
   },
   "recovery": {
     "resetPasswordTitle": "비밀번호 재설정",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "슈퍼유저 계정은 수정할 수 없습니다.",
       "cannot_block_superuser": "슈퍼유저는 차단할 수 없습니다.",
       "cannot_delete_superuser": "슈퍼유저는 삭제할 수 없습니다.",
-      "quota_exceeded_default": "사용자 할당량은 기본 저장소 제한을 초과할 수 없습니다."
+      "quota_exceeded_default": "사용자 할당량은 기본 저장소 제한을 초과할 수 없습니다.",
+      "hashed_storage_rebuild_unavailable": "해시된 저장소에는 파일 시스템 색인 다시 만들기를 사용할 수 없습니다."
     },
     "fields": {
       "registration_mode": {

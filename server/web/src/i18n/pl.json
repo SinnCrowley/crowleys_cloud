@@ -277,9 +277,11 @@
     "account": "Konto i bezpieczeństwo",
     "logged_in": "Zalogowano jako",
     "change_password": "Zmień hasło",
+    "current_password": "Aktualne hasło",
     "new_password": "Nowe hasło",
     "confirm_new_password": "Potwierdź nowe hasło",
     "password_error_empty": "Hasło nie może być puste",
+    "password_error_current_empty": "Aktualne hasło nie może być puste",
     "password_error_mismatch": "Hasła nie są zgodne",
     "sign_out": "Wyloguj się",
     "file_mgmt": "Zarządzanie plikami i wyszukiwanie",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 godzina",
     "login_1_day": "1 dzień",
     "login_30_days": "30 dni",
-    "login_never": "Nigdy"
+    "login_never": "Nigdy",
+    "rebuild_index_hashed_unavailable": "Odbudowa indeksu systemu plików jest niedostępna dla magazynu haszowanego."
   },
   "toasts": {
     "login_success": "Zalogowano pomyślnie!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "Serwer jest w trakcie konserwacji. Operacje na plikach zostaną wznowione później.",
     "storageQuotaExceeded": "Przekroczono limit miejsca. Usuń pliki lub poproś administratora o zwiększenie limitu.",
     "resetPasswordStep1Body": "Wpisz nazwę użytkownika i poproś administratora o sześciocyfrowy kod odzyskiwania.",
-    "resetPasswordStep2Body": "Wpisz sześciocyfrowy kod od administratora oraz nowe hasło."
+    "resetPasswordStep2Body": "Wpisz sześciocyfrowy kod od administratora oraz nowe hasło.",
+    "hashedStorageRebuildUnavailable": "Odbudowa indeksu systemu plików jest niedostępna dla magazynu haszowanego"
   },
   "recovery": {
     "resetPasswordTitle": "Zresetuj hasło",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "Konto superużytkownika nie może być modyfikowane.",
       "cannot_block_superuser": "Superużytkownik nie może zostać zablokowany.",
       "cannot_delete_superuser": "Superużytkownik nie może zostać usunięty.",
-      "quota_exceeded_default": "Limit użytkownika nie może przekraczać domyślnego limitu pamięci."
+      "quota_exceeded_default": "Limit użytkownika nie może przekraczać domyślnego limitu pamięci.",
+      "hashed_storage_rebuild_unavailable": "Odbudowa indeksu systemu plików jest niedostępna dla magazynu haszowanego."
     },
     "fields": {
       "registration_mode": {

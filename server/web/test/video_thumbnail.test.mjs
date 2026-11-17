@@ -581,7 +581,7 @@ test('transfersStore: passes extracted thumbnail blob to single upload when extr
   assert.equal(get(transfersStore.queue)[0].status, 'completed');
 });
 
-test('transfersStore: passes extracted thumbnail blob to chunked upload for files > 10MB', async () => {
+test('transfersStore: passes extracted thumbnail blob to chunked upload for files > 50MB', async () => {
   let chunkedCalled = false;
   let receivedThumbnail = null;
   const mockBlob = new Blob(['large-video-webp'], { type: 'image/webp' });
@@ -600,7 +600,7 @@ test('transfersStore: passes extracted thumbnail blob to chunked upload for file
     }
   );
 
-  const file = { name: 'huge.mp4', size: 12 * 1024 * 1024 }; // 12MB > 10MB
+  const file = { name: 'huge.mp4', size: 60 * 1024 * 1024 }; // 60MB > 50MB
   transfersStore.enqueueUpload(file);
   await settle(); await settle();
 

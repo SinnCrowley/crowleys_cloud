@@ -411,7 +411,12 @@ void FileController::listDir(const drogon::HttpRequestPtr &req,
       callback(drogon::HttpResponse::newHttpJsonResponse(body));
     }
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -624,7 +629,12 @@ void FileController::thumbnail(const drogon::HttpRequestPtr &req,
     resp->setStatusCode(drogon::k202Accepted);
     callback(resp);
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -759,10 +769,29 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       auto ext = std::filesystem::path(pathToCheck).extension().string();
       std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
       const bool isSvgz = (ext == ".svgz");
+      const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
+      const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
+
+      const auto rangeHeader = req->getHeader("range");
+      const auto rangeOpt = server::utils::parseRangeHeader(rangeHeader, plainSize);
+      if (rangeOpt.has_value() && !rangeOpt->satisfiable) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k416RequestedRangeNotSatisfiable);
+        resp->addHeader("Content-Range", "bytes */" + std::to_string(plainSize));
+        callback(resp);
+        return;
+      }
 
       if (req->isHead() || req->getMethod() == drogon::Head) {
         auto resp = drogon::HttpResponse::newHttpResponse();
-        resp->setStatusCode(drogon::k200OK);
+        if (rangeOpt.has_value()) {
+          resp->setStatusCode(drogon::k206PartialContent);
+          resp->addHeader("Content-Range", "bytes " + std::to_string(rangeOpt->start) + "-" + std::to_string(rangeOpt->end) + "/" + std::to_string(plainSize));
+          resp->addHeader("Content-Length", std::to_string(rangeOpt->length));
+        } else {
+          resp->setStatusCode(drogon::k200OK);
+          resp->addHeader("Content-Length", std::to_string(plainSize));
+        }
         if (!mimeType.empty()) {
           resp->setContentTypeString(mimeType);
         } else {
@@ -771,21 +800,30 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
         if (isSvgz) {
           resp->addHeader("Content-Encoding", "gzip");
         }
-        const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
-        const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
+        resp->addHeader("Accept-Ranges", "bytes");
         resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
         resp->addHeader("ETag", fileEtag);
         resp->addHeader("Cache-Control", "private, no-cache");
-        resp->addHeader("Content-Length", std::to_string(plainSize));
         callback(resp);
         return;
       }
 
+      const std::size_t startOffset = rangeOpt.has_value() ? rangeOpt->start : 0;
+      const std::size_t streamLength = rangeOpt.has_value() ? rangeOpt->length : plainSize;
+
       auto resp = drogon::HttpResponse::newStreamResponse(
-        [reader = utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey), activity](char *data, size_t size) mutable {
+        [reader = utils::decryptedFileReader(physicalPath, server::ctx().config.encryptionKey, startOffset, streamLength), activity](char *data, size_t size) mutable {
           return reader(data, size);
         });
-      resp->addHeader("Content-Length", std::to_string(plainSize));
+      if (rangeOpt.has_value()) {
+        resp->setStatusCode(drogon::k206PartialContent);
+        resp->addHeader("Content-Range", "bytes " + std::to_string(rangeOpt->start) + "-" + std::to_string(rangeOpt->end) + "/" + std::to_string(plainSize));
+        resp->addHeader("Content-Length", std::to_string(rangeOpt->length));
+      } else {
+        resp->setStatusCode(drogon::k200OK);
+        resp->addHeader("Content-Length", std::to_string(plainSize));
+      }
+      resp->addHeader("Accept-Ranges", "bytes");
       if (!mimeType.empty()) {
         resp->setContentTypeString(mimeType);
       } else {
@@ -794,8 +832,6 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       if (isSvgz) {
         resp->addHeader("Content-Encoding", "gzip");
       }
-      const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
-      const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
       resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
       resp->addHeader("ETag", fileEtag);
       resp->addHeader("Cache-Control", "private, no-cache");
@@ -862,19 +898,70 @@ void FileController::downloadFile(const drogon::HttpRequestPtr &req,
       return;
     }
 
-    auto resp = utils::storageFileResponse(fullPath, activity, server::ctx().fileService->mimeTypeFor(fullPath));
-    if (fullPath.extension().string() == ".svgz") {
-      resp->addHeader("Content-Encoding", "gzip");
+    const auto rangeHeader = req->getHeader("range");
+    const auto rangeOpt = server::utils::parseRangeHeader(rangeHeader, fileSize);
+    if (rangeOpt.has_value() && !rangeOpt->satisfiable) {
+      auto resp = drogon::HttpResponse::newHttpResponse();
+      resp->setStatusCode(drogon::k416RequestedRangeNotSatisfiable);
+      resp->addHeader("Content-Range", "bytes */" + std::to_string(fileSize));
+      callback(resp);
+      return;
     }
+
     const auto isDownloadQuery = req->getParameter("download") == "1" || req->getParameter("download") == "true";
     const auto dispositionType = isDownloadQuery ? "attachment" : "inline";
     const auto fileName = fullPath.filename().string();
+    const auto mimeType = server::ctx().fileService->mimeTypeFor(fullPath);
+
+    if (req->isHead() || req->getMethod() == drogon::Head) {
+      auto resp = drogon::HttpResponse::newHttpResponse();
+      if (rangeOpt.has_value()) {
+        resp->setStatusCode(drogon::k206PartialContent);
+        resp->addHeader("Content-Range", "bytes " + std::to_string(rangeOpt->start) + "-" + std::to_string(rangeOpt->end) + "/" + std::to_string(fileSize));
+        resp->addHeader("Content-Length", std::to_string(rangeOpt->length));
+      } else {
+        resp->setStatusCode(drogon::k200OK);
+        resp->addHeader("Content-Length", std::to_string(fileSize));
+      }
+      resp->setContentTypeString(mimeType);
+      resp->addHeader("Accept-Ranges", "bytes");
+      if (fullPath.extension().string() == ".svgz") {
+        resp->addHeader("Content-Encoding", "gzip");
+      }
+      resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
+      resp->addHeader("ETag", quotedFileEtag);
+      resp->addHeader("Cache-Control", "private, no-cache");
+      callback(resp);
+      return;
+    }
+
+    const std::size_t startOffset = rangeOpt.has_value() ? rangeOpt->start : 0;
+    const std::size_t streamLength = rangeOpt.has_value() ? rangeOpt->length : fileSize;
+
+    auto resp = utils::storageFileResponse(fullPath, activity, mimeType, false, startOffset, streamLength);
+    if (rangeOpt.has_value()) {
+      resp->setStatusCode(drogon::k206PartialContent);
+      resp->addHeader("Content-Range", "bytes " + std::to_string(rangeOpt->start) + "-" + std::to_string(rangeOpt->end) + "/" + std::to_string(fileSize));
+      resp->addHeader("Content-Length", std::to_string(rangeOpt->length));
+    } else {
+      resp->setStatusCode(drogon::k200OK);
+      resp->addHeader("Content-Length", std::to_string(fileSize));
+    }
+    resp->addHeader("Accept-Ranges", "bytes");
+    if (fullPath.extension().string() == ".svgz") {
+      resp->addHeader("Content-Encoding", "gzip");
+    }
     resp->addHeader("Content-Disposition", utils::formatContentDisposition(dispositionType, fileName));
     resp->addHeader("ETag", quotedFileEtag);
     resp->addHeader("Cache-Control", "private, no-cache");
     callback(resp);
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -1009,7 +1096,12 @@ void FileController::downloadZip(const drogon::HttpRequestPtr &req,
     resp->addHeader("Content-Disposition", utils::formatContentDisposition("attachment", zipFilename));
     callback(resp);
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -1041,7 +1133,12 @@ void FileController::uploadStatus(const drogon::HttpRequestPtr &req,
     body["bytes_received"] = static_cast<Json::UInt64>(bytesReceived);
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -1599,7 +1696,12 @@ void FileController::shareFile(const drogon::HttpRequestPtr &req,
     server::ctx().fileIndexService->setSharedFlag(userId, pathRaw, isShared);
     callback(jsonOk());
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -1699,7 +1801,12 @@ void FileController::createFolder(const drogon::HttpRequestPtr &req,
 
     callback(jsonOk());
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -1871,7 +1978,12 @@ void FileController::moveFile(const drogon::HttpRequestPtr &req,
     body["message"] = "File/folder moved successfully";
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -2004,7 +2116,12 @@ void FileController::rebuildIndex(const drogon::HttpRequestPtr &req,
     body["message"] = "Index rebuilt successfully";
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -2057,7 +2174,12 @@ void FileController::getTrash(const drogon::HttpRequestPtr &req,
       callback(drogon::HttpResponse::newHttpJsonResponse(body));
     }
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -2103,7 +2225,12 @@ void FileController::checkRestoreConflicts(const drogon::HttpRequestPtr &req,
     }
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -2142,7 +2269,12 @@ void FileController::restoreTrash(const drogon::HttpRequestPtr &req,
     body["ok"] = true;
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -2176,7 +2308,12 @@ void FileController::deleteTrash(const drogon::HttpRequestPtr &req,
     body["ok"] = true;
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -2198,7 +2335,12 @@ void FileController::getTrashSettings(const drogon::HttpRequestPtr &req,
     body["trash_retention_days"] = static_cast<Json::Int64>(days);
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -2236,7 +2378,12 @@ void FileController::setTrashSettings(const drogon::HttpRequestPtr &req,
     body["trash_retention_days"] = static_cast<Json::Int64>(days);
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 
@@ -2276,7 +2423,12 @@ void FileController::getAccountStats(const drogon::HttpRequestPtr &req,
 
     callback(drogon::HttpResponse::newHttpJsonResponse(body));
   } catch (const std::exception &e) {
-    callback(jsonError(drogon::k400BadRequest, e.what()));
+    std::string errMsg = e.what();
+    std::string errCode = "";
+    if (errMsg.find("hashed storage") != std::string::npos) {
+      errCode = "hashed_storage_rebuild_unavailable";
+    }
+    callback(jsonError(drogon::k400BadRequest, errMsg, errCode));
   }
 }
 

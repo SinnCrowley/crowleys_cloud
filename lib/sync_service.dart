@@ -16,6 +16,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
@@ -832,20 +833,22 @@ class HttpSyncApiClient implements SyncApiClient {
       );
     }
 
-    const chunkSize = 2 * 1024 * 1024;
+    const minChunkSize = 1 * 1024 * 1024;
+    const maxChunkSize = 16 * 1024 * 1024;
+    var currentChunkSize = 2 * 1024 * 1024;
     int offset = await getUploadStatus(server: server, remotePath: remotePath);
     if (offset >= totalBytes) offset = 0;
 
     final raf = await file.open(mode: FileMode.read);
     try {
       while (offset < totalBytes) {
-        final currentChunkSize = (offset + chunkSize > totalBytes)
+        final readSize = (offset + currentChunkSize > totalBytes)
             ? (totalBytes - offset)
-            : chunkSize;
-        final isLast = (offset + currentChunkSize) >= totalBytes;
+            : currentChunkSize;
+        final isLast = (offset + readSize) >= totalBytes;
 
         await raf.setPosition(offset);
-        final bytes = await raf.read(currentChunkSize);
+        final bytes = await raf.read(readSize);
 
         final uri = _apiUri(server.connectionUrl, '/api/files').replace(
           queryParameters: {
@@ -857,6 +860,7 @@ class HttpSyncApiClient implements SyncApiClient {
           },
         );
 
+        final stopwatch = Stopwatch()..start();
         final response = await _authorizedRequest(
           server: server,
           send: (token) => _client.post(
@@ -870,6 +874,7 @@ class HttpSyncApiClient implements SyncApiClient {
             body: bytes,
           ),
         );
+        stopwatch.stop();
 
         if (response.statusCode < 200 || response.statusCode >= 300) {
           throw SyncException(
@@ -879,6 +884,15 @@ class HttpSyncApiClient implements SyncApiClient {
                 ),
           );
         }
+
+        final elapsedSec = math.max(
+          0.05,
+          stopwatch.elapsedMilliseconds / 1000.0,
+        );
+        final speed = bytes.length / elapsedSec;
+        final targetChunk =
+            ((speed * 2.0) / (512 * 1024)).round() * (512 * 1024);
+        currentChunkSize = targetChunk.clamp(minChunkSize, maxChunkSize);
 
         offset += bytes.length;
       }

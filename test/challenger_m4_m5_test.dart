@@ -53,6 +53,12 @@ class _ControllableAuthGateway implements AuthGateway {
   bool shouldThrowGenericException = false;
 
   @override
+  Future<bool> ping(
+    String baseUrl, {
+    Duration timeout = const Duration(seconds: 4),
+  }) async => true;
+
+  @override
   Future<AuthResult> login({
     required String baseUrl,
     required String username,

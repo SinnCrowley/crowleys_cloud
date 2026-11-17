@@ -277,9 +277,11 @@
     "account": "账户和安全",
     "logged_in": "登录身份",
     "change_password": "修改密码",
+    "current_password": "当前密码",
     "new_password": "新密码",
     "confirm_new_password": "确认新密码",
     "password_error_empty": "密码不能为空",
+    "password_error_current_empty": "当前密码不能为空",
     "password_error_mismatch": "两次输入的密码不一致",
     "sign_out": "退出登录",
     "file_mgmt": "文件管理和搜索",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 小时",
     "login_1_day": "1 天",
     "login_30_days": "30 天",
-    "login_never": "从不"
+    "login_never": "从不",
+    "rebuild_index_hashed_unavailable": "哈希存储不可用文件系统索引重建。"
   },
   "toasts": {
     "login_success": "登录成功！",
@@ -378,7 +381,8 @@
     "serverMaintenance": "服务器正在维护，文件操作稍后恢复。",
     "storageQuotaExceeded": "已超出存储配额，请删除文件或联系管理员提高限额。",
     "resetPasswordStep1Body": "输入用户名，并向管理员索取六位恢复码。",
-    "resetPasswordStep2Body": "输入管理员提供的六位恢复码和新密码。"
+    "resetPasswordStep2Body": "输入管理员提供的六位恢复码和新密码。",
+    "hashedStorageRebuildUnavailable": "哈希存储不可用文件系统索引重建"
   },
   "recovery": {
     "resetPasswordTitle": "重置密码",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "无法修改超级用户账户。",
       "cannot_block_superuser": "无法停用超级用户。",
       "cannot_delete_superuser": "无法删除超级用户。",
-      "quota_exceeded_default": "用户配额不能超过默认存储限制。"
+      "quota_exceeded_default": "用户配额不能超过默认存储限制。",
+      "hashed_storage_rebuild_unavailable": "哈希存储不可用文件系统索引重建。"
     },
     "fields": {
       "registration_mode": {

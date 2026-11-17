@@ -36,7 +36,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   import { apiGet } from './api/client.js';
 
   import { filesStore } from './stores/files.js';
-  import { transfersStore, activeCount } from './stores/transfers.js';
+  import { transfersStore, activeCount, completedCount } from './stores/transfers.js';
   import { authStore } from './stores/auth.js';
   import { themeState } from './stores/theme.js';
   import { filesApi } from './api/files.js';
@@ -268,53 +268,57 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
     };
 
     window.addEventListener('popstate', handlePopState);
-    const refreshAccount = async () => {
+    let lastAccountRefresh = 0;
+    const refreshAccount = async (force = false) => {
       if (!get(authStore.isAuthenticated)) return;
+      const now = Date.now();
+      if (!force && now - lastAccountRefresh < 15000) return;
+      lastAccountRefresh = now;
       try { authStore.user.set(await apiGet('/api/account')); } catch (_) {}
       refreshStats();
     };
-    refreshAccount();
-    window.addEventListener('focus', refreshAccount);
-    const onVisibilityChange = () => { if (!document.hidden) refreshAccount(); };
+    refreshAccount(true);
+    window.addEventListener('focus', () => refreshAccount(false));
+    const onVisibilityChange = () => { if (!document.hidden) refreshAccount(false); };
     document.addEventListener('visibilitychange', onVisibilityChange);
-    const accountTimer = setInterval(refreshAccount, 30000);
-
-    if (get(authStore.isAuthenticated)) {
-      refreshStats();
-    }
+    const accountTimer = setInterval(() => refreshAccount(false), 60000);
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
-      window.removeEventListener('focus', refreshAccount);
+      window.removeEventListener('focus', () => refreshAccount(false));
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearInterval(accountTimer);
     };
   });
 
-  // Automatically refresh directories silently while transfers are active
+  // Automatically refresh directories silently on transfer completion (debounced to avoid request spam)
   let prevActiveCount = 0;
+  let prevCompletedCount = 0;
   let autoClearTransfersTimeout;
-  let activeRefreshInterval;
+  let dirRefreshTimeout;
+
+  function scheduleDirectoryRefresh() {
+    clearTimeout(dirRefreshTimeout);
+    dirRefreshTimeout = setTimeout(() => {
+      if (currentRoute === 'files') {
+        filesStore.loadDirectory(true);
+      }
+    }, 400);
+  }
+
+  completedCount.subscribe((count) => {
+    if (count > prevCompletedCount) {
+      scheduleDirectoryRefresh();
+    }
+    prevCompletedCount = count;
+  });
 
   activeCount.subscribe((count) => {
     if (count > 0) {
       clearTimeout(autoClearTransfersTimeout);
-      if (!activeRefreshInterval) {
-        activeRefreshInterval = setInterval(() => {
-          if (currentRoute === 'files') {
-            filesStore.loadDirectory(true);
-          }
-        }, 1500);
-      }
     } else {
-      if (activeRefreshInterval) {
-        clearInterval(activeRefreshInterval);
-        activeRefreshInterval = null;
-      }
       if (prevActiveCount > 0) {
-        if (currentRoute === 'files') {
-          filesStore.loadDirectory(true);
-        }
+        scheduleDirectoryRefresh();
 
         const q = get(transfersStore.queue) || [];
         const hasPaused = q.some((t) => t.status === 'paused');

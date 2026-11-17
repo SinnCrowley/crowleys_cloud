@@ -171,7 +171,9 @@ def run(hash_files):
                     assert download('publicX/sub/private.txt')[0] == 200
                     assert request('/api/files?scope=private',dict(paths=['Moved']),token,method='DELETE')[0] == 200
                     assert download('publicX/sub/private.txt')[0] == 200
-                obj('/api/account/password',dict(new_password='changed-password'),token)
+                assert request('/api/account/password', dict(new_password='changed-password'), token)[0] == 400
+                assert request('/api/account/password', dict(current_password='wrong-password', new_password='changed-password'), token)[0] == 401
+                obj('/api/account/password', dict(current_password='test-password', new_password='changed-password'), token)
                 assert download('chunks.txt')[0] == 401
                 assert request('/api/files?scope=private&path=chunks.txt',token=sync)[0] == 401
                 token=obj('/api/login',dict(username='review',password='changed-password'))['access_token']

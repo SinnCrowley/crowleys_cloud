@@ -277,9 +277,11 @@
     "account": "الحساب والأمان",
     "logged_in": "تم تسجيل الدخول باسم",
     "change_password": "تغيير كلمة المرور",
+    "current_password": "كلمة المرور الحالية",
     "new_password": "كلمة المرور الجديدة",
     "confirm_new_password": "تأكيد كلمة المرور الجديدة",
     "password_error_empty": "لا يمكن أن تكون كلمة المرور فارغة",
+    "password_error_current_empty": "لا يمكن أن تكون كلمة المرور الحالية فارغة",
     "password_error_mismatch": "كلمتا المرور غير متطابقتين",
     "sign_out": "تسجيل الخروج",
     "file_mgmt": "إدارة الملفات والبحث",
@@ -306,7 +308,8 @@
     "login_1_hour": "ساعة واحدة",
     "login_1_day": "يوم واحد",
     "login_30_days": "٣٠ يومًا",
-    "login_never": "أبدًا"
+    "login_never": "أبدًا",
+    "rebuild_index_hashed_unavailable": "إعادة بناء فهرس نظام الملفات غير متوفرة للتخزين المحوسب بالتجزئة."
   },
   "toasts": {
     "login_success": "تم تسجيل الدخول بنجاح!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "الخادم قيد الصيانة. ستُستأنف عمليات الملفات لاحقًا.",
     "storageQuotaExceeded": "تم تجاوز حصة التخزين. احذف ملفات أو اطلب من المسؤول زيادة الحد.",
     "resetPasswordStep1Body": "أدخل اسم المستخدم واطلب من المسؤول رمز استرداد من ستة أرقام.",
-    "resetPasswordStep2Body": "أدخل الرمز المكوّن من ستة أرقام الذي قدّمه المسؤول وكلمة المرور الجديدة."
+    "resetPasswordStep2Body": "أدخل الرمز المكوّن من ستة أرقام الذي قدّمه المسؤول وكلمة المرور الجديدة.",
+    "hashedStorageRebuildUnavailable": "إعادة بناء فهرس نظام الملفات غير متوفرة للتخزين المحوسب بالتجزئة"
   },
   "recovery": {
     "resetPasswordTitle": "إعادة تعيين كلمة المرور",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "لا يمكن تعديل حساب المستخدم الخارق.",
       "cannot_block_superuser": "لا يمكن حظر المستخدم الخارق.",
       "cannot_delete_superuser": "لا يمكن حذف المستخدم الخارق.",
-      "quota_exceeded_default": "لا يمكن أن تتجاوز حصة المستخدم حد التخزين الافتراضي."
+      "quota_exceeded_default": "لا يمكن أن تتجاوز حصة المستخدم حد التخزين الافتراضي.",
+      "hashed_storage_rebuild_unavailable": "إعادة بناء فهرس نظام الملفات غير متوفرة للتخزين المحوسب بالتجزئة."
     },
     "fields": {
       "registration_mode": {

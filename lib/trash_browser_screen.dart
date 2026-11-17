@@ -24,6 +24,7 @@ import 'package:crowleys_cloud/trash_browser_controller.dart';
 import 'package:crowleys_cloud/restore_conflict_dialog.dart';
 import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
 import 'package:crowleys_cloud/shared/viewers/text_viewer.dart';
+import 'package:crowleys_cloud/shared/utils/blurhash_decoder.dart';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 
@@ -203,6 +204,12 @@ class _TrashBrowserScreenState extends State<TrashBrowserScreen> {
             return controller.downloadTempForEdit(serverItem);
           },
           thumbnailPlaceholderBuilder: (fileItem) {
+            final blurhash = fileItem.serverFile?.blurhash;
+            if (blurhash != null && BlurHashDecoder.isValid(blurhash)) {
+              return SizedBox.expand(
+                child: BlurHashWidget(blurhash: blurhash, fit: BoxFit.contain),
+              );
+            }
             return SizedBox(
               width: 150,
               height: 150,

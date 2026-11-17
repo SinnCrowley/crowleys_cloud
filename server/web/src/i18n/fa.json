@@ -277,9 +277,11 @@
     "account": "حساب و امنیت",
     "logged_in": "واردشده با نام",
     "change_password": "تغییر گذرواژه",
+    "current_password": "رمز عبور فعلی",
     "new_password": "گذرواژهٔ جدید",
     "confirm_new_password": "تأیید گذرواژهٔ جدید",
     "password_error_empty": "گذرواژه نمی‌تواند خالی باشد",
+    "password_error_current_empty": "رمز عبور فعلی نمی‌تواند خالی باشد",
     "password_error_mismatch": "گذرواژه‌ها یکسان نیستند",
     "sign_out": "خروج",
     "file_mgmt": "مدیریت فایل و جست‌وجو",
@@ -306,7 +308,8 @@
     "login_1_hour": "۱ ساعت",
     "login_1_day": "۱ روز",
     "login_30_days": "۳۰ روز",
-    "login_never": "هرگز"
+    "login_never": "هرگز",
+    "rebuild_index_hashed_unavailable": "بازسازی نمایه سیستم فایل برای ذخیره‌سازی هش‌شده در دسترس نیست."
   },
   "toasts": {
     "login_success": "با موفقیت وارد شدید!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "سرور در حال نگهداری است. عملیات فایل‌ها بعداً از سر گرفته می‌شود.",
     "storageQuotaExceeded": "سهمیهٔ فضای ذخیره‌سازی تمام شده است. فایل‌ها را حذف کنید یا از مدیر افزایش سهمیه بخواهید.",
     "resetPasswordStep1Body": "نام کاربری را وارد کنید و از مدیر یک کد بازیابی شش‌رقمی بخواهید.",
-    "resetPasswordStep2Body": "کد شش‌رقمی ارائه‌شده توسط مدیر و گذرواژهٔ جدید را وارد کنید."
+    "resetPasswordStep2Body": "کد شش‌رقمی ارائه‌شده توسط مدیر و گذرواژهٔ جدید را وارد کنید.",
+    "hashedStorageRebuildUnavailable": "بازسازی نمایه سیستم فایل برای ذخیره‌سازی هش‌شده در دسترس نیست"
   },
   "recovery": {
     "resetPasswordTitle": "بازنشانی گذرواژه",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "حساب کاربری ابرکاربر قابل تغییر نیست.",
       "cannot_block_superuser": "ابرکاربر را نمی‌توان مسدود کرد.",
       "cannot_delete_superuser": "ابرکاربر را نمی‌توان حذف کرد.",
-      "quota_exceeded_default": "سهمیه کاربر نمی‌تواند از حد پیش‌فرض فضای ذخیره‌سازی فراتر رود."
+      "quota_exceeded_default": "سهمیه کاربر نمی‌تواند از حد پیش‌فرض فضای ذخیره‌سازی فراتر رود.",
+      "hashed_storage_rebuild_unavailable": "بازسازی نمایه سیستم فایل برای ذخیره‌سازی هش‌شده در دسترس نیست."
     },
     "fields": {
       "registration_mode": {

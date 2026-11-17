@@ -277,9 +277,11 @@
     "account": "Konto und Sicherheit",
     "logged_in": "Angemeldet als",
     "change_password": "Passwort ändern",
+    "current_password": "Aktuelles Passwort",
     "new_password": "Neues Passwort",
     "confirm_new_password": "Neues Passwort bestätigen",
     "password_error_empty": "Das Passwort darf nicht leer sein",
+    "password_error_current_empty": "Das aktuelle Passwort darf nicht leer sein",
     "password_error_mismatch": "Die Passwörter stimmen nicht überein",
     "sign_out": "Abmelden",
     "file_mgmt": "Dateiverwaltung und Suche",
@@ -306,7 +308,8 @@
     "login_1_hour": "1 Stunde",
     "login_1_day": "1 Tag",
     "login_30_days": "30 Tage",
-    "login_never": "Nie"
+    "login_never": "Nie",
+    "rebuild_index_hashed_unavailable": "Dateisystem-Indexneuaufbau ist für gehashtes Speichern nicht verfügbar."
   },
   "toasts": {
     "login_success": "Erfolgreich angemeldet!",
@@ -378,7 +381,8 @@
     "serverMaintenance": "Der Server wird gewartet. Dateioperationen werden später fortgesetzt.",
     "storageQuotaExceeded": "Das Speicherlimit wurde überschritten. Löschen Sie Dateien oder bitten Sie einen Administrator um ein höheres Limit.",
     "resetPasswordStep1Body": "Geben Sie Ihren Benutzernamen ein und bitten Sie einen Administrator um einen sechsstelligen Wiederherstellungscode.",
-    "resetPasswordStep2Body": "Geben Sie den sechsstelligen Code des Administrators und Ihr neues Passwort ein."
+    "resetPasswordStep2Body": "Geben Sie den sechsstelligen Code des Administrators und Ihr neues Passwort ein.",
+    "hashedStorageRebuildUnavailable": "Dateisystem-Indexneuaufbau ist für gehashtes Speichern nicht verfügbar"
   },
   "recovery": {
     "resetPasswordTitle": "Passwort zurücksetzen",
@@ -475,7 +479,8 @@
       "cannot_modify_superuser": "Das Superuser-Konto kann nicht geändert werden.",
       "cannot_block_superuser": "Der Superuser kann nicht gesperrt werden.",
       "cannot_delete_superuser": "Der Superuser kann nicht gelöscht werden.",
-      "quota_exceeded_default": "Das Benutzerkontingent darf das Standard-Speicherlimit nicht überschreiten."
+      "quota_exceeded_default": "Das Benutzerkontingent darf das Standard-Speicherlimit nicht überschreiten.",
+      "hashed_storage_rebuild_unavailable": "Dateisystem-Indexneuaufbau ist für gehashtes Speichern nicht verfügbar."
     },
     "fields": {
       "registration_mode": {
