@@ -151,16 +151,12 @@ class HttpAuthGateway implements AuthGateway {
             authMessage: authMessage,
           );
 
-          return await _postAuth(
-            _endpoint(baseUrl, '/api/login'),
-            {
-              'username': username,
-              'nonce': serverNonce,
-              'client_proof': proof.clientProofHex,
-              'challenge_token': challengeToken,
-            },
-            expectedServerSignature: proof.expectedServerSignatureHex,
-          );
+          return await _postAuth(_endpoint(baseUrl, '/api/login'), {
+            'username': username,
+            'nonce': serverNonce,
+            'client_proof': proof.clientProofHex,
+            'challenge_token': challengeToken,
+          }, expectedServerSignature: proof.expectedServerSignatureHex);
         } else if (authMode == 'scram') {
           final saltHex = chal['salt'] as String;
           final iterations = (chal['iterations'] as num).toInt();
@@ -180,16 +176,12 @@ class HttpAuthGateway implements AuthGateway {
             authMessage: authMessage,
           );
 
-          return await _postAuth(
-            _endpoint(baseUrl, '/api/login'),
-            {
-              'username': username,
-              'nonce': serverNonce,
-              'client_proof': proof.clientProofHex,
-              'challenge_token': challengeToken,
-            },
-            expectedServerSignature: proof.expectedServerSignatureHex,
-          );
+          return await _postAuth(_endpoint(baseUrl, '/api/login'), {
+            'username': username,
+            'nonce': serverNonce,
+            'client_proof': proof.clientProofHex,
+            'challenge_token': challengeToken,
+          }, expectedServerSignature: proof.expectedServerSignatureHex);
         }
       } catch (e) {
         if (e is AuthException) rethrow;
@@ -418,7 +410,7 @@ class AuthException implements Exception {
 
 class ServerUnreachableException extends AuthException {
   const ServerUnreachableException([String? message])
-      : super(message ?? 'Server is unreachable.');
+    : super(message ?? 'Server is unreachable.');
 }
 
 enum SessionCheckStatus {
