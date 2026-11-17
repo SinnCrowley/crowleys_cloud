@@ -673,7 +673,8 @@ class AuthService {
       throw AuthException(platformAppLocalizations().authErrorNoSavedUsername);
     }
 
-    final curPw = currentPassword ?? await secretStore.readSavedPassword(serverId);
+    final curPw =
+        currentPassword ?? await secretStore.readSavedPassword(serverId);
     if (curPw == null || curPw.isEmpty) {
       throw AuthException(platformAppLocalizations().passwordCannotBeEmpty);
     }
@@ -682,7 +683,10 @@ class AuthService {
     dynamic challenge;
     try {
       final res = await _client.get(
-        _endpoint(baseUrl, '/api/account/reauth/challenge').replace(queryParameters: {'nonce': clientNonce}),
+        _endpoint(
+          baseUrl,
+          '/api/account/reauth/challenge',
+        ).replace(queryParameters: {'nonce': clientNonce}),
         headers: {'authorization': 'Bearer $token'},
       );
       if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -693,10 +697,9 @@ class AuthService {
     if (challenge == null) {
       try {
         final res = await _client.get(
-          _endpoint(baseUrl, '/api/auth/challenge').replace(queryParameters: {
-            'username': username,
-            'nonce': clientNonce,
-          }),
+          _endpoint(baseUrl, '/api/auth/challenge').replace(
+            queryParameters: {'username': username, 'nonce': clientNonce},
+          ),
         );
         if (res.statusCode >= 200 && res.statusCode < 300) {
           challenge = jsonDecode(res.body);

@@ -1848,10 +1848,12 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
       setState(() => _errorText = l10n.passwordsDoNotMatch);
       return;
     }
-    Navigator.of(context).pop(_PasswordChangeResult(
-      currentPassword: currentPassword,
-      newPassword: password,
-    ));
+    Navigator.of(context).pop(
+      _PasswordChangeResult(
+        currentPassword: currentPassword,
+        newPassword: password,
+      ),
+    );
   }
 
   @override
@@ -1879,8 +1881,9 @@ class _PasswordChangeDialogState extends State<_PasswordChangeDialog> {
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
                 ),
-                onPressed: () =>
-                    setState(() => _showCurrentPassword = !_showCurrentPassword),
+                onPressed: () => setState(
+                  () => _showCurrentPassword = !_showCurrentPassword,
+                ),
               ),
             ),
             onSubmitted: (_) => _submit(),

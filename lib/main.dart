@@ -1776,10 +1776,8 @@ class _MainScreenState extends State<MainScreen> {
                 return response;
               }
               final seconds =
-                  (int.tryParse(response.headers['retry-after'] ?? '') ?? 5).clamp(
-                    1,
-                    300,
-                  );
+                  (int.tryParse(response.headers['retry-after'] ?? '') ?? 5)
+                      .clamp(1, 300);
               await _transferManager.waitForMaintenance(
                 transferItem,
                 Duration(seconds: seconds),
@@ -1980,10 +1978,14 @@ class _MainScreenState extends State<MainScreen> {
         }
 
         stopwatch.stop();
-        final elapsedSec = math.max(0.05, stopwatch.elapsedMilliseconds / 1000.0);
+        final elapsedSec = math.max(
+          0.05,
+          stopwatch.elapsedMilliseconds / 1000.0,
+        );
         final speed = bytes.length / elapsedSec; // bytes/sec
         // Target ~2.0 seconds per chunk, aligned to 512KB
-        final targetChunk = ((speed * 2.0) / (512 * 1024)).round() * (512 * 1024);
+        final targetChunk =
+            ((speed * 2.0) / (512 * 1024)).round() * (512 * 1024);
         currentChunkSize = targetChunk.clamp(minChunkSize, maxChunkSize);
 
         offset += bytes.length;
