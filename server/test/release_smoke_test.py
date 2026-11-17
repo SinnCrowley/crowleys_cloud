@@ -96,10 +96,29 @@ with tempfile.TemporaryDirectory(prefix='crowley release test ') as temporary:
                     raise AssertionError('Server startup timed out:\n' + output)
                 action()
             except Exception:
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
                 log.flush()
+                server_logs = []
                 if log_path.exists():
-                    output = log_path.read_text(errors='replace')
-                    sys.stderr.write(f"\n=== Server Log on failure ===\n{output}\n=============================\n")
+                    text = log_path.read_text(errors='replace').strip()
+                    if text:
+                        server_logs.append(f"--- stdout/stderr (smoke.log) ---\n{text}")
+                logs_dir = root / 'logs'
+                if logs_dir.is_dir():
+                    for f in sorted(logs_dir.glob('*.log')):
+                        try:
+                            ftext = f.read_text(errors='replace').strip()
+                            if ftext:
+                                server_logs.append(f"--- {f.name} ---\n{ftext}")
+                        except Exception:
+                            pass
+                combined = "\n".join(server_logs)
+                sys.stderr.write(f"\n=== Server Log on failure ===\n{combined}\n=============================\n")
                 raise
             finally:
                 process.terminate()
@@ -121,9 +140,10 @@ with tempfile.TemporaryDirectory(prefix='crowley release test ') as temporary:
         if os.name != 'nt':
             assert local.stat().st_mode & 0o777 == 0o600
         status, body = request('/api/register', dict(username='smoke', password='release-test-password'))
-        assert status < 300
+        assert status < 300, f'Registration failed with HTTP {status}: {body.decode(errors="replace")}'
         tokens.append(json.loads(body)['access_token'])
-        assert request('/api/files?scope=private&path=roundtrip.txt', b'preserve encrypted data', tokens[0])[0] == 201
+        upload_status, upload_body = request('/api/files?scope=private&path=roundtrip.txt', b'preserve encrypted data', tokens[0])
+        assert upload_status == 201, f'Upload failed with HTTP {upload_status}: {upload_body.decode(errors="replace")}'
     launch(first_launch)
     saved = local.read_bytes()
     # Simulate replacing the shipped defaults during an upgrade.
