@@ -16,7 +16,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/shared/utils/blurhash_decoder.dart';

@@ -23,7 +23,7 @@ import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/shared/utils/url_utils.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 
 class ServerSetupResult {
   const ServerSetupResult({

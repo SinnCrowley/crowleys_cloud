@@ -16,7 +16,7 @@
 import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/auth_service.dart';
 import 'package:crowleys_cloud/secret_store.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 
 class AuthCard extends StatefulWidget {

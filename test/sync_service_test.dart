@@ -68,6 +68,7 @@ class _FakeApiClient implements SyncApiClient {
     required String remotePath,
     required File file,
     Uint8List? thumbnailBytes,
+    int? chunkSize,
   }) async {
     if (authRequired) throw const SyncException('Authentication required');
     if (maintenance) {

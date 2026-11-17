@@ -14,7 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:crowleys_cloud/app_theme.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 
 export 'package:crowleys_cloud/app_theme.dart';
 

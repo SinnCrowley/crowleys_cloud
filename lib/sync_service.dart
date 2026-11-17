@@ -668,6 +668,7 @@ abstract class SyncApiClient {
     required String remotePath,
     required File file,
     Uint8List? thumbnailBytes,
+    int? chunkSize,
   });
 
   Future<bool> fileExists({
@@ -797,6 +798,7 @@ class HttpSyncApiClient implements SyncApiClient {
     required String remotePath,
     required File file,
     Uint8List? thumbnailBytes,
+    int? chunkSize,
   }) async {
     final String? thumbnailBase64;
     if (thumbnailBytes != null && thumbnailBytes.isNotEmpty) {
@@ -835,7 +837,7 @@ class HttpSyncApiClient implements SyncApiClient {
 
     const minChunkSize = 1 * 1024 * 1024;
     const maxChunkSize = 16 * 1024 * 1024;
-    var currentChunkSize = 2 * 1024 * 1024;
+    var currentChunkSize = chunkSize ?? (2 * 1024 * 1024);
     int offset = await getUploadStatus(server: server, remotePath: remotePath);
     if (offset >= totalBytes) offset = 0;
 
@@ -885,14 +887,16 @@ class HttpSyncApiClient implements SyncApiClient {
           );
         }
 
-        final elapsedSec = math.max(
-          0.05,
-          stopwatch.elapsedMilliseconds / 1000.0,
-        );
-        final speed = bytes.length / elapsedSec;
-        final targetChunk =
-            ((speed * 2.0) / (512 * 1024)).round() * (512 * 1024);
-        currentChunkSize = targetChunk.clamp(minChunkSize, maxChunkSize);
+        if (chunkSize == null) {
+          final elapsedSec = math.max(
+            0.05,
+            stopwatch.elapsedMilliseconds / 1000.0,
+          );
+          final speed = bytes.length / elapsedSec;
+          final targetChunk =
+              ((speed * 2.0) / (512 * 1024)).round() * (512 * 1024);
+          currentChunkSize = targetChunk.clamp(minChunkSize, maxChunkSize);
+        }
 
         offset += bytes.length;
       }

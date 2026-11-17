@@ -45,7 +45,7 @@ import 'package:crowleys_cloud/sync_service.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
 import 'package:crowleys_cloud/transfer_widgets.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';

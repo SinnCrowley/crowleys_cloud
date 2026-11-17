@@ -550,6 +550,7 @@ void main() {
           remotePath: 'backup/multi_chunk.mp4',
           file: multiChunkVideo,
           thumbnailBytes: thumbBytes,
+          chunkSize: 2 * 1024 * 1024,
         );
 
         expect(capturedHeaders.length, 3);

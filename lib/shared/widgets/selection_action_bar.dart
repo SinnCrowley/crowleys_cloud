@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 
 /// Configuration for a single action button inside [SelectionActionBar].
 class SelectionAction {

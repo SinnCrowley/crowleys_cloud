@@ -18,7 +18,7 @@ import 'package:crowleys_cloud/l10n/generated/app_localizations_cs.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations_pl.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations_ru.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations_uk.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'test_helpers.dart';

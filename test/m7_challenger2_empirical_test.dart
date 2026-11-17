@@ -14,7 +14,7 @@ import 'package:crowleys_cloud/cache_service.dart';
 import 'package:crowleys_cloud/shared/utils/blurhash_decoder.dart';
 import 'package:crowleys_cloud/shared/utils/scroll_throttler.dart';
 import 'package:crowleys_cloud/shared/widgets/remote_thumbnail_widget.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';

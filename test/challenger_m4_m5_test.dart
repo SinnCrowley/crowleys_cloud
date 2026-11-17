@@ -21,7 +21,7 @@ import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_profile.dart';
 import 'package:crowleys_cloud/server_setup_screen.dart';
 import 'package:crowleys_cloud/server_store.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

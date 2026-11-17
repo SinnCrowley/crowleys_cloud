@@ -18,7 +18,7 @@ import 'dart:io';
 import 'package:crowleys_cloud/file_item.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/shared/viewers/image_viewer.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'test_helpers.dart';
 

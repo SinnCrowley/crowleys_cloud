@@ -20,7 +20,7 @@ import 'package:crowleys_cloud/secret_store.dart';
 import 'package:crowleys_cloud/server_browser_controller.dart';
 import 'package:crowleys_cloud/server_file_item.dart';
 import 'package:crowleys_cloud/server_profile.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

@@ -17,7 +17,7 @@ import 'package:crowleys_cloud/app_constants.dart';
 import 'package:crowleys_cloud/l10n/generated/app_localizations.dart';
 import 'package:crowleys_cloud/shared/utils/byte_formatter.dart';
 import 'package:crowleys_cloud/transfer_manager.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 
 class TransferBottomBar extends StatelessWidget {
   const TransferBottomBar({
